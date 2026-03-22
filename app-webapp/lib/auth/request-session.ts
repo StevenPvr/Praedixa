@@ -44,6 +44,14 @@ interface ResolveRequestSessionOptions {
   preserveCookiesOnRefreshFailure?: boolean;
 }
 
+function shouldClearDanglingAuthCookies(input: {
+  signed: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+}): boolean {
+  return Boolean(input.signed || input.accessToken || input.refreshToken);
+}
+
 export async function resolveRequestSession(
   request: NextRequest,
   options: ResolveRequestSessionOptions = {},
@@ -62,79 +70,109 @@ export async function resolveRequestSession(
   if (!signed) {
     return {
       ok: false,
-      clearCookies: Boolean(accessTokenCookie || refreshTokenCookie),
+      clearCookies: shouldClearDanglingAuthCookies({
+        signed,
+        accessToken: accessTokenCookie,
+        refreshToken: refreshTokenCookie,
+      }),
     };
   }
 
+  let issuerUrl: string;
+  let clientId: string;
+  let clientSecret: string;
+  let sessionSecret: string;
   try {
-    const { issuerUrl, clientId, clientSecret, sessionSecret } = getOidcEnv();
-    let session = await verifySession(signed, sessionSecret);
-    if (!session) {
+    ({ issuerUrl, clientId, clientSecret, sessionSecret } = getOidcEnv());
+  } catch {
+    return {
+      ok: false,
+      clearCookies: false,
+    };
+  }
+
+  let session: AuthSessionData | null;
+  try {
+    session = await verifySession(signed, sessionSecret);
+  } catch {
+    session = null;
+  }
+  if (!session) {
+    return { ok: false, clearCookies: true };
+  }
+
+  let accessToken = accessTokenCookie ?? "";
+  let refreshToken = refreshTokenCookie ?? null;
+
+  if (
+    accessToken &&
+    !(await doesSessionMatchAccessToken(session, accessToken))
+  ) {
+    return { ok: false, clearCookies: true };
+  }
+
+  if (
+    refreshToken &&
+    !(await doesSessionMatchRefreshToken(session, refreshToken))
+  ) {
+    return { ok: false, clearCookies: true };
+  }
+
+  if (
+    accessToken &&
+    getApiAccessTokenCompatibilityReason(accessToken, clientId)
+  ) {
+    return { ok: false, clearCookies: true };
+  }
+
+  const needsRefresh =
+    !accessToken || isTokenExpired(accessToken, minTtlSeconds);
+
+  if (needsRefresh) {
+    if (!refreshToken) {
       return { ok: false, clearCookies: true };
     }
 
-    let accessToken = accessTokenCookie ?? "";
-    let refreshToken = refreshTokenCookie ?? null;
-
-    if (
-      accessToken &&
-      !(await doesSessionMatchAccessToken(session, accessToken))
-    ) {
-      return { ok: false, clearCookies: true };
-    }
-
-    if (
-      refreshToken &&
-      !(await doesSessionMatchRefreshToken(session, refreshToken))
-    ) {
-      return { ok: false, clearCookies: true };
-    }
-
-    if (
-      accessToken &&
-      getApiAccessTokenCompatibilityReason(accessToken, clientId)
-    ) {
-      return { ok: false, clearCookies: true };
-    }
-
-    const needsRefresh =
-      !accessToken || isTokenExpired(accessToken, minTtlSeconds);
-
-    if (needsRefresh) {
-      if (!refreshToken) {
-        return { ok: false, clearCookies: true };
-      }
-
-      const refreshed = await refreshTokens({
+    let refreshed: Awaited<ReturnType<typeof refreshTokens>>;
+    try {
+      refreshed = await refreshTokens({
         issuerUrl,
         clientId,
         clientSecret,
         refreshToken,
       });
+    } catch {
+      return {
+        ok: false,
+        clearCookies: !preserveCookiesOnRefreshFailure,
+      };
+    }
 
-      if (!refreshed?.access_token) {
-        return {
-          ok: false,
-          clearCookies: !preserveCookiesOnRefreshFailure,
-        };
-      }
+    if (!refreshed?.access_token) {
+      return {
+        ok: false,
+        clearCookies: !preserveCookiesOnRefreshFailure,
+      };
+    }
 
-      const user = userFromAccessToken(refreshed.access_token, clientId);
-      const exp = getTokenExp(refreshed.access_token);
-      const tokenCompatibilityReason = getApiAccessTokenCompatibilityReason(
-        refreshed.access_token,
-        clientId,
-      );
-      if (!user || !exp || tokenCompatibilityReason) {
-        return { ok: false, clearCookies: true };
-      }
+    const user = userFromAccessToken(refreshed.access_token, clientId);
+    const exp = getTokenExp(refreshed.access_token);
+    const tokenCompatibilityReason = getApiAccessTokenCompatibilityReason(
+      refreshed.access_token,
+      clientId,
+    );
+    if (!user || !exp || tokenCompatibilityReason) {
+      return { ok: false, clearCookies: true };
+    }
 
-      if (user.role === "super_admin" && !allowSuperAdmin) {
-        return { ok: false, clearCookies: true };
-      }
+    if (user.role === "super_admin" && !allowSuperAdmin) {
+      return { ok: false, clearCookies: true };
+    }
 
-      accessToken = refreshed.access_token;
-      refreshToken = refreshed.refresh_token ?? refreshToken;
+    accessToken = refreshed.access_token;
+    refreshToken = refreshed.refresh_token ?? refreshToken;
+
+    try {
       session = await buildSessionData(
         user,
         exp,
@@ -156,27 +194,27 @@ export async function resolveRequestSession(
           refreshTokenMaxAge: refreshed.refresh_expires_in ?? 60 * 60 * 24 * 14,
         },
       };
+    } catch {
+      return {
+        ok: false,
+        clearCookies: false,
+      };
     }
-
-    if (session.role === "super_admin" && !allowSuperAdmin) {
-      return { ok: false, clearCookies: true };
-    }
-
-    if (!accessToken) {
-      return { ok: false, clearCookies: true };
-    }
-
-    return {
-      ok: true,
-      session,
-      accessToken,
-      refreshToken,
-      cookieUpdate: null,
-    };
-  } catch {
-    return {
-      ok: false,
-      clearCookies: !preserveCookiesOnRefreshFailure,
-    };
   }
+
+  if (session.role === "super_admin" && !allowSuperAdmin) {
+    return { ok: false, clearCookies: true };
+  }
+
+  if (!accessToken) {
+    return { ok: false, clearCookies: true };
+  }
+
+  return {
+    ok: true,
+    session,
+    accessToken,
+    refreshToken,
+    cookieUpdate: null,
+  };
 }

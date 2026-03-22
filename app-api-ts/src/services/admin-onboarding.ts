@@ -43,6 +43,10 @@ import {
   saveOnboardingCaseTaskDraft as saveOnboardingCaseTaskDraftProjection,
   synchronizeOnboardingCaseProjection,
 } from "./admin-onboarding-runtime.js";
+import {
+  activateOnboardingApiSource as activateOnboardingApiSourceActivation,
+  uploadOnboardingFileSource as uploadOnboardingFileSourceActivation,
+} from "./onboarding-source-activations.js";
 
 const READ_FALLBACK_CAMUNDA_CODES = new Set([
   "CAMUNDA_DEPLOY_FAILED",
@@ -484,6 +488,43 @@ export async function saveOnboardingTaskDraft(input: {
       note: input.note ?? null,
       payloadJson: input.payloadJson ?? {},
     });
+  });
+}
+
+export async function uploadOnboardingFileSource(input: {
+  organizationId: string;
+  caseId: string;
+  taskId: string;
+  actorUserId: string;
+  headers: Record<string, string | string[] | undefined>;
+  rawBodyBytes: Buffer | null;
+}) {
+  assertUuid(input.organizationId, "organizationId");
+  assertUuid(input.caseId, "caseId");
+  assertUuid(input.taskId, "taskId");
+  const actorUserId = requireActorId(input.actorUserId, "actorUserId");
+
+  return await uploadOnboardingFileSourceActivation({
+    ...input,
+    actorUserId,
+  });
+}
+
+export async function activateOnboardingApiSource(input: {
+  organizationId: string;
+  caseId: string;
+  taskId: string;
+  actorUserId: string;
+  connectionId: string;
+}) {
+  assertUuid(input.organizationId, "organizationId");
+  assertUuid(input.caseId, "caseId");
+  assertUuid(input.taskId, "taskId");
+  const actorUserId = requireActorId(input.actorUserId, "actorUserId");
+
+  return await activateOnboardingApiSourceActivation({
+    ...input,
+    actorUserId,
   });
 }
 

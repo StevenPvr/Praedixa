@@ -2,12 +2,16 @@
 
 import { useMemo, useState } from "react";
 import type {
+  EmailDeliveryProof,
   OnboardingAccessInviteRecipient,
   OnboardingInviteRole,
 } from "@praedixa/shared-types/api";
-import { Button } from "@praedixa/ui";
 
 import type { SiteHierarchy } from "../client-context";
+import {
+  AccessInviteRecipientsCard,
+  AccessModelSecurityFields,
+} from "./access-model-task-sections";
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -27,6 +31,30 @@ function readBoolean(payload: Record<string, unknown>, key: string): boolean {
   return payload[key] === true;
 }
 
+function readDeliveryProof(
+  payload: Record<string, unknown>,
+  key: string,
+): EmailDeliveryProof | null {
+  const value = asRecord(payload[key]);
+  const status = readTrimmedString(value, "status");
+  const initiatedAt = readTrimmedString(value, "initiatedAt");
+  if (!status || !initiatedAt) {
+    return null;
+  }
+
+  return {
+    provider: "resend",
+    channel: "keycloak_execute_actions_email",
+    delivery: "activation_link",
+    status: status as EmailDeliveryProof["status"],
+    initiatedAt,
+    eventType: readTrimmedString(value, "eventType") || null,
+    occurredAt: readTrimmedString(value, "occurredAt") || null,
+    observedAt: readTrimmedString(value, "observedAt") || null,
+    summary: readTrimmedString(value, "summary") || null,
+  };
+}
+
 function isInviteRoleSiteScoped(role: OnboardingInviteRole): boolean {
   return role === "manager" || role === "hr_manager";
 }
@@ -40,7 +68,7 @@ function recipientKey(
 export function readAccessInviteRecipients(
   payload: Record<string, unknown>,
 ): OnboardingAccessInviteRecipient[] {
-  const rawValue = payload.inviteRecipients;
+  const rawValue = payload["inviteRecipients"];
   if (!Array.isArray(rawValue)) {
     return [];
   }
@@ -78,6 +106,7 @@ export function readAccessInviteRecipients(
           passwordHandling: "client_sets_password",
           invitedAt: readTrimmedString(entry, "invitedAt") || null,
           invitedUserId: readTrimmedString(entry, "invitedUserId") || null,
+          deliveryProof: readDeliveryProof(entry, "deliveryProof"),
           errorMessage: readTrimmedString(entry, "errorMessage") || null,
         },
       ];
@@ -103,8 +132,11 @@ function roleLabel(role: OnboardingInviteRole): string {
       return "Employe";
     case "viewer":
       return "Lecteur";
+    default: {
+      const unreachable: never = role;
+      throw new TypeError(`Unhandled invite role: ${unreachable}`);
+    }
   }
-  return role;
 }
 
 function statusLabel(
@@ -114,11 +146,14 @@ function statusLabel(
     case "draft":
       return "A envoyer";
     case "sent":
-      return "Envoye";
+      return "Initialisee";
     case "failed":
       return "En echec";
+    default: {
+      const unreachable: never = status;
+      throw new TypeError(`Unhandled invite status: ${unreachable}`);
+    }
   }
-  return status;
 }
 
 function statusClassName(
@@ -131,8 +166,11 @@ function statusClassName(
       return "text-danger";
     case "draft":
       return "text-warning";
+    default: {
+      const unreachable: never = status;
+      throw new TypeError(`Unhandled invite status class: ${unreachable}`);
+    }
   }
-  return "text-ink-tertiary";
 }
 
 type AccessModelTaskFieldsProps = {
@@ -147,7 +185,7 @@ export function AccessModelTaskFields({
   disabled,
   hierarchy,
   onChange,
-}: AccessModelTaskFieldsProps) {
+}: Readonly<AccessModelTaskFieldsProps>) {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<OnboardingInviteRole>("viewer");
   const [inviteSiteId, setInviteSiteId] = useState("");
@@ -191,6 +229,7 @@ export function AccessModelTaskFields({
       passwordHandling: "client_sets_password",
       invitedAt: null,
       invitedUserId: null,
+      deliveryProof: null,
       errorMessage: null,
     };
 
@@ -220,181 +259,45 @@ export function AccessModelTaskFields({
 
   return (
     <div className="grid gap-3">
-      <label className="space-y-1 text-xs text-ink-tertiary">
-        <span>Mode SSO</span>
-        <select
-          value={readTrimmedString(payload, "ssoMode")}
-          disabled={disabled}
-          onChange={(event) => onChange({ ssoMode: event.target.value })}
-          className="min-h-[40px] w-full rounded-lg border border-border px-3 py-2 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-surface-sunken"
-        >
-          <option value="">Selectionner</option>
-          <option value="manual">Invitation securisee par email</option>
-          <option value="oidc">OIDC</option>
-          <option value="saml">SAML</option>
-        </select>
-      </label>
+      <AccessModelSecurityFields
+        ssoMode={readTrimmedString(payload, "ssoMode")}
+        roleModelConfirmed={readBoolean(payload, "roleModelConfirmed")}
+        siteScopesValidated={readBoolean(payload, "siteScopesValidated")}
+        disabled={disabled}
+        onSsoModeChange={(value) => onChange({ ssoMode: value })}
+        onRoleModelConfirmedChange={(value) =>
+          onChange({ roleModelConfirmed: value })
+        }
+        onSiteScopesValidatedChange={(value) =>
+          onChange({ siteScopesValidated: value })
+        }
+      />
 
-      <label className="flex items-center gap-2 text-sm text-ink-secondary">
-        <input
-          type="checkbox"
-          checked={readBoolean(payload, "roleModelConfirmed")}
-          disabled={disabled}
-          onChange={(event) =>
-            onChange({ roleModelConfirmed: event.target.checked })
+      <AccessInviteRecipientsCard
+        disabled={disabled}
+        hierarchy={hierarchy}
+        inviteEmail={inviteEmail}
+        inviteRole={inviteRole}
+        inviteSiteId={inviteSiteId}
+        inviteRoleRequiresSite={inviteRoleRequiresSite}
+        recipients={recipients}
+        invitationsReady={readBoolean(payload, "invitationsReady")}
+        onInviteEmailChange={setInviteEmail}
+        onInviteRoleChange={(nextRole) => {
+          setInviteRole(nextRole);
+          if (!isInviteRoleSiteScoped(nextRole)) {
+            setInviteSiteId("");
+          } else if (!inviteSiteId && hierarchy[0]?.id) {
+            setInviteSiteId(hierarchy[0].id);
           }
-        />
-        <span>Modele de roles confirme</span>
-      </label>
-
-      <label className="flex items-center gap-2 text-sm text-ink-secondary">
-        <input
-          type="checkbox"
-          checked={readBoolean(payload, "siteScopesValidated")}
-          disabled={disabled}
-          onChange={(event) =>
-            onChange({ siteScopesValidated: event.target.checked })
-          }
-        />
-        <span>Scopes site verifies</span>
-      </label>
-
-      <div className="rounded-xl border border-border bg-surface-sunken/40 p-3">
-        <p className="text-sm font-medium text-ink">
-          Invitations securisees comptes client
-        </p>
-        <p className="mt-1 text-xs text-ink-tertiary">
-          Praedixa n&apos;affiche ni n&apos;envoie aucun mot de passe. Chaque
-          compte recoit un lien d&apos;activation Keycloak a usage limite pour
-          definir son mot de passe lui-meme.
-        </p>
-
-        <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1.7fr)_minmax(180px,1fr)_minmax(180px,1fr)_auto]">
-          <label className="space-y-1 text-xs text-ink-tertiary">
-            <span>Email</span>
-            <input
-              type="email"
-              value={inviteEmail}
-              disabled={disabled}
-              placeholder="nom@entreprise.com"
-              onChange={(event) => setInviteEmail(event.target.value)}
-              className="min-h-[40px] w-full rounded-lg border border-border px-3 py-2 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-surface-sunken"
-            />
-          </label>
-
-          <label className="space-y-1 text-xs text-ink-tertiary">
-            <span>Role</span>
-            <select
-              value={inviteRole}
-              disabled={disabled}
-              onChange={(event) => {
-                const nextRole = event.target.value as OnboardingInviteRole;
-                setInviteRole(nextRole);
-                if (!isInviteRoleSiteScoped(nextRole)) {
-                  setInviteSiteId("");
-                } else if (!inviteSiteId && hierarchy[0]?.id) {
-                  setInviteSiteId(hierarchy[0].id);
-                }
-              }}
-              className="min-h-[40px] w-full rounded-lg border border-border px-3 py-2 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-surface-sunken"
-            >
-              <option value="viewer">Lecteur</option>
-              <option value="employee">Employe</option>
-              <option value="manager">Manager</option>
-              <option value="hr_manager">RH</option>
-              <option value="org_admin">Admin org</option>
-            </select>
-          </label>
-
-          <label className="space-y-1 text-xs text-ink-tertiary">
-            <span>Site</span>
-            <select
-              value={inviteSiteId}
-              disabled={disabled || !inviteRoleRequiresSite}
-              onChange={(event) => setInviteSiteId(event.target.value)}
-              className="min-h-[40px] w-full rounded-lg border border-border px-3 py-2 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-surface-sunken"
-            >
-              <option value="">Selectionner un site</option>
-              {hierarchy.map((site) => (
-                <option key={site.id} value={site.id}>
-                  {site.city ? `${site.name} - ${site.city}` : site.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <div className="flex items-end">
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={
-                disabled ||
-                inviteEmail.trim().length === 0 ||
-                (inviteRoleRequiresSite && inviteSiteId.length === 0)
-              }
-              onClick={handleAddRecipient}
-            >
-              Ajouter
-            </Button>
-          </div>
-        </div>
-
-        {recipients.length === 0 ? (
-          <p className="mt-3 text-xs text-ink-tertiary">
-            Aucun compte client prepare pour l&apos;instant.
-          </p>
-        ) : (
-          <div className="mt-3 space-y-2">
-            {recipients.map((recipient) => (
-              <div
-                key={recipientKey(recipient)}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-ink">
-                    {recipient.email}
-                  </p>
-                  <p className="text-xs text-ink-tertiary">
-                    {roleLabel(recipient.role)}
-                    {recipient.siteName ? ` - ${recipient.siteName}` : ""}
-                    {recipient.invitedAt
-                      ? ` - envoye le ${new Date(recipient.invitedAt).toLocaleString("fr-FR")}`
-                      : ""}
-                  </p>
-                  {recipient.errorMessage ? (
-                    <p className="text-xs text-danger">
-                      {recipient.errorMessage}
-                    </p>
-                  ) : null}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`text-xs font-medium ${statusClassName(recipient.status)}`}
-                  >
-                    {statusLabel(recipient.status)}
-                  </span>
-                  {!disabled ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleRemoveRecipient(recipient)}
-                    >
-                      Retirer
-                    </Button>
-                  ) : null}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <p className="mt-3 text-xs text-ink-tertiary">
-          Etat de l&apos;etape:{" "}
-          {readBoolean(payload, "invitationsReady")
-            ? "invitations envoyees et evidence complete"
-            : "au moins une invitation securisee doit etre envoyee avant completion"}
-        </p>
-      </div>
+        }}
+        onInviteSiteIdChange={setInviteSiteId}
+        onAddRecipient={handleAddRecipient}
+        onRemoveRecipient={handleRemoveRecipient}
+        roleLabel={roleLabel}
+        statusLabel={statusLabel}
+        statusClassName={statusClassName}
+      />
     </div>
   );
 }

@@ -1,21 +1,21 @@
 import Link from "next/link";
 import { AlertTriangle, ArrowLeft, Inbox } from "lucide-react";
 
-interface ReadOnlyDetailHeaderProps {
+type ReadOnlyDetailHeaderProps = Readonly<{
   backHref: string;
   backLabel: string;
   title: string;
   description: string;
-}
+}>;
 
 type ReadOnlyStateTone = "empty" | "warning";
 
-interface ReadOnlyStateCardProps {
+type ReadOnlyStateCardProps = Readonly<{
   title: string;
   message: string;
   tone?: ReadOnlyStateTone;
   details?: readonly string[];
-}
+}>;
 
 const toneStyles: Record<
   ReadOnlyStateTone,

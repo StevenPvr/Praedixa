@@ -7,6 +7,12 @@ from typing import Any
 
 import httpx
 
+from app.integrations.connectors._shared import (
+    get_path,
+    require_object,
+    require_record_sequence,
+)
+
 _DEFAULT_ITEMS_PATHS = (
     "data",
     "items",
@@ -26,6 +32,7 @@ _DEFAULT_NEXT_CURSOR_PATHS = (
     "paging.nextCursor",
     "meta.nextCursor",
 )
+CONNECTOR_RESPONSE_RECORDS_FIELD = "connector response records"
 
 
 class ManhattanApiClient:
@@ -104,29 +111,38 @@ def _extract_page(
 
 def _resolve_items(payload: Any, items_path: str | None) -> Any:
     if items_path is not None:
-        return _get_path(payload, items_path)
+        return require_record_sequence(
+            get_path(payload, items_path),
+            field=CONNECTOR_RESPONSE_RECORDS_FIELD,
+        )
 
     if isinstance(payload, Sequence) and not isinstance(payload, (str, bytes)):
-        return payload
+        return require_record_sequence(
+            payload,
+            field=CONNECTOR_RESPONSE_RECORDS_FIELD,
+        )
 
     for candidate in _DEFAULT_ITEMS_PATHS:
-        resolved = _get_path(payload, candidate)
+        resolved = get_path(payload, candidate)
         if isinstance(resolved, Sequence) and not isinstance(resolved, (str, bytes)):
-            return resolved
+            return require_record_sequence(
+                resolved,
+                field=CONNECTOR_RESPONSE_RECORDS_FIELD,
+            )
 
     raise TypeError("Manhattan response does not contain a list of records")
 
 
 def _normalize_records(raw_items: Any) -> list[dict[str, Any]]:
-    if not isinstance(raw_items, Sequence) or isinstance(raw_items, (str, bytes)):
-        raise TypeError("Manhattan response records must be a list")
+    items = require_record_sequence(
+        raw_items,
+        field=CONNECTOR_RESPONSE_RECORDS_FIELD,
+    )
 
-    records: list[dict[str, Any]] = []
-    for raw_item in raw_items:
-        if not isinstance(raw_item, dict):
-            raise TypeError("Manhattan record must be an object")
-        records.append(dict(raw_item))
-    return records
+    return [
+        dict(require_object(raw_item, field="connector record"))
+        for raw_item in items
+    ]
 
 
 def _resolve_next_cursor(payload: Any, next_cursor_path: str | None) -> str | None:
@@ -136,16 +152,7 @@ def _resolve_next_cursor(payload: Any, next_cursor_path: str | None) -> str | No
         else _DEFAULT_NEXT_CURSOR_PATHS
     )
     for candidate in candidate_paths:
-        resolved = _get_path(payload, candidate)
+        resolved = get_path(payload, candidate)
         if isinstance(resolved, str) and resolved.strip():
             return resolved.strip()
     return None
-
-
-def _get_path(value: Any, path: str) -> Any:
-    current = value
-    for segment in path.split("."):
-        if not isinstance(current, dict):
-            return None
-        current = current.get(segment)
-    return current

@@ -21,14 +21,14 @@ function PulseDotInner({
     <motion.span
       aria-hidden="true"
       className={cn("inline-flex h-2 w-2 rounded-full bg-amber-400", className)}
-      animate={
-        reducedMotion
-          ? undefined
-          : {
+      {...(reducedMotion
+        ? {}
+        : {
+            animate: {
               scale: [1, maxScale, 1],
               opacity: [0.55, 1, 0.55],
-            }
-      }
+            },
+          })}
       transition={{
         duration,
         repeat: 3,

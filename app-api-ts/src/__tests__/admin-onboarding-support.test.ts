@@ -71,6 +71,6 @@ describe("admin onboarding support access model validation", () => {
           ],
         },
       }),
-    ).toThrow(/not successfully sent/i);
+    ).toThrow(/not successfully initialized/i);
   });
 });

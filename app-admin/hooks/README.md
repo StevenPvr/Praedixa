@@ -14,6 +14,7 @@ L'admin garde volontairement peu de hooks locaux: ils encapsulent surtout l'acce
 - Les endpoints consommes viennent de `lib/api/endpoints.ts`.
 - Les appels browser passent par le BFF `/api/v1/*`.
 - Les vues admin s'appuient sur ces hooks au lieu de fetcher directement dans les composants.
+- `use-api.ts` garde maintenant le contrat public admin mais delegue le coeur retry/polling/mutations a `@praedixa/api-hooks`, avec l'adapter auth admin (`getValidAccessToken` + reauth).
 
 ## Tests
 

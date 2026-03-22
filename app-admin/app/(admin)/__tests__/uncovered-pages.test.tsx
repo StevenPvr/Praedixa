@@ -52,6 +52,10 @@ vi.mock("@/hooks/use-toast", () => ({
 vi.mock("@/lib/auth/client", () => ({
   getValidAccessToken: vi.fn(() => Promise.resolve("token")),
   useCurrentUser: () => mockCurrentUser,
+  useCurrentUserState: () => ({
+    user: mockCurrentUser,
+    loading: false,
+  }),
 }));
 
 vi.mock("@/lib/api/client", () => ({

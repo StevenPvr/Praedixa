@@ -24,11 +24,11 @@ function saveExpanded(ids: Set<string>) {
   }
 }
 
-interface SiteTreeProps {
+type SiteTreeProps = Readonly<{
   hierarchy: SiteHierarchy[];
   selectedSiteId: string | null;
   onSelectSite: (siteId: string | null) => void;
-}
+}>;
 
 export function SiteTree({
   hierarchy,
@@ -64,6 +64,30 @@ export function SiteTree({
       {hierarchy.map((site) => {
         const isExpanded = expandedSites.has(site.id);
         const isSelected = selectedSiteId === site.id;
+        const hasDepartments = site.departments.length > 0;
+        const ExpandIcon = isExpanded ? ChevronDown : ChevronRight;
+        const expandIcon = hasDepartments ? (
+          <ExpandIcon className="h-3.5 w-3.5" />
+        ) : null;
+        const cityLabel = site.city ? (
+          <span className="truncate text-xs text-ink-placeholder">
+            {site.city}
+          </span>
+        ) : null;
+        const departmentsContent = isExpanded
+          ? site.departments.map((dept) => (
+              <div
+                key={dept.id}
+                className="ml-9 flex items-center gap-2 px-2 py-1 text-xs text-ink-tertiary"
+              >
+                <Users className="h-3 w-3 shrink-0" />
+                <span className="truncate">{dept.name}</span>
+                <span className="ml-auto shrink-0 text-ink-placeholder">
+                  {dept.employeeCount}
+                </span>
+              </div>
+            ))
+          : null;
 
         return (
           <div key={site.id}>
@@ -73,12 +97,7 @@ export function SiteTree({
                 className="flex h-7 w-7 shrink-0 items-center justify-center text-ink-placeholder hover:text-ink-secondary"
                 aria-label={isExpanded ? "Replier" : "Deplier"}
               >
-                {site.departments.length > 0 &&
-                  (isExpanded ? (
-                    <ChevronDown className="h-3.5 w-3.5" />
-                  ) : (
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  ))}
+                {expandIcon}
               </button>
               <button
                 onClick={() => onSelectSite(site.id)}
@@ -91,27 +110,11 @@ export function SiteTree({
               >
                 <MapPin className="h-3.5 w-3.5 shrink-0 text-ink-placeholder" />
                 <span className="truncate">{site.name}</span>
-                {site.city && (
-                  <span className="truncate text-xs text-ink-placeholder">
-                    {site.city}
-                  </span>
-                )}
+                {cityLabel}
               </button>
             </div>
 
-            {isExpanded &&
-              site.departments.map((dept) => (
-                <div
-                  key={dept.id}
-                  className="ml-9 flex items-center gap-2 px-2 py-1 text-xs text-ink-tertiary"
-                >
-                  <Users className="h-3 w-3 shrink-0" />
-                  <span className="truncate">{dept.name}</span>
-                  <span className="ml-auto shrink-0 text-ink-placeholder">
-                    {dept.employeeCount}
-                  </span>
-                </div>
-              ))}
+            {departmentsContent}
           </div>
         );
       })}

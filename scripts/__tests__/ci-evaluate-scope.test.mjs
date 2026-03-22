@@ -97,7 +97,7 @@ test("api scope treats critical release scripts as relevant runtime changes", ()
 
     writeRepoFile(
       tempRoot,
-      "scripts/scw-release-deploy.sh",
+      "scripts/scw/scw-release-deploy.sh",
       "#!/usr/bin/env bash\n",
     );
     const headSha = commitAll(tempRoot, "chore: add release script");
@@ -111,7 +111,7 @@ test("api scope treats critical release scripts as relevant runtime changes", ()
     assert.equal(outputs.relevant, "true");
     assert.equal(outputs.reason, "api_or_ci_critical_paths_changed");
     assert.equal(outputs.architecture_relevant, "true");
-    assert.ok(changedFiles.includes("scripts/scw-release-deploy.sh"));
+    assert.ok(changedFiles.includes("scripts/scw/scw-release-deploy.sh"));
   } finally {
     rmSync(tempRoot, { recursive: true, force: true });
   }
@@ -126,7 +126,7 @@ test("api scope reruns data-engine checks when the pinned Python tool helper cha
 
     writeRepoFile(
       tempRoot,
-      "scripts/ci-python-tool.sh",
+      "scripts/gates/ci-python-tool.sh",
       "#!/usr/bin/env bash\n",
     );
     const headSha = commitAll(tempRoot, "chore: update ci python helper");

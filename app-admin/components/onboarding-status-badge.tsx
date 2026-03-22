@@ -22,11 +22,11 @@ const ONBOARDING_MAP: Record<
 
 export type OnboardingStatus = keyof typeof ONBOARDING_MAP;
 
-interface OnboardingStatusBadgeProps {
+type OnboardingStatusBadgeProps = Readonly<{
   status: OnboardingStatus;
   size?: StatusBadgeProps["size"];
   className?: string;
-}
+}>;
 
 export function OnboardingStatusBadge({
   status,

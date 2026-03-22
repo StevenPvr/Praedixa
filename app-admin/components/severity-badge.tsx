@@ -16,11 +16,11 @@ const SEVERITY_MAP: Record<
 
 export type Severity = keyof typeof SEVERITY_MAP;
 
-interface SeverityBadgeProps {
+type SeverityBadgeProps = Readonly<{
   severity: Severity;
   size?: StatusBadgeProps["size"];
   className?: string;
-}
+}>;
 
 export function SeverityBadge({
   severity,

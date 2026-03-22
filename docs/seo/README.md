@@ -13,4 +13,4 @@ Ce dossier documente le modèle éditorial, SEO technique et stratégie de déco
 
 ## Lien avec le code
 
-- La plupart des sujets décrits ici se matérialisent dans `app-landing/`, `content/` et `app-landing/lib/seo/`.
+- La plupart des sujets décrits ici se matérialisent dans `app-landing/`, `marketing/content/` et `app-landing/lib/seo/`.

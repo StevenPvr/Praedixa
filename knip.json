@@ -8,8 +8,8 @@
     "playwright-report/**",
     "test-results/**",
     "testing/e2e/**/snapshots/**",
-    "skolae/**",
-    "centaurus/**"
+    "marketing/presentations-clients/skolae/**",
+    "marketing/presentations-clients/centaurus/**"
   ],
   "ignoreBinaries": [
     "semgrep",

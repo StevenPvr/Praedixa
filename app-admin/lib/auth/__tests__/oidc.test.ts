@@ -1,6 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  getTrustedOidcEndpoints,
   hasRequiredAdminMfa,
   isAccessTokenCompatible,
   isTokenExpired,
@@ -218,6 +219,60 @@ describe("admin OIDC role parsing", () => {
 
     expect(() => hasRequiredAdminMfa(token)).toThrow(/AUTH_ADMIN_REQUIRED_AMR/);
   });
+
+  it("surfaces discovery status and payload details when the issuer rejects discovery", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ error: "Realm does not exist" }), {
+          status: 404,
+          statusText: "Not Found",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }),
+      ),
+    );
+
+    await expect(
+      getTrustedOidcEndpoints("https://auth.praedixa.com/realms/praedixa"),
+    ).rejects.toThrow(
+      /OIDC discovery request failed \(404 Not Found: Realm does not exist\)/,
+    );
+  });
+
+  it("accepts localhost http discovery origins outside production", async () => {
+    process.env.NODE_ENV = "test";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            issuer: "http://localhost:8081/realms/praedixa",
+            authorization_endpoint:
+              "http://localhost:8081/realms/praedixa/protocol/openid-connect/auth",
+            token_endpoint:
+              "http://localhost:8081/realms/praedixa/protocol/openid-connect/token",
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        ),
+      ),
+    );
+
+    await expect(
+      getTrustedOidcEndpoints("http://localhost:8081/realms/praedixa"),
+    ).resolves.toMatchObject({
+      authorizationEndpoint:
+        "http://localhost:8081/realms/praedixa/protocol/openid-connect/auth",
+      tokenEndpoint:
+        "http://localhost:8081/realms/praedixa/protocol/openid-connect/token",
+    });
+  });
 });
 
 describe("admin OIDC app origin resolution", () => {
@@ -266,17 +321,17 @@ describe("admin OIDC app origin resolution", () => {
     ).toBe("https://admin.praedixa.com");
   });
 
-  it("uses request origin when the production request is already https", () => {
+  it("throws in production when no public auth origin is configured even if the request is already https", () => {
     process.env.NODE_ENV = "production";
 
-    expect(
+    expect(() =>
       resolveAuthAppOrigin(
         makeRequest("https://admin.praedixa.com", {
           "x-forwarded-host": "evil.example",
           "x-forwarded-proto": "https",
         }),
       ),
-    ).toBe("https://admin.praedixa.com");
+    ).toThrow(/Missing AUTH_APP_ORIGIN/);
   });
 
   it("throws in production when no public auth origin is configured behind internal http", () => {

@@ -13,6 +13,7 @@ import {
 import type { UserUxPreferences } from "@praedixa/shared-types";
 import { apiGet, apiPatch } from "@/lib/api/client";
 import { AppLocale, FALLBACK_LOCALE, translate } from "@/lib/i18n/messages";
+import { WEBAPP_RUNTIME_FEATURES } from "@/lib/runtime-features";
 
 const PREFERENCES_SYNC_UNAVAILABLE_MESSAGE =
   "Preferences indisponibles. La langue reste sur la derniere valeur confirmee tant que la persistance serveur n'est pas retablie.";
@@ -59,9 +60,17 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    if (!WEBAPP_RUNTIME_FEATURES.userPreferencesPersistence) {
+      setLocaleState(confirmedLocaleRef.current);
+      setPreferencesSyncState("unavailable");
+      setPreferencesSyncError(PREFERENCES_SYNC_UNAVAILABLE_MESSAGE);
+      return () => {
+        cancelled = true;
+      };
+    }
     setPreferencesSyncState("loading");
     setPreferencesSyncError(null);
-    void (async () => {
+    (async () => {
       try {
         const response = await apiGet<UserUxPreferences>(
           "/api/v1/users/me/preferences",
@@ -80,7 +89,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         setPreferencesSyncState("unavailable");
         setPreferencesSyncError(PREFERENCES_SYNC_UNAVAILABLE_MESSAGE);
       }
-    })();
+    })().catch(() => undefined);
 
     return () => {
       cancelled = true;
@@ -96,7 +105,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      if (preferencesSyncState === "unavailable") {
+      if (
+        preferencesSyncState === "unavailable" ||
+        !WEBAPP_RUNTIME_FEATURES.userPreferencesPersistence
+      ) {
         setPreferencesSyncError(PREFERENCES_SYNC_UNAVAILABLE_MESSAGE);
         return;
       }
@@ -109,7 +121,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       setLocaleState(next);
       setPreferencesSyncState("saving");
       setPreferencesSyncError(null);
-      void (async () => {
+      (async () => {
         const response = await apiPatch<UserUxPreferences>(
           "/api/v1/users/me/preferences",
           { language: next },

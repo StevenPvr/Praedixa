@@ -1,16 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type ReactNode,
+  type RefObject,
+} from "react";
+import { ArrowRight, Link2, Save, Send, Upload, Wand2 } from "lucide-react";
 import type { OnboardingCaseTask } from "@praedixa/shared-types/api";
 import { Button } from "@praedixa/ui";
 
 import type { SiteHierarchy } from "../client-context";
-import {
-  AccessModelTaskFields,
-  hasPendingAccessInvites,
-} from "./access-model-task-fields";
+import { hasPendingAccessInvites } from "./access-model-task-fields";
 import { taskSurfaceLink } from "./page-model";
+import { TextAreaField } from "./task-action-form-fields";
+import { TaskActionEditor } from "./task-action-editors";
+import { asRecord } from "./task-action-payload";
 
 type TaskActionCardProps = {
   orgId: string;
@@ -20,7 +28,10 @@ type TaskActionCardProps = {
   saving: boolean;
   completing: boolean;
   sendingInvites: boolean;
+  activatingApiSource: boolean;
+  uploadingFileSource: boolean;
   canSendSecureInvites: boolean;
+  integrationOptions: Array<{ value: string; label: string }>;
   onSaveTask: (
     taskId: string,
     payloadJson: Record<string, unknown>,
@@ -36,159 +47,69 @@ type TaskActionCardProps = {
     payloadJson: Record<string, unknown>,
     note: string | null,
   ) => Promise<void>;
+  onUploadFileSource: (
+    taskId: string,
+    payloadJson: Record<string, unknown>,
+    file: File | null,
+  ) => Promise<void>;
+  onActivateApiSource: (
+    taskId: string,
+    payloadJson: Record<string, unknown>,
+  ) => Promise<void>;
 };
 
-function asRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {};
-}
-
-function readString(payload: Record<string, unknown>, key: string): string {
-  return typeof payload[key] === "string" ? payload[key] : "";
-}
-
-function readBoolean(payload: Record<string, unknown>, key: string): boolean {
-  return payload[key] === true;
-}
-
-function readStringList(payload: Record<string, unknown>, key: string): string {
-  const value = payload[key];
-  if (!Array.isArray(value)) {
-    return "";
-  }
-  return value
-    .filter((entry): entry is string => typeof entry === "string")
-    .join("\n");
-}
-
-function readNumber(payload: Record<string, unknown>, key: string): string {
-  return typeof payload[key] === "number" ? String(payload[key]) : "";
-}
-
-function toListValue(value: string): string[] {
-  return value
-    .split(/\n|,/)
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
-}
-
-function CheckboxField(props: {
-  label: string;
-  checked: boolean;
-  disabled?: boolean;
-  onChange: (checked: boolean) => void;
-}) {
-  return (
-    <label className="flex items-center gap-2 text-sm text-ink-secondary">
-      <input
-        type="checkbox"
-        checked={props.checked}
-        disabled={props.disabled}
-        onChange={(event) => props.onChange(event.target.checked)}
-      />
-      <span>{props.label}</span>
-    </label>
-  );
-}
-
-function TextField(props: {
-  label: string;
-  value: string;
-  disabled?: boolean;
-  placeholder?: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label className="space-y-1 text-xs text-ink-tertiary">
-      <span>{props.label}</span>
-      <input
-        type="text"
-        value={props.value}
-        disabled={props.disabled}
-        placeholder={props.placeholder}
-        onChange={(event) => props.onChange(event.target.value)}
-        className="min-h-[40px] w-full rounded-lg border border-border px-3 py-2 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-surface-sunken"
-      />
-    </label>
-  );
-}
-
-function TextAreaField(props: {
-  label: string;
-  value: string;
-  disabled?: boolean;
-  placeholder?: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label className="space-y-1 text-xs text-ink-tertiary">
-      <span>{props.label}</span>
-      <textarea
-        value={props.value}
-        disabled={props.disabled}
-        placeholder={props.placeholder}
-        onChange={(event) => props.onChange(event.target.value)}
-        className="min-h-[88px] w-full rounded-lg border border-border px-3 py-2 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-surface-sunken"
-      />
-    </label>
-  );
-}
-
-function SelectField(props: {
-  label: string;
-  value: string;
-  disabled?: boolean;
-  options: readonly { value: string; label: string }[];
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label className="space-y-1 text-xs text-ink-tertiary">
-      <span>{props.label}</span>
-      <select
-        value={props.value}
-        disabled={props.disabled}
-        onChange={(event) => props.onChange(event.target.value)}
-        className="min-h-[40px] w-full rounded-lg border border-border px-3 py-2 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-surface-sunken"
-      >
-        <option value="">Selectionner</option>
-        {props.options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-export function TaskActionCard({
-  orgId,
-  hierarchy,
-  task,
-  actionable,
-  saving,
-  completing,
-  sendingInvites,
-  canSendSecureInvites,
-  onSaveTask,
-  onCompleteTask,
-  onSendSecureInvites,
-}: TaskActionCardProps) {
+export function TaskActionCard(props: Readonly<TaskActionCardProps>) {
+  const {
+    orgId,
+    hierarchy,
+    task,
+    actionable,
+    saving,
+    completing,
+    sendingInvites,
+    activatingApiSource,
+    uploadingFileSource,
+    canSendSecureInvites,
+    integrationOptions,
+    onSaveTask,
+    onCompleteTask,
+    onSendSecureInvites,
+    onUploadFileSource,
+    onActivateApiSource,
+  } = props;
   const [note, setNote] = useState("");
   const [payload, setPayload] = useState<Record<string, unknown>>({});
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const surfaceLink = taskSurfaceLink(orgId, task.taskKey);
   const disabled = task.status === "done";
+  const lastSavedAt =
+    typeof task.detailsJson["lastSavedAt"] === "string"
+      ? task.detailsJson["lastSavedAt"]
+      : null;
+  const secureInvitesDisabled =
+    disabled ||
+    sendingInvites ||
+    canSendSecureInvites === false ||
+    hasPendingAccessInvites(payload) === false;
+  const canCompleteTask =
+    disabled === false && completing === false && actionable;
+  const saveDisabled = disabled || saving;
+  const title = taskTitle(task.taskKey, task.title);
+  const summary = taskSummary(task.taskKey);
+  const lastSavedAtLabel = lastSavedAt
+    ? new Date(lastSavedAt).toLocaleString("fr-FR")
+    : null;
+  const hasTaskKey = (key: string) => task.taskKey === key;
 
   useEffect(() => {
-    const draftPayload = asRecord(task.detailsJson.draftPayload);
-    const completionPayload = asRecord(task.detailsJson.completionPayload);
+    const draftPayload = asRecord(task.detailsJson["draftPayload"]);
+    const completionPayload = asRecord(task.detailsJson["completionPayload"]);
     setPayload(
       Object.keys(draftPayload).length > 0 ? draftPayload : completionPayload,
     );
     setNote(
-      typeof task.detailsJson.lastDraftNote === "string"
-        ? task.detailsJson.lastDraftNote
+      typeof task.detailsJson["lastDraftNote"] === "string"
+        ? task.detailsJson["lastDraftNote"]
         : "",
     );
   }, [task.id, task.detailsJson]);
@@ -197,381 +118,341 @@ export function TaskActionCard({
     setPayload((current) => ({ ...current, ...next }));
   }
 
+  async function handleSendSecureInvitesClick() {
+    await onSendSecureInvites(task.id, payload, note || null);
+  }
+
+  async function handleSaveTaskClick() {
+    await onSaveTask(task.id, payload, note || null);
+  }
+
+  async function handleCompleteTaskClick() {
+    await onCompleteTask(task.id, payload, note || null);
+  }
+
+  async function handleUploadFileSelection(
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) {
+      return;
+    }
+    await onUploadFileSource(task.id, payload, file);
+  }
+
+  async function handleActivateApiSourceClick() {
+    await onActivateApiSource(task.id, payload);
+  }
+
   return (
-    <div className="space-y-3 rounded-xl border border-border bg-card px-3 py-3">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <p className="text-sm font-medium text-ink">{task.title}</p>
-          <p className="mt-1 text-xs text-ink-tertiary">
-            {task.taskType} - {task.status}
-          </p>
-        </div>
-        {surfaceLink ? (
-          <Link
-            href={surfaceLink.href}
-            className="text-xs font-medium text-primary underline-offset-2 hover:underline"
-          >
-            {surfaceLink.label}
-          </Link>
-        ) : null}
-      </div>
-
-      {renderTaskFields(
-        task.taskKey,
-        payload,
-        patchPayload,
-        disabled,
-        hierarchy,
-      )}
-
-      <TextAreaField
-        label="Note operateur"
-        value={note}
-        disabled={disabled}
-        placeholder="Contexte, preuve, points d'attention..."
-        onChange={setNote}
+    <div className="space-y-4 rounded-[1.25rem] border border-black/5 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(250,250,250,0.94))] p-4">
+      <TaskHeader
+        summary={summary}
+        surfaceLink={surfaceLink}
+        taskType={task.taskType}
+        title={title}
       />
 
-      <div className="flex flex-wrap items-center gap-2">
-        {task.taskKey === "access-model" ? (
-          <>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={
-                disabled ||
-                sendingInvites ||
-                !canSendSecureInvites ||
-                !hasPendingAccessInvites(payload)
-              }
-              onClick={() =>
-                void onSendSecureInvites(task.id, payload, note || null)
-              }
-            >
-              {sendingInvites ? "Envoi..." : "Envoyer invitations securisees"}
-            </Button>
-            {!canSendSecureInvites ? (
-              <span className="text-xs text-ink-tertiary">
-                Les invitations securisees exigent `admin:users:write`.
-              </span>
-            ) : null}
-          </>
-        ) : null}
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={disabled || saving}
-          onClick={() => void onSaveTask(task.id, payload, note || null)}
-        >
-          {saving ? "Enregistrement..." : "Enregistrer"}
-        </Button>
-        <Button
-          size="sm"
-          disabled={disabled || completing || !actionable}
-          onClick={() => void onCompleteTask(task.id, payload, note || null)}
-        >
-          {completing ? "Traitement..." : "Completer"}
-        </Button>
-        {!actionable && !disabled ? (
-          <span className="text-xs text-ink-tertiary">
-            Cette tache deviendra completable quand Camunda la rendra active.
-          </span>
-        ) : null}
+      <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_18rem]">
+        <div className="rounded-[1.15rem] border border-border bg-white p-3">
+          <TaskActionEditor
+            taskKey={task.taskKey}
+            payload={payload}
+            patchPayload={patchPayload}
+            disabled={disabled}
+            hierarchy={hierarchy}
+            integrationOptions={integrationOptions}
+          />
+        </div>
+
+        <TaskOperatorState
+          actionable={actionable}
+          canSendSecureInvites={canSendSecureInvites}
+          disabled={disabled}
+          lastSavedAtLabel={lastSavedAtLabel}
+          note={note}
+          setNote={setNote}
+          taskKey={task.taskKey}
+          taskStatus={task.status}
+        />
       </div>
 
-      {typeof task.detailsJson.lastSavedAt === "string" ? (
-        <p className="text-xs text-ink-tertiary">
-          Brouillon enregistre le{" "}
-          {new Date(task.detailsJson.lastSavedAt).toLocaleString("fr-FR")}
+      <TaskPrimaryActions
+        activatingApiSource={activatingApiSource}
+        canCompleteTask={canCompleteTask}
+        completing={completing}
+        disabled={disabled}
+        hasTaskKey={hasTaskKey}
+        fileInputRef={fileInputRef}
+        saveDisabled={saveDisabled}
+        saving={saving}
+        secureInvitesDisabled={secureInvitesDisabled}
+        sendingInvites={sendingInvites}
+        uploadingFileSource={uploadingFileSource}
+        onActivateApiSource={handleActivateApiSourceClick}
+        onCompleteTask={handleCompleteTaskClick}
+        onSaveTask={handleSaveTaskClick}
+        onSendSecureInvites={handleSendSecureInvitesClick}
+        onUploadFileSelection={handleUploadFileSelection}
+      />
+    </div>
+  );
+}
+
+function TaskHeader(
+  props: Readonly<{
+    summary: string;
+    surfaceLink: { href: string; label: string } | null;
+    taskType: string;
+    title: string;
+  }>,
+) {
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-base font-semibold tracking-tight text-ink">
+            {props.title}
+          </p>
+          <span className="rounded-full border border-border px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-ink-tertiary">
+            {props.taskType}
+          </span>
+        </div>
+        <p className="max-w-[62ch] text-sm leading-relaxed text-ink-tertiary">
+          {props.summary}
         </p>
+      </div>
+
+      {props.surfaceLink ? (
+        <Link
+          href={props.surfaceLink.href}
+          className="inline-flex items-center gap-1 rounded-full border border-border bg-white px-3 py-2 text-xs font-medium text-ink-secondary transition hover:border-primary/35 hover:text-primary"
+        >
+          <Link2 className="h-3.5 w-3.5" />
+          {props.surfaceLink.label}
+        </Link>
       ) : null}
     </div>
   );
 }
 
-function renderTaskFields(
-  taskKey: string,
-  payload: Record<string, unknown>,
-  patchPayload: (next: Partial<Record<string, unknown>>) => void,
-  disabled: boolean,
-  hierarchy: SiteHierarchy[] = [],
+function TaskOperatorState(
+  props: Readonly<{
+    actionable: boolean;
+    canSendSecureInvites: boolean;
+    disabled: boolean;
+    lastSavedAtLabel: string | null;
+    note: string;
+    setNote: (value: string) => void;
+    taskKey: string;
+    taskStatus: string;
+  }>,
 ) {
-  switch (taskKey) {
-    case "scope-contract":
-      return (
-        <div className="grid gap-3">
-          <TextAreaField
-            label="Scope contractuel"
-            value={readString(payload, "contractScope")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ contractScope: value })}
-          />
-          <TextField
-            label="Owner commercial"
-            value={readString(payload, "commercialOwner")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ commercialOwner: value })}
-          />
-          <CheckboxField
-            label="Residence data validee"
-            checked={readBoolean(payload, "dataResidencyApproved")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ dataResidencyApproved: value })}
-          />
-          <CheckboxField
-            label="Environnement cible valide"
-            checked={readBoolean(payload, "environmentValidated")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ environmentValidated: value })}
+  return (
+    <div className="space-y-3 rounded-[1.15rem] border border-border bg-surface-sunken/28 p-3">
+      <div>
+        <p className="text-[11px] uppercase tracking-[0.2em] text-ink-tertiary">
+          Etat operateur
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <TaskMetaPill label="Statut" value={props.taskStatus} />
+          <TaskMetaPill
+            label="Disponibilite"
+            value={props.actionable ? "ouverte" : "en attente"}
           />
         </div>
-      );
-    case "access-model":
-      return (
-        <AccessModelTaskFields
-          payload={payload}
-          disabled={disabled}
-          hierarchy={hierarchy}
-          onChange={patchPayload}
-        />
-      );
-    case "source-strategy":
-      return (
-        <div className="grid gap-3">
-          <TextAreaField
-            label="Systemes critiques"
-            value={readStringList(payload, "primarySystems")}
-            disabled={disabled}
-            placeholder="Workday&#10;SAP HR&#10;SIRH local"
-            onChange={(value) =>
-              patchPayload({ primarySystems: toListValue(value) })
-            }
-          />
-          <TextField
-            label="Owner source"
-            value={readString(payload, "sourceOwner")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ sourceOwner: value })}
-          />
-          <TextField
-            label="Cadence d'extraction"
-            value={readString(payload, "extractionCadence")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ extractionCadence: value })}
-          />
-        </div>
-      );
-    case "activate-api-sources":
-      return (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <TextField
-            label="Connection ID"
-            value={readString(payload, "connectionId")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ connectionId: value })}
-          />
-          <SelectField
-            label="Probe"
-            value={readString(payload, "probeStatus")}
-            disabled={disabled}
-            options={[
-              { value: "pending", label: "En attente" },
-              { value: "success", label: "OK" },
-              { value: "warning", label: "Warning" },
-              { value: "failed", label: "Failed" },
-            ]}
-            onChange={(value) => patchPayload({ probeStatus: value })}
-          />
-          <SelectField
-            label="First sync"
-            value={readString(payload, "syncStatus")}
-            disabled={disabled}
-            options={[
-              { value: "pending", label: "En attente" },
-              { value: "success", label: "OK" },
-              { value: "warning", label: "Warning" },
-              { value: "failed", label: "Failed" },
-            ]}
-            onChange={(value) => patchPayload({ syncStatus: value })}
-          />
-          <CheckboxField
-            label="Datasets verifies"
-            checked={readBoolean(payload, "datasetsValidated")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ datasetsValidated: value })}
-          />
-        </div>
-      );
-    case "configure-file-sources":
-      return (
-        <div className="grid gap-3">
-          <TextField
-            label="Profil d'import"
-            value={readString(payload, "importProfile")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ importProfile: value })}
-          />
-          <TextField
-            label="Strategie replay/backfill"
-            value={readString(payload, "replayStrategy")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ replayStrategy: value })}
-          />
-          <CheckboxField
-            label="Fichier echantillon recu"
-            checked={readBoolean(payload, "sampleFileReceived")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ sampleFileReceived: value })}
-          />
-          <CheckboxField
-            label="Preview mapping validee"
-            checked={readBoolean(payload, "mappingPreviewValidated")}
-            disabled={disabled}
-            onChange={(value) =>
-              patchPayload({ mappingPreviewValidated: value })
-            }
-          />
-        </div>
-      );
-    case "publish-mappings":
-      return (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <TextField
-            label="Version mapping"
-            value={readString(payload, "mappingVersion")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ mappingVersion: value })}
-          />
-          <TextField
-            label="Couverture %"
-            value={readNumber(payload, "coveragePercent")}
-            disabled={disabled}
-            onChange={(value) =>
-              patchPayload({
-                coveragePercent:
-                  value.trim().length === 0 ? null : Number(value),
-              })
-            }
-          />
-          <CheckboxField
-            label="Champs critiques couverts"
-            checked={readBoolean(payload, "criticalFieldsCovered")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ criticalFieldsCovered: value })}
-          />
-          <CheckboxField
-            label="Quarantaine critique fermee"
-            checked={readBoolean(payload, "quarantineClosed")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ quarantineClosed: value })}
-          />
-        </div>
-      );
-    case "configure-product-scope":
-      return (
-        <div className="grid gap-3">
-          <TextAreaField
-            label="KPI"
-            value={readStringList(payload, "kpis")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ kpis: toListValue(value) })}
-          />
-          <TextAreaField
-            label="Horizons"
-            value={readStringList(payload, "horizons")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ horizons: toListValue(value) })}
-          />
-          <TextAreaField
-            label="Leviers"
-            value={readStringList(payload, "levers")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ levers: toListValue(value) })}
-          />
-          <CheckboxField
-            label="Proof packs confirmes"
-            checked={readBoolean(payload, "proofPacksConfirmed")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ proofPacksConfirmed: value })}
-          />
-        </div>
-      );
-    case "activation-review":
-      return (
-        <div className="grid gap-3">
-          <TextField
-            label="Owner go-live"
-            value={readString(payload, "goLiveOwner")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ goLiveOwner: value })}
-          />
-          <CheckboxField
-            label="Revue approuvee"
-            checked={readBoolean(payload, "approvalGranted")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ approvalGranted: value })}
-          />
-          <CheckboxField
-            label="Plan de rollback pret"
-            checked={readBoolean(payload, "rollbackPlanReady")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ rollbackPlanReady: value })}
-          />
-          <CheckboxField
-            label="Monitoring hypercare pret"
-            checked={readBoolean(payload, "monitoringPlanReady")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ monitoringPlanReady: value })}
-          />
-        </div>
-      );
-    case "execute-activation":
-      return (
-        <div className="grid gap-3">
-          <TextField
-            label="Fenetre d'activation"
-            value={readString(payload, "activationWindow")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ activationWindow: value })}
-          />
-          <TextField
-            label="Active par"
-            value={readString(payload, "activatedBy")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ activatedBy: value })}
-          />
-          <CheckboxField
-            label="Smoke checks passes"
-            checked={readBoolean(payload, "smokeCheckPassed")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ smokeCheckPassed: value })}
-          />
-        </div>
-      );
-    case "close-hypercare":
-      return (
-        <div className="grid gap-3">
-          <TextAreaField
-            label="Synthese de stabilisation"
-            value={readString(payload, "closeSummary")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ closeSummary: value })}
-          />
-          <CheckboxField
-            label="Incidents clos"
-            checked={readBoolean(payload, "incidentsClosed")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ incidentsClosed: value })}
-          />
-          <CheckboxField
-            label="Sign-off client recu"
-            checked={readBoolean(payload, "clientSignoffReceived")}
-            disabled={disabled}
-            onChange={(value) => patchPayload({ clientSignoffReceived: value })}
-          />
-        </div>
-      );
-    default:
-      return null;
-  }
+      </div>
+
+      <TextAreaField
+        label="Note operateur"
+        value={props.note}
+        disabled={props.disabled}
+        placeholder="Contexte, preuve, points d'attention..."
+        onChange={props.setNote}
+      />
+
+      <p className="text-xs text-ink-tertiary">
+        {props.lastSavedAtLabel
+          ? `Brouillon enregistre le ${props.lastSavedAtLabel}`
+          : "Aucun brouillon enregistre pour cette tache."}
+      </p>
+
+      {props.canSendSecureInvites === false &&
+      props.taskKey === "access-model" ? (
+        <InlineNotice>
+          Les invitations securisees exigent le droit `admin:users:write`.
+        </InlineNotice>
+      ) : null}
+
+      {props.actionable === false && props.disabled === false ? (
+        <InlineNotice>
+          Cette tache deviendra completable quand le moteur de workflow la
+          rendra active.
+        </InlineNotice>
+      ) : null}
+    </div>
+  );
 }
+
+function TaskPrimaryActions(
+  props: Readonly<{
+    activatingApiSource: boolean;
+    canCompleteTask: boolean;
+    completing: boolean;
+    disabled: boolean;
+    hasTaskKey: (key: string) => boolean;
+    fileInputRef: RefObject<HTMLInputElement | null>;
+    saveDisabled: boolean;
+    saving: boolean;
+    secureInvitesDisabled: boolean;
+    sendingInvites: boolean;
+    uploadingFileSource: boolean;
+    onActivateApiSource: () => Promise<void>;
+    onCompleteTask: () => Promise<void>;
+    onSaveTask: () => Promise<void>;
+    onSendSecureInvites: () => Promise<void>;
+    onUploadFileSelection: (
+      event: ChangeEvent<HTMLInputElement>,
+    ) => Promise<void>;
+  }>,
+) {
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4">
+      {props.hasTaskKey("configure-file-sources") ? (
+        <>
+          <input
+            ref={props.fileInputRef}
+            type="file"
+            accept=".csv,.tsv,.xlsx"
+            aria-label="Selectionner un CSV, TSV ou XLSX source"
+            className="hidden"
+            onChange={props.onUploadFileSelection}
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={props.disabled || props.uploadingFileSource}
+            className="rounded-xl"
+            onClick={() => props.fileInputRef.current?.click()}
+          >
+            <Upload className="mr-1.5 h-4 w-4" />
+            {props.uploadingFileSource ? "Upload..." : "Charger CSV/XLSX"}
+          </Button>
+        </>
+      ) : null}
+
+      {props.hasTaskKey("activate-api-sources") ? (
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={props.disabled || props.activatingApiSource}
+          className="rounded-xl"
+          onClick={props.onActivateApiSource}
+        >
+          <Wand2 className="mr-1.5 h-4 w-4" />
+          {props.activatingApiSource
+            ? "Activation..."
+            : "Tester et lancer la premiere sync"}
+        </Button>
+      ) : null}
+
+      {props.hasTaskKey("access-model") ? (
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={props.secureInvitesDisabled}
+          className="rounded-xl"
+          onClick={props.onSendSecureInvites}
+        >
+          <Send className="mr-1.5 h-4 w-4" />
+          {props.sendingInvites ? "Envoi..." : "Envoyer invitations securisees"}
+        </Button>
+      ) : null}
+
+      <Button
+        size="sm"
+        variant="outline"
+        disabled={props.saveDisabled}
+        className="rounded-xl"
+        onClick={props.onSaveTask}
+      >
+        <Save className="mr-1.5 h-4 w-4" />
+        {props.saving ? "Enregistrement..." : "Enregistrer"}
+      </Button>
+
+      <Button
+        size="sm"
+        disabled={!props.canCompleteTask}
+        className="rounded-xl"
+        onClick={props.onCompleteTask}
+      >
+        <ArrowRight className="mr-1.5 h-4 w-4" />
+        {props.completing ? "Traitement..." : "Completer"}
+      </Button>
+    </div>
+  );
+}
+
+function TaskMetaPill(props: Readonly<{ label: string; value: string }>) {
+  return (
+    <span className="rounded-full border border-border bg-white px-2.5 py-1 text-[11px] uppercase tracking-[0.16em] text-ink-tertiary">
+      {props.label}: {props.value}
+    </span>
+  );
+}
+
+function InlineNotice(props: Readonly<{ children: ReactNode }>) {
+  return (
+    <div className="rounded-xl border border-border bg-white px-3 py-2 text-xs text-ink-tertiary">
+      {props.children}
+    </div>
+  );
+}
+
+function taskSummary(taskKey: string): string {
+  return (
+    TASK_SUMMARIES[taskKey] ??
+    "Documente, opere et valide cette etape depuis le workspace."
+  );
+}
+
+function taskTitle(taskKey: string, fallback: string): string {
+  return TASK_TITLES[taskKey] ?? fallback;
+}
+
+const TASK_SUMMARIES: Record<string, string> = {
+  "scope-contract":
+    "Cadre le perimetre contractuel, la residence des donnees et l'environnement cible avant d'ouvrir les flux.",
+  "access-model":
+    "Definis qui accede au produit, envoies les invitations securisees et verrouilles le modele d'acces client.",
+  "source-strategy":
+    "Liste les systemes prioritaires et la cadence attendue pour que les imports servent vraiment la V1.",
+  "activate-api-sources":
+    "Teste une connexion existante, verifie le probe et lance le premier cycle de sync API.",
+  "configure-file-sources":
+    "Charge un CSV/XLSX, associe le bon profil d'import et verifie que la source est prete pour le pipeline.",
+  "publish-mappings":
+    "Confirme la couverture de mapping utile avant de retirer la quarantaine sur les champs critiques.",
+  "configure-product-scope":
+    "Cadre les KPI, horizons et leviers qui seront visibles dans les surfaces client et admin.",
+  "activation-review":
+    "Passe la revue finale de preparation avant la bascule pilote ou la mise en service controlee.",
+  "execute-activation":
+    "Formalise la fenetre d'activation, l'operateur responsable et le smoke check post-bascule.",
+  "close-hypercare":
+    "Cloture la phase de stabilisation quand les incidents, le suivi et le sign-off client sont fermes.",
+};
+
+const TASK_TITLES: Record<string, string> = {
+  "scope-contract": "Valider le cadrage du dossier",
+  "access-model": "Configurer les acces client",
+  "source-strategy": "Confirmer la strategie des sources",
+  "activate-api-sources": "Activer les sources API",
+  "configure-file-sources": "Configurer les imports de fichiers",
+  "publish-mappings": "Publier les correspondances",
+  "configure-product-scope": "Configurer le perimetre produit",
+  "activation-review": "Passer la revue de preparation",
+  "execute-activation": "Executer la mise en service",
+  "close-hypercare": "Clore la phase de stabilisation",
+};

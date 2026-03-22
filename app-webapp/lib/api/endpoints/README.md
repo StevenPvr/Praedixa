@@ -20,3 +20,5 @@ Fichiers :
 ## Intégration
 
 Ce dossier est consommé par l'application `app-webapp` et s'insère dans son flux runtime, build ou test.
+
+- `data.ts` et `support.ts` restent des surfaces d'API pures: on y factorise seulement des helpers de chemins/lecture-ecriture, sans y mettre de logique UI ou d'auth metier.

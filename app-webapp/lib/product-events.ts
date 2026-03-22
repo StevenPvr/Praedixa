@@ -28,7 +28,7 @@ export async function trackProductEvent(
   await trackProductEvents([
     {
       name,
-      context,
+      ...(context ? { context } : {}),
       occurredAt: new Date().toISOString(),
     },
   ]);

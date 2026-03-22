@@ -174,7 +174,7 @@ class RespConnection {
 }
 
 function shouldTrustProxyIpHeaders(): boolean {
-  return process.env.AUTH_TRUST_X_FORWARDED_FOR === "1";
+  return process.env["AUTH_TRUST_X_FORWARDED_FOR"] === "1";
 }
 
 class RateLimitRequirementError extends Error {
@@ -214,8 +214,8 @@ function buildMisconfiguredRateLimitResult(
 
 function getConfiguredRedisUrl(): string | null {
   const rawUrl =
-    process.env.AUTH_RATE_LIMIT_REDIS_URL?.trim() ??
-    process.env.RATE_LIMIT_STORAGE_URI?.trim() ??
+    process.env["AUTH_RATE_LIMIT_REDIS_URL"]?.trim() ??
+    process.env["RATE_LIMIT_STORAGE_URI"]?.trim() ??
     "";
 
   if (rawUrl) {
@@ -232,13 +232,13 @@ function getConfiguredRedisUrl(): string | null {
 }
 
 function requireRateLimitKeySalt(): string {
-  const explicitSalt = process.env.AUTH_RATE_LIMIT_KEY_SALT?.trim();
+  const explicitSalt = process.env["AUTH_RATE_LIMIT_KEY_SALT"]?.trim();
   if (explicitSalt) {
     return explicitSalt;
   }
 
   if (isWeakLocalRateLimitModeAllowed()) {
-    return process.env.AUTH_SESSION_SECRET?.trim() || "prx-rate-limit-dev";
+    return process.env["AUTH_SESSION_SECRET"]?.trim() || "prx-rate-limit-dev";
   }
 
   throw new RateLimitRequirementError(
@@ -279,117 +279,171 @@ function parsePositiveInteger(
   return parsed;
 }
 
-function parseRespValue(
+interface RespParseResult {
+  value: RespValue;
+  nextOffset: number;
+}
+
+function buildRespParseResult(
+  value: RespValue,
+  nextOffset: number,
+): RespParseResult {
+  return { value, nextOffset };
+}
+
+function parseRespPrefix(
   buffer: Buffer,
   offset: number,
-): { value: RespValue; nextOffset: number } | null {
+): { prefix: string; lineEnd: number } | null {
   if (offset >= buffer.length) {
     return null;
   }
 
-  const prefix = String.fromCharCode(buffer[offset]);
+  const prefixByte = buffer[offset];
+  if (prefixByte === undefined) {
+    return null;
+  }
+
   const lineEnd = findCrlf(buffer, offset + 1);
   if (lineEnd === -1) {
     return null;
   }
 
-  if (prefix === "+") {
-    return {
-      value: buffer.subarray(offset + 1, lineEnd).toString("utf8"),
-      nextOffset: lineEnd + 2,
-    };
+  return {
+    prefix: String.fromCodePoint(prefixByte),
+    lineEnd,
+  };
+}
+
+function parseRespSimpleString(
+  buffer: Buffer,
+  offset: number,
+  lineEnd: number,
+): RespParseResult {
+  return buildRespParseResult(
+    buffer.subarray(offset + 1, lineEnd).toString("utf8"),
+    lineEnd + 2,
+  );
+}
+
+function parseRespError(
+  buffer: Buffer,
+  offset: number,
+  lineEnd: number,
+): RespParseResult {
+  return buildRespParseResult(
+    new Error(buffer.subarray(offset + 1, lineEnd).toString("utf8")),
+    lineEnd + 2,
+  );
+}
+
+function parseRespIntegerValue(
+  buffer: Buffer,
+  offset: number,
+  lineEnd: number,
+): RespParseResult {
+  const raw = buffer.subarray(offset + 1, lineEnd).toString("utf8");
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(parsed)) {
+    return buildRespParseResult(
+      new Error(`Invalid Redis integer response: ${raw}`),
+      lineEnd + 2,
+    );
   }
 
-  if (prefix === "-") {
-    return {
-      value: new Error(buffer.subarray(offset + 1, lineEnd).toString("utf8")),
-      nextOffset: lineEnd + 2,
-    };
+  return buildRespParseResult(parsed, lineEnd + 2);
+}
+
+function parseRespBulkString(
+  buffer: Buffer,
+  offset: number,
+  lineEnd: number,
+): RespParseResult | null {
+  const rawLength = buffer.subarray(offset + 1, lineEnd).toString("utf8");
+  const byteLength = Number.parseInt(rawLength, 10);
+  if (!Number.isFinite(byteLength)) {
+    return buildRespParseResult(
+      new Error(`Invalid Redis bulk length: ${rawLength}`),
+      lineEnd + 2,
+    );
   }
 
-  if (prefix === ":") {
-    const raw = buffer.subarray(offset + 1, lineEnd).toString("utf8");
-    const parsed = Number.parseInt(raw, 10);
-    if (!Number.isFinite(parsed)) {
-      return {
-        value: new Error(`Invalid Redis integer response: ${raw}`),
-        nextOffset: lineEnd + 2,
-      };
-    }
-
-    return {
-      value: parsed,
-      nextOffset: lineEnd + 2,
-    };
+  if (byteLength === -1) {
+    return buildRespParseResult(null, lineEnd + 2);
   }
 
-  if (prefix === "$") {
-    const rawLength = buffer.subarray(offset + 1, lineEnd).toString("utf8");
-    const byteLength = Number.parseInt(rawLength, 10);
-    if (!Number.isFinite(byteLength)) {
-      return {
-        value: new Error(`Invalid Redis bulk length: ${rawLength}`),
-        nextOffset: lineEnd + 2,
-      };
-    }
+  const valueStart = lineEnd + 2;
+  const valueEnd = valueStart + byteLength;
+  if (valueEnd + 2 > buffer.length) {
+    return null;
+  }
 
-    if (byteLength === -1) {
-      return {
-        value: null,
-        nextOffset: lineEnd + 2,
-      };
-    }
+  return buildRespParseResult(
+    buffer.subarray(valueStart, valueEnd).toString("utf8"),
+    valueEnd + 2,
+  );
+}
 
-    const valueStart = lineEnd + 2;
-    const valueEnd = valueStart + byteLength;
-    if (valueEnd + 2 > buffer.length) {
+function parseRespArray(
+  buffer: Buffer,
+  offset: number,
+  lineEnd: number,
+): RespParseResult | null {
+  const rawLength = buffer.subarray(offset + 1, lineEnd).toString("utf8");
+  const elementCount = Number.parseInt(rawLength, 10);
+  if (!Number.isFinite(elementCount)) {
+    return buildRespParseResult(
+      new Error(`Invalid Redis array length: ${rawLength}`),
+      lineEnd + 2,
+    );
+  }
+
+  if (elementCount === -1) {
+    return buildRespParseResult(null, lineEnd + 2);
+  }
+
+  let cursor = lineEnd + 2;
+  const result: RespValue[] = [];
+  for (let index = 0; index < elementCount; index += 1) {
+    const nested = parseRespValue(buffer, cursor);
+    if (!nested) {
       return null;
     }
-
-    return {
-      value: buffer.subarray(valueStart, valueEnd).toString("utf8"),
-      nextOffset: valueEnd + 2,
-    };
+    result.push(nested.value);
+    cursor = nested.nextOffset;
   }
 
-  if (prefix === "*") {
-    const rawLength = buffer.subarray(offset + 1, lineEnd).toString("utf8");
-    const elementCount = Number.parseInt(rawLength, 10);
-    if (!Number.isFinite(elementCount)) {
-      return {
-        value: new Error(`Invalid Redis array length: ${rawLength}`),
-        nextOffset: lineEnd + 2,
-      };
-    }
+  return buildRespParseResult(result, cursor);
+}
 
-    if (elementCount === -1) {
-      return {
-        value: null,
-        nextOffset: lineEnd + 2,
-      };
-    }
-
-    let cursor = lineEnd + 2;
-    const result: RespValue[] = [];
-    for (let index = 0; index < elementCount; index += 1) {
-      const nested = parseRespValue(buffer, cursor);
-      if (!nested) {
-        return null;
-      }
-      result.push(nested.value);
-      cursor = nested.nextOffset;
-    }
-
-    return {
-      value: result,
-      nextOffset: cursor,
-    };
+function parseRespValue(
+  buffer: Buffer,
+  offset: number,
+): RespParseResult | null {
+  const parsedPrefix = parseRespPrefix(buffer, offset);
+  if (!parsedPrefix) {
+    return null;
   }
 
-  return {
-    value: new Error(`Unsupported Redis response prefix: ${prefix}`),
-    nextOffset: lineEnd + 2,
-  };
+  const { prefix, lineEnd } = parsedPrefix;
+
+  switch (prefix) {
+    case "+":
+      return parseRespSimpleString(buffer, offset, lineEnd);
+    case "-":
+      return parseRespError(buffer, offset, lineEnd);
+    case ":":
+      return parseRespIntegerValue(buffer, offset, lineEnd);
+    case "$":
+      return parseRespBulkString(buffer, offset, lineEnd);
+    case "*":
+      return parseRespArray(buffer, offset, lineEnd);
+    default:
+      return buildRespParseResult(
+        new Error(`Unsupported Redis response prefix: ${prefix}`),
+        lineEnd + 2,
+      );
+  }
 }
 
 function findCrlf(buffer: Buffer, start: number): number {
@@ -412,73 +466,100 @@ function encodeRespArray(args: Array<string | number>): Buffer {
   return Buffer.from(parts.join(""), "utf8");
 }
 
+function rejectInvalidRedisConfig(message: string): null {
+  if (isWeakLocalRateLimitModeAllowed()) {
+    return null;
+  }
+
+  throw new RateLimitRequirementError(message);
+}
+
+function parseRedisUrl(rawUrl: string): URL | null {
+  try {
+    return new URL(rawUrl);
+  } catch {
+    return rejectInvalidRedisConfig(
+      "AUTH_RATE_LIMIT_REDIS_URL or RATE_LIMIT_STORAGE_URI must be a valid redis:// or rediss:// URL outside development",
+    );
+  }
+}
+
+function validateRedisUrl(parsed: URL): URL | null {
+  if (parsed.protocol !== "redis:" && parsed.protocol !== "rediss:") {
+    return rejectInvalidRedisConfig(
+      "AUTH_RATE_LIMIT_REDIS_URL or RATE_LIMIT_STORAGE_URI must use redis:// or rediss:// outside development",
+    );
+  }
+
+  if (!parsed.hostname) {
+    return rejectInvalidRedisConfig(
+      "AUTH_RATE_LIMIT_REDIS_URL or RATE_LIMIT_STORAGE_URI must include a hostname outside development",
+    );
+  }
+
+  return parsed;
+}
+
+function parseRedisDbIndex(parsed: URL): number | null {
+  const dbPath = parsed.pathname.replaceAll(/^\//g, "").trim();
+  const db = dbPath ? Number.parseInt(dbPath, 10) : 0;
+  if (Number.isFinite(db) && db >= 0) {
+    return db;
+  }
+
+  return rejectInvalidRedisConfig(
+    "AUTH_RATE_LIMIT_REDIS_URL or RATE_LIMIT_STORAGE_URI must reference a valid Redis database index outside development",
+  );
+}
+
+function buildRedisRateLimitConfig(
+  parsed: URL,
+  db: number,
+): RedisRateLimitConfig {
+  const tls = parsed.protocol === "rediss:";
+
+  return {
+    host: parsed.hostname,
+    port: Number.parseInt(parsed.port, 10) || (tls ? 6380 : 6379),
+    tls,
+    username: parsed.username ? decodeURIComponent(parsed.username) : null,
+    password: parsed.password ? decodeURIComponent(parsed.password) : null,
+    db,
+    connectTimeoutMs: parsePositiveInteger(
+      process.env["AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS"],
+      300,
+    ),
+    commandTimeoutMs: parsePositiveInteger(
+      process.env["AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS"],
+      300,
+    ),
+    keyPrefix:
+      process.env["AUTH_RATE_LIMIT_KEY_PREFIX"]?.trim() || "prx:auth:rl",
+  };
+}
+
 function parseRedisConfig(): RedisRateLimitConfig | null {
   const rawUrl = getConfiguredRedisUrl();
   if (!rawUrl) {
     return null;
   }
 
-  let parsed: URL;
-  try {
-    parsed = new URL(rawUrl);
-  } catch {
-    if (isWeakLocalRateLimitModeAllowed()) {
-      return null;
-    }
-    throw new RateLimitRequirementError(
-      "AUTH_RATE_LIMIT_REDIS_URL or RATE_LIMIT_STORAGE_URI must be a valid redis:// or rediss:// URL outside development",
-    );
+  const parsed = parseRedisUrl(rawUrl);
+  if (!parsed) {
+    return null;
   }
 
-  if (parsed.protocol !== "redis:" && parsed.protocol !== "rediss:") {
-    if (isWeakLocalRateLimitModeAllowed()) {
-      return null;
-    }
-    throw new RateLimitRequirementError(
-      "AUTH_RATE_LIMIT_REDIS_URL or RATE_LIMIT_STORAGE_URI must use redis:// or rediss:// outside development",
-    );
+  const validated = validateRedisUrl(parsed);
+  if (!validated) {
+    return null;
   }
 
-  if (!parsed.hostname) {
-    if (isWeakLocalRateLimitModeAllowed()) {
-      return null;
-    }
-    throw new RateLimitRequirementError(
-      "AUTH_RATE_LIMIT_REDIS_URL or RATE_LIMIT_STORAGE_URI must include a hostname outside development",
-    );
+  const db = parseRedisDbIndex(validated);
+  if (db === null) {
+    return null;
   }
 
-  const tls = parsed.protocol === "rediss:";
-  const port = Number.parseInt(parsed.port, 10) || (tls ? 6380 : 6379);
-
-  const dbPath = parsed.pathname.replace(/^\//, "").trim();
-  const db = dbPath ? Number.parseInt(dbPath, 10) : 0;
-  if (!Number.isFinite(db) || db < 0) {
-    if (isWeakLocalRateLimitModeAllowed()) {
-      return null;
-    }
-    throw new RateLimitRequirementError(
-      "AUTH_RATE_LIMIT_REDIS_URL or RATE_LIMIT_STORAGE_URI must reference a valid Redis database index outside development",
-    );
-  }
-
-  return {
-    host: parsed.hostname,
-    port,
-    tls,
-    username: parsed.username ? decodeURIComponent(parsed.username) : null,
-    password: parsed.password ? decodeURIComponent(parsed.password) : null,
-    db,
-    connectTimeoutMs: parsePositiveInteger(
-      process.env.AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS,
-      300,
-    ),
-    commandTimeoutMs: parsePositiveInteger(
-      process.env.AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS,
-      300,
-    ),
-    keyPrefix: process.env.AUTH_RATE_LIMIT_KEY_PREFIX?.trim() || "prx:auth:rl",
-  };
+  return buildRedisRateLimitConfig(validated, db);
 }
 
 async function openRedisConnection(
@@ -549,7 +630,7 @@ function buildResult(
       retryAfterSeconds,
       remaining: 0,
       resetAtEpochSeconds: Math.ceil((nowMs + normalizedTtlMs) / 1000),
-      mode,
+      ...(mode ? { mode } : {}),
     };
   }
 
@@ -558,14 +639,14 @@ function buildResult(
     retryAfterSeconds: 0,
     remaining: Math.max(0, max - count),
     resetAtEpochSeconds: Math.ceil((nowMs + normalizedTtlMs) / 1000),
-    mode,
+    ...(mode ? { mode } : {}),
   };
 }
 
 function hashString(value: string): string {
   let hash = 5381;
   for (let index = 0; index < value.length; index += 1) {
-    hash = (hash * 33) ^ value.charCodeAt(index);
+    hash = (hash * 33) ^ (value.codePointAt(index) ?? 0);
   }
   return (hash >>> 0).toString(36);
 }
@@ -587,7 +668,7 @@ async function hashIdentifier(value: string): Promise<string> {
 
 function normalizeIp(raw: string | null): string | null {
   if (!raw) return null;
-  const trimmed = raw.trim().replace(/^"+|"+$/g, "");
+  const trimmed = raw.trim().replaceAll(/^"+|"+$/g, "");
   if (!trimmed || trimmed.length > 64) return null;
 
   let candidate = trimmed;
@@ -605,30 +686,58 @@ function normalizeIp(raw: string | null): string | null {
   return candidate.toLowerCase();
 }
 
-function getRawClientKey(request: NextRequest): string {
-  const headers = request.headers;
-  if (typeof headers.get === "function") {
-    if (shouldTrustProxyIpHeaders()) {
-      const cfIp = normalizeIp(headers.get("cf-connecting-ip"));
-      if (cfIp) return cfIp;
-
-      const realIp = normalizeIp(headers.get("x-real-ip"));
-      if (realIp) return realIp;
-
-      const forwardedFor = headers.get("x-forwarded-for");
-      if (forwardedFor) {
-        for (const entry of forwardedFor.split(",")) {
-          const parsed = normalizeIp(entry);
-          if (parsed) return parsed;
-        }
-      }
-    }
-
-    const userAgent = headers.get("user-agent") ?? "unknown";
-    return `ua:${hashString(userAgent)}`;
+function getForwardedForClientIp(forwardedFor: string | null): string | null {
+  if (!forwardedFor) {
+    return null;
   }
 
-  return "unknown";
+  for (const entry of forwardedFor.split(",")) {
+    const parsed = normalizeIp(entry);
+    if (parsed) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
+function getTrustedProxyClientIp(
+  headers: NextRequest["headers"],
+): string | null {
+  if (shouldTrustProxyIpHeaders() === false) {
+    return null;
+  }
+
+  const cfIp = normalizeIp(headers.get("cf-connecting-ip"));
+  if (cfIp) {
+    return cfIp;
+  }
+
+  const realIp = normalizeIp(headers.get("x-real-ip"));
+  if (realIp) {
+    return realIp;
+  }
+
+  return getForwardedForClientIp(headers.get("x-forwarded-for"));
+}
+
+function buildUserAgentClientKey(headers: NextRequest["headers"]): string {
+  const userAgent = headers.get("user-agent") ?? "unknown";
+  return `ua:${hashString(userAgent)}`;
+}
+
+function getRawClientKey(request: NextRequest): string {
+  const headers = request.headers;
+  if (typeof headers.get !== "function") {
+    return "unknown";
+  }
+
+  const trustedProxyIp = getTrustedProxyClientIp(headers);
+  if (trustedProxyIp) {
+    return trustedProxyIp;
+  }
+
+  return buildUserAgentClientKey(headers);
 }
 
 function sweepExpiredBuckets(now: number): void {
@@ -655,7 +764,11 @@ function pruneBucketsIfNeeded(): void {
   );
 
   for (let index = 0; index < toDrop && index < entries.length; index += 1) {
-    buckets.delete(entries[index][0]);
+    const entry = entries[index];
+    if (!entry) {
+      continue;
+    }
+    buckets.delete(entry[0]);
   }
 }
 
@@ -775,8 +888,14 @@ async function executeRedisRateLimit(
       throw new Error("Unexpected Redis rate limit response");
     }
 
-    const count = toNumber(reply[0]);
-    const ttlMs = toNumber(reply[1]);
+    const countValue = reply[0];
+    const ttlValue = reply[1];
+    if (countValue === undefined || ttlValue === undefined) {
+      throw new Error("Unexpected Redis rate limit response");
+    }
+
+    const count = toNumber(countValue);
+    const ttlMs = toNumber(ttlValue);
 
     if (count == null || ttlMs == null) {
       throw new Error("Redis rate limit response contains invalid numbers");

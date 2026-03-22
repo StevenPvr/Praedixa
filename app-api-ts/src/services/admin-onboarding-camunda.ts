@@ -109,7 +109,9 @@ class OnboardingCamundaRuntime {
       processDefinitionId: deployment.bpmnProcessId,
       processDefinitionKey: deployment.processDefinitionKey,
       version: deployment.processDefinitionVersion,
-      resourceName: deployment.resourceName,
+      ...(deployment.resourceName !== undefined
+        ? { resourceName: deployment.resourceName }
+        : {}),
     };
   }
 
@@ -194,10 +196,9 @@ class OnboardingCamundaRuntime {
       });
       await this.client.completeUserTask({
         userTaskKey: input.userTaskKey,
-        variables:
-          input.note && input.note.trim().length > 0
-            ? { lastTaskCompletionNote: input.note.trim() }
-            : undefined,
+        ...(input.note && input.note.trim().length > 0
+          ? { variables: { lastTaskCompletionNote: input.note.trim() } }
+          : {}),
         action: "complete",
       });
     } catch (error) {
@@ -236,26 +237,28 @@ export function getOnboardingCamundaRuntime(): OnboardingCamundaRuntime {
   }
 
   const config: CamundaConfig = {
-    enabled: (process.env.CAMUNDA_ENABLED?.trim() ?? "true") === "true",
-    baseUrl: process.env.CAMUNDA_BASE_URL?.trim() || "http://127.0.0.1:8088/v2",
+    enabled: (process.env["CAMUNDA_ENABLED"]?.trim() ?? "true") === "true",
+    baseUrl:
+      process.env["CAMUNDA_BASE_URL"]?.trim() || "http://127.0.0.1:8088/v2",
     authMode:
-      (process.env.CAMUNDA_AUTH_MODE?.trim().toLowerCase() as
+      (process.env["CAMUNDA_AUTH_MODE"]?.trim().toLowerCase() as
         | "none"
         | "basic"
         | "oidc"
         | undefined) ?? "none",
-    basicUsername: process.env.CAMUNDA_BASIC_USERNAME?.trim() || null,
-    basicPassword: process.env.CAMUNDA_BASIC_PASSWORD?.trim() || null,
-    oauthTokenUrl: process.env.CAMUNDA_OAUTH_TOKEN_URL?.trim() || null,
-    oauthClientId: process.env.CAMUNDA_OAUTH_CLIENT_ID?.trim() || null,
-    oauthClientSecret: process.env.CAMUNDA_OAUTH_CLIENT_SECRET?.trim() || null,
-    oauthAudience: process.env.CAMUNDA_OAUTH_AUDIENCE?.trim() || null,
-    oauthScope: process.env.CAMUNDA_OAUTH_SCOPE?.trim() || null,
-    processTenantId: process.env.CAMUNDA_PROCESS_TENANT_ID?.trim() || null,
+    basicUsername: process.env["CAMUNDA_BASIC_USERNAME"]?.trim() || null,
+    basicPassword: process.env["CAMUNDA_BASIC_PASSWORD"]?.trim() || null,
+    oauthTokenUrl: process.env["CAMUNDA_OAUTH_TOKEN_URL"]?.trim() || null,
+    oauthClientId: process.env["CAMUNDA_OAUTH_CLIENT_ID"]?.trim() || null,
+    oauthClientSecret:
+      process.env["CAMUNDA_OAUTH_CLIENT_SECRET"]?.trim() || null,
+    oauthAudience: process.env["CAMUNDA_OAUTH_AUDIENCE"]?.trim() || null,
+    oauthScope: process.env["CAMUNDA_OAUTH_SCOPE"]?.trim() || null,
+    processTenantId: process.env["CAMUNDA_PROCESS_TENANT_ID"]?.trim() || null,
     deployOnStartup:
-      (process.env.CAMUNDA_DEPLOY_ON_STARTUP?.trim() ?? "true") === "true",
+      (process.env["CAMUNDA_DEPLOY_ON_STARTUP"]?.trim() ?? "true") === "true",
     requestTimeoutMs: Number.parseInt(
-      process.env.CAMUNDA_REQUEST_TIMEOUT_MS?.trim() ?? "10000",
+      process.env["CAMUNDA_REQUEST_TIMEOUT_MS"]?.trim() ?? "10000",
       10,
     ),
   };

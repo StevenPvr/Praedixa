@@ -13,7 +13,7 @@ from sqlalchemy import pool
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from alembic import context
+import alembic.context as context
 from alembic.util.exc import CommandError
 from app.core.config import settings
 

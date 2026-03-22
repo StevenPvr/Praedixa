@@ -23,6 +23,7 @@ Handlers Next.js server-side du cycle OIDC et de la session browser. Rien ici n'
 - le rate limit auth est browser-facing et fail-close hors developpement: sans store distribue explicite ou sans `AUTH_RATE_LIMIT_KEY_SALT`, les handlers refusent au lieu de degrader localement
 - `login` et `callback` exigent une origine publique explicite et valide via `AUTH_APP_ORIGIN` ou `NEXT_PUBLIC_APP_ORIGIN` en production
 - aucun handler auth ne reconstruit l'origine publique depuis `request.nextUrl.origin` en production
+- quand la decouverte OIDC ou la validation d'issuer echoue, `/auth/login` garde un code erreur navigateur stable mais journalise maintenant la cause exacte cote serveur pour accelerer le diagnostic ops
 
 ## Dependances directes
 

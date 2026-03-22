@@ -95,11 +95,11 @@ export default function AccueilPage() {
         <StatCard
           label="Organisations actives"
           value={String(kpis?.activeOrganizations ?? 0)}
-          trend={
-            kpis
-              ? `${kpis.activeOrganizations}/${kpis.totalOrganizations}`
-              : undefined
-          }
+          {...(kpis
+            ? {
+                trend: `${kpis.activeOrganizations}/${kpis.totalOrganizations}`,
+              }
+            : {})}
           trendDirection="flat"
           icon={<Activity className="h-4 w-4" />}
         />

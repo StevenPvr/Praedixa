@@ -69,7 +69,7 @@ async def get_billing_info(
     if org is None:
         raise NotFoundError("Organization", str(org_id))
 
-    plan_value = org.plan if isinstance(org.plan, str) else org.plan.value
+    plan_value = org.plan.value
 
     # Count usage
     user_count = await session.execute(

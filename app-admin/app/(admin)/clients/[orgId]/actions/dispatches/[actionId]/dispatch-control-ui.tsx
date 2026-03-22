@@ -6,10 +6,30 @@ import { Card, CardContent } from "@praedixa/ui";
 import { ReadOnlyStateCard } from "../../../read-only-detail";
 
 export interface MutationReadOnlyState {
-  tone?: "empty" | "warning";
-  title: string;
-  message: string;
+  readonly tone?: "empty" | "warning";
+  readonly title: string;
+  readonly message: string;
 }
+
+type MutationPanelHeaderProps = Readonly<{
+  title: string;
+  description: string;
+  statusLabel: string | null;
+}>;
+
+type MutationCommentFieldProps = Readonly<{
+  value: string;
+  placeholder: string;
+  onChange: (value: string) => void;
+}>;
+
+type MutationErrorTextProps = Readonly<{
+  message: string | null;
+}>;
+
+type MutationPanelShellProps = Readonly<{
+  children: ReactNode;
+}>;
 
 export function getDispatchPermissionReadOnlyState({
   canManageDispatch,
@@ -54,7 +74,7 @@ export function getDispatchPermissionReadOnlyState({
   return null;
 }
 
-export function MutationReadOnlyCard(props: MutationReadOnlyState) {
+export function MutationReadOnlyCard(props: Readonly<MutationReadOnlyState>) {
   return <ReadOnlyStateCard {...props} />;
 }
 
@@ -62,11 +82,7 @@ export function MutationPanelHeader({
   title,
   description,
   statusLabel,
-}: {
-  title: string;
-  description: string;
-  statusLabel: string | null;
-}) {
+}: MutationPanelHeaderProps) {
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div>
@@ -86,11 +102,7 @@ export function MutationCommentField({
   value,
   placeholder,
   onChange,
-}: {
-  value: string;
-  placeholder: string;
-  onChange: (value: string) => void;
-}) {
+}: MutationCommentFieldProps) {
   return (
     <label className="block space-y-2">
       <span className="text-xs font-medium uppercase tracking-wide text-ink-tertiary">
@@ -106,11 +118,11 @@ export function MutationCommentField({
   );
 }
 
-export function MutationErrorText({ message }: { message: string | null }) {
+export function MutationErrorText({ message }: MutationErrorTextProps) {
   return message ? <p className="text-sm text-danger-text">{message}</p> : null;
 }
 
-export function MutationPanelShell({ children }: { children: ReactNode }) {
+export function MutationPanelShell({ children }: MutationPanelShellProps) {
   return (
     <Card className="rounded-2xl shadow-soft">
       <CardContent className="space-y-4 p-5">{children}</CardContent>

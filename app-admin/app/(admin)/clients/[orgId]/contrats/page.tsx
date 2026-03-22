@@ -34,6 +34,28 @@ const EMPTY_CONTRACT_LIST: DecisionContractStudioListResponse = {
   total: 0,
 };
 
+type ContractStudioSelectionStateInput = {
+  list: DecisionContractStudioListResponse | null;
+  selection: ContractStudioSelection | null;
+  setSelection: (selection: ContractStudioSelection | null) => void;
+  refetchAll: () => void;
+};
+
+type ContractStudioPageState = ReturnType<typeof useContractStudioPageState>;
+
+type ContractStudioLoadedSplitContentProps = {
+  orgId: string;
+  canMutate: boolean;
+  list: DecisionContractStudioListResponse;
+  state: ContractStudioPageState;
+};
+
+type ContractStudioLoadedPageProps = {
+  orgId: string;
+  canMutate: boolean;
+  state: ContractStudioPageState;
+};
+
 function buildDetailUrl(
   orgId: string,
   selection: ContractStudioSelection | null,
@@ -82,12 +104,7 @@ function useContractStudioSelectionState({
   selection,
   setSelection,
   refetchAll,
-}: {
-  list: DecisionContractStudioListResponse | null;
-  selection: ContractStudioSelection | null;
-  setSelection: (selection: ContractStudioSelection | null) => void;
-  refetchAll: () => void;
-}) {
+}: Readonly<ContractStudioSelectionStateInput>) {
   useEffect(() => {
     if (selection) {
       return;
@@ -134,17 +151,10 @@ function useContractStudioPageState(orgId: string) {
   };
 }
 
-function ContractStudioLoadedSplitContent({
-  orgId,
-  canMutate,
-  list,
-  state,
-}: {
-  orgId: string;
-  canMutate: boolean;
-  list: DecisionContractStudioListResponse;
-  state: ReturnType<typeof useContractStudioPageState>;
-}) {
+function ContractStudioLoadedSplitContent(
+  props: Readonly<ContractStudioLoadedSplitContentProps>,
+) {
+  const { orgId, canMutate, list, state } = props;
   return (
     <ContractStudioSplitLayout
       versionList={
@@ -173,15 +183,10 @@ function ContractStudioLoadedSplitContent({
   );
 }
 
-function ContractStudioLoadedPage({
-  orgId,
-  canMutate,
-  state,
-}: {
-  orgId: string;
-  canMutate: boolean;
-  state: ReturnType<typeof useContractStudioPageState>;
-}) {
+function ContractStudioLoadedPage(
+  props: Readonly<ContractStudioLoadedPageProps>,
+) {
+  const { orgId, canMutate, state } = props;
   const list = state.queries.list.data ?? EMPTY_CONTRACT_LIST;
   return (
     <ContractStudioPageBody

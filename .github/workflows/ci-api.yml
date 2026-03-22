@@ -49,7 +49,7 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
-          ./scripts/ci-evaluate-scope.sh \
+          ./scripts/gates/ci-evaluate-scope.sh \
             --workflow api \
             --event-name "$EVENT_NAME" \
             --base-sha "$BASE_SHA" \
@@ -168,7 +168,7 @@ jobs:
 
       - name: Import-linter
         run: |
-          ./scripts/ci-python-tool.sh --cwd app-api import-linter --config .importlinter
+          ./scripts/gates/ci-python-tool.sh --cwd app-api import-linter --config .importlinter
 
       - name: Alembic heads
         run: ./scripts/check-alembic-heads.sh

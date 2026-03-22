@@ -34,6 +34,9 @@ Le webapp utilise OIDC Authorization Code + PKCE avec cookies httpOnly et sessio
 - `super_admin` n'utilise pas le webapp: le callback fait un handoff vers le flow de connexion `app-admin`, avec override possible via `AUTH_ADMIN_APP_ORIGIN` ou `NEXT_PUBLIC_ADMIN_APP_ORIGIN`.
 - Les composants n'accedent jamais directement au bearer token.
 - Les refreshs sont faits cote serveur ou via `/auth/session`.
+- Tout token JWT ou segment de session malforme echoue desormais en lecture locale sans lever d'exception: le decodeur retourne une charge vide et les couches superieures ferment la session (`null` / `401`) au lieu de laisser remonter un throw.
+- `request-session.ts`, `middleware.ts` et `/auth/session` partagent le meme contrat fail-close: cookies locaux invalides ou incompatibles => session rejetee et cookies purges; echec transitoire de refresh/provider ou runtime auth indisponible => session rejetee sans promotion implicite ni etat authentifie ambigu.
+- `client.ts` traite `/auth/session` comme une frontiere stricte: tout payload partiel, JSON invalide ou reponse non `ok` vide le cache utilisateur local et retombe sur `null`.
 - Les parseurs JWT et la session signee n'acceptent plus que les claims top-level canoniques `sub`, `email`, `role`, `organization_id` et `site_id` pour les roles scopes.
 - Les aliases legacy (`preferred_username`, `org_id`, `organizationId`, `siteId`, `site_ids`, `roles`, `groups`, `realm_access`, `resource_access`, `app_metadata`) sont rejetes explicitement.
 - `jwt.ts` expose aussi un diagnostic de claim minimal pour remonter un `token_reason` explorable quand le callback finit en `auth_claims_invalid`, sans journaliser le bearer token.
@@ -44,7 +47,10 @@ Le webapp utilise OIDC Authorization Code + PKCE avec cookies httpOnly et sessio
 - si `Sec-Fetch-Site` annonce `cross-site` ou `same-site`, ce veto l'emporte sur un `Origin` coherent et la requete browser JSON est rejetee.
 - En production, `AUTH_APP_ORIGIN` ou `NEXT_PUBLIC_APP_ORIGIN` doit etre defini explicitement pour les redirects OIDC; aucun fallback implicite vers `request.nextUrl.origin` n'est accepte.
 - Si `AUTH_APP_ORIGIN` et `NEXT_PUBLIC_APP_ORIGIN` sont tous deux definis, ils doivent etre strictement identiques et representer une origine nue sans path, query, fragment ni credentials.
+- La confiance OIDC reste `https`-only par defaut, sauf en developpement local explicite ou `oidc/discovery.ts` accepte `http://localhost`, `127.0.0.1` et `::1` pour permettre un IdP local sans ouvrir la prod a l'HTTP.
+- `oidc/discovery.ts` est maintenant un simple adaptateur vers `@praedixa/shared-types/oidc-discovery`; toute evolution de la politique de confiance doit partir du helper partage plutot que d'une copie locale.
 - Pour le handoff `super_admin`, `AUTH_ADMIN_APP_ORIGIN` ou `NEXT_PUBLIC_ADMIN_APP_ORIGIN` peut surcharger l'origine admin; sinon le webapp derive l'origine admin canonique a partir de son origine publique (`app` -> `admin`, `staging-app` -> `staging-admin`, local `3001` -> `3002`).
+- La decouverte OIDC webapp remonte maintenant le statut HTTP et un extrait du payload d'erreur du provider (par exemple realm manquant) au lieu d'un message generique, et `app/auth/login` journalise cette cause cote serveur tout en gardant une surface fail-close cote navigateur.
 
 ## Tests
 

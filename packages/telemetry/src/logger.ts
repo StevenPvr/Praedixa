@@ -154,13 +154,11 @@ export function buildTelemetryEvent(
   };
 }
 
-function defaultWrite(entry: {
+function defaultWrite(_entry: {
   level: TelemetryLevel;
   record: TelemetryEventRecord;
   serialized: string;
-}): void {
-  void entry;
-}
+}): void {}
 
 export function createTelemetryLogger(config: TelemetryLoggerConfig) {
   const enabled = config.enabled ?? true;

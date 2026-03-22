@@ -36,15 +36,23 @@ repos:
 
       - id: gate-precommit-blocking
         name: gate pre-commit blocking (security + tests)
-        entry: sh -c './scripts/gate-precommit-blocking.sh'
+        entry: sh -c './scripts/gates/gate-precommit-blocking.sh'
         language: system
         always_run: true
         pass_filenames: false
         stages: [pre-commit]
 
+      - id: gate-typecheck-all
+        name: gate pre-push typecheck all
+        entry: sh -c './scripts/gates/gate-typecheck-all.sh'
+        language: system
+        always_run: true
+        pass_filenames: false
+        stages: [pre-push]
+
       - id: gate-prepush-deep
         name: gate pre-push deep security (blocking)
-        entry: sh -c './scripts/gate-prepush-deep.sh'
+        entry: sh -c './scripts/gates/gate-prepush-deep.sh'
         language: system
         always_run: true
         pass_filenames: false
@@ -52,7 +60,7 @@ repos:
 
       - id: gate-report-verify-pre-push
         name: gate report verify (signed + fresh + HEAD-bound)
-        entry: sh -c './scripts/verify-gate-report.sh --mode manual --run-if-missing --max-age-seconds 21600'
+        entry: sh -c './scripts/gates/verify-gate-report.sh --mode manual --run-if-missing --max-age-seconds 21600'
         language: system
         always_run: true
         pass_filenames: false
@@ -60,6 +68,6 @@ repos:
 
       - id: conventional-commit-message
         name: conventional commit message
-        entry: sh -c './scripts/check-commit-message.sh "$1"' --
+        entry: sh -c './scripts/gates/check-commit-message.sh "$1"' --
         language: system
         stages: [commit-msg]

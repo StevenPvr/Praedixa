@@ -9,7 +9,7 @@ Infrastructure et procedure locale pour le runtime Camunda 8 Self-Managed utilis
 - endpoint runtime cible: `http://127.0.0.1:8088/v2`
 - auth locale par defaut: `none` sur les APIs du lightweight quickstart
 
-Le repo ne versionne pas en dur le gros compose officiel. A la place, `scripts/camunda-dev.sh` telecharge l'artefact officiel epingle et l'extrait dans `.tools/camunda/`.
+Le repo ne versionne pas en dur le gros compose officiel. A la place, `scripts/dev/camunda-dev.sh` telecharge l'artefact officiel epingle et l'extrait dans `.meta/.tools/camunda/`.
 
 ## Commandes utiles
 

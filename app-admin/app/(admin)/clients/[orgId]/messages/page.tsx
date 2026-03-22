@@ -9,6 +9,7 @@ import {
   ADMIN_WORKSPACE_FEATURE_GATES,
   featureUnavailableMessage,
 } from "@/lib/runtime/admin-workspace-feature-gates";
+import { CHAT_POLL_INTERVAL_MS } from "@/lib/chat-config";
 import { useClientContext } from "../client-context";
 import { ConversationList } from "@/components/chat/conversation-list";
 import { MessageThread } from "@/components/chat/message-thread";
@@ -19,8 +20,14 @@ export default function MessagesPage() {
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
   const messagingEnabled = ADMIN_WORKSPACE_FEATURE_GATES.messagesWorkspace;
 
-  const { data: conversations, refetch } = useApiGet<Conversation[]>(
+  const {
+    data: conversations,
+    loading: conversationsLoading,
+    error: conversationsError,
+    refetch,
+  } = useApiGet<Conversation[]>(
     messagingEnabled ? ADMIN_ENDPOINTS.orgConversations(orgId) : null,
+    messagingEnabled ? { pollInterval: CHAT_POLL_INTERVAL_MS } : undefined,
   );
 
   const handleStatusChange = useCallback(() => {
@@ -49,7 +56,9 @@ export default function MessagesPage() {
           </h2>
         </div>
         <ConversationList
-          orgId={orgId}
+          conversations={conversations}
+          loading={conversationsLoading}
+          error={conversationsError}
           selectedId={selectedConvId}
           onSelect={setSelectedConvId}
         />

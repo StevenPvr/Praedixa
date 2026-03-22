@@ -86,7 +86,7 @@ function LedgerDetailHeader({ orgId }: { orgId: string }) {
   );
 }
 
-function LedgerSummary({ data }: { data: LedgerDetailResponse }) {
+function LedgerSummary({ data }: Readonly<{ data: LedgerDetailResponse }>) {
   const readyExports = data.exportReadiness.filter(
     (item) => item.status === "ready",
   ).length;
@@ -117,7 +117,9 @@ function LedgerSummary({ data }: { data: LedgerDetailResponse }) {
   );
 }
 
-function LedgerValidationCard({ data }: { data: LedgerDetailResponse }) {
+function LedgerValidationCard({
+  data,
+}: Readonly<{ data: LedgerDetailResponse }>) {
   return (
     <Card className="rounded-2xl shadow-soft">
       <CardContent className="space-y-3 p-5">
@@ -134,19 +136,19 @@ function LedgerValidationCard({ data }: { data: LedgerDetailResponse }) {
         </div>
         <div className="grid gap-3 text-sm text-ink-tertiary md:grid-cols-2">
           <p>
-            Recommendation:{" "}
+            <span>Recommendation: </span>
             <span className="text-ink">{data.recommendationId}</span>
           </p>
           <p>
-            Scenario run:{" "}
+            <span>Scenario run: </span>
             <span className="text-ink">{data.scenarioRunId ?? "Aucun"}</span>
           </p>
           <p>
-            Ouvert le:{" "}
+            <span>Ouvert le: </span>
             <span className="text-ink">{formatDateTime(data.openedAt)}</span>
           </p>
           <p>
-            Ferme le:{" "}
+            <span>Ferme le: </span>
             <span className="text-ink">{formatDateTime(data.closedAt)}</span>
           </p>
         </div>
@@ -158,33 +160,33 @@ function LedgerValidationCard({ data }: { data: LedgerDetailResponse }) {
 function LedgerRoiCard({
   data,
   hasRoiComponents,
-}: {
+}: Readonly<{
   data: LedgerDetailResponse;
   hasRoiComponents: boolean;
-}) {
+}>) {
   return (
     <Card className="rounded-2xl shadow-soft">
       <CardContent className="space-y-3 p-5">
         <h3 className="text-sm font-medium text-ink-secondary">ROI</h3>
         <div className="grid gap-3 text-sm text-ink-tertiary md:grid-cols-2">
           <p>
-            Estime:{" "}
+            <span>Estime: </span>
             <span className="text-ink">
               {formatCurrency(data.roi.estimatedValue, data.roi.currency)}
             </span>
           </p>
           <p>
-            Realise:{" "}
+            <span>Realise: </span>
             <span className="text-ink">
               {formatCurrency(data.roi.realizedValue, data.roi.currency)}
             </span>
           </p>
           <p>
-            Methode contrefactuelle:{" "}
+            <span>Methode contrefactuelle: </span>
             <span className="text-ink">{data.counterfactual.method}</span>
           </p>
           <p>
-            Action status:{" "}
+            <span>Action status: </span>
             <span className="text-ink">{data.action.status}</span>
           </p>
         </div>
@@ -216,43 +218,58 @@ function LedgerRoiCard({
   );
 }
 
-function LedgerExportReadinessList({ data }: { data: LedgerDetailResponse }) {
+function LedgerExportReadinessList({
+  data,
+}: Readonly<{ data: LedgerDetailResponse }>) {
   return (
     <div className="space-y-2">
-      {data.exportReadiness.map((item) => (
-        <div
-          key={item.format}
-          className="rounded-xl border border-border bg-surface-sunken p-3"
-        >
-          <p className="text-sm font-semibold text-ink">{item.format}</p>
-          <p className="mt-1 text-xs text-ink-tertiary">
-            {item.status}
-            {item.blockers.length > 0 ? ` · ${item.blockers.join(", ")}` : ""}
-          </p>
-        </div>
-      ))}
+      {data.exportReadiness.map((item) =>
+        (() => {
+          const blockersSuffix =
+            item.blockers.length > 0 ? ` · ${item.blockers.join(", ")}` : "";
+          return (
+            <div
+              key={item.format}
+              className="rounded-xl border border-border bg-surface-sunken p-3"
+            >
+              <p className="text-sm font-semibold text-ink">{item.format}</p>
+              <p className="mt-1 text-xs text-ink-tertiary">
+                {item.status}
+                {blockersSuffix}
+              </p>
+            </div>
+          );
+        })(),
+      )}
     </div>
   );
 }
 
-function LedgerRevisionLineageList({ data }: { data: LedgerDetailResponse }) {
+function LedgerRevisionLineageList({
+  data,
+}: Readonly<{ data: LedgerDetailResponse }>) {
   return (
     <div className="space-y-2">
-      {data.revisionLineage.map((node) => (
-        <div
-          key={`${node.ledgerId}:${node.revision}`}
-          className="rounded-xl border border-border bg-surface-sunken p-3"
-        >
-          <p className="text-sm font-semibold text-ink">
-            Revision {node.revision}
-            {node.isSelected ? " · selectionnee" : ""}
-          </p>
-          <p className="mt-1 text-xs text-ink-tertiary">
-            {node.status} · {node.validationStatus} ·{" "}
-            {formatDateTime(node.openedAt)}
-          </p>
-        </div>
-      ))}
+      {data.revisionLineage.map((node) =>
+        (() => {
+          const selectionSuffix = node.isSelected ? " · selectionnee" : "";
+          return (
+            <div
+              key={`${node.ledgerId}:${node.revision}`}
+              className="rounded-xl border border-border bg-surface-sunken p-3"
+            >
+              <p className="text-sm font-semibold text-ink">
+                Revision {node.revision}
+                {selectionSuffix}
+              </p>
+              <p className="mt-1 text-xs text-ink-tertiary">
+                {node.status} · {node.validationStatus} ·{" "}
+                {formatDateTime(node.openedAt)}
+              </p>
+            </div>
+          );
+        })(),
+      )}
     </div>
   );
 }
@@ -261,11 +278,11 @@ function LedgerExportsCard({
   data,
   hasExportReadiness,
   hasRevisionLineage,
-}: {
+}: Readonly<{
   data: LedgerDetailResponse;
   hasExportReadiness: boolean;
   hasRevisionLineage: boolean;
-}) {
+}>) {
   return (
     <Card className="rounded-2xl shadow-soft">
       <CardContent className="space-y-3 p-5">

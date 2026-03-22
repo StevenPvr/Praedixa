@@ -13,7 +13,12 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-from alembic import op
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
+
+NOW_SQL = "now()"
+ON_DELETE_CASCADE = "CASCADE"
+ORGANIZATIONS_ID_REF = "organizations.id"
+CLIENT_DATASETS_ID_REF = "client_datasets.id"
 
 # revision identifiers, used by Alembic.
 revision: str = "004"
@@ -30,7 +35,7 @@ def upgrade() -> None:
         sa.Column(
             "organization_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("organizations.id", ondelete="CASCADE"),
+            sa.ForeignKey(ORGANIZATIONS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column("name", sa.String(255), nullable=False),
@@ -65,13 +70,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.UniqueConstraint(
@@ -91,7 +96,7 @@ def upgrade() -> None:
         sa.Column(
             "dataset_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("client_datasets.id", ondelete="CASCADE"),
+            sa.ForeignKey(CLIENT_DATASETS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column("name", sa.String(255), nullable=False),
@@ -134,13 +139,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.UniqueConstraint(
@@ -165,7 +170,7 @@ def upgrade() -> None:
         sa.Column(
             "dataset_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("client_datasets.id", ondelete="CASCADE"),
+            sa.ForeignKey(CLIENT_DATASETS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column("column_name", sa.String(255), nullable=False),
@@ -184,7 +189,7 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.UniqueConstraint(
@@ -216,7 +221,7 @@ def upgrade() -> None:
         sa.Column(
             "dataset_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("client_datasets.id", ondelete="CASCADE"),
+            sa.ForeignKey(CLIENT_DATASETS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column(
@@ -250,13 +255,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )

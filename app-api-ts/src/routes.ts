@@ -1,8 +1,5 @@
 import { z } from "zod";
-import type {
-  CreateAdminOrganizationRequest,
-  DeleteAdminOrganizationRequest,
-} from "@praedixa/shared-types/api";
+import type { DeleteAdminOrganizationRequest } from "@praedixa/shared-types/api";
 import type { DecisionScope } from "@praedixa/shared-types/domain";
 import { failure, paginated, success } from "./response.js";
 import { route } from "./router.js";
@@ -10,6 +7,7 @@ import { ADMIN_DECISION_CONTRACT_ROUTES } from "./routes/admin-decision-contract
 import { ADMIN_DECISION_RUNTIME_ROUTES } from "./routes/admin-decision-runtime-routes.js";
 import { ADMIN_INTEGRATION_ROUTES } from "./routes/admin-integration-routes.js";
 import { ADMIN_ONBOARDING_ROUTES } from "./routes/admin-onboarding-routes.js";
+import { EMAIL_DELIVERY_WEBHOOK_ROUTES } from "./routes/email-delivery-webhook-routes.js";
 import {
   getDecisionConfigService,
   getDefaultHorizon,
@@ -93,7 +91,6 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const ORG_WIDE_SITE_ACCESS_ROLES = new Set<UserRole>([
   "super_admin",
   "org_admin",
-  "hr_manager",
 ]);
 const CONTACT_REQUEST_TYPES = [
   "founding_pilot",
@@ -223,15 +220,25 @@ function normalizeDecisionScopeOverrides(
       ? undefined
       : {
           mode: scopeOverrides.selector.mode,
-          ids: scopeOverrides.selector.ids,
-          query: scopeOverrides.selector.query,
+          ...(scopeOverrides.selector.ids !== undefined
+            ? { ids: scopeOverrides.selector.ids }
+            : {}),
+          ...(scopeOverrides.selector.query !== undefined
+            ? { query: scopeOverrides.selector.query }
+            : {}),
         };
 
   return {
-    entityType: scopeOverrides.entityType,
-    selector,
-    horizonId: scopeOverrides.horizonId,
-    dimensions: scopeOverrides.dimensions,
+    ...(scopeOverrides.entityType !== undefined
+      ? { entityType: scopeOverrides.entityType }
+      : {}),
+    ...(selector !== undefined ? { selector } : {}),
+    ...(scopeOverrides.horizonId !== undefined
+      ? { horizonId: scopeOverrides.horizonId }
+      : {}),
+    ...(scopeOverrides.dimensions !== undefined
+      ? { dimensions: scopeOverrides.dimensions }
+      : {}),
   };
 }
 
@@ -973,6 +980,7 @@ function shouldUsePersistentAdminOrgData(orgId: string): boolean {
 }
 
 export const routes: RouteDefinition[] = [
+  ...EMAIL_DELIVERY_WEBHOOK_ROUTES,
   route(
     "GET",
     "/api/v1/health",
@@ -1335,7 +1343,7 @@ export const routes: RouteDefinition[] = [
       return success(
         await service.dismissDashboardAlert({
           organizationId: scopedOrganizationId(ctx),
-          alertId: ctx.params.alertId ?? "",
+          alertId: ctx.params["alertId"] ?? "",
         }),
         ctx.requestId,
       );
@@ -1516,7 +1524,7 @@ export const routes: RouteDefinition[] = [
         return success(
           await acknowledgePersistentCoverageAlert({
             organizationId: scopedOrganizationId(ctx),
-            alertId: ctx.params.alertId ?? "",
+            alertId: ctx.params["alertId"] ?? "",
             scope: buildPersistentSiteScope(ctx, ctx.query.get("site_id")),
           }),
           ctx.requestId,
@@ -1540,7 +1548,7 @@ export const routes: RouteDefinition[] = [
       return success(
         await resolvePersistentCoverageAlert({
           organizationId: scopedOrganizationId(ctx),
-          alertId: ctx.params.alertId ?? "",
+          alertId: ctx.params["alertId"] ?? "",
           scope: buildPersistentSiteScope(ctx, ctx.query.get("site_id")),
         }),
         ctx.requestId,
@@ -1564,7 +1572,7 @@ export const routes: RouteDefinition[] = [
       return success(
         await getPersistentParetoFrontierForAlert({
           organizationId: scopedOrganizationId(ctx),
-          alertId: ctx.params.alertId ?? "",
+          alertId: ctx.params["alertId"] ?? "",
           scope: buildPersistentSiteScope(ctx, ctx.query.get("site_id")),
         }),
         ctx.requestId,
@@ -1587,7 +1595,7 @@ export const routes: RouteDefinition[] = [
       return success(
         await getPersistentDecisionWorkspace({
           organizationId: scopedOrganizationId(ctx),
-          alertId: ctx.params.alertId ?? "",
+          alertId: ctx.params["alertId"] ?? "",
           scope: buildPersistentSiteScope(ctx, ctx.query.get("site_id")),
         }),
         ctx.requestId,
@@ -1611,7 +1619,7 @@ export const routes: RouteDefinition[] = [
     }
 
     const payload = parseJsonObject(ctx.body);
-    if (!payload || typeof payload.alertId !== "string") {
+    if (!payload || typeof payload["alertId"] !== "string") {
       return failure(
         "VALIDATION_ERROR",
         "Body must include alertId",
@@ -1619,7 +1627,10 @@ export const routes: RouteDefinition[] = [
         422,
       );
     }
-    if (payload.optionId != null && typeof payload.optionId !== "string") {
+    if (
+      payload["optionId"] != null &&
+      typeof payload["optionId"] !== "string"
+    ) {
       return failure(
         "VALIDATION_ERROR",
         "optionId must be a string when provided",
@@ -1627,7 +1638,7 @@ export const routes: RouteDefinition[] = [
         422,
       );
     }
-    if (payload.notes != null && typeof payload.notes !== "string") {
+    if (payload["notes"] != null && typeof payload["notes"] !== "string") {
       return failure(
         "VALIDATION_ERROR",
         "notes must be a string when provided",
@@ -1641,10 +1652,12 @@ export const routes: RouteDefinition[] = [
         await createPersistentOperationalDecision({
           organizationId: scopedOrganizationId(ctx),
           scope: buildPersistentSiteScope(ctx, ctx.query.get("site_id")),
-          alertId: payload.alertId,
+          alertId: payload["alertId"],
           optionId:
-            typeof payload.optionId === "string" ? payload.optionId : null,
-          notes: typeof payload.notes === "string" ? payload.notes : null,
+            typeof payload["optionId"] === "string"
+              ? payload["optionId"]
+              : null,
+          notes: typeof payload["notes"] === "string" ? payload["notes"] : null,
           decidedBy: ctx.user?.userId ?? "",
           decidedByRole: ctx.user?.role ?? null,
         }),
@@ -1668,16 +1681,20 @@ export const routes: RouteDefinition[] = [
 
     try {
       const { page, pageSize } = pageQuery(ctx);
+      const dateFrom = normalizeOptionalText(ctx.query.get("date_from"));
+      const dateTo = normalizeOptionalText(ctx.query.get("date_to"));
+      const isOverride = parseOptionalBooleanQuery(
+        ctx.query.get("is_override"),
+        "is_override",
+      );
+      const horizon = normalizeOptionalText(ctx.query.get("horizon"));
       const result = await listPersistentOperationalDecisions({
         organizationId: scopedOrganizationId(ctx),
         scope: buildPersistentSiteScope(ctx, ctx.query.get("site_id")),
-        dateFrom: normalizeOptionalText(ctx.query.get("date_from")),
-        dateTo: normalizeOptionalText(ctx.query.get("date_to")),
-        isOverride: parseOptionalBooleanQuery(
-          ctx.query.get("is_override"),
-          "is_override",
-        ),
-        horizon: normalizeOptionalText(ctx.query.get("horizon")),
+        ...(dateFrom !== null ? { dateFrom } : {}),
+        ...(dateTo !== null ? { dateTo } : {}),
+        ...(isOverride !== undefined ? { isOverride } : {}),
+        ...(horizon !== null ? { horizon } : {}),
         page,
         pageSize,
       });
@@ -1956,7 +1973,19 @@ export const routes: RouteDefinition[] = [
         );
       }
 
-      return success(listDecisionContractTemplates(parsed.data), ctx.requestId);
+      return success(
+        listDecisionContractTemplates({
+          ...(parsed.data.search !== undefined
+            ? { search: parsed.data.search }
+            : {}),
+          ...(parsed.data.tags !== undefined ? { tags: parsed.data.tags } : {}),
+          ...(parsed.data.pack !== undefined ? { pack: parsed.data.pack } : {}),
+          ...(parsed.data.includeDeprecated !== undefined
+            ? { includeDeprecated: parsed.data.includeDeprecated }
+            : {}),
+        }),
+        ctx.requestId,
+      );
     },
     adminConsoleAccess,
   ),
@@ -1986,12 +2015,24 @@ export const routes: RouteDefinition[] = [
       }
 
       try {
+        const scopeOverrides = normalizeDecisionScopeOverrides(
+          parsed.data.scopeOverrides,
+        );
         return success(
           instantiateDecisionContractTemplate({
-            ...parsed.data,
-            scopeOverrides: normalizeDecisionScopeOverrides(
-              parsed.data.scopeOverrides,
-            ),
+            contractId: parsed.data.contractId,
+            name: parsed.data.name,
+            templateId: parsed.data.templateId,
+            ...(parsed.data.description !== undefined
+              ? { description: parsed.data.description }
+              : {}),
+            ...(parsed.data.tags !== undefined
+              ? { tags: parsed.data.tags }
+              : {}),
+            ...(parsed.data.templateVersion !== undefined
+              ? { templateVersion: parsed.data.templateVersion }
+              : {}),
+            ...(scopeOverrides !== undefined ? { scopeOverrides } : {}),
             actor: {
               userId: actorUserId,
               decidedAt: new Date().toISOString(),
@@ -2132,7 +2173,7 @@ export const routes: RouteDefinition[] = [
       if (hasPersistentDatabase()) {
         try {
           return success(
-            await getPersistentAdminOrgMetrics(ctx.params.orgId ?? ""),
+            await getPersistentAdminOrgMetrics(ctx.params["orgId"] ?? ""),
             ctx.requestId,
           );
         } catch (error) {
@@ -2148,7 +2189,7 @@ export const routes: RouteDefinition[] = [
       return noDemoFallbackResponse(
         ctx.requestId,
         "Admin organization monitoring",
-        ctx.params.orgId,
+        ctx.params["orgId"],
       );
     },
     adminMonitoringRead,
@@ -2160,7 +2201,7 @@ export const routes: RouteDefinition[] = [
       if (hasPersistentDatabase()) {
         try {
           return success(
-            await getPersistentAdminOrgMirror(ctx.params.orgId ?? ""),
+            await getPersistentAdminOrgMirror(ctx.params["orgId"] ?? ""),
             ctx.requestId,
           );
         } catch (error) {
@@ -2176,7 +2217,7 @@ export const routes: RouteDefinition[] = [
       return noDemoFallbackResponse(
         ctx.requestId,
         "Admin organization mirror",
-        ctx.params.orgId,
+        ctx.params["orgId"],
       );
     },
     adminMonitoringRead,
@@ -2250,7 +2291,15 @@ export const routes: RouteDefinition[] = [
       try {
         return success(
           await service.createOrganization({
-            ...(parsed.data satisfies CreateAdminOrganizationRequest),
+            name: parsed.data.name,
+            slug: parsed.data.slug,
+            contactEmail: parsed.data.contactEmail,
+            ...(parsed.data.plan !== undefined
+              ? { plan: parsed.data.plan }
+              : {}),
+            ...(parsed.data.isTest !== undefined
+              ? { isTest: parsed.data.isTest }
+              : {}),
             actorUserId,
             requestId: ctx.requestId,
             clientIp: ctx.clientIp,
@@ -2275,7 +2324,7 @@ export const routes: RouteDefinition[] = [
     "GET",
     "/api/v1/admin/organizations/:orgId",
     async (ctx) => {
-      const orgId = ctx.params.orgId ?? "";
+      const orgId = ctx.params["orgId"] ?? "";
       const service = getAdminBackofficeService();
       if (service.hasDatabase()) {
         try {
@@ -2304,7 +2353,7 @@ export const routes: RouteDefinition[] = [
     "POST",
     "/api/v1/admin/organizations/:orgId/delete",
     async (ctx) => {
-      const orgId = ctx.params.orgId ?? "";
+      const orgId = ctx.params["orgId"] ?? "";
       const service = getAdminBackofficeService();
       if (!service.hasDatabase()) {
         return liveFallbackFailure(ctx, "Admin organization deletion");
@@ -2359,7 +2408,7 @@ export const routes: RouteDefinition[] = [
     "GET",
     "/api/v1/admin/organizations/:orgId/overview",
     async (ctx) => {
-      const orgId = ctx.params.orgId ?? "";
+      const orgId = ctx.params["orgId"] ?? "";
       const service = getAdminBackofficeService();
       if (service.hasDatabase()) {
         try {
@@ -2414,7 +2463,7 @@ export const routes: RouteDefinition[] = [
       noDemoFallbackResponse(
         ctx.requestId,
         "Admin organization hierarchy",
-        ctx.params.orgId ?? undefined,
+        ctx.params["orgId"] || undefined,
       ),
     adminOrgRead,
   ),
@@ -2425,7 +2474,7 @@ export const routes: RouteDefinition[] = [
       noDemoFallbackResponse(
         ctx.requestId,
         "Admin organization suspension",
-        ctx.params.orgId ?? undefined,
+        ctx.params["orgId"] || undefined,
       ),
     adminOrgWrite,
   ),
@@ -2436,7 +2485,7 @@ export const routes: RouteDefinition[] = [
       noDemoFallbackResponse(
         ctx.requestId,
         "Admin organization reactivation",
-        ctx.params.orgId ?? undefined,
+        ctx.params["orgId"] || undefined,
       ),
     adminOrgWrite,
   ),
@@ -2447,7 +2496,7 @@ export const routes: RouteDefinition[] = [
       noDemoFallbackResponse(
         ctx.requestId,
         "Admin organization churn",
-        ctx.params.orgId ?? undefined,
+        ctx.params["orgId"] || undefined,
       ),
     adminOrgWrite,
   ),
@@ -2456,7 +2505,7 @@ export const routes: RouteDefinition[] = [
     "GET",
     "/api/v1/admin/organizations/:orgId/users",
     async (ctx) => {
-      const orgId = ctx.params.orgId ?? "";
+      const orgId = ctx.params["orgId"] ?? "";
       const service = getAdminBackofficeService();
       if (service.hasDatabase()) {
         try {
@@ -2485,8 +2534,8 @@ export const routes: RouteDefinition[] = [
     "GET",
     "/api/v1/admin/organizations/:orgId/users/:userId",
     async (ctx) => {
-      const orgId = ctx.params.orgId ?? "";
-      const userId = ctx.params.userId ?? "";
+      const orgId = ctx.params["orgId"] ?? "";
+      const userId = ctx.params["userId"] ?? "";
       const service = getAdminBackofficeService();
       if (service.hasDatabase()) {
         try {
@@ -2522,8 +2571,8 @@ export const routes: RouteDefinition[] = [
     "PATCH",
     "/api/v1/admin/organizations/:orgId/users/:userId/role",
     async (ctx) => {
-      const orgId = ctx.params.orgId ?? "";
-      const userId = ctx.params.userId ?? "";
+      const orgId = ctx.params["orgId"] ?? "";
+      const userId = ctx.params["userId"] ?? "";
       const payload = parseJsonObject(ctx.body);
       const service = getAdminBackofficeService();
       if (!payload) {
@@ -2558,8 +2607,8 @@ export const routes: RouteDefinition[] = [
         );
       }
 
-      const role = payload.role;
-      const siteId = normalizeOptionalText(payload.site_id);
+      const role = payload["role"];
+      const siteId = normalizeOptionalText(payload["site_id"]);
       if (!isUserRole(role) || role === "super_admin") {
         if (service.hasDatabase()) {
           try {
@@ -2578,7 +2627,7 @@ export const routes: RouteDefinition[] = [
               metadata: {
                 targetUserId: userId,
                 targetRole:
-                  typeof payload.role === "string" ? payload.role : null,
+                  typeof payload["role"] === "string" ? payload["role"] : null,
                 failureCode: "VALIDATION_ERROR",
                 failureStatusCode: 422,
                 reason: "invalid_role",
@@ -2634,7 +2683,7 @@ export const routes: RouteDefinition[] = [
     "POST",
     "/api/v1/admin/organizations/:orgId/users/invite",
     async (ctx) => {
-      const orgId = ctx.params.orgId ?? "";
+      const orgId = ctx.params["orgId"] ?? "";
       const payload = parseJsonObject(ctx.body);
       const service = getAdminBackofficeService();
       if (!payload) {
@@ -2666,7 +2715,7 @@ export const routes: RouteDefinition[] = [
         );
       }
 
-      const email = normalizeEmail(payload.email);
+      const email = normalizeEmail(payload["email"]);
       if (!email) {
         if (service.hasDatabase()) {
           try {
@@ -2682,8 +2731,8 @@ export const routes: RouteDefinition[] = [
               outcome: "rejected",
               metadata: {
                 email:
-                  typeof payload.email === "string"
-                    ? payload.email.trim()
+                  typeof payload["email"] === "string"
+                    ? payload["email"].trim()
                     : null,
                 failureCode: "VALIDATION_ERROR",
                 failureStatusCode: 422,
@@ -2700,8 +2749,8 @@ export const routes: RouteDefinition[] = [
         );
       }
 
-      const role = normalizeAdminRole(payload.role);
-      const siteId = normalizeOptionalText(payload.site_id);
+      const role = normalizeAdminRole(payload["role"]);
+      const siteId = normalizeOptionalText(payload["site_id"]);
       if (!role) {
         if (service.hasDatabase()) {
           try {
@@ -2718,7 +2767,7 @@ export const routes: RouteDefinition[] = [
               metadata: {
                 email,
                 requestedRole:
-                  typeof payload.role === "string" ? payload.role : null,
+                  typeof payload["role"] === "string" ? payload["role"] : null,
                 failureCode: "VALIDATION_ERROR",
                 failureStatusCode: 422,
                 reason: "invalid_role",
@@ -2775,8 +2824,8 @@ export const routes: RouteDefinition[] = [
     "POST",
     "/api/v1/admin/organizations/:orgId/users/:userId/deactivate",
     async (ctx) => {
-      const orgId = ctx.params.orgId ?? "";
-      const userId = ctx.params.userId ?? "";
+      const orgId = ctx.params["orgId"] ?? "";
+      const userId = ctx.params["userId"] ?? "";
       const service = getAdminBackofficeService();
       if (service.hasDatabase()) {
         try {
@@ -2813,8 +2862,8 @@ export const routes: RouteDefinition[] = [
     "POST",
     "/api/v1/admin/organizations/:orgId/users/:userId/reactivate",
     async (ctx) => {
-      const orgId = ctx.params.orgId ?? "";
-      const userId = ctx.params.userId ?? "";
+      const orgId = ctx.params["orgId"] ?? "";
+      const userId = ctx.params["userId"] ?? "";
       const service = getAdminBackofficeService();
       if (service.hasDatabase()) {
         try {
@@ -2857,13 +2906,13 @@ export const routes: RouteDefinition[] = [
         return noDemoFallbackResponse(
           ctx.requestId,
           "Admin billing info",
-          ctx.params.orgId ?? undefined,
+          ctx.params["orgId"] || undefined,
         );
       }
 
       try {
         return success(
-          await service.getBillingInfo(ctx.params.orgId ?? ""),
+          await service.getBillingInfo(ctx.params["orgId"] ?? ""),
           ctx.requestId,
         );
       } catch (error) {
@@ -2882,7 +2931,7 @@ export const routes: RouteDefinition[] = [
     "/api/v1/admin/billing/organizations/:orgId/change-plan",
     async (ctx) => {
       const payload = parseJsonObject(ctx.body);
-      if (!payload || typeof payload.plan !== "string") {
+      if (!payload || typeof payload["plan"] !== "string") {
         return failure(
           "VALIDATION_ERROR",
           "Body must include a target plan",
@@ -2896,16 +2945,17 @@ export const routes: RouteDefinition[] = [
         return noDemoFallbackResponse(
           ctx.requestId,
           "Admin billing plan change",
-          ctx.params.orgId ?? undefined,
+          ctx.params["orgId"] || undefined,
         );
       }
 
       try {
         return success(
           await service.changePlan({
-            organizationId: ctx.params.orgId ?? "",
-            newPlan: payload.plan,
-            reason: typeof payload.reason === "string" ? payload.reason : "",
+            organizationId: ctx.params["orgId"] ?? "",
+            newPlan: payload["plan"],
+            reason:
+              typeof payload["reason"] === "string" ? payload["reason"] : "",
             actorUserId: ctx.user?.userId ?? "",
             requestId: ctx.requestId,
             clientIp: ctx.clientIp,
@@ -2933,13 +2983,13 @@ export const routes: RouteDefinition[] = [
         return noDemoFallbackResponse(
           ctx.requestId,
           "Admin billing history",
-          ctx.params.orgId ?? undefined,
+          ctx.params["orgId"] ?? undefined,
         );
       }
 
       try {
         return success(
-          await service.getPlanHistory(ctx.params.orgId ?? ""),
+          await service.getPlanHistory(ctx.params["orgId"] ?? ""),
           ctx.requestId,
         );
       } catch (error) {
@@ -3262,7 +3312,7 @@ export const routes: RouteDefinition[] = [
     "GET",
     "/api/v1/admin/organizations/:orgId/canonical",
     async (ctx) => {
-      const orgId = ctx.params.orgId ?? "";
+      const orgId = ctx.params["orgId"] ?? "";
       if (!shouldUsePersistentAdminOrgData(orgId)) {
         return noDemoFallbackResponse(
           ctx.requestId,
@@ -3296,7 +3346,7 @@ export const routes: RouteDefinition[] = [
     "GET",
     "/api/v1/admin/organizations/:orgId/canonical/quality",
     async (ctx) => {
-      const orgId = ctx.params.orgId ?? "";
+      const orgId = ctx.params["orgId"] ?? "";
       if (!shouldUsePersistentAdminOrgData(orgId)) {
         return noDemoFallbackResponse(
           ctx.requestId,
@@ -3339,7 +3389,7 @@ export const routes: RouteDefinition[] = [
       success(
         [
           {
-            organizationId: ctx.params.orgId,
+            organizationId: ctx.params["orgId"],
             siteId: "site-lyon",
             internalHourlyCostEur: 19.9,
           },
@@ -3352,7 +3402,7 @@ export const routes: RouteDefinition[] = [
     "GET",
     "/api/v1/admin/organizations/:orgId/decision-config/resolved",
     async (ctx) => {
-      const organizationId = ctx.params.orgId ?? ORGANIZATION_ID;
+      const organizationId = ctx.params["orgId"] ?? ORGANIZATION_ID;
       const service = getDecisionConfigService();
       const siteId = normalizeOptionalText(ctx.query.get("site_id"));
       try {
@@ -3378,7 +3428,7 @@ export const routes: RouteDefinition[] = [
     "GET",
     "/api/v1/admin/organizations/:orgId/decision-config/versions",
     async (ctx) => {
-      const organizationId = ctx.params.orgId ?? ORGANIZATION_ID;
+      const organizationId = ctx.params["orgId"] ?? ORGANIZATION_ID;
       const service = getDecisionConfigService();
       const siteIdRaw = ctx.query.get("site_id");
       const siteId = normalizeOptionalText(siteIdRaw);
@@ -3394,7 +3444,7 @@ export const routes: RouteDefinition[] = [
     "POST",
     "/api/v1/admin/organizations/:orgId/decision-config/versions",
     async (ctx) => {
-      const organizationId = ctx.params.orgId ?? ORGANIZATION_ID;
+      const organizationId = ctx.params["orgId"] ?? ORGANIZATION_ID;
       const body = parseJsonObject(ctx.body);
       if (!body) {
         return failure(
@@ -3405,8 +3455,8 @@ export const routes: RouteDefinition[] = [
         );
       }
 
-      const effectiveAtRaw = body.effectiveAt;
-      const payloadRaw = body.payload;
+      const effectiveAtRaw = body["effectiveAt"];
+      const payloadRaw = body["payload"];
       if (
         typeof effectiveAtRaw !== "string" ||
         effectiveAtRaw.trim().length === 0
@@ -3432,14 +3482,15 @@ export const routes: RouteDefinition[] = [
       }
 
       const service = getDecisionConfigService();
+      const createReason = normalizeOptionalText(body["reason"]);
       try {
         const created = await service.createVersion({
           organizationId,
-          siteId: normalizeOptionalText(body.siteId),
+          siteId: normalizeOptionalText(body["siteId"]),
           effectiveAt: effectiveAtRaw,
           payload: payloadRaw as DecisionEngineConfigPayload,
           createdBy: ctx.user?.userId ?? null,
-          reason: normalizeOptionalText(body.reason) ?? undefined,
+          ...(createReason !== null ? { reason: createReason } : {}),
           requestId: ctx.requestId,
         });
         return success(
@@ -3465,8 +3516,8 @@ export const routes: RouteDefinition[] = [
     "POST",
     "/api/v1/admin/organizations/:orgId/decision-config/versions/:versionId/cancel",
     async (ctx) => {
-      const organizationId = ctx.params.orgId ?? ORGANIZATION_ID;
-      const requestedVersionId = ctx.params.versionId ?? "";
+      const organizationId = ctx.params["orgId"] ?? ORGANIZATION_ID;
+      const requestedVersionId = ctx.params["versionId"] ?? "";
       if (requestedVersionId.length === 0) {
         return failure(
           "decision_config_version_missing",
@@ -3491,12 +3542,13 @@ export const routes: RouteDefinition[] = [
       }
 
       try {
+        const cancelReason = normalizeOptionalText(body?.["reason"]);
         const cancelled = await service.cancelVersion({
           organizationId,
           versionId: targetVersion.id,
           siteId: targetVersion.siteId ?? null,
           actorUserId: ctx.user?.userId ?? null,
-          reason: normalizeOptionalText(body?.reason) ?? undefined,
+          ...(cancelReason !== null ? { reason: cancelReason } : {}),
           requestId: ctx.requestId,
         });
         return success(cancelled, ctx.requestId, "Version cancelled");
@@ -3517,8 +3569,8 @@ export const routes: RouteDefinition[] = [
     "POST",
     "/api/v1/admin/organizations/:orgId/decision-config/versions/:versionId/rollback",
     async (ctx) => {
-      const organizationId = ctx.params.orgId ?? ORGANIZATION_ID;
-      const requestedVersionId = ctx.params.versionId ?? "";
+      const organizationId = ctx.params["orgId"] ?? ORGANIZATION_ID;
+      const requestedVersionId = ctx.params["versionId"] ?? "";
       if (requestedVersionId.length === 0) {
         return failure(
           "decision_config_version_missing",
@@ -3548,7 +3600,7 @@ export const routes: RouteDefinition[] = [
           siteId: targetVersion.siteId ?? null,
           actorUserId: ctx.user?.userId ?? null,
           reason:
-            normalizeOptionalText(body?.reason) ??
+            normalizeOptionalText(body?.["reason"]) ??
             `rollback_requested_from_${targetVersion.id}`,
           requestId: ctx.requestId,
         });
@@ -3577,8 +3629,8 @@ export const routes: RouteDefinition[] = [
     "POST",
     "/api/v1/admin/organizations/:orgId/alerts/:alertId/scenarios/recompute",
     async (ctx) => {
-      const organizationId = ctx.params.orgId ?? ORGANIZATION_ID;
-      const alertId = ctx.params.alertId ?? "alt-001";
+      const organizationId = ctx.params["orgId"] ?? ORGANIZATION_ID;
+      const alertId = ctx.params["alertId"] ?? "alt-001";
       const alert = await findAdminCoverageAlert(organizationId, alertId);
       if (alert == null) {
         return failure(
@@ -3625,7 +3677,7 @@ export const routes: RouteDefinition[] = [
     "GET",
     "/api/v1/admin/organizations/:orgId/alerts",
     async (ctx) => {
-      const orgId = ctx.params.orgId ?? "";
+      const orgId = ctx.params["orgId"] ?? "";
       if (!shouldUsePersistentAdminOrgData(orgId)) {
         return noDemoFallbackResponse(
           ctx.requestId,
@@ -3668,7 +3720,7 @@ export const routes: RouteDefinition[] = [
       noDemoFallbackResponse(
         ctx.requestId,
         "Admin organization scenarios",
-        ctx.params.orgId ?? undefined,
+        ctx.params["orgId"] ?? undefined,
       ),
     adminOrgRead,
   ),
@@ -3679,7 +3731,7 @@ export const routes: RouteDefinition[] = [
       noDemoFallbackResponse(
         ctx.requestId,
         "Admin organization ML monitoring summary",
-        ctx.params.orgId ?? undefined,
+        ctx.params["orgId"] ?? undefined,
       ),
     adminOrgRead,
   ),
@@ -3690,7 +3742,7 @@ export const routes: RouteDefinition[] = [
       noDemoFallbackResponse(
         ctx.requestId,
         "Admin organization ML drift",
-        ctx.params.orgId ?? undefined,
+        ctx.params["orgId"] ?? undefined,
       ),
     adminOrgRead,
   ),
@@ -3698,7 +3750,7 @@ export const routes: RouteDefinition[] = [
     "GET",
     "/api/v1/admin/organizations/:orgId/proof-packs",
     async (ctx) => {
-      const orgId = ctx.params.orgId ?? "";
+      const orgId = ctx.params["orgId"] ?? "";
       if (shouldUsePersistentAdminOrgData(orgId)) {
         try {
           return success(
@@ -3752,7 +3804,7 @@ export const routes: RouteDefinition[] = [
       noDemoFallbackResponse(
         ctx.requestId,
         "Admin proof pack share link",
-        ctx.params.orgId ?? undefined,
+        ctx.params["orgId"] ?? undefined,
       ),
     adminOrgWrite,
   ),
@@ -3760,7 +3812,7 @@ export const routes: RouteDefinition[] = [
     "GET",
     "/api/v1/admin/organizations/:orgId/ingestion-log",
     async (ctx) => {
-      const orgId = ctx.params.orgId ?? "";
+      const orgId = ctx.params["orgId"] ?? "";
       const service = getAdminBackofficeService();
       if (service.hasDatabase()) {
         try {
@@ -3781,7 +3833,7 @@ export const routes: RouteDefinition[] = [
       return noDemoFallbackResponse(
         ctx.requestId,
         "Admin ingestion log",
-        ctx.params.orgId ?? undefined,
+        ctx.params["orgId"] ?? undefined,
       );
     },
     adminOrgRead,
@@ -3793,7 +3845,7 @@ export const routes: RouteDefinition[] = [
       noDemoFallbackResponse(
         ctx.requestId,
         "Admin medallion quality report",
-        ctx.params.orgId ?? undefined,
+        ctx.params["orgId"] ?? undefined,
       ),
     adminOrgRead,
   ),
@@ -3804,7 +3856,7 @@ export const routes: RouteDefinition[] = [
       noDemoFallbackResponse(
         ctx.requestId,
         "Admin datasets",
-        ctx.params.orgId ?? undefined,
+        ctx.params["orgId"] ?? undefined,
       ),
     adminOrgRead,
   ),
@@ -3815,7 +3867,7 @@ export const routes: RouteDefinition[] = [
       noDemoFallbackResponse(
         ctx.requestId,
         "Admin dataset rows",
-        ctx.params.orgId ?? undefined,
+        ctx.params["orgId"] ?? undefined,
       ),
     adminOrgRead,
   ),
@@ -3826,7 +3878,7 @@ export const routes: RouteDefinition[] = [
       noDemoFallbackResponse(
         ctx.requestId,
         "Admin dataset features",
-        ctx.params.orgId ?? undefined,
+        ctx.params["orgId"] ?? undefined,
       ),
     adminOrgRead,
   ),
@@ -3844,7 +3896,7 @@ export const routes: RouteDefinition[] = [
       noDemoFallbackResponse(
         ctx.requestId,
         "Admin organization conversations",
-        ctx.params.orgId ?? undefined,
+        ctx.params["orgId"] ?? undefined,
       ),
     adminMessagesRead,
   ),
@@ -3936,7 +3988,7 @@ export const routes: RouteDefinition[] = [
     "PATCH",
     "/api/v1/admin/contact-requests/:requestId/status",
     async (ctx) => {
-      const requestId = ctx.params.requestId ?? "";
+      const requestId = ctx.params["requestId"] ?? "";
       const payload = parseJsonObject(ctx.body);
       if (!payload) {
         return failure(
@@ -3947,7 +3999,7 @@ export const routes: RouteDefinition[] = [
         );
       }
 
-      const status = normalizeOptionalText(payload.status);
+      const status = normalizeOptionalText(payload["status"]);
       if (!status) {
         return failure(
           "VALIDATION_ERROR",

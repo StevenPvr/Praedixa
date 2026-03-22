@@ -84,7 +84,7 @@ export const ADMIN_INTEGRATION_ROUTES: RouteDefinition[] = [
       try {
         return success(
           await listIntegrationConnections(
-            ctx.params.orgId ?? "",
+            ctx.params["orgId"] ?? "",
             ctx.query.get("vendor"),
           ),
           ctx.requestId,
@@ -106,8 +106,8 @@ export const ADMIN_INTEGRATION_ROUTES: RouteDefinition[] = [
     async (ctx) => {
       try {
         const connection = await getIntegrationConnection(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
+          ctx.params["orgId"] ?? "",
+          ctx.params["connectionId"] ?? "",
         );
         return success(connection, ctx.requestId);
       } catch (error) {
@@ -127,7 +127,7 @@ export const ADMIN_INTEGRATION_ROUTES: RouteDefinition[] = [
     async (ctx) => {
       try {
         const created = await createIntegrationConnection(
-          ctx.params.orgId ?? "",
+          ctx.params["orgId"] ?? "",
           ctx.body,
           ctx.user?.userId ?? null,
         );
@@ -154,8 +154,8 @@ export const ADMIN_INTEGRATION_ROUTES: RouteDefinition[] = [
     async (ctx) => {
       try {
         const updated = await updateIntegrationConnection(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
+          ctx.params["orgId"] ?? "",
+          ctx.params["connectionId"] ?? "",
           ctx.body,
           ctx.user?.userId ?? null,
         );
@@ -181,8 +181,8 @@ export const ADMIN_INTEGRATION_ROUTES: RouteDefinition[] = [
     async (ctx) => {
       try {
         const started = await startIntegrationAuthorization(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
+          ctx.params["orgId"] ?? "",
+          ctx.params["connectionId"] ?? "",
           ctx.body,
           ctx.user?.userId ?? null,
         );
@@ -208,8 +208,8 @@ export const ADMIN_INTEGRATION_ROUTES: RouteDefinition[] = [
     async (ctx) => {
       try {
         const completed = await completeIntegrationAuthorization(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
+          ctx.params["orgId"] ?? "",
+          ctx.params["connectionId"] ?? "",
           ctx.body,
           ctx.user?.userId ?? null,
         );
@@ -235,8 +235,8 @@ export const ADMIN_INTEGRATION_ROUTES: RouteDefinition[] = [
     async (ctx) => {
       try {
         const result = await testIntegrationConnection(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
+          ctx.params["orgId"] ?? "",
+          ctx.params["connectionId"] ?? "",
           ctx.user?.userId ?? null,
         );
         return success(result, ctx.requestId);
@@ -257,8 +257,8 @@ export const ADMIN_INTEGRATION_ROUTES: RouteDefinition[] = [
     async (ctx) => {
       try {
         const credentials = await listIntegrationIngestCredentials(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
+          ctx.params["orgId"] ?? "",
+          ctx.params["connectionId"] ?? "",
         );
         return success(credentials, ctx.requestId);
       } catch (error) {
@@ -278,8 +278,8 @@ export const ADMIN_INTEGRATION_ROUTES: RouteDefinition[] = [
     async (ctx) => {
       try {
         const issued = await issueIntegrationIngestCredential(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
+          ctx.params["orgId"] ?? "",
+          ctx.params["connectionId"] ?? "",
           ctx.body,
           ctx.user?.userId ?? null,
         );
@@ -306,9 +306,9 @@ export const ADMIN_INTEGRATION_ROUTES: RouteDefinition[] = [
     async (ctx) => {
       try {
         const revoked = await revokeIntegrationIngestCredential(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
-          ctx.params.credentialId ?? "",
+          ctx.params["orgId"] ?? "",
+          ctx.params["connectionId"] ?? "",
+          ctx.params["credentialId"] ?? "",
           ctx.user?.userId ?? null,
         );
         return success(
@@ -333,8 +333,8 @@ export const ADMIN_INTEGRATION_ROUTES: RouteDefinition[] = [
     async (ctx) => {
       try {
         const rawEvents = await listIntegrationRawEvents(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
+          ctx.params["orgId"] ?? "",
+          ctx.params["connectionId"] ?? "",
         );
         return success(rawEvents, ctx.requestId);
       } catch (error) {
@@ -354,8 +354,8 @@ export const ADMIN_INTEGRATION_ROUTES: RouteDefinition[] = [
     async (ctx) => {
       try {
         const run = await triggerIntegrationSync(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
+          ctx.params["orgId"] ?? "",
+          ctx.params["connectionId"] ?? "",
           ctx.body,
           ctx.user?.userId ?? null,
         );
@@ -378,7 +378,7 @@ export const ADMIN_INTEGRATION_ROUTES: RouteDefinition[] = [
       try {
         return success(
           await listIntegrationSyncRuns(
-            ctx.params.orgId ?? "",
+            ctx.params["orgId"] ?? "",
             ctx.query.get("connectionId"),
           ),
           ctx.requestId,
@@ -401,7 +401,7 @@ export const ADMIN_INTEGRATION_ROUTES: RouteDefinition[] = [
       try {
         return success(
           await listIntegrationAuditEvents(
-            ctx.params.orgId ?? "",
+            ctx.params["orgId"] ?? "",
             ctx.query.get("connectionId"),
           ),
           ctx.requestId,

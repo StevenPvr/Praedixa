@@ -3,6 +3,7 @@ import type { TelemetryCorrelationContext } from "@praedixa/telemetry";
 export type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 export type RoutePermissionMode = "all" | "any";
 export type RateLimitScope = "ip" | "principal";
+export type RouteBodyParsing = "json" | "binary";
 
 export type UserRole =
   | "super_admin"
@@ -63,8 +64,11 @@ export interface RouteContext {
   telemetry: TelemetryCorrelationContext;
   clientIp: string | null;
   userAgent: string | null;
+  headers: Record<string, string | string[] | undefined>;
   params: Record<string, string>;
   body: unknown;
+  rawBody: string | null;
+  rawBodyBytes: Buffer | null;
   user: JWTPayload | null;
 }
 
@@ -91,6 +95,8 @@ export interface RouteDefinition {
   requiredPermissions: readonly string[] | null;
   permissionMode: RoutePermissionMode;
   rateLimit: RouteRateLimit | null;
+  bodyParsing: RouteBodyParsing;
+  maxBodyBytes: number | null;
   handler: RouteHandler;
 }
 
@@ -102,6 +108,8 @@ export interface CompiledRoute {
   requiredPermissions: readonly string[] | null;
   permissionMode: RoutePermissionMode;
   rateLimit: RouteRateLimit | null;
+  bodyParsing: RouteBodyParsing;
+  maxBodyBytes: number | null;
   paramNames: string[];
   regex: RegExp;
   handler: RouteHandler;

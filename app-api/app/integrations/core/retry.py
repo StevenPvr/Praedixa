@@ -131,19 +131,51 @@ async def run_with_retry(
             if not should_retry(attempt=attempt, policy=effective_policy, error=error):
                 raise
 
-            retry_after = None
-            if get_retry_after_seconds is not None:
-                retry_after = get_retry_after_seconds(error)
-            delay = compute_backoff_seconds(
-                attempt,
-                effective_policy,
-                retry_after_seconds=retry_after,
+            delay = _resolve_retry_delay(
+                attempt=attempt,
+                policy=effective_policy,
+                error=error,
+                get_retry_after_seconds=get_retry_after_seconds,
             )
-
-            if on_retry is not None:
-                maybe_awaitable = on_retry(attempt, delay, error)
-                if maybe_awaitable is not None:
-                    await maybe_awaitable
-
+            await _maybe_run_on_retry(
+                on_retry=on_retry,
+                attempt=attempt,
+                delay=delay,
+                error=error,
+            )
             await asyncio.sleep(delay)
             attempt += 1
+
+
+def _resolve_retry_delay(
+    *,
+    attempt: int,
+    policy: RetryPolicy,
+    error: Exception,
+    get_retry_after_seconds: Callable[[Exception], float | None] | None,
+) -> float:
+    retry_after = (
+        get_retry_after_seconds(error)
+        if get_retry_after_seconds is not None
+        else None
+    )
+    return compute_backoff_seconds(
+        attempt,
+        policy,
+        retry_after_seconds=retry_after,
+    )
+
+
+async def _maybe_run_on_retry(
+    *,
+    on_retry: Callable[[int, float, Exception], Awaitable[None] | None] | None,
+    attempt: int,
+    delay: float,
+    error: Exception,
+) -> None:
+    if on_retry is None:
+        return
+
+    maybe_awaitable = on_retry(attempt, delay, error)
+    if maybe_awaitable is not None:
+        await maybe_awaitable

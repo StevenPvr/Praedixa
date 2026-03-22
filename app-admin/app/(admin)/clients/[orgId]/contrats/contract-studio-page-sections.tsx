@@ -32,11 +32,11 @@ export function ContractStudioErrorState({
   orgId,
   error,
   onRetry,
-}: {
+}: Readonly<{
   orgId: string;
   error: string;
   onRetry: () => void;
-}) {
+}>) {
   return (
     <div className="space-y-6">
       <ContractStudioHeader orgId={orgId} />
@@ -51,13 +51,13 @@ export function ContractStudioPageBody({
   statusCounts,
   templatesError,
   mainContent,
-}: {
+}: Readonly<{
   orgId: string;
   list: DecisionContractStudioListResponse;
   statusCounts: ContractStudioStatusCounts;
   templatesError: string | null;
   mainContent: ReactNode;
-}) {
+}>) {
   return (
     <div className="space-y-6">
       <ContractStudioHeader orgId={orgId} />
@@ -77,17 +77,18 @@ export function ContractStudioMainContent({
   canMutate,
   onSelectionChange,
   splitLayout,
-}: {
+}: Readonly<{
   hasContracts: boolean;
   orgId: string;
   templates: DecisionContractTemplateListResponse | null;
   canMutate: boolean;
   onSelectionChange: (selection: ContractStudioSelection) => void;
   splitLayout: ReactNode;
-}) {
-  return hasContracts ? (
-    <>{splitLayout}</>
-  ) : (
+}>) {
+  if (hasContracts) {
+    return <div className="space-y-6">{splitLayout}</div>;
+  }
+  return (
     <ContractStudioPanels
       orgId={orgId}
       detail={null}
@@ -102,10 +103,10 @@ export function ContractStudioMainContent({
 export function ContractStudioSplitLayout({
   versionList,
   detailColumn,
-}: {
+}: Readonly<{
   versionList: ReactNode;
   detailColumn: ReactNode;
-}) {
+}>) {
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
       {versionList}
@@ -118,11 +119,11 @@ export function ContractStudioVersionListCard({
   list,
   selection,
   onSelectItem,
-}: {
+}: Readonly<{
   list: DecisionContractStudioListResponse;
   selection: ContractStudioSelection | null;
   onSelectItem: (selection: ContractStudioSelection) => void;
-}) {
+}>) {
   return (
     <Card className="rounded-2xl shadow-soft">
       <CardContent className="space-y-3 p-5">
@@ -145,7 +146,7 @@ export function ContractStudioVersionListCard({
   );
 }
 
-function ContractStudioHeader({ orgId }: { orgId: string }) {
+function ContractStudioHeader({ orgId }: Readonly<{ orgId: string }>) {
   return (
     <ReadOnlyDetailHeader
       backHref={`/clients/${encodeURIComponent(orgId)}/config`}
@@ -159,10 +160,10 @@ function ContractStudioHeader({ orgId }: { orgId: string }) {
 function ContractStudioStatsGrid({
   total,
   statusCounts,
-}: {
+}: Readonly<{
   total: number;
   statusCounts: ContractStudioStatusCounts;
-}) {
+}>) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <StatCard
@@ -189,7 +190,7 @@ function ContractStudioStatsGrid({
   );
 }
 
-function ContractStudioTemplateWarning({ error }: { error: string }) {
+function ContractStudioTemplateWarning({ error }: Readonly<{ error: string }>) {
   return (
     <ReadOnlyStateCard
       tone="warning"
@@ -204,11 +205,15 @@ function ContractStudioVersionButton({
   item,
   isActive,
   onSelectItem,
-}: {
+}: Readonly<{
   item: DecisionContractStudioListResponse["items"][number];
   isActive: boolean;
   onSelectItem: (selection: ContractStudioSelection) => void;
-}) {
+}>) {
+  const stateClassName = isActive
+    ? "border-[var(--brand)] bg-[color:var(--brand)]/5"
+    : "border-border bg-surface-sunken hover:border-border-strong";
+  const className = `w-full rounded-xl border p-3 text-left transition ${stateClassName}`;
   return (
     <button
       type="button"
@@ -218,11 +223,7 @@ function ContractStudioVersionButton({
           contractVersion: item.contractVersion,
         })
       }
-      className={`w-full rounded-xl border p-3 text-left transition ${
-        isActive
-          ? "border-[var(--brand)] bg-[color:var(--brand)]/5"
-          : "border-border bg-surface-sunken hover:border-border-strong"
-      }`}
+      className={className}
     >
       <p className="text-sm font-semibold text-ink">{item.name}</p>
       <p className="text-xs text-ink-tertiary">

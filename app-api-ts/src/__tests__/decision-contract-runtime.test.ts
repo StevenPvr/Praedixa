@@ -8,7 +8,12 @@ function actor(
   reason: string,
   notes?: string,
 ) {
-  return { userId, decidedAt, reason, notes };
+  return {
+    userId,
+    decidedAt,
+    reason,
+    ...(notes !== undefined ? { notes } : {}),
+  };
 }
 
 describe("decision-contract runtime service", () => {

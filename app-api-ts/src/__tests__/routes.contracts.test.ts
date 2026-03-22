@@ -196,8 +196,11 @@ function makeContext(
     },
     clientIp: "127.0.0.1",
     userAgent: "vitest",
+    headers: {},
     params: {},
     body: null,
+    rawBody: null,
+    rawBodyBytes: null,
     user: {
       userId: "user-test",
       email: "viewer@client.example",
@@ -227,43 +230,43 @@ function makeAdminContext(
   };
 }
 
-const originalDemoMode = process.env.DEMO_MODE;
-const originalDatabaseUrl = process.env.DATABASE_URL;
-const originalConnectorsRuntimeUrl = process.env.CONNECTORS_RUNTIME_URL;
-const originalConnectorsRuntimeToken = process.env.CONNECTORS_RUNTIME_TOKEN;
+const originalDemoMode = process.env["DEMO_MODE"];
+const originalDatabaseUrl = process.env["DATABASE_URL"];
+const originalConnectorsRuntimeUrl = process.env["CONNECTORS_RUNTIME_URL"];
+const originalConnectorsRuntimeToken = process.env["CONNECTORS_RUNTIME_TOKEN"];
 
 beforeEach(() => {
-  delete process.env.DEMO_MODE;
-  delete process.env.DATABASE_URL;
-  delete process.env.CONNECTORS_RUNTIME_URL;
-  delete process.env.CONNECTORS_RUNTIME_TOKEN;
+  delete process.env["DEMO_MODE"];
+  delete process.env["DATABASE_URL"];
+  delete process.env["CONNECTORS_RUNTIME_URL"];
+  delete process.env["CONNECTORS_RUNTIME_TOKEN"];
 });
 
 afterEach(() => {
   vi.unstubAllGlobals();
 
   if (originalDemoMode == null) {
-    delete process.env.DEMO_MODE;
+    delete process.env["DEMO_MODE"];
   } else {
-    process.env.DEMO_MODE = originalDemoMode;
+    process.env["DEMO_MODE"] = originalDemoMode;
   }
 
   if (originalDatabaseUrl == null) {
-    delete process.env.DATABASE_URL;
+    delete process.env["DATABASE_URL"];
   } else {
-    process.env.DATABASE_URL = originalDatabaseUrl;
+    process.env["DATABASE_URL"] = originalDatabaseUrl;
   }
 
   if (originalConnectorsRuntimeUrl == null) {
-    delete process.env.CONNECTORS_RUNTIME_URL;
+    delete process.env["CONNECTORS_RUNTIME_URL"];
   } else {
-    process.env.CONNECTORS_RUNTIME_URL = originalConnectorsRuntimeUrl;
+    process.env["CONNECTORS_RUNTIME_URL"] = originalConnectorsRuntimeUrl;
   }
 
   if (originalConnectorsRuntimeToken == null) {
-    delete process.env.CONNECTORS_RUNTIME_TOKEN;
+    delete process.env["CONNECTORS_RUNTIME_TOKEN"];
   } else {
-    process.env.CONNECTORS_RUNTIME_TOKEN = originalConnectorsRuntimeToken;
+    process.env["CONNECTORS_RUNTIME_TOKEN"] = originalConnectorsRuntimeToken;
   }
 });
 
@@ -669,7 +672,7 @@ describe("route contracts", () => {
   });
 
   it("fails closed on former broad product fallbacks even when DEMO_MODE is enabled", async () => {
-    process.env.DEMO_MODE = "true";
+    process.env["DEMO_MODE"] = "true";
 
     const expectations = [
       {
@@ -717,7 +720,7 @@ describe("route contracts", () => {
   });
 
   it("fails closed on former broad admin fallbacks even when DEMO_MODE is enabled", async () => {
-    process.env.DEMO_MODE = "true";
+    process.env["DEMO_MODE"] = "true";
 
     const overviewContext = makeAdminContext(
       "GET",
@@ -863,7 +866,19 @@ describe("route contracts", () => {
       service as unknown as Record<string, unknown>,
       "identityService",
     );
+    const originalDeliveryProofService = Reflect.get(
+      service as unknown as Record<string, unknown>,
+      "deliveryProofService",
+    );
     const actorUserId = "11111111-1111-4111-8111-111111111111";
+    const initialInviteProof = {
+      provider: "resend" as const,
+      channel: "keycloak_execute_actions_email" as const,
+      delivery: "activation_link" as const,
+      status: "pending" as const,
+      initiatedAt: "2026-03-18T11:00:00.000Z",
+      summary: "Invitation initialisee",
+    };
 
     const provisionUser = vi.fn().mockResolvedValue({
       authUserId: "keycloak-user-1",
@@ -965,6 +980,13 @@ describe("route contracts", () => {
         provisionUser,
       } as unknown,
     );
+    Reflect.set(
+      service as unknown as Record<string, unknown>,
+      "deliveryProofService",
+      {
+        recordInvitationAttempt: vi.fn().mockResolvedValue(initialInviteProof),
+      } as unknown,
+    );
 
     try {
       const context = makeAdminContext("POST", "/api/v1/admin/organizations");
@@ -1003,6 +1025,7 @@ describe("route contracts", () => {
         userCount: 1,
         siteCount: 0,
         createdAt: "2026-03-18T11:00:00.000Z",
+        initialInviteProof,
       });
       expect(provisionUser).toHaveBeenCalledWith({
         email: "ops@nouvel-acteur.fr",
@@ -1020,6 +1043,11 @@ describe("route contracts", () => {
         service as unknown as Record<string, unknown>,
         "identityService",
         originalIdentityService,
+      );
+      Reflect.set(
+        service as unknown as Record<string, unknown>,
+        "deliveryProofService",
+        originalDeliveryProofService,
       );
     }
   });
@@ -1710,7 +1738,7 @@ describe("route contracts", () => {
   });
 
   it("keeps admin read-only decisionops endpoints fail-closed with validated params", async () => {
-    process.env.DEMO_MODE = "true";
+    process.env["DEMO_MODE"] = "true";
 
     const approvalInboxContext = makeAdminContext(
       "GET",
@@ -1769,7 +1797,7 @@ describe("route contracts", () => {
   });
 
   it("keeps admin approval decision writes fail-closed with validated params", async () => {
-    process.env.DEMO_MODE = "true";
+    process.env["DEMO_MODE"] = "true";
 
     const route = findRoute(
       "POST",
@@ -1799,7 +1827,7 @@ describe("route contracts", () => {
   });
 
   it("keeps admin action dispatch decisions fail-closed with validated params", async () => {
-    process.env.DEMO_MODE = "true";
+    process.env["DEMO_MODE"] = "true";
 
     const route = findRoute(
       "POST",
@@ -1829,7 +1857,7 @@ describe("route contracts", () => {
   });
 
   it("keeps admin action dispatch fallback writes fail-closed with validated params", async () => {
-    process.env.DEMO_MODE = "true";
+    process.env["DEMO_MODE"] = "true";
 
     const route = findRoute(
       "POST",
@@ -1860,7 +1888,7 @@ describe("route contracts", () => {
   });
 
   it("keeps admin ledger decisions fail-closed with validated params", async () => {
-    process.env.DEMO_MODE = "true";
+    process.env["DEMO_MODE"] = "true";
 
     const route = findRoute(
       "POST",
@@ -1890,7 +1918,7 @@ describe("route contracts", () => {
   });
 
   it("rejects invalid ids on admin read-only decisionops endpoints before fail-close", async () => {
-    process.env.DEMO_MODE = "true";
+    process.env["DEMO_MODE"] = "true";
 
     const actionRoute = findRoute(
       "GET",
@@ -1939,7 +1967,7 @@ describe("route contracts", () => {
   });
 
   it("rejects invalid approval decision payloads before persistence", async () => {
-    process.env.DEMO_MODE = "true";
+    process.env["DEMO_MODE"] = "true";
 
     const route = findRoute(
       "POST",
@@ -1991,7 +2019,7 @@ describe("route contracts", () => {
   });
 
   it("rejects invalid action dispatch decision payloads before persistence", async () => {
-    process.env.DEMO_MODE = "true";
+    process.env["DEMO_MODE"] = "true";
 
     const route = findRoute(
       "POST",
@@ -2043,7 +2071,7 @@ describe("route contracts", () => {
   });
 
   it("rejects invalid action dispatch fallback payloads before persistence", async () => {
-    process.env.DEMO_MODE = "true";
+    process.env["DEMO_MODE"] = "true";
 
     const route = findRoute(
       "POST",
@@ -2097,7 +2125,7 @@ describe("route contracts", () => {
   });
 
   it("rejects invalid ledger decision payloads before persistence", async () => {
-    process.env.DEMO_MODE = "true";
+    process.env["DEMO_MODE"] = "true";
 
     const route = findRoute(
       "POST",
@@ -2157,9 +2185,9 @@ describe("route contracts", () => {
   });
 
   it("returns PERSISTENCE_UNAVAILABLE for unimplemented real routes", async () => {
-    process.env.DATABASE_URL =
+    process.env["DATABASE_URL"] =
       "postgres://postgres:postgres@127.0.0.1:5432/praedixa";
-    process.env.DEMO_MODE = "true";
+    process.env["DEMO_MODE"] = "true";
 
     const route = findRoute("GET", "/api/v1/organizations/me");
     const result = await route.handler(
@@ -2178,7 +2206,7 @@ describe("route contracts", () => {
   });
 
   it("rejects invalid organization ids before attempting a fail-closed persistence path", async () => {
-    process.env.DEMO_MODE = "true";
+    process.env["DEMO_MODE"] = "true";
 
     const route = findRoute("GET", "/api/v1/organizations/me");
     const context = makeContext("GET", "/api/v1/organizations/me");
@@ -2219,8 +2247,8 @@ describe("route contracts", () => {
     });
 
     vi.stubGlobal("fetch", fetchMock);
-    process.env.CONNECTORS_RUNTIME_URL = "http://127.0.0.1:8100";
-    process.env.CONNECTORS_RUNTIME_TOKEN = "t".repeat(32);
+    process.env["CONNECTORS_RUNTIME_URL"] = "http://127.0.0.1:8100";
+    process.env["CONNECTORS_RUNTIME_TOKEN"] = "t".repeat(32);
 
     const route = findRoute("GET", "/api/v1/admin/integrations/catalog");
     const result = await route.handler(

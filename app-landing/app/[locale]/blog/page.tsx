@@ -8,6 +8,11 @@ import {
   parseBlogListSearchParams,
 } from "../../../lib/blog/posts";
 import { type Locale, isValidLocale } from "../../../lib/i18n/config";
+import {
+  PRAEDIXA_SOCIAL_IMAGE_HEIGHT,
+  PRAEDIXA_SOCIAL_IMAGE_URL,
+  PRAEDIXA_SOCIAL_IMAGE_WIDTH,
+} from "../../../lib/seo/entity";
 import { absoluteUrl } from "../../../lib/seo/metadata";
 
 interface BlogIndexRouteProps {
@@ -15,12 +20,19 @@ interface BlogIndexRouteProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
+function buildBlogListSearch(page: number, tag?: string) {
+  return {
+    page,
+    ...(tag !== undefined ? { tag } : {}),
+  };
+}
+
 function buildBlogIndexMetadata(
   locale: Locale,
   tag?: string,
   page = 1,
 ): Metadata {
-  const path = buildBlogIndexPath(locale, { page, tag });
+  const path = buildBlogIndexPath(locale, buildBlogListSearch(page, tag));
   const canonical = absoluteUrl(path);
   const isFilteredVariant = Boolean(tag) || page > 1;
   const title =
@@ -65,9 +77,9 @@ function buildBlogIndexMetadata(
       type: "website",
       images: [
         {
-          url: "/og-image.png",
-          width: 1200,
-          height: 630,
+          url: PRAEDIXA_SOCIAL_IMAGE_URL,
+          width: PRAEDIXA_SOCIAL_IMAGE_WIDTH,
+          height: PRAEDIXA_SOCIAL_IMAGE_HEIGHT,
           alt: title,
         },
       ],
@@ -76,7 +88,7 @@ function buildBlogIndexMetadata(
       card: "summary_large_image",
       title,
       description,
-      images: ["/og-image.png"],
+      images: [PRAEDIXA_SOCIAL_IMAGE_URL],
     },
   };
 }
@@ -121,8 +133,7 @@ export default async function BlogIndexRoute({
     <BlogIndexPage
       locale={locale}
       search={{
-        page: result.currentPage,
-        tag: parsedSearchParams.tag,
+        ...buildBlogListSearch(result.currentPage, parsedSearchParams.tag),
       }}
       result={result}
     />

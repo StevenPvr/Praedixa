@@ -1,8 +1,92 @@
-@import "@praedixa/ui/brand-tokens.css";
+@import "tailwindcss";
+@import "@praedixa/ui/tailwind-theme.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@source "../app";
+@source "../components";
+@source "../lib";
+@source "../../packages/ui/src";
+
+@theme inline {
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
+
+  --color-cream: var(--page-bg);
+  --color-charcoal: var(--ink);
+  --color-paper: var(--card-bg);
+  --color-stone: var(--surface-sunken);
+
+  --color-ink: var(--ink-950);
+  --color-ink-950: var(--ink-950);
+  --color-ink-900: var(--ink-900);
+  --color-ink-800: var(--ink-800);
+  --color-ink-700: var(--ink-700);
+  --color-ink-600: var(--ink-600);
+
+  --color-surface-0: var(--surface-0);
+  --color-surface-50: var(--surface-50);
+  --color-surface-75: var(--surface-75);
+  --color-surface-100: var(--surface-100);
+  --color-surface-dark: var(--surface-dark);
+
+  --color-v2-border-100: var(--border-100);
+  --color-v2-border-200: var(--border-200);
+  --color-v2-border-300: var(--border-300);
+
+  --color-signal-500: var(--signal-500);
+  --color-signal-100: var(--signal-100);
+  --color-proof-500: var(--proof-500);
+  --color-proof-100: var(--proof-100);
+  --color-risk-500: var(--risk-500);
+  --color-risk-100: var(--risk-100);
+  --color-danger-500: var(--danger-500);
+  --color-v2-success-500: var(--success-500);
+
+  --color-neutral-50: var(--surface-50);
+  --color-neutral-100: var(--surface-100);
+  --color-neutral-200: var(--border-100);
+  --color-neutral-300: var(--border-200);
+  --color-neutral-400: var(--ink-600);
+  --color-neutral-500: var(--ink-600);
+  --color-neutral-600: var(--ink-700);
+  --color-neutral-700: var(--ink-700);
+  --color-neutral-800: var(--ink-800);
+  --color-neutral-900: var(--ink-900);
+  --color-neutral-950: var(--ink-950);
+
+  --color-brass: var(--brand);
+  --color-brass-50: var(--brand-50);
+  --color-brass-100: var(--brand-100);
+  --color-brass-200: var(--brand-200);
+  --color-brass-300: var(--brand-300);
+  --color-brass-400: var(--brand-400);
+  --color-brass-500: var(--brand);
+  --color-brass-600: var(--brand-600);
+  --color-brass-700: var(--brand-700);
+  --color-brass-800: var(--brand-800);
+
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+
+  --radius-card: 24px;
+  --radius-panel: 28px;
+  --radius-input: 16px;
+  --radius-chip: 999px;
+
+  --shadow-1: 0 8px 24px rgba(12, 17, 23, 0.06);
+  --shadow-2: 0 18px 48px rgba(12, 17, 23, 0.10);
+  --shadow-3: 0 24px 64px rgba(0, 0, 0, 0.28);
+  --shadow-flat: 0 8px 24px rgba(12, 17, 23, 0.06);
+  --shadow-raised: 0 8px 24px rgba(12, 17, 23, 0.06);
+  --shadow-floating: 0 18px 48px rgba(12, 17, 23, 0.10);
+  --shadow-overlay: 0 24px 64px rgba(0, 0, 0, 0.28);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.28);
+  --shadow-card-hover: 0 18px 48px rgba(12, 17, 23, 0.10);
+
+  --container-content: 80rem;
+  --container-text: 45rem;
+}
 
 @layer base {
   :root {

@@ -118,7 +118,7 @@ PY
 scan_dirs=(
   .claude
   .codex
-  .tools
+  .meta
   node_modules
   .next
   .open-next

@@ -96,14 +96,15 @@ export function parseRedisConfig(): RedisRateLimitConfig | null {
     password: parsed.password ? decodeURIComponent(parsed.password) : null,
     db,
     connectTimeoutMs: parsePositiveInteger(
-      process.env.AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS,
+      process.env["AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS"],
       300,
     ),
     commandTimeoutMs: parsePositiveInteger(
-      process.env.AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS,
+      process.env["AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS"],
       300,
     ),
-    keyPrefix: process.env.AUTH_RATE_LIMIT_KEY_PREFIX?.trim() || "prx:auth:rl",
+    keyPrefix:
+      process.env["AUTH_RATE_LIMIT_KEY_PREFIX"]?.trim() || "prx:auth:rl",
   };
 }
 
@@ -211,8 +212,14 @@ export async function executeRedisRateLimit(
       throw new Error("Unexpected Redis rate limit response");
     }
 
-    const count = toNumber(reply[0]);
-    const ttlMs = toNumber(reply[1]);
+    const countValue = reply[0];
+    const ttlValue = reply[1];
+    if (countValue === undefined || ttlValue === undefined) {
+      throw new Error("Unexpected Redis rate limit response");
+    }
+
+    const count = toNumber(countValue);
+    const ttlMs = toNumber(ttlValue);
 
     if (count == null || ttlMs == null) {
       throw new Error("Redis rate limit response contains invalid numbers");

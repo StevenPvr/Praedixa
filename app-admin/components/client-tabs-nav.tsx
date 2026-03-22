@@ -3,29 +3,32 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@praedixa/ui";
-import { useCurrentUser } from "@/lib/auth/client";
+import { useCurrentUserState } from "@/lib/auth/client";
 import { hasAnyPermission } from "@/lib/auth/permissions";
-import { CLIENT_WORKSPACE_TABS } from "@/lib/auth/route-access";
+import { CLIENT_WORKSPACE_TABS } from "@/lib/auth/admin-route-policies";
 
-interface ClientTabsNavProps {
+type ClientTabsNavProps = Readonly<{
   basePath: string;
-}
+}>;
 
 export function ClientTabsNav({ basePath }: ClientTabsNavProps) {
   const pathname = usePathname();
-  const currentUser = useCurrentUser();
+  const { user: currentUser, loading } = useCurrentUserState();
   const visibleTabs = CLIENT_WORKSPACE_TABS.filter((tab) =>
     hasAnyPermission(currentUser?.permissions, tab.requiredPermissions),
   );
-  const tabs =
-    visibleTabs.length > 0 ? visibleTabs : [CLIENT_WORKSPACE_TABS[0]];
+  const hasVisibleTabs = loading === false && visibleTabs.length > 0;
+
+  if (hasVisibleTabs === false) {
+    return null;
+  }
 
   return (
     <nav
       className="flex gap-1 overflow-x-auto border-b border-border-subtle px-4 sm:px-6"
       aria-label="Onglets client"
     >
-      {tabs.map((tab) => {
+      {visibleTabs.map((tab) => {
         const fullHref = `${basePath}/${tab.href}`;
         const isActive =
           pathname === fullHref || pathname.startsWith(`${fullHref}/`);

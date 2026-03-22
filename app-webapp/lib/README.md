@@ -14,15 +14,16 @@ Ce dossier concentre les modules non visuels: auth, client API, i18n, securite, 
 
 ## Modules racine utiles
 
-| Fichier                     | Role                                                 |
-| --------------------------- | ---------------------------------------------------- |
-| `site-scope.tsx`            | Scope de site partage dans l'app                     |
-| `forecast-decomposition.ts` | Calculs de decomposition affiches dans `/previsions` |
-| `scenario-utils.ts`         | Helpers de scenarios et arbitrage                    |
-| `product-events.ts`         | Emission d'evenements produit vers l'API             |
-| `formatters.ts`             | Formatage de dates, labels et severites              |
-| `rapports-helpers.ts`       | Assemblage des donnees de rapports                   |
-| `runtime-error-shield.ts`   | Classification d'erreurs runtime connues             |
+| Fichier                     | Role                                                        |
+| --------------------------- | ----------------------------------------------------------- |
+| `site-scope.tsx`            | Scope de site partage dans l'app                            |
+| `forecast-decomposition.ts` | Calculs de decomposition affiches dans `/previsions`        |
+| `scenario-utils.ts`         | Helpers de scenarios et arbitrage                           |
+| `product-events.ts`         | Emission d'evenements produit vers l'API                    |
+| `formatters.ts`             | Formatage de dates, labels et severites                     |
+| `rapports-helpers.ts`       | Assemblage des donnees de rapports                          |
+| `runtime-error-shield.ts`   | Classification d'erreurs runtime connues                    |
+| `runtime-features.ts`       | Gate runtime explicites pour les surfaces encore fail-close |
 
 ## Tests
 

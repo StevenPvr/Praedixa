@@ -16,6 +16,9 @@ Ce dossier regroupe les protections techniques complementaires a l'auth OIDC: CS
 ## Usage
 
 - `proxy.ts` utilise `csp.ts`.
+- `csp.ts` garde maintenant ses branches dev/prod dans des variables explicites (`isDev`, `scriptSrc`, `styleSrc`) pour stabiliser la lecture Sonar sans changer la politique nonce.
+- `csv.ts` serialize maintenant explicitement les valeurs non-string (`Date`, objets JSON, symboles) avant neutralisation, au lieu de s'appuyer sur une stringification implicite potentiellement opaque.
+- `rate-limit.ts` garde maintenant ses parseurs RESP, la lecture d'URL Redis et la resolution d'IP client en helpers courts pour limiter la complexite cognitive sans diluer les garde-fous fail-close.
 - `app/layout.tsx` consomme `x-nonce` et le propage aux providers client qui emettent un bootstrap inline.
 - `app/auth/session/route.ts`, `app/auth/logout/route.ts` et `app/api/v1/[...path]/route.ts` utilisent `browser-request.ts`.
 - Les exports CSV browser-facing reutilisent `csv.ts` pour neutraliser les cellules interpretees comme formules par Excel/LibreOffice.

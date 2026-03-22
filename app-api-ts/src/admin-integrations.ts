@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { loadConfig } from "./config.js";
 
 export type IntegrationVendor =
+  | "custom_data"
   | "salesforce"
   | "ukg"
   | "toast"
@@ -229,7 +230,7 @@ export class IntegrationInputError extends Error {
 
 function getRuntimeConfig(): { baseUrl: string; token: string } {
   const runtimeEnv =
-    process.env.NODE_ENV === "test"
+    process.env["NODE_ENV"] === "test"
       ? { ...process.env, NODE_ENV: "development" }
       : process.env;
   const config = loadConfig(runtimeEnv);

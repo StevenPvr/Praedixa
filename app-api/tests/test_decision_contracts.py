@@ -20,8 +20,8 @@ from app.services.proof_service import (
     _BAU_METHOD_VERSION_UNPROVEN,
     _bounded_ratio,
     _build_observed_decision_aggregate_query,
-    _resolve_bau_baseline,
-    _resolve_proof_outcome,
+    resolve_bau_baseline,
+    resolve_proof_outcome,
 )
 from app.services.scenario_engine_service import (
     build_scenario_option_blueprints,
@@ -233,7 +233,7 @@ def test_scenario_blueprints_mark_no_gap_explicitly() -> None:
 
 
 def test_resolve_bau_baseline_marks_unproven_records_explicitly() -> None:
-    proven = _resolve_bau_baseline(
+    proven = resolve_bau_baseline(
         total_gap=Decimal("12.5"),
         cout_reel=Decimal("200.00"),
         historical_bau_rate=Decimal("42.00"),
@@ -246,7 +246,7 @@ def test_resolve_bau_baseline_marks_unproven_records_explicitly() -> None:
     assert proven["service_bau_status"] == "configured"
     assert proven["gain_net"] == Decimal("325.00")
 
-    unproven = _resolve_bau_baseline(
+    unproven = resolve_bau_baseline(
         total_gap=Decimal("12.5"),
         cout_reel=Decimal("200.00"),
         historical_bau_rate=None,
@@ -261,7 +261,7 @@ def test_resolve_bau_baseline_marks_unproven_records_explicitly() -> None:
 
 
 def test_resolve_bau_baseline_keeps_service_proxy_explicitly_unconfigured() -> None:
-    proven_without_service = _resolve_bau_baseline(
+    proven_without_service = resolve_bau_baseline(
         total_gap=Decimal("10.0"),
         cout_reel=Decimal("150.00"),
         historical_bau_rate=Decimal("30.00"),
@@ -291,7 +291,7 @@ def test_observed_decision_query_counts_distinct_alerts() -> None:
 
 
 def test_resolve_proof_outcome_requires_observed_and_optimized_inputs() -> None:
-    outcome = _resolve_proof_outcome(
+    outcome = resolve_proof_outcome(
         cout_bau=Decimal("420.00"),
         cout_100=Decimal("0.00"),
         cout_reel=Decimal("0.00"),
@@ -299,7 +299,7 @@ def test_resolve_proof_outcome_requires_observed_and_optimized_inputs() -> None:
         alertes_emises=4,
         alertes_traitees=0,
         recommended_alert_count=0,
-        bau_baseline=_resolve_bau_baseline(
+        bau_baseline=resolve_bau_baseline(
             total_gap=Decimal("10.0"),
             cout_reel=Decimal("0.00"),
             historical_bau_rate=Decimal("42.00"),
@@ -317,7 +317,7 @@ def test_resolve_proof_outcome_requires_observed_and_optimized_inputs() -> None:
 
 
 def test_resolve_proof_outcome_marks_no_feasible_solution_explicitly() -> None:
-    outcome = _resolve_proof_outcome(
+    outcome = resolve_proof_outcome(
         cout_bau=Decimal("420.00"),
         cout_100=Decimal("430.00"),
         cout_reel=Decimal("390.00"),
@@ -325,7 +325,7 @@ def test_resolve_proof_outcome_marks_no_feasible_solution_explicitly() -> None:
         alertes_emises=2,
         alertes_traitees=2,
         recommended_alert_count=2,
-        bau_baseline=_resolve_bau_baseline(
+        bau_baseline=resolve_bau_baseline(
             total_gap=Decimal("10.0"),
             cout_reel=Decimal("390.00"),
             historical_bau_rate=Decimal("42.00"),
@@ -340,7 +340,7 @@ def test_resolve_proof_outcome_marks_no_feasible_solution_explicitly() -> None:
 
 
 def test_resolve_proof_outcome_clamps_attribution_confidence() -> None:
-    outcome = _resolve_proof_outcome(
+    outcome = resolve_proof_outcome(
         cout_bau=Decimal("420.00"),
         cout_100=Decimal("300.00"),
         cout_reel=Decimal("320.00"),
@@ -348,7 +348,7 @@ def test_resolve_proof_outcome_clamps_attribution_confidence() -> None:
         alertes_emises=2,
         alertes_traitees=2,
         recommended_alert_count=2,
-        bau_baseline=_resolve_bau_baseline(
+        bau_baseline=resolve_bau_baseline(
             total_gap=Decimal("10.0"),
             cout_reel=Decimal("320.00"),
             historical_bau_rate=Decimal("42.00"),

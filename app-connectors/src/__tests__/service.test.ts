@@ -5,6 +5,14 @@ import path from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+const { mockExecFileSync } = vi.hoisted(() => ({
+  mockExecFileSync: vi.fn(() => JSON.stringify(["8.8.8.8"])),
+}));
+
+vi.mock("node:child_process", () => ({
+  execFileSync: mockExecFileSync,
+}));
+
 import { LocalFilePayloadStore } from "../payload-store.js";
 import { ConnectorService } from "../service.js";
 import { InMemoryConnectorStore } from "../store.js";
@@ -23,6 +31,8 @@ describe("connector service control plane", () => {
   beforeEach(async () => {
     vi.stubGlobal("fetch", mockFetch);
     mockFetch.mockReset();
+    mockExecFileSync.mockClear();
+    mockExecFileSync.mockImplementation(() => JSON.stringify(["8.8.8.8"]));
     payloadRoot = await mkdtemp(
       path.join(tmpdir(), "praedixa-connectors-test-"),
     );
@@ -130,9 +140,136 @@ describe("connector service control plane", () => {
     const catalog = service.listCatalog();
 
     expect(catalog.length).toBeGreaterThanOrEqual(13);
+    expect(catalog.some((entry) => entry.vendor === "custom_data")).toBe(true);
     expect(catalog.some((entry) => entry.vendor === "salesforce")).toBe(true);
     expect(catalog.some((entry) => entry.vendor === "geotab")).toBe(true);
     expect(catalog.some((entry) => entry.vendor === "ncr_aloha")).toBe(true);
+  });
+
+  it("accepts custom source objects for the generic custom_data source", () => {
+    const service = new ConnectorService(
+      new InMemoryConnectorStore(),
+      "s".repeat(32),
+      "https://connectors.praedixa.test",
+    );
+
+    const connection = service.createConnection(
+      "org-custom-1",
+      {
+        vendor: "custom_data",
+        displayName: "Restaurant tabular push",
+        authMode: "api_key",
+        sourceObjects: ["sites", "teams", "sales_hourly", "staffing_daily"],
+        config: {
+          datasetMappings: {
+            sales_hourly: {
+              dataset: {
+                name: "Sales Hourly",
+                table_name: "sales_hourly",
+                temporal_index: "business_at",
+                group_by: ["site_code"],
+                pipeline_config: {},
+              },
+              fields: [
+                {
+                  source_field: "site_code",
+                  target_column: "site_code",
+                  dtype: "string",
+                  role: "group_key",
+                },
+                {
+                  source_field: "business_at",
+                  target_column: "business_at",
+                  dtype: "datetime",
+                  role: "temporal_index",
+                },
+              ],
+            },
+          },
+        },
+        credentials: {
+          apiKey: "custom-source-api-key",
+        },
+      },
+      {
+        actorService: "admin-api",
+        actorUserId: "user-custom-1",
+        requestId: "req-custom-1",
+      },
+    );
+
+    expect(connection.vendor).toBe("custom_data");
+    expect(connection.sourceObjects).toEqual([
+      "sites",
+      "teams",
+      "sales_hourly",
+      "staffing_daily",
+    ]);
+  });
+
+  it("allows generic custom_data sources to pass connection tests without an outbound probe target", async () => {
+    const service = new ConnectorService(
+      new InMemoryConnectorStore(),
+      "s".repeat(32),
+      "https://connectors.praedixa.test",
+    );
+
+    const connection = service.createConnection(
+      "org-custom-2",
+      {
+        vendor: "custom_data",
+        displayName: "Client API push",
+        authMode: "api_key",
+        sourceObjects: ["daily_ops"],
+        config: {
+          datasetMappings: {
+            daily_ops: {
+              dataset: {
+                name: "Daily Ops",
+                table_name: "daily_ops",
+                temporal_index: "date",
+                group_by: ["site_code"],
+                pipeline_config: {},
+              },
+              fields: [
+                {
+                  source_field: "site_code",
+                  target_column: "site_code",
+                  dtype: "string",
+                  role: "group_key",
+                },
+                {
+                  source_field: "date",
+                  target_column: "date",
+                  dtype: "date",
+                  role: "temporal_index",
+                },
+              ],
+            },
+          },
+        },
+        credentials: {
+          apiKey: "custom-data-ingest-key",
+        },
+      },
+      {
+        actorService: "admin-api",
+        actorUserId: "user-custom-2",
+        requestId: "req-custom-2",
+      },
+    );
+
+    const tested = await service.testConnection("org-custom-2", connection.id, {
+      actorService: "admin-api",
+      actorUserId: "user-custom-2",
+      requestId: "req-custom-3",
+    });
+
+    expect(tested.ok).toBe(true);
+    expect(tested.checkedScopes).toEqual(["api_key"]);
+    expect(tested.warnings).toEqual([
+      "API key presence was validated, but no testEndpoint is configured for a live probe.",
+    ]);
   });
 
   it("rejects secrets embedded inside config", () => {

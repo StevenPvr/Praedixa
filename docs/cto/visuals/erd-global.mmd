@@ -1,0 +1,130 @@
+flowchart TB
+    org[(organizations)]
+
+    subgraph tenant["Tenant et structure"]
+        sites[(sites)]
+        departments[(departments)]
+        users[(users)]
+    end
+
+    subgraph catalog["Data catalog et ingestion"]
+        client_datasets[(client_datasets)]
+        dataset_columns[(dataset_columns)]
+        fit_parameters[(fit_parameters)]
+        ingestion_log[(ingestion_log)]
+        quality_reports[(quality_reports)]
+        pipeline_config_history[(pipeline_config_history)]
+    end
+
+    subgraph ops["Forecast et couche operationnelle"]
+        forecast_runs[(forecast_runs)]
+        daily_forecasts[(daily_forecasts)]
+        canonical_records[(canonical_records)]
+        cost_parameters[(cost_parameters)]
+        coverage_alerts[(coverage_alerts)]
+        scenario_options[(scenario_options)]
+        operational_decisions[(operational_decisions)]
+        proof_records[(proof_records)]
+        dashboard_alerts[(dashboard_alerts)]
+    end
+
+    subgraph decisionops["Runtime DecisionOps"]
+        decision_approvals[(decision_approvals)]
+        action_dispatches[(action_dispatches)]
+        decision_ledger_entries[(decision_ledger_entries)]
+    end
+
+    subgraph admin["Admin et conformite"]
+        admin_audit_log[(admin_audit_log)]
+        plan_change_history[(plan_change_history)]
+        rgpd_erasure_requests[(rgpd_erasure_requests)]
+        rgpd_erasure_audit_events[(rgpd_erasure_audit_events)]
+        contact_requests[(contact_requests)]
+    end
+
+    subgraph onboarding["Onboarding"]
+        onboarding_states[(onboarding_states)]
+        onboarding_cases[(onboarding_cases)]
+        onboarding_case_tasks[(onboarding_case_tasks)]
+        onboarding_case_blockers[(onboarding_case_blockers)]
+        onboarding_case_events[(onboarding_case_events)]
+    end
+
+    subgraph integrations["Integrations"]
+        integration_connections[(integration_connections)]
+        integration_sync_runs[(integration_sync_runs)]
+        integration_sync_state[(integration_sync_state)]
+        integration_raw_events[(integration_raw_events)]
+        integration_field_mappings[(integration_field_mappings)]
+        integration_error_events[(integration_error_events)]
+        integration_dead_letter_queue[(integration_dead_letter_queue)]
+        integration_webhook_receipts[(integration_webhook_receipts)]
+        integration_audit_events[(integration_audit_events)]
+    end
+
+    subgraph collaboration["Collaboration"]
+        conversations[(conversations)]
+        messages[(messages)]
+    end
+
+    subgraph mlops["MLOps"]
+        model_registry[(model_registry)]
+        model_inference_jobs[(model_inference_jobs)]
+        model_artifact_access_log[(model_artifact_access_log)]
+        data_lineage_events[(data_lineage_events)]
+    end
+
+    org --> sites
+    org --> departments
+    org --> users
+    org --> client_datasets
+    org --> forecast_runs
+    org --> canonical_records
+    org --> cost_parameters
+    org --> coverage_alerts
+    org --> proof_records
+    org --> dashboard_alerts
+    org --> integration_connections
+    org --> conversations
+    org --> model_registry
+    org --> model_inference_jobs
+    org --> data_lineage_events
+    org --> onboarding_cases
+
+    sites --> departments
+    sites --> users
+
+    client_datasets --> dataset_columns
+    client_datasets --> fit_parameters
+    client_datasets --> ingestion_log
+    client_datasets --> quality_reports
+    client_datasets --> pipeline_config_history
+
+    forecast_runs --> daily_forecasts
+    coverage_alerts --> scenario_options
+    coverage_alerts --> operational_decisions
+    cost_parameters --> scenario_options
+    operational_decisions --> decision_approvals
+    operational_decisions --> action_dispatches
+    operational_decisions --> decision_ledger_entries
+
+    onboarding_cases --> onboarding_case_tasks
+    onboarding_cases --> onboarding_case_blockers
+    onboarding_cases --> onboarding_case_events
+
+    integration_connections --> integration_sync_runs
+    integration_connections --> integration_sync_state
+    integration_connections --> integration_raw_events
+    integration_connections --> integration_field_mappings
+    integration_connections --> integration_error_events
+    integration_connections --> integration_dead_letter_queue
+    integration_connections --> integration_webhook_receipts
+    integration_connections --> integration_audit_events
+    integration_sync_runs --> integration_raw_events
+
+    conversations --> messages
+    model_registry --> model_inference_jobs
+    model_registry --> model_artifact_access_log
+
+    legacy_note["Zone ambiguie: `decisions` reste modele,\nmais `employees` / `absences` / `action_plans`\nont ete retires par la migration 019."]
+    ops -. legacy .- legacy_note

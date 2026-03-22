@@ -84,8 +84,8 @@ export async function persistContactRequest(
 }
 
 function readContactApiConfig(): { baseUrl: string; token: string } {
-  const baseUrl = process.env.CONTACT_API_BASE_URL?.trim();
-  const token = process.env.CONTACT_API_INGEST_TOKEN?.trim();
+  const baseUrl = process.env["CONTACT_API_BASE_URL"]?.trim();
+  const token = process.env["CONTACT_API_INGEST_TOKEN"]?.trim();
 
   if (!baseUrl) {
     throw new Error("CONTACT_API_BASE_URL is not configured");
@@ -99,7 +99,7 @@ function readContactApiConfig(): { baseUrl: string; token: string } {
     parsedBaseUrl.protocol === "http:" &&
     parsedBaseUrl.hostname === "localhost";
   const allowedHosts = collectAllowedHostnames(
-    process.env.CONTACT_API_ALLOWED_HOSTS,
+    process.env["CONTACT_API_ALLOWED_HOSTS"],
   );
 
   if (parsedBaseUrl.protocol !== "https:" && !isLocalHttp) {
@@ -111,7 +111,7 @@ function readContactApiConfig(): { baseUrl: string; token: string } {
     throw new Error("CONTACT_API_BASE_URL must not include credentials");
   }
   if (
-    process.env.NODE_ENV === "production" &&
+    process.env["NODE_ENV"] === "production" &&
     !isLocalHttp &&
     allowedHosts.size === 0
   ) {

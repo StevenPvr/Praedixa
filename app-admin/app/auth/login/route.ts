@@ -32,8 +32,21 @@ function createNoStoreRedirect(url: string | URL): NextResponse {
   return response;
 }
 
+function shouldCanonicalizeAuthOrigin(
+  requestOrigin: string,
+  appOrigin: string,
+): boolean {
+  return requestOrigin !== appOrigin;
+}
+
+function describeOidcLoginError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export async function GET(request: NextRequest) {
   const next = sanitizeNextPath(request.nextUrl.searchParams.get("next"), "/");
+  const providerRetryAt =
+    request.nextUrl.searchParams.get("provider_retry_at")?.trim() ?? "";
   const fallbackUrl = new URL("/login", resolveFallbackOrigin(request));
   const rateLimit = await consumeRateLimit(request, {
     scope: "auth-login",
@@ -41,7 +54,7 @@ export async function GET(request: NextRequest) {
     windowMs: LOGIN_RATE_LIMIT_WINDOW_MS,
   });
 
-  if (!rateLimit.allowed) {
+  if (rateLimit.allowed === false) {
     fallbackUrl.searchParams.set("error", "rate_limited");
     fallbackUrl.searchParams.set("next", next);
     process.emitWarning(
@@ -54,6 +67,22 @@ export async function GET(request: NextRequest) {
 
   try {
     const appOrigin = resolveAuthAppOrigin(request);
+    if (shouldCanonicalizeAuthOrigin(request.nextUrl.origin, appOrigin)) {
+      const canonicalLoginUrl = new URL("/auth/login", appOrigin);
+      canonicalLoginUrl.searchParams.set("next", next);
+      if (request.nextUrl.searchParams.get("prompt") === "login") {
+        canonicalLoginUrl.searchParams.set("prompt", "login");
+      }
+      if (/^\d+$/.test(providerRetryAt)) {
+        canonicalLoginUrl.searchParams.set(
+          "provider_retry_at",
+          providerRetryAt,
+        );
+      }
+
+      return createNoStoreRedirect(canonicalLoginUrl);
+    }
+
     const { issuerUrl, clientId, scope } = getOidcEnv();
     const { authorizationEndpoint } = await getTrustedOidcEndpoints(issuerUrl);
     const state = createRandomToken(32);
@@ -100,13 +129,20 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
+    const isMissingConfig = isMissingOidcEnvError(error);
+    if (!isMissingConfig) {
+      process.emitWarning(
+        `[admin-auth-login] OIDC login bootstrap failed: ${describeOidcLoginError(error)}`,
+      );
+    }
     fallbackUrl.searchParams.set(
       "error",
-      isMissingOidcEnvError(error)
-        ? "oidc_config_missing"
-        : "oidc_provider_untrusted",
+      isMissingConfig ? "oidc_config_missing" : "oidc_provider_untrusted",
     );
     fallbackUrl.searchParams.set("next", next);
+    if (/^\d+$/.test(providerRetryAt)) {
+      fallbackUrl.searchParams.set("provider_retry_at", providerRetryAt);
+    }
     return createNoStoreRedirect(fallbackUrl.toString());
   }
 }

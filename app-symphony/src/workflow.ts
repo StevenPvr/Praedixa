@@ -83,7 +83,7 @@ export async function renderWorkflowPrompt(
 
   const template = workflow.promptTemplate.trim() || DEFAULT_PROMPT;
   try {
-    const parsedTemplate = await engine.parse(template);
+    const parsedTemplate = engine.parse(template);
     try {
       return await engine.render(parsedTemplate, { issue, attempt });
     } catch (error) {

@@ -3,6 +3,7 @@
 import type { ISODateTimeString, TenantEntity, UUID } from "../utils/common";
 
 export type IntegrationVendor =
+  | "custom_data"
   | "salesforce"
   | "ukg"
   | "toast"
@@ -18,6 +19,7 @@ export type IntegrationVendor =
   | "ncr_aloha";
 
 export type IntegrationDomain =
+  | "custom"
   | "crm"
   | "wfm"
   | "pos"

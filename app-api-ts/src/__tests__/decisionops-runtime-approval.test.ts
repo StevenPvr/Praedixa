@@ -118,7 +118,6 @@ function buildPendingActionRecord(): ActionDispatchRecord {
     idempotencyKey: "coverage-core:222:wfm.shift",
     payloadPreview: { site_code: "site-lyon" },
     attempts: [],
-    fallback: undefined,
     createdAt: "2026-03-13T10:59:00.000Z",
     updatedAt: "2026-03-13T10:59:00.000Z",
   };

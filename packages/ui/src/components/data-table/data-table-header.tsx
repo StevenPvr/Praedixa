@@ -8,13 +8,12 @@ import type {
 } from "./data-table-types.js";
 import { alignClass } from "./data-table-utils.js";
 import { DataTableCheckbox } from "./data-table-checkbox.js";
-import { DataTableSortIcon } from "./data-table-sort-icon.js";
 
 interface DataTableHeaderProps<T> {
   columns: DataTableColumn<T>[];
-  sort?: DataTableSort;
-  onSort?: (sort: DataTableSort) => void;
-  selection?: DataTableSelection;
+  sort: DataTableSort | undefined;
+  onSort: ((sort: DataTableSort) => void) | undefined;
+  selection: DataTableSelection | undefined;
   selectionMode: "single" | "multiple";
   allSelected: boolean;
   someSelected: boolean;
@@ -115,6 +114,39 @@ function DataTableHeaderInner<T>({
         ))}
       </tr>
     </thead>
+  );
+}
+
+function DataTableSortIcon({
+  active,
+  direction,
+}: {
+  active: boolean;
+  direction: SortDirection | undefined;
+}) {
+  return (
+    <svg
+      className={cn(
+        "ml-1 inline-block h-3.5 w-3.5",
+        active ? "text-charcoal" : "text-gray-300",
+      )}
+      viewBox="0 0 14 14"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M7 3L4 6.5h6L7 3z"
+        fill={active && direction === "asc" ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="0.5"
+      />
+      <path
+        d="M7 11L4 7.5h6L7 11z"
+        fill={active && direction === "desc" ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="0.5"
+      />
+    </svg>
   );
 }
 

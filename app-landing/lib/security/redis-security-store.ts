@@ -50,7 +50,7 @@ function parsePositiveInteger(
 }
 
 export function readRedisSecurityConfig(): RedisSecurityConfig | null {
-  const rawUrl = process.env.RATE_LIMIT_STORAGE_URI?.trim() ?? "";
+  const rawUrl = process.env["RATE_LIMIT_STORAGE_URI"]?.trim() ?? "";
   if (!rawUrl) return null;
 
   let parsed: URL;
@@ -84,15 +84,15 @@ export function readRedisSecurityConfig(): RedisSecurityConfig | null {
     password: parsed.password ? decodeURIComponent(parsed.password) : null,
     db,
     connectTimeoutMs: parsePositiveInteger(
-      process.env.LANDING_SECURITY_REDIS_CONNECT_TIMEOUT_MS,
+      process.env["LANDING_SECURITY_REDIS_CONNECT_TIMEOUT_MS"],
       DEFAULT_REDIS_CONNECT_TIMEOUT_MS,
     ),
     commandTimeoutMs: parsePositiveInteger(
-      process.env.LANDING_SECURITY_REDIS_COMMAND_TIMEOUT_MS,
+      process.env["LANDING_SECURITY_REDIS_COMMAND_TIMEOUT_MS"],
       DEFAULT_REDIS_COMMAND_TIMEOUT_MS,
     ),
     keyPrefix:
-      process.env.LANDING_SECURITY_KEY_PREFIX?.trim() ||
+      process.env["LANDING_SECURITY_KEY_PREFIX"]?.trim() ||
       DEFAULT_REDIS_KEY_PREFIX,
   };
 }

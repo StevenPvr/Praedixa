@@ -14,11 +14,11 @@
  *   external stylesheets which are allowed by 'self'.
  */
 
-const isProd = process.env.NODE_ENV === "production";
-const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() ?? "";
-const oidcIssuerUrl = process.env.AUTH_OIDC_ISSUER_URL ?? "";
-const cspReportUri = process.env.CSP_REPORT_URI?.trim() ?? "";
-const cspReportToUrl = process.env.CSP_REPORT_TO_URL?.trim() ?? "";
+const isProd = process.env["NODE_ENV"] === "production";
+const apiUrl = process.env["NEXT_PUBLIC_API_URL"]?.trim() ?? "";
+const oidcIssuerUrl = process.env["AUTH_OIDC_ISSUER_URL"] ?? "";
+const cspReportUri = process.env["CSP_REPORT_URI"]?.trim() ?? "";
+const cspReportToUrl = process.env["CSP_REPORT_TO_URL"]?.trim() ?? "";
 
 export const CSP_REPORT_TO_GROUP = "csp-endpoint";
 

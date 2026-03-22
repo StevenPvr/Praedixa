@@ -22,7 +22,7 @@ import uuid
 from dataclasses import asdict, dataclass
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 import structlog
 from psycopg.errors import InsufficientPrivilege
@@ -48,9 +48,9 @@ from app.models.department import Department
 from app.models.organization import Organization
 from app.models.site import Site
 from app.services.column_mapper import map_columns
-from app.services.data_quality import QualityConfig, run_quality_checks
 from app.services.datasets import get_dataset_data
 from app.services.file_parser import parse_file
+from app.services.quality import QualityConfig, run_quality_checks
 from app.services.raw_inserter import insert_raw_rows
 from app.services.schema_manager import create_client_schemas, create_dataset_tables
 
@@ -126,6 +126,50 @@ _DEFAULT_SETTINGS = {
         "sunday": False,
     },
 }
+
+
+def _json_object(value: object) -> dict[str, object]:
+    if not isinstance(value, dict):
+        return {}
+    return cast("dict[str, object]", value)
+
+
+def _quality_duplicate_columns(value: object) -> list[str] | None:
+    if not isinstance(value, list):
+        return None
+    list_value = cast("list[object]", value)
+    columns = [item for item in list_value if isinstance(item, str) and item]
+    return columns or None
+
+
+def _quality_float(value: object, default: float) -> float:
+    if isinstance(value, bool):
+        return default
+    if isinstance(value, (int, float)):
+        return float(value)
+    return default
+
+
+def _quality_int(value: object, default: int) -> int:
+    if isinstance(value, bool):
+        return default
+    if isinstance(value, int):
+        return value
+    return default
+
+
+def _quality_str(value: object, default: str) -> str:
+    return value if isinstance(value, str) and value else default
+
+
+def _quality_column_overrides(value: object) -> dict[str, dict[str, Any]]:
+    if not isinstance(value, dict):
+        return {}
+    normalized: dict[str, dict[str, Any]] = {}
+    for key, raw_override in cast("dict[object, object]", value).items():
+        if isinstance(key, str) and isinstance(raw_override, dict):
+            normalized[key] = cast("dict[str, Any]", raw_override)
+    return normalized
 
 _FOUNDATION_SITE_BLUEPRINTS: list[SiteBlueprint] = [
     SiteBlueprint("S_LYON", "Lyon Logistics", "Lyon", 450),
@@ -621,13 +665,33 @@ def _rows_to_csv_bytes(rows: list[DatasetRow]) -> bytes:
 
 
 def _quality_config_from_dataset(dataset: ClientDataset) -> QualityConfig:
-    raw = dataset.pipeline_config.get("data_quality", {})
-    allowed = {
-        key: value
-        for key, value in raw.items()
-        if key in QualityConfig.__dataclass_fields__
-    }
-    return QualityConfig(**allowed)
+    pipeline_config = _json_object(getattr(dataset, "pipeline_config", {}))
+    raw = _json_object(pipeline_config.get("data_quality", {}))
+    defaults = QualityConfig()
+    return QualityConfig(
+        duplicate_columns=_quality_duplicate_columns(raw.get("duplicate_columns")),
+        missing_threshold_delete=_quality_float(
+            raw.get("missing_threshold_delete"),
+            defaults.missing_threshold_delete,
+        ),
+        outlier_method=_quality_str(
+            raw.get("outlier_method"),
+            defaults.outlier_method,
+        ),
+        outlier_iqr_factor=_quality_float(
+            raw.get("outlier_iqr_factor"),
+            defaults.outlier_iqr_factor,
+        ),
+        outlier_zscore_threshold=_quality_float(
+            raw.get("outlier_zscore_threshold"),
+            defaults.outlier_zscore_threshold,
+        ),
+        imputation_window_days=_quality_int(
+            raw.get("imputation_window_days"),
+            defaults.imputation_window_days,
+        ),
+        column_overrides=_quality_column_overrides(raw.get("column_overrides")),
+    )
 
 
 async def _log_ingestion_failure(
@@ -856,7 +920,7 @@ async def _require_foundation_organization(
         msg = f"Organization {organization_id} is missing for foundation bootstrap"
         raise RuntimeError(msg)
 
-    current = dict(organization.settings or {})
+    current = dict(_json_object(getattr(organization, "settings", {})))
     if "alertThresholds" not in current:
         current.update(_DEFAULT_SETTINGS)
         organization.settings = current

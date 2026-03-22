@@ -6,25 +6,16 @@ import type {
   LedgerDecisionResponse,
   LedgerDetailResponse,
 } from "@praedixa/shared-types/api";
-import { Button, Card, CardContent } from "@praedixa/ui";
+import { Card, CardContent } from "@praedixa/ui";
 
 import { useApiPost } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 import { ReadOnlyStateCard } from "../../../read-only-detail";
-
-type LedgerValidationStatus = Extract<
-  LedgerDecisionRequest,
-  { operation: "validate" }
->["validationStatus"];
-
-interface LedgerDecisionActionsProps {
-  canClose: boolean;
-  canRecalculate: boolean;
-  canValidate: boolean;
-  loading: boolean;
-  onCloseLike: (operation: "close" | "recalculate") => void;
-  onValidate: (status: LedgerValidationStatus) => void;
-}
+import {
+  buildLedgerActionConfigs,
+  LedgerDecisionCard,
+  LedgerSnapshotColumn,
+} from "./ledger-panel-sections";
 
 interface LedgerDecisionPanelProps {
   orgId: string;
@@ -32,6 +23,12 @@ interface LedgerDecisionPanelProps {
   canManageLedger: boolean;
   onDecisionSaved: () => void;
 }
+
+type LedgerDecisionControllerInput = {
+  orgId: string;
+  data: LedgerDetailResponse;
+  onDecisionSaved: () => void;
+};
 
 function formatDateTime(value?: string): string {
   if (!value) {
@@ -105,7 +102,7 @@ function getLedgerReadOnlyState(
   canRecalculate: boolean,
   canValidate: boolean,
 ) {
-  if (!canManageLedger) {
+  if (canManageLedger === false) {
     return {
       tone: "warning" as const,
       title: "Action restreinte",
@@ -113,7 +110,9 @@ function getLedgerReadOnlyState(
         "La lecture du ledger est autorisee, mais les decisions finance-grade exigent la permission admin:org:write.",
     };
   }
-  if (!canClose && !canRecalculate && !canValidate) {
+  const hasNoAvailableMutation =
+    canClose === false && canRecalculate === false && canValidate === false;
+  if (hasNoAvailableMutation) {
     return {
       title: "Aucune mutation disponible",
       message:
@@ -139,188 +138,17 @@ function buildCloseLikeRequest(
     operation,
     reasonCode:
       operation === "close" ? "period_close_from_admin" : "late_actuals",
-    comment: comment.trim() || undefined,
+    ...(comment.trim() ? { comment: comment.trim() } : {}),
     actual,
     roi,
   };
-}
-
-function buildLedgerActionConfigs({
-  canClose,
-  canRecalculate,
-  canValidate,
-  onCloseLike,
-  onValidate,
-}: Omit<LedgerDecisionActionsProps, "loading">) {
-  return [
-    canClose
-      ? {
-          key: "close",
-          label: "Clore la revision",
-          onClick: () => onCloseLike("close"),
-        }
-      : null,
-    canRecalculate
-      ? {
-          key: "recalculate",
-          label: "Recalculer",
-          variant: "outline" as const,
-          onClick: () => onCloseLike("recalculate"),
-        }
-      : null,
-    canValidate
-      ? {
-          key: "validated",
-          label: "Valider finance",
-          onClick: () => onValidate("validated"),
-        }
-      : null,
-    canValidate
-      ? {
-          key: "estimated",
-          label: "Marquer estime",
-          variant: "outline" as const,
-          onClick: () => onValidate("estimated"),
-        }
-      : null,
-    canValidate
-      ? {
-          key: "contested",
-          label: "Contester",
-          variant: "destructive" as const,
-          onClick: () => onValidate("contested"),
-        }
-      : null,
-  ].filter((value) => value !== null);
-}
-
-function LedgerDecisionActions({
-  canClose,
-  canRecalculate,
-  canValidate,
-  loading,
-  onCloseLike,
-  onValidate,
-}: LedgerDecisionActionsProps) {
-  const actions = buildLedgerActionConfigs({
-    canClose,
-    canRecalculate,
-    canValidate,
-    onCloseLike,
-    onValidate,
-  });
-
-  return (
-    <div className="flex flex-wrap gap-3">
-      {actions.map((action) => (
-        <Button
-          key={action.key}
-          size="sm"
-          variant={action.variant}
-          loading={loading}
-          onClick={action.onClick}
-        >
-          {action.label}
-        </Button>
-      ))}
-    </div>
-  );
-}
-
-function LedgerDecisionHeader({ lastOutcome }: { lastOutcome: string | null }) {
-  return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <h3 className="text-sm font-medium text-ink-secondary">
-          Decision finance et revision
-        </h3>
-        <p className="text-xs text-ink-tertiary">
-          Cette action met a jour le ledger persistant, y compris la validation
-          finance et les revisions de recalcul quand elles sont permises.
-        </p>
-      </div>
-      {lastOutcome ? (
-        <span className="rounded-full bg-success-50 px-3 py-1 text-xs text-success-700">
-          Operation appliquee: {lastOutcome}
-        </span>
-      ) : null}
-    </div>
-  );
-}
-
-function LedgerDecisionCommentField({
-  comment,
-  setComment,
-}: {
-  comment: string;
-  setComment: (value: string) => void;
-}) {
-  return (
-    <label className="block space-y-2">
-      <span className="text-xs font-medium uppercase tracking-wide text-ink-tertiary">
-        Commentaire optionnel
-      </span>
-      <textarea
-        value={comment}
-        onChange={(event) => setComment(event.target.value)}
-        placeholder="Ajouter le contexte de validation, de cloture ou de recalcul."
-        className="min-h-24 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm text-ink shadow-sm outline-none transition focus:border-[var(--brand)] focus:ring-2 focus:ring-[color:var(--brand)]/20"
-      />
-    </label>
-  );
-}
-
-function LedgerDecisionCard({
-  lastOutcome,
-  comment,
-  error,
-  loading,
-  setComment,
-  canClose,
-  canRecalculate,
-  canValidate,
-  onCloseLike,
-  onValidate,
-}: {
-  lastOutcome: string | null;
-  comment: string;
-  error: string | null;
-  loading: boolean;
-  setComment: (value: string) => void;
-  canClose: boolean;
-  canRecalculate: boolean;
-  canValidate: boolean;
-  onCloseLike: (operation: "close" | "recalculate") => void;
-  onValidate: (status: LedgerValidationStatus) => void;
-}) {
-  return (
-    <Card className="rounded-2xl shadow-soft">
-      <CardContent className="space-y-4 p-5">
-        <LedgerDecisionHeader lastOutcome={lastOutcome} />
-        <LedgerDecisionCommentField comment={comment} setComment={setComment} />
-        {error ? <p className="text-sm text-danger-text">{error}</p> : null}
-        <LedgerDecisionActions
-          canClose={canClose}
-          canRecalculate={canRecalculate}
-          canValidate={canValidate}
-          loading={loading}
-          onCloseLike={onCloseLike}
-          onValidate={onValidate}
-        />
-      </CardContent>
-    </Card>
-  );
 }
 
 function useLedgerDecisionController({
   orgId,
   data,
   onDecisionSaved,
-}: {
-  orgId: string;
-  data: LedgerDetailResponse;
-  onDecisionSaved: () => void;
-}) {
+}: Readonly<LedgerDecisionControllerInput>) {
   const [comment, setComment] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
   const [lastOutcome, setLastOutcome] = useState<string | null>(null);
@@ -360,48 +188,8 @@ function getLedgerMutationFlags(data: LedgerDetailResponse) {
   };
 }
 
-function LedgerSnapshotColumn({
-  title,
-  recordedAt,
-  summary,
-  values,
-  emptyMessage,
-}: {
-  title: string;
-  recordedAt?: string;
-  summary?: string;
-  values: Record<string, string | number | boolean | null> | null;
-  emptyMessage: string;
-}) {
-  return (
-    <div className="rounded-xl border border-border bg-surface-sunken p-3">
-      <p className="text-sm font-semibold text-ink">{title}</p>
-      <p className="mt-1 text-xs text-ink-tertiary">
-        {formatDateTime(recordedAt)}
-      </p>
-      {summary ? (
-        <p className="mt-1 text-xs text-ink-tertiary">{summary}</p>
-      ) : null}
-      <div className="mt-3">
-        {values ? (
-          renderMetricSnapshot(values, emptyMessage)
-        ) : (
-          <ReadOnlyStateCard
-            title="Aucune mesure reelle"
-            message="Le snapshot actual n'est pas encore renseigne pour cette revision."
-          />
-        )}
-      </div>
-    </div>
-  );
-}
-
-export function LedgerDecisionPanel({
-  orgId,
-  data,
-  canManageLedger,
-  onDecisionSaved,
-}: LedgerDecisionPanelProps) {
+export function LedgerDecisionPanel(props: Readonly<LedgerDecisionPanelProps>) {
+  const { orgId, data, canManageLedger, onDecisionSaved } = props;
   const { canClose, canRecalculate, canValidate } =
     getLedgerMutationFlags(data);
   const readOnlyState = getLedgerReadOnlyState(
@@ -417,6 +205,34 @@ export function LedgerDecisionPanel({
   });
   if (readOnlyState) return <ReadOnlyStateCard {...readOnlyState} />;
 
+  const actions = buildLedgerActionConfigs({
+    canClose,
+    canRecalculate,
+    canValidate,
+    onCloseLike: async (operation) => {
+      const request = buildCloseLikeRequest(
+        operation,
+        controller.comment,
+        controller.actualInput,
+        controller.roiInput,
+      );
+      if (typeof request === "string") {
+        controller.setLocalError(request);
+        return;
+      }
+      await controller.submitDecision(request);
+    },
+    onValidate: async (validationStatus) =>
+      await controller.submitDecision({
+        operation: "validate",
+        reasonCode: "finance_validation_update",
+        ...(controller.comment.trim()
+          ? { comment: controller.comment.trim() }
+          : {}),
+        validationStatus,
+      }),
+  });
+
   return (
     <LedgerDecisionCard
       lastOutcome={controller.lastOutcome}
@@ -424,35 +240,15 @@ export function LedgerDecisionPanel({
       error={controller.localError ?? controller.mutation.error}
       loading={controller.mutation.loading}
       setComment={controller.setComment}
-      canClose={canClose}
-      canRecalculate={canRecalculate}
-      canValidate={canValidate}
-      onCloseLike={(operation) => {
-        const request = buildCloseLikeRequest(
-          operation,
-          controller.comment,
-          controller.actualInput,
-          controller.roiInput,
-        );
-        if (typeof request === "string") {
-          controller.setLocalError(request);
-          return;
-        }
-        void controller.submitDecision(request);
-      }}
-      onValidate={(validationStatus) =>
-        void controller.submitDecision({
-          operation: "validate",
-          reasonCode: "finance_validation_update",
-          comment: controller.comment.trim() || undefined,
-          validationStatus,
-        })
-      }
+      actions={actions}
     />
   );
 }
 
-export function LedgerSnapshotsCard({ data }: { data: LedgerDetailResponse }) {
+export function LedgerSnapshotsCard({
+  data,
+}: Readonly<{ data: LedgerDetailResponse }>) {
+  const actualRecordedAt = data.actual?.recordedAt;
   return (
     <Card className="rounded-2xl shadow-soft">
       <CardContent className="space-y-3 p-5">
@@ -465,6 +261,8 @@ export function LedgerSnapshotsCard({ data }: { data: LedgerDetailResponse }) {
             recordedAt={data.baseline.recordedAt}
             values={data.baseline.values}
             emptyMessage="Aucune metrique baseline disponible."
+            formatDateTime={formatDateTime}
+            renderMetricSnapshot={renderMetricSnapshot}
           />
           <LedgerSnapshotColumn
             title="Recommended"
@@ -472,12 +270,16 @@ export function LedgerSnapshotsCard({ data }: { data: LedgerDetailResponse }) {
             summary={data.recommended.actionSummary}
             values={data.recommended.values}
             emptyMessage="Aucune metrique recommandee disponible."
+            formatDateTime={formatDateTime}
+            renderMetricSnapshot={renderMetricSnapshot}
           />
           <LedgerSnapshotColumn
             title="Actual"
-            recordedAt={data.actual?.recordedAt}
+            {...(actualRecordedAt ? { recordedAt: actualRecordedAt } : {})}
             values={data.actual?.values ?? null}
             emptyMessage="Aucune metrique reelle disponible."
+            formatDateTime={formatDateTime}
+            renderMetricSnapshot={renderMetricSnapshot}
           />
         </div>
       </CardContent>

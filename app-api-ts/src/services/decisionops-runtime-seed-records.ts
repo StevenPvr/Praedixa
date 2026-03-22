@@ -142,6 +142,7 @@ function buildApprovalRecord(
   destinationType: string,
 ): ApprovalRecord {
   const deadlineHours = buildApprovalDeadlineHours(rule.minStepOrder);
+  const deadlineAt = addHours(requestedAt, deadlineHours);
   return {
     kind: "Approval",
     schemaVersion: "1.0.0",
@@ -152,11 +153,13 @@ function buildApprovalRecord(
     status: "requested",
     scope,
     requestedAt,
-    deadlineAt: addHours(requestedAt, deadlineHours),
+    ...(deadlineAt !== undefined ? { deadlineAt } : {}),
     requestedBy: {
       actorType: "user",
       actorId: input.requestedByActorId,
-      actorRole: input.requestedByActorRole ?? undefined,
+      ...(input.requestedByActorRole != null
+        ? { actorRole: input.requestedByActorRole }
+        : {}),
     },
     rule: {
       ruleId: rule.ruleId,
@@ -174,7 +177,7 @@ function buildApprovalRecord(
       satisfied: false,
       requesterActorId: input.requestedByActorId,
     },
-    notes: input.notes ?? undefined,
+    ...(input.notes != null ? { notes: input.notes } : {}),
     history: [],
   };
 }
@@ -306,7 +309,9 @@ export function buildActionDispatchRecord(
     contractId: COVERAGE_RUNTIME_CONTRACT.contractId,
     contractVersion: COVERAGE_RUNTIME_CONTRACT.contractVersion,
     recommendationId: input.recommendationId,
-    approvalId: primaryApprovalId,
+    ...(primaryApprovalId !== undefined
+      ? { approvalId: primaryApprovalId }
+      : {}),
     status: "pending",
     dispatchMode: "live",
     template: {
@@ -372,7 +377,7 @@ export function buildLedgerEntry(
     explanation: {
       topDrivers: ["gap_h", "predicted_impact_eur"],
       bindingConstraints: ["approval_required", "dispatch_pending"],
-      notes: input.notes ?? undefined,
+      ...(input.notes != null ? { notes: input.notes } : {}),
     },
     openedAt,
   };

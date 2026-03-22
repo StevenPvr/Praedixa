@@ -47,7 +47,7 @@ def mask_medical_reasons(absences: list[dict[str, Any]]) -> list[dict[str, Any]]
 
     Returns a NEW list (does not mutate the input).
     """
-    result = []
+    result: list[dict[str, Any]] = []
     for absence in absences:
         masked = dict(absence)  # shallow copy
         absence_type = masked.get("type") or masked.get("absence_type", "")

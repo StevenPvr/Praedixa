@@ -4,10 +4,14 @@ Route `/actions`.
 
 ## Fichiers
 
-| Fichier       | Role reel                                                                                               |
-| ------------- | ------------------------------------------------------------------------------------------------------- |
-| `page.tsx`    | gere l'onglet `A traiter`, l'onglet `Historique`, la selection d'alerte et la validation d'une decision |
-| `loading.tsx` | etat de chargement de la route                                                                          |
+| Fichier                     | Role reel                                                                       |
+| --------------------------- | ------------------------------------------------------------------------------- |
+| `page.tsx`                  | orchestre la route et branche le page-model vers les sections UI                |
+| `page-sections.tsx`         | porte maintenant surtout le header et les onglets                               |
+| `treatment-section.tsx`     | porte le workspace de traitement (`alertes`, `diagnostic`, `options`)           |
+| `history-section.tsx`       | porte le tableau historique et sa pagination                                    |
+| `use-actions-page-model.ts` | centralise l'etat de page, les fetchs, les derives et la validation de decision |
+| `loading.tsx`               | etat de chargement de la route                                                  |
 
 ## Fetch reel
 
@@ -17,6 +21,10 @@ Route `/actions`.
 - `useApiPost` pour enregistrer une decision
 - `useDecisionConfig` pour les labels d'horizon
 - la soumission runtime suit le contrat partage `OperationalDecisionCreateRequest` (`alertId`, `optionId`, `notes?`) et n'envoie plus les anciens champs derives du front
+
+## Garde-fous runtime
+
+- l'onglet Historique reste fail-close tant que le runtime persistant des decisions n'est pas branche; le page-model n'appelle alors plus la route stubbee et expose un message d'indisponibilite explicite
 
 ## Etats degrades visibles
 

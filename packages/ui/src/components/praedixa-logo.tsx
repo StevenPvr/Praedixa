@@ -10,8 +10,6 @@ const COLORS = {
   light: "var(--warm-bg-white)",
 } as const;
 
-export { COLORS as LOGO_COLORS };
-
 export function PraedixaLogo({
   size = 40,
   color = COLORS.dark,

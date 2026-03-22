@@ -11,7 +11,10 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import ENUM as PG_ENUM
 from sqlalchemy.dialects.postgresql import UUID
 
-from alembic import op
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
+
+NOW_SQL = "now()"
+CREATED_AT_DESC = "created_at DESC"
 
 # revision identifiers, used by Alembic.
 revision: str = "021"
@@ -44,20 +47,20 @@ def upgrade() -> None:
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
     )
 
     op.create_index(
         "ix_rgpd_erasure_requests_org_created",
         "rgpd_erasure_requests",
-        ["organization_id", sa.text("created_at DESC")],
+        ["organization_id", sa.text(CREATED_AT_DESC)],
     )
 
     op.create_index(
@@ -85,7 +88,7 @@ def upgrade() -> None:
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
     )
 
@@ -98,7 +101,7 @@ def upgrade() -> None:
     op.create_index(
         "ix_rgpd_erasure_audit_request_created",
         "rgpd_erasure_audit_events",
-        ["erasure_request_id", sa.text("created_at DESC")],
+        ["erasure_request_id", sa.text(CREATED_AT_DESC)],
     )
 
     # Append-only audit table trigger

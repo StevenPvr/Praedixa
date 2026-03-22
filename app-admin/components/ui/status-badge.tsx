@@ -1,4 +1,3 @@
-// Status badge with colored dot indicator
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@praedixa/ui";
@@ -38,12 +37,12 @@ const dotColors: Record<string, string> = {
   neutral: "bg-ink-placeholder",
 };
 
-export interface StatusBadgeProps
-  extends
-    React.HTMLAttributes<HTMLSpanElement>,
-    VariantProps<typeof statusBadgeVariants> {
-  label: string;
-}
+export type StatusBadgeProps = Readonly<
+  React.HTMLAttributes<HTMLSpanElement> &
+    VariantProps<typeof statusBadgeVariants> & {
+      label: string;
+    }
+>;
 
 const StatusBadge = React.forwardRef<HTMLSpanElement, StatusBadgeProps>(
   ({ className, variant, size, label, ...props }, ref) => {

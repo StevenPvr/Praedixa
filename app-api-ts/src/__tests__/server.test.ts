@@ -43,8 +43,11 @@ function buildRouteContext(
     },
     clientIp: "127.0.0.1",
     userAgent: "vitest",
+    headers: {},
     params: {},
     body: null,
+    rawBody: null,
+    rawBodyBytes: null,
     user: {
       userId: "user-1",
       email: "user@praedixa.test",
@@ -195,6 +198,7 @@ describe("api transport and authorization guards", () => {
     expect(publicRoutes).toEqual([
       "/api/v1/health",
       "/api/v1/public/contact-requests",
+      "/api/v1/webhooks/resend/email-delivery",
     ]);
   });
 
@@ -214,6 +218,13 @@ describe("api transport and authorization guards", () => {
     });
     expect(
       resolveApiExposurePolicy("/api/v1/public/contact-requests"),
+    ).toMatchObject({
+      classification: "P1",
+      audience: "internal_automation",
+      access: "restricted",
+    });
+    expect(
+      resolveApiExposurePolicy("/api/v1/webhooks/resend/email-delivery"),
     ).toMatchObject({
       classification: "P1",
       audience: "internal_automation",
@@ -509,8 +520,8 @@ describe("api transport and authorization guards", () => {
     expect(
       stdoutLogs.some(
         (entry) =>
-          entry.event === "http.request.completed" &&
-          typeof entry.duration_ms === "number",
+          entry["event"] === "http.request.completed" &&
+          typeof entry["duration_ms"] === "number",
       ),
     ).toBe(true);
   });

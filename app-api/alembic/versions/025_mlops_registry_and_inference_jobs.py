@@ -10,7 +10,14 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-from alembic import op
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
+
+NOW_SQL = "now()"
+EMPTY_JSONB_OBJECT_SQL = "'{}'::jsonb"
+ORGANIZATIONS_ID_REF = "organizations.id"
+USERS_ID_REF = "users.id"
+ON_DELETE_CASCADE = "CASCADE"
+ON_DELETE_SET_NULL = "SET NULL"
 
 revision: str = "025"
 down_revision: str | None = "024"
@@ -88,13 +95,13 @@ def upgrade() -> None:
             "features_schema_json",
             postgresql.JSONB(astext_type=sa.Text()),
             nullable=False,
-            server_default=sa.text("'{}'::jsonb"),
+            server_default=sa.text(EMPTY_JSONB_OBJECT_SQL),
         ),
         sa.Column(
             "metrics_json",
             postgresql.JSONB(astext_type=sa.Text()),
             nullable=False,
-            server_default=sa.text("'{}'::jsonb"),
+            server_default=sa.text(EMPTY_JSONB_OBJECT_SQL),
         ),
         sa.Column("activated_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("created_by", postgresql.UUID(as_uuid=True), nullable=True),
@@ -102,13 +109,13 @@ def upgrade() -> None:
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.CheckConstraint(
             "status IN ('draft','active','archived','failed')",
@@ -120,13 +127,13 @@ def upgrade() -> None:
         ),
         sa.ForeignKeyConstraint(
             ["organization_id"],
-            ["organizations.id"],
-            ondelete="CASCADE",
+            [ORGANIZATIONS_ID_REF],
+            ondelete=ON_DELETE_CASCADE,
         ),
         sa.ForeignKeyConstraint(
             ["created_by"],
-            ["users.id"],
-            ondelete="SET NULL",
+            [USERS_ID_REF],
+            ondelete=ON_DELETE_SET_NULL,
         ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
@@ -165,7 +172,7 @@ def upgrade() -> None:
             "scope_json",
             postgresql.JSONB(astext_type=sa.Text()),
             nullable=False,
-            server_default=sa.text("'{}'::jsonb"),
+            server_default=sa.text(EMPTY_JSONB_OBJECT_SQL),
         ),
         sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("ended_at", sa.DateTime(timezone=True), nullable=True),
@@ -189,13 +196,13 @@ def upgrade() -> None:
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.CheckConstraint(
             "status IN ('queued','running','completed','failed')",
@@ -203,23 +210,23 @@ def upgrade() -> None:
         ),
         sa.ForeignKeyConstraint(
             ["organization_id"],
-            ["organizations.id"],
-            ondelete="CASCADE",
+            [ORGANIZATIONS_ID_REF],
+            ondelete=ON_DELETE_CASCADE,
         ),
         sa.ForeignKeyConstraint(
             ["model_registry_id"],
             ["model_registry.id"],
-            ondelete="SET NULL",
+            ondelete=ON_DELETE_SET_NULL,
         ),
         sa.ForeignKeyConstraint(
             ["forecast_run_id"],
             ["forecast_runs.id"],
-            ondelete="SET NULL",
+            ondelete=ON_DELETE_SET_NULL,
         ),
         sa.ForeignKeyConstraint(
             ["requested_by"],
-            ["users.id"],
-            ondelete="SET NULL",
+            [USERS_ID_REF],
+            ondelete=ON_DELETE_SET_NULL,
         ),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -243,29 +250,29 @@ def upgrade() -> None:
             "metadata_json",
             postgresql.JSONB(astext_type=sa.Text()),
             nullable=False,
-            server_default=sa.text("'{}'::jsonb"),
+            server_default=sa.text(EMPTY_JSONB_OBJECT_SQL),
         ),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.ForeignKeyConstraint(
             ["organization_id"],
-            ["organizations.id"],
-            ondelete="CASCADE",
+            [ORGANIZATIONS_ID_REF],
+            ondelete=ON_DELETE_CASCADE,
         ),
         sa.ForeignKeyConstraint(
             ["model_registry_id"],
             ["model_registry.id"],
-            ondelete="CASCADE",
+            ondelete=ON_DELETE_CASCADE,
         ),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -289,30 +296,30 @@ def upgrade() -> None:
             "metadata_json",
             postgresql.JSONB(astext_type=sa.Text()),
             nullable=False,
-            server_default=sa.text("'{}'::jsonb"),
+            server_default=sa.text(EMPTY_JSONB_OBJECT_SQL),
         ),
         sa.Column("created_by", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.ForeignKeyConstraint(
             ["organization_id"],
-            ["organizations.id"],
-            ondelete="CASCADE",
+            [ORGANIZATIONS_ID_REF],
+            ondelete=ON_DELETE_CASCADE,
         ),
         sa.ForeignKeyConstraint(
             ["created_by"],
-            ["users.id"],
-            ondelete="SET NULL",
+            [USERS_ID_REF],
+            ondelete=ON_DELETE_SET_NULL,
         ),
         sa.PrimaryKeyConstraint("id"),
     )

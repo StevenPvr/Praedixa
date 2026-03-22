@@ -1,6 +1,6 @@
 # Landing (`@praedixa/landing`)
 
-Site marketing de `praedixa.com`, construit avec Next.js App Router, React 19, Tailwind CSS, Framer Motion et quelques briques maison pour la securite des formulaires, l'i18n et le SEO.
+Site marketing de `praedixa.com`, construit avec Next.js App Router, React 19, Tailwind CSS v4, Framer Motion et quelques briques maison pour la securite des formulaires, l'i18n et le SEO.
 
 ## Message canonique
 
@@ -63,6 +63,13 @@ pnpm --filter @praedixa/landing dev:fresh
 - `lib/seo/README.md`
 - `public/README.md`
 
+## Tailwind v4
+
+- `app/globals.css` porte maintenant la configuration Tailwind CSS-first via `@import "tailwindcss"` en premier, puis `@import "@praedixa/ui/tailwind-theme.css"` et enfin les extensions locales `@theme inline`.
+- Le socle partage `brand tokens` + mappings Tailwind v4 vient de `@praedixa/ui/tailwind-theme.css`, puis la landing surcharge localement ses tokens specifiques.
+- `postcss.config.mjs` doit utiliser `@tailwindcss/postcss`; ne pas reintroduire le plugin `tailwindcss` v3 ni `autoprefixer` pour cette app.
+- `tailwind.config.js` n'est plus utilise dans `app-landing`; les tokens utilitaires specifiques (`ink`, `surface`, `v2-border`, `rounded-card`, `max-w-content`, `shadow-1`, etc.) sont exposes directement depuis `app/globals.css`.
+
 ## Conventions transverses
 
 - Les routes publiques vivent sous `app/[locale]` avec slug FR/EN derives de `lib/i18n/config.ts`.
@@ -70,6 +77,7 @@ pnpm --filter @praedixa/landing dev:fresh
 - Le programme anti-scraping du landing est porte par `lib/security/exposure-policy.ts` et `proxy.ts`: classification P0/P1/P2/P3, ouverture explicite des surfaces GEO sacrifiables aux crawlers LLM de search et de training, `X-Robots-Tag` sur les surfaces non indexables et assets teaser servis uniquement via URL signee courte.
 - Les pages de contenu doivent tirer leur metadata via `lib/seo/metadata.ts` et leur copy via dictionnaire ou modules `lib/content/*`.
 - Le proxy `proxy.ts` gere canonical host, redirections legacy, nonce CSP et headers de requete.
+- Pour les requetes publiques `praedixa.com` / `www.praedixa.com`, le proxy doit toujours reconstruire les redirects depuis l'hote canonique public et jamais depuis `request.nextUrl`, sinon un host runtime interne comme `0.0.0.0:8080` peut fuiter dans les `Location`.
 - Les tests unitaires sont proches des zones sensibles: routes API, SEO, blog, i18n, media, securite.
 
 ## Deploiement

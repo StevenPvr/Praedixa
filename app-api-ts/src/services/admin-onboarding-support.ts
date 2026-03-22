@@ -1,6 +1,8 @@
 import type {
+  EmailDeliveryProof,
   OnboardingAccessInviteRecipient,
   OnboardingAccessInviteStatus,
+  OnboardingApiSourceActivation,
   CreateOnboardingCaseRequest,
   OnboardingInviteRole,
   OnboardingActivationMode,
@@ -16,6 +18,11 @@ import type {
   OnboardingEnvironmentTarget,
   OnboardingProcessReference,
   OnboardingReadinessStatus,
+  OnboardingSourceActivation,
+  OnboardingSourceActivationRun,
+  OnboardingSourceActivationStatus,
+  OnboardingSourceActivationTransport,
+  OnboardingFileFormat,
   OnboardingSourceMode,
   OnboardingTaskDomain,
   OnboardingTaskStatus,
@@ -201,6 +208,43 @@ const ONBOARDING_INVITE_ROLES = new Set<OnboardingInviteRole>([
 const ONBOARDING_ACCESS_INVITE_STATUSES = new Set<OnboardingAccessInviteStatus>(
   ["draft", "sent", "failed"],
 );
+const SOURCE_ACTIVATION_STATUSES = new Set<OnboardingSourceActivationStatus>([
+  "draft",
+  "processing",
+  "ready",
+  "failed",
+]);
+const SOURCE_ACTIVATION_TRANSPORTS =
+  new Set<OnboardingSourceActivationTransport>([
+    "api_pull",
+    "manual_upload",
+    "sftp_pull",
+  ]);
+const FILE_FORMATS = new Set<OnboardingFileFormat>(["csv", "tsv", "xlsx"]);
+const SOURCE_RUN_STATUSES = new Set<OnboardingSourceActivationRun["status"]>([
+  "pending",
+  "success",
+  "failed",
+]);
+const API_PROBE_STATUSES = new Set<
+  OnboardingApiSourceActivation["probeStatus"]
+>(["pending", "success", "failed"]);
+const API_SYNC_STATUSES = new Set<OnboardingApiSourceActivation["syncStatus"]>([
+  "pending",
+  "queued",
+  "running",
+  "success",
+  "failed",
+]);
+const DELIVERY_PROOF_STATUSES = new Set<EmailDeliveryProof["status"]>([
+  "pending",
+  "provider_accepted",
+  "delivery_delayed",
+  "delivered",
+  "bounced",
+  "complained",
+  "failed",
+]);
 
 export const DEFAULT_PROCESS_DEFINITION_KEY = "client-onboarding-v1";
 export const DEFAULT_PROCESS_DEFINITION_VERSION = 1;
@@ -387,7 +431,9 @@ function readInviteRecipients(
   for (const entry of rawValue) {
     const invite = asRecord(entry);
     const email = normalizeText(
-      typeof invite.email === "string" ? invite.email.toLowerCase() : null,
+      typeof invite["email"] === "string"
+        ? invite["email"].toLowerCase()
+        : null,
     );
     const role = readTrimmedString(invite, "role");
     const siteId = readTrimmedString(invite, "siteId");
@@ -396,6 +442,7 @@ function readInviteRecipients(
     const invitedAt = readTrimmedString(invite, "invitedAt");
     const invitedUserId = readTrimmedString(invite, "invitedUserId");
     const errorMessage = readTrimmedString(invite, "errorMessage");
+    const deliveryProof = readDeliveryProof(invite, "deliveryProof");
 
     if (!email || !isValidEmail(email) || !role || !status) {
       continue;
@@ -420,12 +467,202 @@ function readInviteRecipients(
       passwordHandling: "client_sets_password",
       invitedAt: invitedAt ?? null,
       invitedUserId: invitedUserId ?? null,
+      deliveryProof,
       errorMessage:
         status === "failed" ? (errorMessage ?? "Invitation failed") : null,
     });
   }
 
   return recipients;
+}
+
+function readSourceActivationRun(
+  payload: Record<string, unknown>,
+  key: string,
+): OnboardingSourceActivationRun | null {
+  const rawValue = asRecord(payload[key]);
+  const status = readTrimmedString(rawValue, "status");
+  const triggeredAt = readTrimmedString(rawValue, "triggeredAt");
+  if (!status || !triggeredAt) {
+    return null;
+  }
+  assertInSet(status, SOURCE_RUN_STATUSES, "sourceActivationRunStatus");
+  return {
+    status,
+    triggeredAt,
+    completedAt: readTrimmedString(rawValue, "completedAt"),
+    bronzeFiles:
+      typeof rawValue["bronzeFiles"] === "number"
+        ? rawValue["bronzeFiles"]
+        : null,
+    silverRows:
+      typeof rawValue["silverRows"] === "number"
+        ? rawValue["silverRows"]
+        : null,
+    goldRows:
+      typeof rawValue["goldRows"] === "number" ? rawValue["goldRows"] : null,
+    quarantinedFiles:
+      typeof rawValue["quarantinedFiles"] === "number"
+        ? rawValue["quarantinedFiles"]
+        : null,
+    errorMessage: readTrimmedString(rawValue, "errorMessage"),
+  };
+}
+
+export function readSourceActivations(
+  payload: Record<string, unknown>,
+  key: string,
+): OnboardingSourceActivation[] {
+  const rawValue = payload[key];
+  if (!Array.isArray(rawValue)) {
+    return [];
+  }
+
+  const activations: OnboardingSourceActivation[] = [];
+  for (const entry of rawValue) {
+    const activation = asRecord(entry);
+    const id = readTrimmedString(activation, "id");
+    const label = readTrimmedString(activation, "label");
+    const sourceMode = readTrimmedString(activation, "sourceMode");
+    const transport = readTrimmedString(activation, "transport");
+    const datasetKey = readTrimmedString(activation, "datasetKey");
+    const domain = readTrimmedString(activation, "domain");
+    const importProfile = readTrimmedString(activation, "importProfile");
+    const status = readTrimmedString(activation, "status");
+    if (
+      !id ||
+      !label ||
+      !sourceMode ||
+      !transport ||
+      !datasetKey ||
+      !domain ||
+      !importProfile ||
+      !status
+    ) {
+      continue;
+    }
+    assertInSet(sourceMode, SOURCE_MODES, "sourceActivationMode");
+    assertInSet(
+      transport,
+      SOURCE_ACTIVATION_TRANSPORTS,
+      "sourceActivationTransport",
+    );
+    assertInSet(status, SOURCE_ACTIVATION_STATUSES, "sourceActivationStatus");
+
+    const base = {
+      id,
+      label,
+      datasetKey,
+      domain,
+      importProfile,
+      replayStrategy: readTrimmedString(activation, "replayStrategy"),
+      status,
+      lastError: readTrimmedString(activation, "lastError"),
+      lastRun: readSourceActivationRun(activation, "lastRun"),
+    };
+
+    if (sourceMode === "api") {
+      const connectionId = readTrimmedString(activation, "connectionId");
+      const vendor = readTrimmedString(activation, "vendor");
+      const displayName = readTrimmedString(activation, "displayName");
+      const probeStatus = readTrimmedString(activation, "probeStatus");
+      const syncStatus = readTrimmedString(activation, "syncStatus");
+      if (
+        !connectionId ||
+        !vendor ||
+        !displayName ||
+        !probeStatus ||
+        !syncStatus
+      ) {
+        continue;
+      }
+      if (
+        !API_PROBE_STATUSES.has(
+          probeStatus as OnboardingApiSourceActivation["probeStatus"],
+        )
+      ) {
+        continue;
+      }
+      if (
+        !API_SYNC_STATUSES.has(
+          syncStatus as OnboardingApiSourceActivation["syncStatus"],
+        )
+      ) {
+        continue;
+      }
+      activations.push({
+        ...base,
+        sourceMode: "api",
+        transport: "api_pull",
+        connectionId,
+        vendor,
+        displayName,
+        probeStatus:
+          probeStatus as OnboardingApiSourceActivation["probeStatus"],
+        syncStatus: syncStatus as OnboardingApiSourceActivation["syncStatus"],
+      });
+      continue;
+    }
+
+    const fileName = readTrimmedString(activation, "fileName");
+    const fileFormat = readTrimmedString(activation, "fileFormat");
+    const storedRelativePath = readTrimmedString(
+      activation,
+      "storedRelativePath",
+    );
+    const uploadedAt = readTrimmedString(activation, "uploadedAt");
+    if (!fileName || !fileFormat || !storedRelativePath || !uploadedAt) {
+      continue;
+    }
+    assertInSet(fileFormat, FILE_FORMATS, "fileFormat");
+    const transportValue =
+      sourceMode === "sftp" ? "sftp_pull" : "manual_upload";
+    activations.push({
+      ...base,
+      sourceMode,
+      transport: transportValue,
+      fileName,
+      fileFormat,
+      storedRelativePath,
+      uploadedAt,
+    });
+  }
+
+  return activations;
+}
+
+export function readAccessInviteRecipientsFromPayload(
+  payload: Record<string, unknown>,
+): OnboardingAccessInviteRecipient[] {
+  return readInviteRecipients(payload, "inviteRecipients");
+}
+
+function readDeliveryProof(
+  payload: Record<string, unknown>,
+  key: string,
+): EmailDeliveryProof | null {
+  const value = asRecord(payload[key]);
+  const status = readTrimmedString(value, "status");
+  const initiatedAt = readTrimmedString(value, "initiatedAt");
+  if (
+    !status ||
+    !initiatedAt ||
+    !DELIVERY_PROOF_STATUSES.has(status as never)
+  ) {
+    return null;
+  }
+
+  return {
+    provider: "resend",
+    channel: "keycloak_execute_actions_email",
+    delivery: "activation_link",
+    status: status as EmailDeliveryProof["status"],
+    initiatedAt,
+    eventType: readTrimmedString(value, "eventType") || null,
+    occurredAt: readTrimmedString(value, "occurredAt") || null,
+    observedAt: readTrimmedString(value, "observedAt") || null,
+    summary: readTrimmedString(value, "summary") || null,
+  };
 }
 
 function ensureTaskFields(
@@ -515,7 +752,7 @@ export function normalizeOnboardingTaskPayload(input: {
       );
       if (input.mode === "complete" && incompleteInviteRecipients.length > 0) {
         throw new PersistenceError(
-          "Task access-model still has invitations that were not successfully sent.",
+          "Task access-model still has invitations that were not successfully initialized.",
           422,
           "VALIDATION_ERROR",
           {
@@ -552,21 +789,52 @@ export function normalizeOnboardingTaskPayload(input: {
       return normalized;
     }
     case "activate-api-sources": {
+      const sourceActivations = readSourceActivations(
+        payload,
+        "sourceActivations",
+      ).filter((entry) => entry.sourceMode === "api");
       const normalized = {
-        connectionId: readTrimmedString(payload, "connectionId"),
-        probeStatus: readTrimmedString(payload, "probeStatus"),
-        syncStatus: readTrimmedString(payload, "syncStatus"),
+        sourceActivations,
         datasetsValidated: readBoolean(payload, "datasetsValidated"),
       };
       ensureTaskFields(input.mode, input.taskKey, normalized, [
-        "connectionId",
-        "probeStatus",
-        "syncStatus",
         "datasetsValidated",
       ]);
+      if (
+        input.mode === "complete" &&
+        normalized.sourceActivations.length === 0
+      ) {
+        throw new PersistenceError(
+          "Task activate-api-sources requires at least one activated API source.",
+          422,
+          "VALIDATION_ERROR",
+          { taskKey: input.taskKey, missingFields: ["sourceActivations"] },
+        );
+      }
+      if (
+        input.mode === "complete" &&
+        normalized.sourceActivations.some((entry) => entry.status !== "ready")
+      ) {
+        throw new PersistenceError(
+          "Task activate-api-sources still contains API sources that are not ready.",
+          422,
+          "VALIDATION_ERROR",
+          {
+            taskKey: input.taskKey,
+            sourceStatuses: normalized.sourceActivations.map((entry) => ({
+              id: entry.id,
+              status: entry.status,
+            })),
+          },
+        );
+      }
       return normalized;
     }
     case "configure-file-sources": {
+      const sourceActivations = readSourceActivations(
+        payload,
+        "sourceActivations",
+      ).filter((entry) => entry.sourceMode !== "api");
       const normalized = {
         importProfile: readTrimmedString(payload, "importProfile"),
         sampleFileReceived: readBoolean(payload, "sampleFileReceived"),
@@ -575,12 +843,41 @@ export function normalizeOnboardingTaskPayload(input: {
           "mappingPreviewValidated",
         ),
         replayStrategy: readTrimmedString(payload, "replayStrategy"),
+        sourceActivations,
       };
       ensureTaskFields(input.mode, input.taskKey, normalized, [
         "importProfile",
         "sampleFileReceived",
         "mappingPreviewValidated",
       ]);
+      if (
+        input.mode === "complete" &&
+        normalized.sourceActivations.length === 0
+      ) {
+        throw new PersistenceError(
+          "Task configure-file-sources requires at least one uploaded or configured file source.",
+          422,
+          "VALIDATION_ERROR",
+          { taskKey: input.taskKey, missingFields: ["sourceActivations"] },
+        );
+      }
+      if (
+        input.mode === "complete" &&
+        normalized.sourceActivations.some((entry) => entry.status !== "ready")
+      ) {
+        throw new PersistenceError(
+          "Task configure-file-sources still contains file or SFTP sources that are not ready.",
+          422,
+          "VALIDATION_ERROR",
+          {
+            taskKey: input.taskKey,
+            sourceStatuses: normalized.sourceActivations.map((entry) => ({
+              id: entry.id,
+              status: entry.status,
+            })),
+          },
+        );
+      }
       return normalized;
     }
     case "publish-mappings": {
@@ -589,8 +886,8 @@ export function normalizeOnboardingTaskPayload(input: {
         criticalFieldsCovered: readBoolean(payload, "criticalFieldsCovered"),
         quarantineClosed: readBoolean(payload, "quarantineClosed"),
         coveragePercent:
-          typeof payload.coveragePercent === "number"
-            ? payload.coveragePercent
+          typeof payload["coveragePercent"] === "number"
+            ? payload["coveragePercent"]
             : null,
       };
       ensureTaskFields(input.mode, input.taskKey, normalized, [
@@ -715,9 +1012,7 @@ export function mapCaseRow(row: DbOnboardingCaseRow): OnboardingCaseDetail {
 export function mapCaseSummaryRow(
   row: DbOnboardingCaseRow,
 ): OnboardingCaseSummary {
-  const { metadataJson, ...summary } = mapCaseRow(row);
-  void metadataJson;
-  return summary;
+  return mapCaseRow(row);
 }
 
 export function mapTaskRow(row: DbOnboardingTaskRow): OnboardingCaseTask {
@@ -795,6 +1090,8 @@ export function phaseFromTasks(
     .slice()
     .sort((left, right) => left.sortOrder - right.sortOrder)[0];
   switch (first?.domain) {
+    case undefined:
+      return "intake";
     case "access":
       return "access_setup";
     case "sources":

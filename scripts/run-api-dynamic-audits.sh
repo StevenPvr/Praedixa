@@ -110,7 +110,7 @@ SCHEMATHESIS_CMD=(
   contracts/openapi/public.yaml
   --url "${API_BASE_URL}"
 )
-run_with_timeout 300 "${ROOT_DIR}/scripts/ci-python-tool.sh" schemathesis run "${SCHEMATHESIS_CMD[@]}"
+run_with_timeout 300 "${ROOT_DIR}/scripts/gates/ci-python-tool.sh" schemathesis run "${SCHEMATHESIS_CMD[@]}"
 
 echo "[api-dynamic] k6 smoke..."
 run_with_timeout 120 env BASE_URL="${API_BASE_URL}" k6 run testing/performance/k6-smoke.js

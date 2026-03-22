@@ -13,6 +13,7 @@ import {
   PRAEDIXA_BASE_URL,
   PRAEDIXA_BRAND_NAME,
   PRAEDIXA_LOGO_URL,
+  PRAEDIXA_SOCIAL_IMAGE_URL,
 } from "../../lib/seo/entity";
 import { BreadcrumbTrail } from "../shared/BreadcrumbTrail";
 import { GeoSummaryPanel } from "../shared/GeoSummaryPanel";
@@ -80,7 +81,7 @@ export function BlogPostPage({
       ? post.image
       : post.image
         ? `${PRAEDIXA_BASE_URL}${post.image.startsWith("/") ? post.image : `/${post.image}`}`
-        : `${PRAEDIXA_BASE_URL}/og-image.png`;
+        : PRAEDIXA_SOCIAL_IMAGE_URL;
   const breadcrumbSchemaId = `${canonicalUrl}#breadcrumb`;
   const postingSchemaId = `${canonicalUrl}#blogposting`;
   const breadcrumbJsonLd = {

@@ -6,7 +6,7 @@ import json
 from dataclasses import asdict, dataclass
 from datetime import UTC, date, datetime
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 TriggerType = Literal["replay", "backfill"]
 
@@ -210,10 +210,12 @@ def _load_manifest_records(output_root: Path) -> list[QuarantineRecord]:
         payload = _load_json(manifest_path, [])
         if not isinstance(payload, list):
             continue
-        for item in payload:
+        manifest_items = cast("list[object]", payload)
+        for item in manifest_items:
             if not isinstance(item, dict):
                 continue
-            record = _record_from_payload(item)
+            typed_item = cast("dict[str, Any]", item)
+            record = _record_from_payload(typed_item)
             if record is None or record.quarantine_path in seen_paths:
                 continue
             seen_paths.add(record.quarantine_path)

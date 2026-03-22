@@ -2,7 +2,7 @@
 # Praedixa API — Production smoke tests
 #
 # Verifies critical behaviors of the deployed API:
-#   1. Health endpoint is reachable and returns 200
+#   1. Versioned health endpoint is reachable and returns 200
 #   2. Protected live endpoints reject unauthenticated requests (401)
 #   3. CORS preflight accepts the canonical webapp origin for the target API host
 #
@@ -14,6 +14,7 @@ set -e
 
 API_URL="${API_URL:-https://api.praedixa.com}"
 WEBAPP_ORIGIN="${WEBAPP_ORIGIN:-}"
+HEALTH_PATH="/api/v1/health"
 PASS=0
 FAIL=0
 
@@ -63,8 +64,8 @@ run_test() {
 
 # 1. Health check — should return 200
 echo "[1/3] Health check"
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL/health")
-run_test "GET /health" "200" "$HTTP_CODE"
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL$HEALTH_PATH")
+run_test "GET $HEALTH_PATH" "200" "$HTTP_CODE"
 
 # 2. Auth guard — unauthenticated request should return 401
 echo "[2/3] Auth guard"

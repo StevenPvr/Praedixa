@@ -6,9 +6,17 @@ import { describe, expect, it } from "vitest";
 
 import { routes } from "../routes.js";
 
+const INTERNAL_NON_PUBLIC_RUNTIME_PATHS = new Set([
+  "/api/v1/webhooks/resend/email-delivery",
+]);
+
 function readRuntimePublicOperations(): string[] {
   return routes
-    .filter((route) => !route.template.startsWith("/api/v1/admin"))
+    .filter(
+      (route) =>
+        !route.template.startsWith("/api/v1/admin") &&
+        !INTERNAL_NON_PUBLIC_RUNTIME_PATHS.has(route.template),
+    )
     .map((route) => `${route.method} ${route.template}`)
     .sort();
 }

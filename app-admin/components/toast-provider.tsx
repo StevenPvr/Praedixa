@@ -9,17 +9,21 @@ import {
 } from "react";
 import { ToastContainer, type ToastData, type ToastVariant } from "./toast";
 
-interface ToastContextValue {
+type ToastContextValue = Readonly<{
   addToast: (variant: ToastVariant, message: string, duration?: number) => void;
   removeToast: (id: string) => void;
-}
+}>;
 
 export const ToastContext = createContext<ToastContextValue | null>(null);
 
 const MAX_TOASTS = 5;
 let nextId = 0;
 
-export function ToastProvider({ children }: { children: ReactNode }) {
+type ToastProviderProps = Readonly<{
+  children: ReactNode;
+}>;
+
+export function ToastProvider({ children }: ToastProviderProps) {
   const [toasts, setToasts] = useState<ToastData[]>([]);
 
   const removeToast = useCallback((id: string) => {
@@ -30,7 +34,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     (variant: ToastVariant, message: string, duration?: number) => {
       const id = `toast-${++nextId}`;
       setToasts((prev) => {
-        const next = [...prev, { id, variant, message, duration }];
+        const next = [
+          ...prev,
+          {
+            id,
+            variant,
+            message,
+            ...(duration === undefined ? {} : { duration }),
+          },
+        ];
         // Keep only the most recent toasts
         return next.length > MAX_TOASTS ? next.slice(-MAX_TOASTS) : next;
       });

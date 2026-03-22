@@ -9,6 +9,7 @@ Ce dossier contient tout le runtime Node de l'API exposee aux apps web Praedixa.
 - `index.ts` : bootstrap du process.
 - `config.ts` : parsing/validation stricte des variables d'environnement.
 - `server.ts` : serveur HTTP, CORS, auth, request id / trace id, reponses et middleware transverses.
+  - transporte aussi maintenant `headers` et `rawBody` dans le `RouteContext` pour les integrations webhook signees.
 - `auth.ts` : verification JWT, roles et contexte utilisateur.
 - `exposure-policy.ts` : classification anti-scraping des familles de routes (`P0/P1/P2/P3`, audience, budget, owner).
 - `router.ts` : matching de routes minimaliste et typage des handlers.
@@ -47,11 +48,13 @@ Routes admin:
 - `/api/v1/admin/contact-requests` est maintenant persistante et paginee avec filtres `search`, `status` et `request_type`, et `PATCH /api/v1/admin/contact-requests/:requestId/status` met a jour le statut reel d'une demande entrante.
 - `/api/v1/admin/audit-log` est maintenant persistante et paginee avec filtre `action`, ce qui alimente directement la surface `/journal` sans payload demo/stub.
 - les mutations admin qui auditent un acteur OIDC cross-org ne supposent plus que `sub` == `users.id`: `admin_audit_log` et `plan_change_history` gardent maintenant l'identite auth opaque dans une colonne dediee quand aucun user row local n'existe, ce qui evite les rollbacks `500` sur `POST /api/v1/admin/organizations`.
+- `POST /api/v1/webhooks/resend/email-delivery` persiste maintenant les evenements Resend signes et rattache une vraie preuve provider-side aux invitations Keycloak quand le matching est non ambigu.
 - gouvernance `DecisionContract` (`decision-contract-templates`, `instantiate-preview`, `decision-compatibility/evaluate`) et runtime org-scoped du Contract Studio (`decision-contracts`, `transition`, `fork`, `rollback-candidates`, `rollback`).
 
 ## Auth et autorisation
 
 - JWT OIDC verifies dans `auth.ts`.
+- En developpement, `config.ts` retombe maintenant par defaut sur `http://localhost:8081/realms/praedixa`; le wrapper repo `pnpm dev:api` recale aussi `AUTH_ISSUER_URL` / `AUTH_JWKS_URL` sur les `.env.local` locaux pour eviter qu'un export shell live fasse rejeter les JWT du Keycloak local.
 - `auth.ts` ne lit plus que le contrat top-level canonique `sub`, `email`, `role`, `organization_id`, `site_id`, `permissions`.
 - Pour garder le contrat admin stable, `super_admin` herite de la taxonomie de permissions admin versionnee et d'un `organization_id` synthetique quand le token IdP n'en porte pas encore.
 - Aucun fallback legacy n'est accepte depuis `preferred_username`, `org_id`, `organizationId`, `siteId`, `site_ids`, `roles`, `groups`, `realm_access`, `resource_access` ou `app_metadata`.
@@ -71,6 +74,7 @@ Routes admin:
 - Les slices de routes integrations admin doivent attraper les erreurs runtime et les transformer en `failure(...)` explicites; en local, un `CONNECTORS_RUNTIME_TOKEN` manquant ne doit plus remonter comme exception non geree.
 - `services/admin-onboarding-camunda.ts` appelle l'Orchestration Cluster REST API Camunda 8 pour deployer `client-onboarding-v1`, demarrer les process et completer les user tasks.
 - `services/keycloak-admin-identity.ts` appelle aussi l'admin REST Keycloak pour creer un compte, synchroniser les claims canoniques, distinguer les conflits `email` vs `username`, et envoyer l'email `UPDATE_PASSWORD` lors d'une invitation backoffice.
+- `services/invitation-delivery-proof.ts` verifie aussi les webhooks Resend via `Svix`, puis stocke une preuve `pending / delivered / bounced / failed` distincte du simple `204` Keycloak.
 - `config.ts` bloque donc les `CONNECTORS_RUNTIME_URL` avec credentials, query ou fragment.
 - Hors developpement, le runtime connecteurs doit etre en `https` et son host doit appartenir a `CONNECTORS_RUNTIME_ALLOWED_HOSTS`.
 

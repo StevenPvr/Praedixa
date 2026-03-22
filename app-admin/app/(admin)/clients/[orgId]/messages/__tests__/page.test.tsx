@@ -136,7 +136,7 @@ function setupMockApiGet(
     }
   > = {},
 ) {
-  mockUseApiGet.mockImplementation((url: string) => {
+  mockUseApiGet.mockImplementation((url: string | null) => {
     return {
       data: null,
       loading: false,
@@ -166,7 +166,7 @@ describe("MessagesPage", () => {
 
   it("does not fetch organization conversations while disabled", () => {
     render(<MessagesPage />);
-    expect(mockUseApiGet).toHaveBeenCalledWith(null);
+    expect(mockUseApiGet).toHaveBeenCalledWith(null, undefined);
   });
 
   it("uses useClientContext to get orgId", () => {

@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, cast
 
 REDACTED = "***REDACTED***"
 _SENSITIVE_KEY_MARKERS = frozenset(
@@ -22,6 +22,27 @@ _SENSITIVE_KEY_MARKERS = frozenset(
         "access_token",
     }
 )
+
+
+def _empty_metadata() -> dict[str, Any]:
+    return {}
+
+
+def _redact_mapping(mapping: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        key: REDACTED if is_sensitive_field(key) else _redact_value(child)
+        for key, child in mapping.items()
+    }
+
+
+def _redact_list_items(items: Any) -> list[Any]:
+    typed_items = cast("list[Any]", items)
+    return [_redact_value(item) for item in typed_items]
+
+
+def _redact_tuple_items(items: Any) -> tuple[Any, ...]:
+    typed_items = cast("tuple[Any, ...]", items)
+    return tuple(_redact_value(item) for item in typed_items)
 
 
 def _normalize_key_name(key: str) -> str:
@@ -58,14 +79,11 @@ def mask_secret(
 
 def _redact_value(value: Any) -> Any:
     if isinstance(value, Mapping):
-        return {
-            key: REDACTED if is_sensitive_field(key) else _redact_value(child)
-            for key, child in value.items()
-        }
+        return _redact_mapping(cast("Mapping[str, Any]", value))
     if isinstance(value, list):
-        return [_redact_value(item) for item in value]
+        return _redact_list_items(value)
     if isinstance(value, tuple):
-        return tuple(_redact_value(item) for item in value)
+        return _redact_tuple_items(value)
     return value
 
 
@@ -87,10 +105,11 @@ class ConnectorAuthContext:
     access_token: str | None = None
     refresh_token: str | None = None
     api_key: str | None = None
-    metadata: Mapping[str, Any] = field(default_factory=dict)
+    metadata: Mapping[str, Any] = field(default_factory=_empty_metadata)
 
     def to_safe_log_dict(self) -> dict[str, Any]:
         """Return a redacted representation suitable for application logs."""
+        metadata = dict(self.metadata)
         return {
             "organization_id": str(self.organization_id),
             "connection_id": str(self.connection_id) if self.connection_id else None,
@@ -98,5 +117,5 @@ class ConnectorAuthContext:
             "access_token": mask_secret(self.access_token),
             "refresh_token": mask_secret(self.refresh_token),
             "api_key": mask_secret(self.api_key),
-            "metadata": redact_sensitive_payload(dict(self.metadata)),
+            "metadata": redact_sensitive_payload(metadata),
         }

@@ -45,7 +45,7 @@ export {
 } from "./components/skeleton.js";
 
 // Logo
-export { PraedixaLogo, LOGO_COLORS } from "./components/praedixa-logo.js";
+export { PraedixaLogo } from "./components/praedixa-logo.js";
 
 // Hooks
 export { useMediaQuery } from "./hooks/use-media-query.js";

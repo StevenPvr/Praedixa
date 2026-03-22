@@ -16,7 +16,7 @@ import {
 } from "../services/admin-onboarding-camunda.js";
 import { getPersistencePool } from "../services/persistence.js";
 
-const runIntegration = process.env.RUN_CAMUNDA_INTEGRATION_TESTS === "true";
+const runIntegration = process.env["RUN_CAMUNDA_INTEGRATION_TESTS"] === "true";
 const describeIf = runIntegration ? describe.sequential : describe.skip;
 const REQUEST_ACTOR_ID = "keycloak|camunda-smoke-admin";
 
@@ -25,7 +25,7 @@ let organizationSlug = `camunda-smoke-${organizationId.slice(0, 8)}`;
 let createdProcessInstanceKey: string | null = null;
 
 function createSetupPool(): Pool {
-  const databaseUrl = process.env.DATABASE_URL?.trim();
+  const databaseUrl = process.env["DATABASE_URL"]?.trim();
   if (!databaseUrl) {
     throw new Error(
       "DATABASE_URL must be configured to run the Camunda onboarding integration test.",
@@ -152,7 +152,9 @@ describeIf("admin onboarding Camunda integration", () => {
     const config = loadConfig({
       ...process.env,
       NODE_ENV:
-        process.env.NODE_ENV === "test" ? "development" : process.env.NODE_ENV,
+        process.env["NODE_ENV"] === "test"
+          ? "development"
+          : process.env["NODE_ENV"],
     });
     await initializeOnboardingCamundaRuntime(config.camunda);
     await ensureSmokeOrganization(setupPool);
@@ -200,7 +202,7 @@ describeIf("admin onboarding Camunda integration", () => {
         (task) =>
           task.taskKey === "scope-contract" &&
           task.status === "in_progress" &&
-          typeof task.detailsJson.workflowTaskKey === "string",
+          typeof task.detailsJson["workflowTaskKey"] === "string",
       ),
     );
 
@@ -214,7 +216,7 @@ describeIf("admin onboarding Camunda integration", () => {
       (task) => task.taskKey === "scope-contract",
     );
     expect(firstTask).toBeDefined();
-    expect(firstTask?.detailsJson.workflowCandidateGroups).toEqual([
+    expect(firstTask?.detailsJson["workflowCandidateGroups"]).toEqual([
       "praedixa-admin-onboarding",
     ]);
     expect(
@@ -253,7 +255,7 @@ describeIf("admin onboarding Camunda integration", () => {
       return (
         scopeTask?.status === "done" &&
         accessTask?.status === "in_progress" &&
-        typeof accessTask.detailsJson.workflowTaskKey === "string"
+        typeof accessTask.detailsJson["workflowTaskKey"] === "string"
       );
     });
 
@@ -268,6 +270,6 @@ describeIf("admin onboarding Camunda integration", () => {
     );
 
     expect(scopeTask?.completedAt).not.toBeNull();
-    expect(accessTask?.detailsJson.workflowState).toBe("CREATED");
+    expect(accessTask?.detailsJson["workflowState"]).toBe("CREATED");
   }, 30_000);
 });

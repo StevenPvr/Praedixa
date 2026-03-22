@@ -17,7 +17,7 @@ from __future__ import annotations
 import uuid
 from datetime import timedelta
 from decimal import Decimal
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -62,7 +62,7 @@ def _bounded_ratio(
     )
 
 
-def _resolve_bau_baseline(
+def resolve_bau_baseline(
     *,
     total_gap: Decimal,
     cout_reel: Decimal,
@@ -106,16 +106,17 @@ def _resolve_bau_baseline(
 
 def _build_observed_decision_aggregate_query(alerts_subq):  # type: ignore[no-untyped-def]
     """Build the observed decision aggregate with distinct alert coverage."""
+    alert_columns = cast("Any", alerts_subq).c
     return select(
         func.coalesce(func.sum(OperationalDecision.cout_observe_eur), Decimal("0")),
         func.count(func.distinct(OperationalDecision.coverage_alert_id)),
     ).where(
-        OperationalDecision.coverage_alert_id.in_(select(alerts_subq.c.id)),
+        OperationalDecision.coverage_alert_id.in_(select(alert_columns.id)),
         OperationalDecision.exogenous_event_tag.is_(None),
     )
 
 
-def _resolve_proof_outcome(
+def resolve_proof_outcome(
     *,
     cout_bau: Decimal,
     cout_100: Decimal,

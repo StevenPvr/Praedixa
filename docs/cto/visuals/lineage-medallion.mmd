@@ -1,0 +1,14 @@
+flowchart LR
+    Source["Source externe\nvendor API / SFTP / fichier"] --> Control["Control plane integrations\napp-connectors"]
+    Control --> Raw["Payload bruts\nraw events / ingest / object store"]
+    Raw --> Worker["Worker Python\nintegration_sync_worker"]
+    Worker --> Bronze["Bronze\ncopie immuable + watermark + quarantaine"]
+    Bronze --> Silver["Silver\nnormalisation + qualite + imputations"]
+    Silver --> Gold["Gold\nfeatures calendrier + meteo + vacances + agrégats"]
+    Gold --> PublicTables["Tables / read-models\ncanonical, forecasts, alerts, proof, gold"]
+    PublicTables --> ApiTs["app-api-ts\nroutes /api/v1/live/* et admin"]
+    ApiTs --> Fronts["app-webapp / app-admin / landing"]
+
+    Bronze -. manifest / etat .-> Reports["reports / state / quality"]
+    Silver -. quality report .-> Reports
+    Gold -. provenance / coverage .-> Reports

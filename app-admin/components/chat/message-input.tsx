@@ -8,11 +8,11 @@ import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 
 const MAX_CHARS = 5000;
 
-interface MessageInputProps {
+type MessageInputProps = Readonly<{
   conversationId: string;
   disabled?: boolean;
   onSend: () => void;
-}
+}>;
 
 export function MessageInput({
   conversationId,
@@ -27,19 +27,20 @@ export function MessageInput({
 
   const handleSend = useCallback(async () => {
     const trimmed = content.trim();
-    if (!trimmed || trimmed.length > MAX_CHARS) return;
-
-    const result = await mutate({ content: trimmed });
-    if (result !== null) {
-      setContent("");
-      onSend();
+    const canSend = trimmed.length > 0 && trimmed.length <= MAX_CHARS;
+    if (canSend) {
+      const result = await mutate({ content: trimmed });
+      if (result !== null) {
+        setContent("");
+        onSend();
+      }
     }
   }, [content, mutate, onSend]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && e.shiftKey === false) {
       e.preventDefault();
-      void handleSend();
+      handleSend().catch(() => undefined);
     }
   }
 
@@ -81,7 +82,11 @@ export function MessageInput({
               Maj+Entree pour un retour a la ligne
             </span>
             <span
-              className={`${isOverLimit ? "text-danger-600 font-medium" : "text-ink-placeholder"}`}
+              className={
+                isOverLimit
+                  ? "text-danger-600 font-medium"
+                  : "text-ink-placeholder"
+              }
             >
               {charCount}/{MAX_CHARS}
             </span>

@@ -8,7 +8,7 @@ Regles Semgrep maison utilisees par les gates locales.
 
 ## Ou c'est utilise
 
-- `scripts/gate-prepush-deep.sh`
+- `scripts/gates/gate-prepush-deep.sh`
 - `scripts/audit-ultra-strict-local.sh`
 
 ## Conventions

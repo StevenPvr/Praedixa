@@ -44,7 +44,7 @@ Audit du rendu:
 
 Signaux techniques:
 
-- presence d'un ancien audit Lighthouse dans `.lighthouseci/`
+- presence d'un ancien audit Lighthouse dans `.meta/.lighthouseci/`
 - score historique sur `/fr`: performance `0.67`, accessibilite `0.96`, bonnes pratiques `0.93`, SEO `1`
 - principaux points faibles historiques: LCP `3.5 s`, TBT `1,150 ms`, contraste, labels accessibles, JS inutile
 

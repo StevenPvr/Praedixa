@@ -30,14 +30,14 @@ export function useClientContext(): ClientContextValue {
   return ctx;
 }
 
-interface ClientProviderProps {
+type ClientProviderProps = Readonly<{
   orgId: string;
   orgName: string;
   selectedSiteId: string | null;
   setSelectedSiteId: (id: string | null) => void;
   hierarchy: SiteHierarchy[];
   children: ReactNode;
-}
+}>;
 
 export function ClientProvider({
   orgId,

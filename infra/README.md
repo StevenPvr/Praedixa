@@ -8,7 +8,7 @@ Le service d'automation agentique interne Symphony n'expose pas de traffic produ
 
 ## Ce qui vit ici
 
-- `docker-compose.yml` pour la pile locale Docker minimale.
+- `docker-compose.yml` pour la pile locale Docker (PostgreSQL, API, auth Keycloak locale).
 - `camunda/` pour le runtime Camunda 8 local/self-managed epingle et sa procedure d'usage.
 - `auth/` pour les artefacts Keycloak/Scaleway lies a l'authentification.
 - `systemd/` pour les services systemes lies a la data platform Python.
@@ -24,6 +24,16 @@ docker compose -f infra/docker-compose.yml up -d
 docker compose -f infra/docker-compose.yml logs -f
 docker compose -f infra/docker-compose.yml down
 ```
+
+Pour ne lancer que l'IdP local de debug:
+
+```bash
+pnpm dev:auth
+# ou
+pnpm dev:auth:bg
+```
+
+Le Keycloak local est volontairement force en cache `local` mono-noeud dans `infra/docker-compose.yml`; ce choix evite les delais de convergence cluster inutiles apres un restart Docker et rend la discovery OIDC locale deterministe pour `app-admin` et `app-webapp`.
 
 ## Conventions
 

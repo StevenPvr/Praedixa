@@ -17,11 +17,11 @@ const STATUS_MAP: Record<
 
 export type OrgStatus = keyof typeof STATUS_MAP;
 
-interface OrgStatusBadgeProps {
+type OrgStatusBadgeProps = Readonly<{
   status: OrgStatus;
   size?: StatusBadgeProps["size"];
   className?: string;
-}
+}>;
 
 export function OrgStatusBadge({
   status,

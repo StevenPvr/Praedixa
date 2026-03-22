@@ -9,7 +9,7 @@ WORKDIR /app
 
 FROM base AS deps
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
-COPY scripts/install-prek.sh scripts/install-prek.sh
+COPY scripts/dev/install-prek.sh scripts/dev/install-prek.sh
 COPY app-landing/package.json app-landing/package.json
 COPY packages/shared-types/package.json packages/shared-types/package.json
 COPY packages/ui/package.json packages/ui/package.json
@@ -34,7 +34,7 @@ WORKDIR /app
 COPY --from=builder --chown=praedixa:praedixa /app/app-landing/.next/standalone ./
 COPY --from=builder --chown=praedixa:praedixa /app/app-landing/.next/static ./app-landing/.next/static
 COPY --from=builder --chown=praedixa:praedixa /app/app-landing/public ./app-landing/public
-COPY --from=builder --chown=praedixa:praedixa /app/content ./content
+COPY --from=builder --chown=praedixa:praedixa /app/marketing/content ./marketing/content
 USER praedixa
 WORKDIR /app/app-landing
 EXPOSE 8080

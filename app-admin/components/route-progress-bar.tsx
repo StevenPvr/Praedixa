@@ -16,23 +16,23 @@ export function RouteProgressBar() {
     setVisible(true);
     setProgress(0);
 
-    const startId = window.setTimeout(() => setProgress(78), 10);
-    const almostDoneId = window.setTimeout(() => setProgress(96), 180);
-    const doneId = window.setTimeout(() => setProgress(100), 380);
-    const hideId = window.setTimeout(() => {
+    const startId = globalThis.setTimeout(() => setProgress(78), 10);
+    const almostDoneId = globalThis.setTimeout(() => setProgress(96), 180);
+    const doneId = globalThis.setTimeout(() => setProgress(100), 380);
+    const hideId = globalThis.setTimeout(() => {
       setVisible(false);
       setProgress(0);
     }, 560);
 
     return () => {
-      window.clearTimeout(startId);
-      window.clearTimeout(almostDoneId);
-      window.clearTimeout(doneId);
-      window.clearTimeout(hideId);
+      globalThis.clearTimeout(startId);
+      globalThis.clearTimeout(almostDoneId);
+      globalThis.clearTimeout(doneId);
+      globalThis.clearTimeout(hideId);
     };
   }, [pathname]);
 
-  if (!visible) return null;
+  if (visible === false) return null;
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-[2px]">

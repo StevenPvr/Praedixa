@@ -14,6 +14,7 @@ Fichiers :
 
 - `proxy.test.ts`
 - les regressions de redirects legacy avec query string doivent etre couvertes ici
+- les redirects publics `http://www` doivent aussi prouver qu'aucun host runtime interne (`0.0.0.0`, `localhost`, port interne) ne fuit dans `Location`
 
 ## Intégration
 

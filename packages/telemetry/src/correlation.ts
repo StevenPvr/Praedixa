@@ -87,12 +87,6 @@ function normalizeCorrelationValue(
   return trimmed.slice(0, MAX_CORRELATION_LENGTH);
 }
 
-export function normalizeTelemetryCorrelationValue(
-  value: string | null | undefined,
-): string | null {
-  return normalizeCorrelationValue(value);
-}
-
 function coerceHeaderValue(value: TelemetryHeaderValue): string | null {
   if (Array.isArray(value)) {
     return value.find((entry) => entry.trim().length > 0) ?? null;
@@ -101,7 +95,7 @@ function coerceHeaderValue(value: TelemetryHeaderValue): string | null {
   return typeof value === "string" ? value : null;
 }
 
-export function normalizeTelemetryRequestId(
+function normalizeTelemetryRequestId(
   value: TelemetryHeaderValue,
 ): string | null {
   const trimmed = coerceHeaderValue(value)?.trim() ?? "";
@@ -154,9 +148,7 @@ export function parseTraceparent(
   };
 }
 
-export function normalizeTracestate(
-  value: TelemetryHeaderValue,
-): string | null {
+function normalizeTracestate(value: TelemetryHeaderValue): string | null {
   const trimmed = coerceHeaderValue(value)?.trim() ?? "";
   if (trimmed.length === 0) {
     return null;

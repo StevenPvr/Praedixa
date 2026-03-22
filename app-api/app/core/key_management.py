@@ -83,6 +83,7 @@ _VALID_HMAC_KEY_TYPES = frozenset(
         KEY_TYPE_PSEUDONYM_HMAC,
     }
 )
+KEY_DESTROYED_MESSAGE = "Keys for organization have been destroyed"
 
 _KEY_LENGTHS: dict[str, int] = {
     KEY_TYPE_RAW_PII_DEK: _AES_256_KEY_LEN,
@@ -120,7 +121,7 @@ def pack_version_prefix(version: int) -> bytes:
     This allows the decryption path to select the correct key version
     without storing metadata alongside the ciphertext.
     """
-    if not isinstance(version, int) or not 0 <= version <= MAX_KEY_VERSION:
+    if not 0 <= version <= MAX_KEY_VERSION:
         msg = f"Key version must be 0..{MAX_KEY_VERSION}, got {version}"
         raise ValueError(msg)
     return struct.pack("B", version)
@@ -333,8 +334,7 @@ class LocalKeyProvider(KeyProvider):
         """
         org_str = str(org_id)
         if org_str in self._destroyed_orgs:
-            msg = "Keys for organization have been destroyed"
-            raise KeyDestroyedError(msg)
+            raise KeyDestroyedError(KEY_DESTROYED_MESSAGE)
 
         # Domain-separated info: key_type|version
         # The org_id is used as salt (16 bytes from UUID binary form)
@@ -407,8 +407,7 @@ class LocalKeyProvider(KeyProvider):
     async def rotate_dek(self, org_id: uuid.UUID) -> int:
         org_str = str(org_id)
         if org_str in self._destroyed_orgs:
-            msg = "Keys for organization have been destroyed"
-            raise KeyDestroyedError(msg)
+            raise KeyDestroyedError(KEY_DESTROYED_MESSAGE)
         current = self._get_latest_version(org_id)
         new_version = current + 1
         if new_version > MAX_KEY_VERSION:
@@ -567,8 +566,7 @@ class ScalewaySecretsKeyProvider(KeyProvider):  # pragma: no cover
 
         # Check if the secret has been disabled (crypto-shredding)
         if status in ("locked", "disabled"):
-            msg = "Keys for organization have been destroyed"
-            raise KeyDestroyedError(msg)
+            raise KeyDestroyedError(KEY_DESTROYED_MESSAGE)
 
         version_id = "latest" if version is None else str(version)
 
@@ -721,8 +719,7 @@ class ScalewaySecretsKeyProvider(KeyProvider):  # pragma: no cover
         )
 
         if status in ("locked", "disabled"):
-            msg = "Keys for organization have been destroyed"
-            raise KeyDestroyedError(msg)
+            raise KeyDestroyedError(KEY_DESTROYED_MESSAGE)
 
         # Generate new 32-byte key using OS CSPRNG
         new_key = os.urandom(_AES_256_KEY_LEN)

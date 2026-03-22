@@ -1,0 +1,51 @@
+erDiagram
+    organizations ||--o{ sites : contains
+    organizations ||--o{ departments : structures
+    organizations ||--o{ users : scopes
+
+    organizations ||--o{ client_datasets : registers
+    client_datasets ||--o{ dataset_columns : defines
+    client_datasets ||--o{ fit_parameters : versions
+    client_datasets ||--o{ ingestion_log : traces
+    client_datasets ||--o{ quality_reports : qualifies
+    client_datasets ||--o{ pipeline_config_history : snapshots
+
+    organizations ||--o{ forecast_runs : executes
+    forecast_runs ||--o{ daily_forecasts : produces
+
+    organizations ||--o{ canonical_records : materializes
+    organizations ||--o{ cost_parameters : parametrizes
+    organizations ||--o{ coverage_alerts : raises
+    coverage_alerts ||--o{ scenario_options : offers
+    coverage_alerts ||--o{ operational_decisions : resolves
+    cost_parameters ||--o{ scenario_options : prices
+    organizations ||--o{ proof_records : proves
+    organizations ||--o{ dashboard_alerts : surfaces
+
+    operational_decisions ||--o{ decision_approvals : governs
+    operational_decisions ||--o{ action_dispatches : dispatches
+    operational_decisions ||--o{ decision_ledger_entries : accounts
+
+    organizations ||--o{ onboarding_states : tracks_legacy
+    organizations ||--o{ onboarding_cases : governs
+    onboarding_cases ||--o{ onboarding_case_tasks : projects
+    onboarding_cases ||--o{ onboarding_case_blockers : blocks
+    onboarding_cases ||--o{ onboarding_case_events : logs
+
+    organizations ||--o{ integration_connections : configures
+    integration_connections ||--o{ integration_sync_runs : schedules
+    integration_connections ||--o{ integration_sync_state : cursors
+    integration_connections ||--o{ integration_raw_events : stores
+    integration_connections ||--o{ integration_field_mappings : maps
+    integration_connections ||--o{ integration_error_events : classifies
+    integration_connections ||--o{ integration_dead_letter_queue : isolates
+    integration_connections ||--o{ integration_webhook_receipts : receives
+    integration_connections ||--o{ integration_audit_events : audits
+
+    organizations ||--o{ conversations : opens
+    conversations ||--o{ messages : contains
+
+    organizations ||--o{ model_registry : registers
+    model_registry ||--o{ model_inference_jobs : runs
+    model_registry ||--o{ model_artifact_access_log : audits
+    organizations ||--o{ data_lineage_events : traces

@@ -8,7 +8,7 @@ Adds the 'view_features' value to the adminauditaction enum type
 to track when super_admins access the transformed features data.
 """
 
-from alembic import op
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
 
 # revision identifiers, used by Alembic.
 revision = "011"

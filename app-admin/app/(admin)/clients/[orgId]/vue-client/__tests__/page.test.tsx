@@ -7,6 +7,7 @@ const mockUseApiGet = vi.fn();
 const mockUseApiPost = vi.fn();
 const mockToastSuccess = vi.fn();
 const mockToastError = vi.fn();
+let mockCurrentUserPermissions = ["admin:org:write", "admin:billing:read"];
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
@@ -25,7 +26,7 @@ vi.mock("@/lib/auth/client", () => ({
   getValidAccessToken: vi.fn(() => Promise.resolve("token")),
   clearAuthSession: vi.fn(),
   useCurrentUser: () => ({
-    permissions: ["admin:org:write", "admin:billing:read"],
+    permissions: mockCurrentUserPermissions,
   }),
 }));
 
@@ -87,6 +88,7 @@ const mockBilling = {
 describe("VueClientPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCurrentUserPermissions = ["admin:org:write", "admin:billing:read"];
     let callIndex = 0;
 
     mockUseApiGet.mockImplementation(() => {
@@ -144,6 +146,17 @@ describe("VueClientPage", () => {
     expect(screen.getByText("monthly")).toBeInTheDocument();
     expect(screen.getByText("499 EUR")).toBeInTheDocument();
     expect(screen.getByText("2026-03-01")).toBeInTheDocument();
+  });
+
+  it("skips the billing fetch and shows a permission gate without admin:billing:read", () => {
+    mockCurrentUserPermissions = ["admin:org:write"];
+
+    render(<VueClientPage />);
+
+    expect(
+      screen.getByText("Permission requise: admin:billing:read"),
+    ).toBeInTheDocument();
+    expect(mockUseApiGet.mock.calls[2]?.[0]).toBeNull();
   });
 
   it("renders loading skeletons when data is loading", () => {

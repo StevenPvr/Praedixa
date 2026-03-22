@@ -91,7 +91,7 @@ export function ConversationList({
                     <span
                       className={cn(
                         "shrink-0 rounded-full px-2 py-0.5 text-caption font-medium",
-                        STATUS_COLORS[conv.status] ?? STATUS_COLORS.open,
+                        STATUS_COLORS[conv.status] ?? STATUS_COLORS["open"],
                       )}
                     >
                       {STATUS_LABELS[conv.status] ?? conv.status}

@@ -11,7 +11,7 @@ always INSERTed with an incremented version number.
 
 from collections.abc import Sequence
 
-from alembic import op
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
 
 # revision identifiers, used by Alembic.
 revision: str = "005"

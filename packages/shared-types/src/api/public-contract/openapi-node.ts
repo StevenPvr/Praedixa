@@ -145,22 +145,21 @@ function readResponseSchemaRef(
     return null;
   }
 
-  const properties = isObjectRecord(jsonSchema.properties)
-    ? jsonSchema.properties
-    : null;
-  const dataSchema = properties?.data;
+  const rawProperties = jsonSchema["properties"];
+  const properties = isObjectRecord(rawProperties) ? rawProperties : null;
+  const dataSchema = properties?.["data"];
   if (!isObjectRecord(dataSchema)) {
     return null;
   }
 
-  const directRef = dataSchema.$ref;
+  const directRef = dataSchema["$ref"];
   if (typeof directRef === "string" && directRef.length > 0) {
     return directRef;
   }
 
-  const itemRef = dataSchema.items;
-  if (isObjectRecord(itemRef) && typeof itemRef.$ref === "string") {
-    return itemRef.$ref;
+  const itemRef = dataSchema["items"];
+  if (isObjectRecord(itemRef) && typeof itemRef["$ref"] === "string") {
+    return itemRef["$ref"];
   }
 
   return null;
@@ -302,7 +301,7 @@ export function listLooseResponseSchemas(
 ): string[] {
   return [...new Set(schemaNames)].filter((schemaName) => {
     const schema = getPublicOpenApiSchema(schemaName, document);
-    return schema.additionalProperties === true;
+    return schema["additionalProperties"] === true;
   });
 }
 
@@ -321,13 +320,15 @@ export function listLoosePublicResponseSchemas(
     listPublicOpenApiOperations(document)
       .map((operation) => operation.responseSchemaRef)
       .filter((ref): ref is string => ref != null)
-      .map((ref) => ref.replace("#/components/schemas/", "")),
+      .map((ref) => ref.replaceAll("#/components/schemas/", "")),
   );
 
   return [...responseSchemaNames]
     .filter((schemaName) => {
       const schema = readSchemaComponent(schemaName, document);
-      return schema?.type === "object" && schema.additionalProperties === true;
+      return (
+        schema?.["type"] === "object" && schema["additionalProperties"] === true
+      );
     })
     .sort();
 }

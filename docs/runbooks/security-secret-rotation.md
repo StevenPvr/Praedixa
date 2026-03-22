@@ -64,7 +64,7 @@ Appliquer une rotation rapide, traçable et reproductible de tous les secrets cr
 git log --all --source -- '*.env' '*.key' '*.pem' '*.secret'
 gitleaks detect --no-banner --source . --redact
 python3 scripts/validate-security-exceptions.py --quiet
-./scripts/gate-prepush-deep.sh
+./scripts/gates/gate-prepush-deep.sh
 ```
 
 ## Check-list minimale post-rotation

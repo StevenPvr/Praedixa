@@ -88,7 +88,7 @@ function normalizeBlockedBy(
     return [];
   }
 
-  const inverseRelations = rawIssue.inverseRelations;
+  const inverseRelations = rawIssue["inverseRelations"];
   if (
     inverseRelations == null ||
     typeof inverseRelations !== "object" ||
@@ -103,7 +103,7 @@ function normalizeBlockedBy(
       continue;
     }
     const relation = node as Record<string, unknown>;
-    const relationType = coerceString(relation.type);
+    const relationType = coerceString(relation["type"]);
     if (relationType == null || normalizeStateName(relationType) !== "blocks") {
       continue;
     }
@@ -124,14 +124,14 @@ function normalizeIssue(
   rawIssue: Record<string, unknown>,
   relationMetadata: RelationMetadata,
 ): IssueRecord {
-  const id = coerceString(rawIssue.id);
-  const identifier = coerceString(rawIssue.identifier);
-  const title = coerceString(rawIssue.title);
+  const id = coerceString(rawIssue["id"]);
+  const identifier = coerceString(rawIssue["identifier"]);
+  const title = coerceString(rawIssue["title"]);
   const state =
-    rawIssue.state != null &&
-    typeof rawIssue.state === "object" &&
-    "name" in rawIssue.state
-      ? coerceString(rawIssue.state.name)
+    rawIssue["state"] != null &&
+    typeof rawIssue["state"] === "object" &&
+    "name" in rawIssue["state"]
+      ? coerceString(rawIssue["state"]["name"])
       : null;
 
   if (id == null || identifier == null || title == null || state == null) {
@@ -144,15 +144,15 @@ function normalizeIssue(
     id,
     identifier,
     title,
-    description: coerceString(rawIssue.description),
-    priority: normalizePriority(rawIssue.priority),
+    description: coerceString(rawIssue["description"]),
+    priority: normalizePriority(rawIssue["priority"]),
     state,
-    branchName: coerceString(rawIssue.branchName),
-    url: coerceString(rawIssue.url),
-    labels: normalizeLabels(rawIssue.labels),
+    branchName: coerceString(rawIssue["branchName"]),
+    url: coerceString(rawIssue["url"]),
+    labels: normalizeLabels(rawIssue["labels"]),
     blockedBy: normalizeBlockedBy(rawIssue, issueIdentity, relationMetadata),
-    createdAt: coerceString(rawIssue.createdAt),
-    updatedAt: coerceString(rawIssue.updatedAt),
+    createdAt: coerceString(rawIssue["createdAt"]),
+    updatedAt: coerceString(rawIssue["updatedAt"]),
   };
 }
 

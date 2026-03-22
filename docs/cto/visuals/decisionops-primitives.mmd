@@ -1,0 +1,16 @@
+flowchart LR
+    dc["DecisionContract\ncontrat metier versionne"]
+    dg["DecisionGraph\nmodele semantique versionne"]
+    ap["Approval\nvalidation / rejet"]
+    ad["ActionDispatch\ndispatch / ack / retry / fallback"]
+    le["LedgerEntry\ntrace economique / ROI"]
+
+    dc -->|governe| ap
+    dc -->|governe| ad
+    dc -->|governe| le
+    dg -->|alimente la compatibilite| dc
+    ap -->|autorise ou bloque| ad
+    ad -->|alimente le reel opere| le
+
+    note["Lecture CTO:\n- les JSON Schemas dans contracts/decisionops/* font foi pour les primitives\n- les tables/runtime admin dans app-api-ts portent la projection persistante\n- contract_version != schema_version"]
+    dc -.-> note

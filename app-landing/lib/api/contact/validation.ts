@@ -106,7 +106,7 @@ export function validateContactBody(
     return { valid: false, error: "Message invalide." };
   }
 
-  if (typeof input.consent !== "boolean" || !input.consent) {
+  if (typeof input["consent"] !== "boolean" || !input["consent"]) {
     return {
       valid: false,
       error: "Vous devez accepter les conditions pour envoyer ce message.",
@@ -136,8 +136,8 @@ export function validateContactBody(
       subject: defaultSubjectForRequest(companyName, intent.value, locale),
       consent: true,
       website:
-        typeof input.website === "string"
-          ? input.website.trim().slice(0, 200)
+        typeof input["website"] === "string"
+          ? input["website"].trim().slice(0, 200)
           : "",
       captchaAnswer,
       challengeToken,

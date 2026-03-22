@@ -1,0 +1,38 @@
+sequenceDiagram
+    autonumber
+    actor AdminUser as Operateur admin
+    participant AdminBff as app-admin BFF
+    participant ApiTs as app-api-ts
+    participant Connectors as app-connectors
+    participant Worker as app-api Python worker
+    participant Vendor as Vendor API / SFTP
+    participant Pg as PostgreSQL
+    participant Store as Payload store
+    participant Medallion as Bronze/Silver/Gold
+
+    AdminUser->>AdminBff: declencher test/sync integration
+    AdminBff->>ApiTs: /api/v1/admin/.../integrations/*
+    ApiTs->>Connectors: creation connexion / test / trigger sync
+    Connectors->>Pg: persister connection / run / state
+    Connectors-->>ApiTs: run queued / status
+    ApiTs-->>AdminBff: ack admin
+
+    Worker->>Connectors: POST /v1/runtime/sync-runs/claim
+    Connectors-->>Worker: run claimé
+    Worker->>Connectors: execution-plan
+    alt provider pull
+        Worker->>Connectors: access-context
+        Connectors-->>Worker: contexte auth + endpoints
+        Worker->>Vendor: extraire donnees
+        Vendor-->>Worker: payloads source
+        Worker->>Connectors: provider-events
+    else SFTP pull
+        Worker->>Vendor: lire fichiers SFTP
+        Vendor-->>Worker: fichiers source
+    end
+    Connectors->>Store: stocker payloads bruts
+    Connectors->>Pg: mettre a jour raw events / sync state
+    Worker->>Pg: ingestion / transformations
+    Worker->>Medallion: Bronze -> Silver -> Gold
+    Medallion->>Pg: ecrire resultats / read-models
+    Worker->>Connectors: completed / failed / requeued

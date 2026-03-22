@@ -107,11 +107,11 @@ export function validateLinearGraphqlToolArguments(
   const query =
     typeof params === "string"
       ? params.trim()
-      : typeof params.query === "string"
-        ? params.query.trim()
+      : typeof params["query"] === "string"
+        ? params["query"].trim()
         : "";
   const rawVariables =
-    typeof params === "object" && params != null ? params.variables : null;
+    typeof params === "object" && params != null ? params["variables"] : null;
   const variables =
     rawVariables == null
       ? null
@@ -178,22 +178,22 @@ function extractUsage(value: unknown): {
     }
     const record = current as Record<string, unknown>;
     const inputTokens =
-      typeof record.input_tokens === "number"
-        ? record.input_tokens
-        : typeof record.inputTokens === "number"
-          ? record.inputTokens
+      typeof record["input_tokens"] === "number"
+        ? record["input_tokens"]
+        : typeof record["inputTokens"] === "number"
+          ? record["inputTokens"]
           : null;
     const outputTokens =
-      typeof record.output_tokens === "number"
-        ? record.output_tokens
-        : typeof record.outputTokens === "number"
-          ? record.outputTokens
+      typeof record["output_tokens"] === "number"
+        ? record["output_tokens"]
+        : typeof record["outputTokens"] === "number"
+          ? record["outputTokens"]
           : null;
     const totalTokens =
-      typeof record.total_tokens === "number"
-        ? record.total_tokens
-        : typeof record.totalTokens === "number"
-          ? record.totalTokens
+      typeof record["total_tokens"] === "number"
+        ? record["total_tokens"]
+        : typeof record["totalTokens"] === "number"
+          ? record["totalTokens"]
           : null;
 
     if (
@@ -230,11 +230,11 @@ function normalizeTurnSandboxPolicy(
   };
 
   if (policy.type === "workspaceWrite") {
-    normalized.writableRoots =
+    normalized["writableRoots"] =
       policy.writableRoots != null && policy.writableRoots.length > 0
         ? policy.writableRoots
         : [workspacePath];
-    normalized.readOnlyAccess =
+    normalized["readOnlyAccess"] =
       policy.readableRoots != null && policy.readableRoots.length > 0
         ? {
             type: "restricted",
@@ -245,21 +245,21 @@ function normalizeTurnSandboxPolicy(
             type: "fullAccess",
           };
     if (typeof policy.networkAccess === "string") {
-      normalized.networkAccess = policy.networkAccess === "enabled";
+      normalized["networkAccess"] = policy.networkAccess === "enabled";
     } else if (typeof policy.networkAccess === "boolean") {
-      normalized.networkAccess = policy.networkAccess;
+      normalized["networkAccess"] = policy.networkAccess;
     }
     if (typeof policy.excludeSlashTmp === "boolean") {
-      normalized.excludeSlashTmp = policy.excludeSlashTmp;
+      normalized["excludeSlashTmp"] = policy.excludeSlashTmp;
     }
     if (typeof policy.excludeTmpdirEnvVar === "boolean") {
-      normalized.excludeTmpdirEnvVar = policy.excludeTmpdirEnvVar;
+      normalized["excludeTmpdirEnvVar"] = policy.excludeTmpdirEnvVar;
     }
     return normalized;
   }
 
   if (policy.type === "readOnly") {
-    normalized.access =
+    normalized["access"] =
       policy.readableRoots != null && policy.readableRoots.length > 0
         ? {
             type: "restricted",
@@ -270,18 +270,18 @@ function normalizeTurnSandboxPolicy(
             type: "fullAccess",
           };
     if (typeof policy.networkAccess === "string") {
-      normalized.networkAccess = policy.networkAccess === "enabled";
+      normalized["networkAccess"] = policy.networkAccess === "enabled";
     } else if (typeof policy.networkAccess === "boolean") {
-      normalized.networkAccess = policy.networkAccess;
+      normalized["networkAccess"] = policy.networkAccess;
     }
     return normalized;
   }
 
   if (policy.type === "externalSandbox") {
     if (typeof policy.networkAccess === "string") {
-      normalized.networkAccess = policy.networkAccess;
+      normalized["networkAccess"] = policy.networkAccess;
     } else if (typeof policy.networkAccess === "boolean") {
-      normalized.networkAccess = policy.networkAccess
+      normalized["networkAccess"] = policy.networkAccess
         ? "enabled"
         : "restricted";
     }
@@ -428,7 +428,7 @@ class AppServerTransport {
     if ("method" in message && "id" in message) {
       if (this.onRequest == null) {
         this.write({
-          id: message.id as number | string,
+          id: message["id"] as number | string,
           error: { code: -32601, message: "No request handler installed" },
         });
         return;
@@ -436,17 +436,17 @@ class AppServerTransport {
 
       try {
         const result = await this.onRequest({
-          id: message.id as number | string,
-          method: String(message.method),
-          params: message.params,
+          id: message["id"] as number | string,
+          method: String(message["method"]),
+          params: message["params"],
         });
         this.write({
-          id: message.id as number | string,
+          id: message["id"] as number | string,
           result,
         });
       } catch (error) {
         this.write({
-          id: message.id as number | string,
+          id: message["id"] as number | string,
           error: {
             code: -32000,
             message: error instanceof Error ? error.message : "Request failed",
@@ -458,8 +458,8 @@ class AppServerTransport {
 
     if ("method" in message) {
       await this.onNotification?.({
-        method: String(message.method),
-        params: message.params,
+        method: String(message["method"]),
+        params: message["params"],
       });
       return;
     }
@@ -468,20 +468,20 @@ class AppServerTransport {
       return;
     }
 
-    const pending = this.pending.get(message.id as number | string);
+    const pending = this.pending.get(message["id"] as number | string);
     if (pending == null) {
       return;
     }
     clearTimeout(pending.timer);
-    this.pending.delete(message.id as number | string);
-    if (message.error != null) {
+    this.pending.delete(message["id"] as number | string);
+    if (message["error"] != null) {
       pending.reject(
         new Error(
-          typeof message.error === "object" &&
-            message.error != null &&
-            "message" in message.error &&
-            typeof message.error.message === "string"
-            ? message.error.message
+          typeof message["error"] === "object" &&
+            message["error"] != null &&
+            "message" in message["error"] &&
+            typeof message["error"]["message"] === "string"
+            ? message["error"]["message"]
             : "response_error",
         ),
       );
@@ -551,9 +551,11 @@ export async function runAgentAttempt(
     options.onEvent({
       ...payload,
       session: currentSession,
-      message: payload.message,
-      usage: payload.usage,
-      rateLimits: payload.rateLimits,
+      ...(payload.message !== undefined ? { message: payload.message } : {}),
+      ...(payload.usage !== undefined ? { usage: payload.usage } : {}),
+      ...(payload.rateLimits !== undefined
+        ? { rateLimits: payload.rateLimits }
+        : {}),
     });
   };
 
@@ -634,15 +636,15 @@ export async function runAgentAttempt(
             ? (notification.params as { turn?: Record<string, unknown> }).turn
             : null;
         const status =
-          turnRecord != null && typeof turnRecord.status === "string"
-            ? turnRecord.status
+          turnRecord != null && typeof turnRecord["status"] === "string"
+            ? turnRecord["status"]
             : "failed";
         const message =
           turnRecord != null &&
-          turnRecord.error != null &&
-          typeof turnRecord.error === "object" &&
-          "message" in turnRecord.error
-            ? String(turnRecord.error.message)
+          turnRecord["error"] != null &&
+          typeof turnRecord["error"] === "object" &&
+          "message" in turnRecord["error"]
+            ? String(turnRecord["error"]["message"])
             : null;
         turnFinished?.({ status, error: message });
         return;
@@ -733,11 +735,13 @@ export async function runAgentAttempt(
           "item" in notification.params
             ? (notification.params as { item?: Record<string, unknown> }).item
             : null;
-        if (item != null && item.type === "agentMessage") {
+        if (item != null && item["type"] === "agentMessage") {
           emitEvent({
             event: "notification",
             message:
-              typeof item.text === "string" ? truncateText(item.text) : null,
+              typeof item["text"] === "string"
+                ? truncateText(item["text"])
+                : null,
           });
         }
       }

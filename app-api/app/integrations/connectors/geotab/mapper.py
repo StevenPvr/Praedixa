@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
+from app.integrations.connectors._shared import require_object
+
 if TYPE_CHECKING:
     from app.services.integration_runtime_worker import RuntimeClaimedSyncRun
     from app.services.integration_sftp_runtime_worker import RuntimeConnectionSyncState
@@ -52,24 +54,24 @@ def build_geotab_requests(
     source_objects: tuple[str, ...],
     claimed_run: RuntimeClaimedSyncRun,
 ) -> tuple[GeotabFeedRequest, ...]:
-    config = connection.get("config", {})
-    if not isinstance(config, dict):
-        raise TypeError("Geotab connection config must be an object")
-
-    raw_feeds = config.get("geotabFeeds")
-    if not isinstance(raw_feeds, dict):
-        raise TypeError("Geotab config.geotabFeeds must be configured")
+    config = require_object(
+        connection.get("config", {}),
+        field="Geotab connection config",
+    )
+    raw_feeds = require_object(
+        config.get("geotabFeeds"),
+        field="Geotab config.geotabFeeds",
+    )
 
     requests: list[GeotabFeedRequest] = []
     for source_object in source_objects:
         if source_object not in _SUPPORTED_SOURCE_OBJECTS:
             raise ValueError(f"Unsupported Geotab source object: {source_object}")
 
-        raw_feed = raw_feeds.get(source_object)
-        if not isinstance(raw_feed, dict):
-            raise TypeError(
-                f"Geotab config.geotabFeeds.{source_object} must be configured"
-            )
+        raw_feed = require_object(
+            raw_feeds.get(source_object),
+            field=f"Geotab config.geotabFeeds.{source_object}",
+        )
 
         type_name = _optional_string(raw_feed.get("typeName")) or source_object
         results_limit = _normalize_results_limit(raw_feed.get("resultsLimit"))
@@ -172,9 +174,7 @@ def _build_search(
 def _normalize_search(value: Any, source_object: str) -> dict[str, Any]:
     if value is None:
         return {}
-    if not isinstance(value, dict):
-        raise TypeError(f"Geotab {source_object} feed search must be an object")
-    return dict(value)
+    return require_object(value, field=f"Geotab {source_object} feed search")
 
 
 def _normalize_results_limit(value: Any) -> int:

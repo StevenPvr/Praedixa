@@ -4,6 +4,7 @@ import { Card, CardContent } from "@praedixa/ui";
 
 import { ConfigReadonlyNotice } from "./config-readonly-notice";
 import {
+  IntegrationCreateForm,
   IntegrationOperationsPanel,
   IntegrationSelectionForm,
   IntegrationStatusCards,
@@ -14,6 +15,7 @@ import {
   type AsyncTableState,
 } from "./integrations-section-tables";
 import type {
+  IntegrationCatalogItem,
   IntegrationConnection,
   IntegrationConnectionTestResult,
   IntegrationIssueIngestCredentialResult,
@@ -22,10 +24,23 @@ import type {
   IntegrationSyncTrigger,
 } from "./config-types";
 
+type IntegrationCredentialTableState = AsyncTableState<
+  IntegrationIssueIngestCredentialResult["credential"]
+>;
+
 interface IntegrationsContentProps {
+  catalog: IntegrationCatalogItem[];
   connections: IntegrationConnection[];
   activeConnection: IntegrationConnection | null;
   effectiveIntegrationId: string | null;
+  createVendor: string;
+  createDisplayName: string;
+  createAuthMode: string;
+  createSourceObjectsInput: string;
+  createRuntimeEnvironment: "production" | "sandbox";
+  createBaseUrlInput: string;
+  createConfigJsonInput: string;
+  createCredentialsJsonInput: string;
   ingestCredentialLabel: string;
   issuedCredential: IntegrationIssueIngestCredentialResult | null;
   connectionTestResult: IntegrationConnectionTestResult | null;
@@ -36,27 +51,39 @@ interface IntegrationsContentProps {
   canManageIntegrations: boolean;
   actionLoading: string | null;
   syncRuns: AsyncTableState<IntegrationSyncRun>;
-  credentials: AsyncTableState<
-    IntegrationIssueIngestCredentialResult["credential"]
-  >;
+  credentials: IntegrationCredentialTableState;
   rawEvents: AsyncTableState<IntegrationRawEvent>;
   onSelectIntegration: (value: string | null) => void;
+  onCreateVendorChange: (value: string) => void;
+  onCreateDisplayNameChange: (value: string) => void;
+  onCreateAuthModeChange: (value: string) => void;
+  onCreateSourceObjectsInputChange: (value: string) => void;
+  onCreateRuntimeEnvironmentChange: (value: "production" | "sandbox") => void;
+  onCreateBaseUrlInputChange: (value: string) => void;
+  onCreateConfigJsonInputChange: (value: string) => void;
+  onCreateCredentialsJsonInputChange: (value: string) => void;
   onLabelChange: (value: string) => void;
   onTriggerChange: (value: IntegrationSyncTrigger) => void;
   onSyncForceFullChange: (value: boolean) => void;
   onSyncWindowStartChange: (value: string) => void;
   onSyncWindowEndChange: (value: string) => void;
   onIssueCredential: () => void;
+  onCreateConnection: () => void;
   onTestConnection: () => void;
   onTriggerSync: () => void;
   onRevokeCredential: (credentialId: string) => void;
 }
 
-function CredentialSummaryLines({
-  issuedCredential,
-}: {
+type CredentialSummaryLinesProps = {
   issuedCredential: IntegrationIssueIngestCredentialResult;
-}) {
+};
+
+type IssuedCredentialPanelProps = {
+  issuedCredential: IntegrationIssueIngestCredentialResult | null;
+};
+
+function CredentialSummaryLines(props: Readonly<CredentialSummaryLinesProps>) {
+  const { issuedCredential } = props;
   return (
     <div className="space-y-1 text-xs text-ink-secondary">
       <p>
@@ -91,12 +118,10 @@ function CredentialSummaryLines({
   );
 }
 
-function IssuedCredentialPanel({
-  issuedCredential,
-}: {
-  issuedCredential: IntegrationIssueIngestCredentialResult | null;
-}) {
-  if (!issuedCredential) return null;
+function IssuedCredentialPanel(props: Readonly<IssuedCredentialPanelProps>) {
+  const { issuedCredential } = props;
+  const hasIssuedCredential = issuedCredential != null;
+  if (!hasIssuedCredential) return null;
 
   return (
     <div className="space-y-2 rounded-xl border border-primary/20 bg-primary/5 p-4">
@@ -112,16 +137,46 @@ function IssuedCredentialPanel({
   );
 }
 
-function IntegrationsCardBody(props: IntegrationsContentProps) {
+function IntegrationsCardBody(props: Readonly<IntegrationsContentProps>) {
+  const isReadonlyIntegrations = props.canManageIntegrations === false;
+
   return (
-    <>
-      {!props.canManageIntegrations ? (
+    <div className="space-y-4">
+      {isReadonlyIntegrations ? (
         <ConfigReadonlyNotice
           message="Mode lecture seule pour les operations connecteurs. Permission requise:"
           permission="admin:integrations:write"
         />
       ) : null}
       <ConnectionsTable connections={props.connections} />
+      <IntegrationCreateForm
+        catalog={props.catalog}
+        createVendor={props.createVendor}
+        createDisplayName={props.createDisplayName}
+        createAuthMode={props.createAuthMode}
+        createSourceObjectsInput={props.createSourceObjectsInput}
+        createRuntimeEnvironment={props.createRuntimeEnvironment}
+        createBaseUrlInput={props.createBaseUrlInput}
+        createConfigJsonInput={props.createConfigJsonInput}
+        createCredentialsJsonInput={props.createCredentialsJsonInput}
+        canManageIntegrations={props.canManageIntegrations}
+        actionLoading={props.actionLoading}
+        onCreateVendorChange={props.onCreateVendorChange}
+        onCreateDisplayNameChange={props.onCreateDisplayNameChange}
+        onCreateAuthModeChange={props.onCreateAuthModeChange}
+        onCreateSourceObjectsInputChange={
+          props.onCreateSourceObjectsInputChange
+        }
+        onCreateRuntimeEnvironmentChange={
+          props.onCreateRuntimeEnvironmentChange
+        }
+        onCreateBaseUrlInputChange={props.onCreateBaseUrlInputChange}
+        onCreateConfigJsonInputChange={props.onCreateConfigJsonInputChange}
+        onCreateCredentialsJsonInputChange={
+          props.onCreateCredentialsJsonInputChange
+        }
+        onCreateConnection={props.onCreateConnection}
+      />
       <IntegrationSelectionForm
         connections={props.connections}
         effectiveIntegrationId={props.effectiveIntegrationId}
@@ -158,11 +213,11 @@ function IntegrationsCardBody(props: IntegrationsContentProps) {
         onIssueCredential={props.onIssueCredential}
         onRevokeCredential={props.onRevokeCredential}
       />
-    </>
+    </div>
   );
 }
 
-export function IntegrationsContent(props: IntegrationsContentProps) {
+export function IntegrationsContent(props: Readonly<IntegrationsContentProps>) {
   return (
     <Card className="rounded-2xl shadow-soft">
       <CardContent className="space-y-4 p-4">

@@ -12,7 +12,7 @@ Security notes:
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any, NotRequired, TypedDict, cast
 
 import strictyaml  # type: ignore[import-untyped]
 from strictyaml import (
@@ -50,6 +50,47 @@ class YAMLValidationError(PraedixaError):
             status_code=422,
             details=details,
         )
+
+
+type RuleOverrideValue = str | int | bool
+
+
+class DatasetColumnMetadata(TypedDict):
+    """Validated YAML column definition."""
+
+    name: str
+    dtype: str
+    role: str
+    nullable: NotRequired[bool]
+    rules_override: NotRequired[dict[str, RuleOverrideValue]]
+
+
+class TransformWindowConfig(TypedDict):
+    """Validated YAML transform window definition."""
+
+    type: str
+    size: int
+
+
+class PipelineConfigMetadata(TypedDict):
+    """Validated YAML pipeline metadata."""
+
+    missing_values: NotRequired[str]
+    outliers: NotRequired[str]
+    deduplication: NotRequired[bool]
+    normalization: NotRequired[str]
+    encoding: NotRequired[str]
+    windows: NotRequired[list[TransformWindowConfig]]
+
+
+class DatasetMetadata(TypedDict):
+    """Validated dataset metadata payload."""
+
+    name: str
+    temporal_index: str
+    columns: list[DatasetColumnMetadata]
+    group_by: NotRequired[list[str]]
+    pipeline: NotRequired[PipelineConfigMetadata]
 
 
 # ── Column Schema ────────────────────────────────────
@@ -137,29 +178,30 @@ DATASET_METADATA_SCHEMA = Map(
 
 
 def _validate_columns(
-    data: dict[str, Any],
+    data: DatasetMetadata,
 ) -> set[str]:
     """Validate column definitions and return set of names."""
     column_names: set[str] = set()
     for col in data["columns"]:
+        column_name = col["name"]
         try:
-            validate_column_name(col["name"])
+            validate_column_name(column_name)
         except DDLValidationError as e:
             raise YAMLValidationError(
                 f"Invalid column name: {e.message}",
-                details={"field": f"columns.{col['name']}"},
+                details={"field": f"columns.{column_name}"},
             ) from e
-        if col["name"] in column_names:
+        if column_name in column_names:
             raise YAMLValidationError(
-                f"Duplicate column name: '{col['name']}'",
-                details={"field": f"columns.{col['name']}"},
+                f"Duplicate column name: '{column_name}'",
+                details={"field": f"columns.{column_name}"},
             )
-        column_names.add(col["name"])
+        column_names.add(column_name)
     return column_names
 
 
 def _validate_references(
-    data: dict[str, Any],
+    data: DatasetMetadata,
     column_names: set[str],
 ) -> None:
     """Validate temporal_index and group_by references."""
@@ -169,7 +211,7 @@ def _validate_references(
             details={"field": "temporal_index"},
         )
 
-    group_by = data.get("group_by") or []
+    group_by = data.get("group_by", [])
     for gb in group_by:
         if gb not in column_names:
             raise YAMLValidationError(
@@ -178,13 +220,13 @@ def _validate_references(
             )
 
 
-def _validate_windows(data: dict[str, Any]) -> None:
+def _validate_windows(data: DatasetMetadata) -> None:
     """Validate pipeline window bounds."""
-    pipeline = data.get("pipeline")
-    if not pipeline:
+    if "pipeline" not in data:
         return
+    pipeline = data["pipeline"]
 
-    windows = pipeline.get("windows") or []
+    windows = pipeline.get("windows", [])
     max_windows = settings.MAX_WINDOWS_PER_DATASET
     if len(windows) > max_windows:
         raise YAMLValidationError(
@@ -211,7 +253,7 @@ def _validate_windows(data: dict[str, Any]) -> None:
 
 def validate_dataset_yaml(
     yaml_content: str,
-) -> dict[str, Any]:
+) -> DatasetMetadata:
     """Parse and validate a dataset metadata YAML string.
 
     Returns the validated data as a plain Python dict.
@@ -233,7 +275,7 @@ def validate_dataset_yaml(
             details={"yaml_error": str(e)},
         ) from e
 
-    data: dict[str, Any] = cast("dict[str, Any]", parsed.data)
+    data = cast("DatasetMetadata", parsed.data)
 
     # ── Identifier validation (DDL-safe) ─────────────
     try:
@@ -264,5 +306,5 @@ def validate_dataset_yaml(
     # ── Pipeline bounds validation ───────────────────
     _validate_windows(data)
 
-    result: dict[str, Any] = data
+    result: DatasetMetadata = data
     return result

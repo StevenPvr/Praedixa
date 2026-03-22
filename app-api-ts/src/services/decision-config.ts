@@ -1250,7 +1250,7 @@ export async function initializeDecisionConfigService(
 export function getDecisionConfigService(): DecisionConfigService {
   if (!singleton) {
     singleton = new DecisionConfigService(
-      process.env.DATABASE_URL?.trim() || null,
+      process.env["DATABASE_URL"]?.trim() || null,
     );
   }
   return singleton;

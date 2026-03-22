@@ -67,7 +67,7 @@ export async function loadPostRoute() {
   vi.unstubAllEnvs();
   mockEmailsSend.mockClear();
   mockEmailsSend.mockResolvedValue({ data: { id: "mock-id" }, error: null });
-  process.env.RESEND_API_KEY = "re_test_key";
+  process.env["RESEND_API_KEY"] = "re_test_key";
   const mod = await import("../route");
   return mod.POST as (
     request: Request,
@@ -75,6 +75,6 @@ export async function loadPostRoute() {
 }
 
 afterEach(() => {
-  delete process.env.RESEND_API_KEY;
+  delete process.env["RESEND_API_KEY"];
   vi.unstubAllEnvs();
 });

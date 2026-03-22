@@ -15,11 +15,11 @@
  */
 
 const isProd = process.env.NODE_ENV === "production";
-const oidcIssuerUrl = process.env.AUTH_OIDC_ISSUER_URL ?? "";
-const adminApiMode = process.env.NEXT_PUBLIC_ADMIN_API_MODE ?? "proxy";
+const oidcIssuerUrl = process.env["AUTH_OIDC_ISSUER_URL"] ?? "";
+const adminApiMode = process.env["NEXT_PUBLIC_ADMIN_API_MODE"] ?? "proxy";
 const apiUrl =
   adminApiMode === "direct"
-    ? (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000")
+    ? (process.env["NEXT_PUBLIC_API_URL"] ?? "http://localhost:8000")
     : "";
 
 function getOriginOrEmpty(value: string): string {
@@ -41,11 +41,19 @@ export function buildCspHeader(nonce: string): string {
   const optionalApiSource =
     apiUrl.length > 0 ? ` ${getOriginOrEmpty(apiUrl)}` : "";
   const connectSrc = `'self'${optionalApiSource}${optionalAuthSource}`;
+  const isDev = isProd === false;
+  const scriptUnsafeEvalSource = isDev ? " 'unsafe-eval'" : "";
+  const styleSource = isDev ? " 'unsafe-inline'" : ` 'nonce-${nonce}'`;
+  const scriptSrc =
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'` +
+    scriptUnsafeEvalSource;
+  const styleSrc = `style-src 'self'${styleSource}`;
+  const upgradeInsecureRequests = isProd ? ["upgrade-insecure-requests"] : [];
 
   const directives = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${!isProd ? " 'unsafe-eval'" : ""}`,
-    `style-src 'self'${!isProd ? " 'unsafe-inline'" : ` 'nonce-${nonce}'`}`,
+    scriptSrc,
+    styleSrc,
     "img-src 'self' data: https:",
     "font-src 'self' data:",
     `connect-src ${connectSrc}`,
@@ -54,7 +62,7 @@ export function buildCspHeader(nonce: string): string {
     "base-uri 'self'",
     "form-action 'self'",
     "object-src 'none'",
-    ...(isProd ? ["upgrade-insecure-requests"] : []),
+    ...upgradeInsecureRequests,
   ];
 
   return directives.join("; ");

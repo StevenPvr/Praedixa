@@ -2,5 +2,9 @@
   "venvPath": ".",
   "venv": ".venv",
   "pythonVersion": "3.12",
-  "typeCheckingMode": "basic"
+  "typeCheckingMode": "strict",
+  "reportMissingImports": true,
+  "stubPath": "typings",
+  "include": ["app"],
+  "exclude": ["**/__pycache__", "alembic", "scripts", "tests"]
 }

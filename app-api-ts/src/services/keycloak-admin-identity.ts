@@ -104,10 +104,10 @@ function extractErrorMessage(payload: unknown): string | null {
   }
 
   const candidates = [
-    payload.errorMessage,
-    payload.error_description,
-    payload.error,
-    payload.message,
+    payload["errorMessage"],
+    payload["error_description"],
+    payload["error"],
+    payload["message"],
   ];
   for (const candidate of candidates) {
     if (typeof candidate === "string" && candidate.trim().length > 0) {
@@ -167,14 +167,14 @@ function buildUserAttributes(
   existing?: Record<string, unknown>,
 ): Record<string, string[]> {
   const attributes = normalizeAttributes(existing);
-  attributes.role = [input.role];
-  attributes.organization_id = [input.organizationId];
+  attributes["role"] = [input.role];
+  attributes["organization_id"] = [input.organizationId];
   if (input.siteId) {
-    attributes.site_id = [input.siteId];
+    attributes["site_id"] = [input.siteId];
   } else {
-    delete attributes.site_id;
+    delete attributes["site_id"];
   }
-  delete attributes.permissions;
+  delete attributes["permissions"];
   return attributes;
 }
 
@@ -205,15 +205,15 @@ function mapManagedUserRecord(
   }
 
   const attributes = normalizeAttributes(user.attributes);
-  const roleValue = attributes.role?.[0]?.trim() ?? "";
+  const roleValue = attributes["role"]?.[0]?.trim() ?? "";
 
   return {
     authUserId,
     username: user.username?.trim().toLowerCase() || null,
     email: user.email?.trim().toLowerCase() || null,
-    organizationId: attributes.organization_id?.[0]?.trim() || null,
+    organizationId: attributes["organization_id"]?.[0]?.trim() || null,
     role: isManagedAdminUserRole(roleValue) ? roleValue : null,
-    siteId: attributes.site_id?.[0]?.trim() || null,
+    siteId: attributes["site_id"]?.[0]?.trim() || null,
     enabled: typeof user.enabled === "boolean" ? user.enabled : null,
   };
 }
@@ -788,7 +788,7 @@ export class KeycloakAdminIdentityService {
     response: Response,
     fallbackMessage: string,
   ): Promise<KeycloakAdminIdentityError> {
-    const payload = (await response.json().catch(() => null)) as unknown;
+    const payload = await response.json().catch(() => null);
     const rawMessage = extractErrorMessage(payload) ?? fallbackMessage;
     if (isMissingRealmEmailSenderError(rawMessage)) {
       return new KeycloakAdminIdentityError(
@@ -816,9 +816,9 @@ export class KeycloakAdminIdentityService {
 export function getKeycloakAdminIdentityServiceFromEnv(
   env: NodeJS.ProcessEnv,
 ): KeycloakAdminIdentityService | null {
-  const issuerUrl = env.AUTH_ISSUER_URL?.trim() ?? "";
-  const adminUsername = env.KEYCLOAK_ADMIN_USERNAME?.trim() ?? "";
-  const adminPassword = env.KEYCLOAK_ADMIN_PASSWORD?.trim() ?? "";
+  const issuerUrl = env["AUTH_ISSUER_URL"]?.trim() ?? "";
+  const adminUsername = env["KEYCLOAK_ADMIN_USERNAME"]?.trim() ?? "";
+  const adminPassword = env["KEYCLOAK_ADMIN_PASSWORD"]?.trim() ?? "";
 
   if (!issuerUrl || !adminUsername || !adminPassword) {
     return null;
@@ -827,7 +827,7 @@ export function getKeycloakAdminIdentityServiceFromEnv(
   const { appRealm, baseUrl } = extractRealmFromIssuer(issuerUrl);
 
   return new KeycloakAdminIdentityService({
-    adminRealm: env.KEYCLOAK_ADMIN_REALM?.trim() || "master",
+    adminRealm: env["KEYCLOAK_ADMIN_REALM"]?.trim() || "master",
     appRealm,
     baseUrl,
     adminUsername,

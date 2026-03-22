@@ -52,6 +52,12 @@ Ce dossier verifie les briques Python data, integration runtime et hardening sec
   - garde-fous securite et invariants
 - `test_medallion_reprocessing.py`
   - manifests de quarantaine append-only, planning replay/backfill et reprocess medaillon cible
+- `test_medallion_pipeline_base.py`
+  - helpers de coercition scalaire `to_float` / `coerce_scalar`
+- `test_medallion_pipeline_quality.py`
+  - construction Silver dense, heuristique de valeurs manquantes, ridge causal et clamp outlier
+- `test_medallion_pipeline_features.py`
+  - cache/intervalles vacances scolaires, features externes et lag/rolling Gold
 - `test_decision_contracts.py`
   - invariants no-legacy du Gold/medallion, blueprints scenario fail-close et preuve explicite `proved` / `cannot_prove_yet`
 - `test_gold_live_data_resolution.py`
@@ -79,6 +85,9 @@ uv run pytest tests/test_provider_sync_ncr_aloha.py -q
 uv run pytest tests/test_org_provisioning.py -q
 uv run pytest tests/test_telemetry.py -q
 uv run pytest tests/test_medallion_reprocessing.py -q
+uv run pytest tests/test_medallion_pipeline_base.py -q
+uv run pytest tests/test_medallion_pipeline_quality.py -q
+uv run pytest tests/test_medallion_pipeline_features.py -q
 ```
 
 ## Ce que ces tests couvrent
@@ -101,6 +110,8 @@ uv run pytest tests/test_medallion_reprocessing.py -q
 - execution `SFTP CSV/TSV/XLSX -> dataset/raw` avec curseur runtime et archivage best-effort
 - securite de la config et des workers
 - robustesse du pipeline medallion
+- coercition scalaire, construction Silver dense, heuristique de valeurs manquantes et ridge causal
+- features externes, vacances scolaires et lag/rolling Gold
 - quarantaine append-only et commandes de replay/backfill sur le data-plane Python
 - separation entre bootstrap foundation d'organisation et donnees operationnelles de demo
 - format des logs structures et propagation des champs de correlation sur les frontieres Python

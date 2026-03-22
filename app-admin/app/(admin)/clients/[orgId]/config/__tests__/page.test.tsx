@@ -163,6 +163,31 @@ const mockIntegrationConnections = [
   },
 ];
 
+const mockIntegrationCatalog = [
+  {
+    vendor: "custom_data",
+    label: "Praedixa Custom Data Source",
+    domain: "custom",
+    authModes: ["api_key"],
+    sourceObjects: ["dataset"],
+    recommendedSyncMinutes: 30,
+    medallionTargets: ["bronze", "silver", "gold"],
+    onboardingModes: ["push_api"],
+    requiredConfigFields: ["datasetMappings"],
+  },
+  {
+    vendor: "salesforce",
+    label: "Salesforce CRM",
+    domain: "crm",
+    authModes: ["oauth2", "service_account"],
+    sourceObjects: ["Account"],
+    recommendedSyncMinutes: 30,
+    medallionTargets: ["bronze", "silver", "gold"],
+    onboardingModes: ["interactive_oauth", "push_api"],
+    requiredConfigFields: ["baseUrl"],
+  },
+];
+
 const mockIntegrationSyncRuns = [
   {
     id: "run-1",
@@ -225,6 +250,14 @@ function setupApiGetMocks(options?: SetupOptions) {
       : [{ ...mockProofPacks[0], downloadUrl: options.proofDownloadUrl }];
 
   mockUseApiGet.mockImplementation((url: string) => {
+    if (url.includes("/integrations/catalog")) {
+      return {
+        data: mockIntegrationCatalog,
+        loading,
+        error: null,
+        refetch: vi.fn(),
+      };
+    }
     if (url.includes("/cost-params")) {
       return {
         data: options?.costError ? null : mockCostParams,
@@ -374,6 +407,7 @@ describe("ConfigPage", () => {
 
   it("renders connector operations and sync runs", () => {
     render(<ConfigPage />);
+    expect(screen.getByText("Creer une source client")).toBeInTheDocument();
     expect(screen.getByText("Operations connecteur")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Tester la connexion" }),
@@ -383,6 +417,75 @@ describe("ConfigPage", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Runs de sync")).toBeInTheDocument();
     expect(screen.getByText("success")).toBeInTheDocument();
+  });
+
+  it("creates a generic custom_data source from the config page", async () => {
+    mockApiPost.mockResolvedValueOnce({
+      data: {
+        id: "conn-custom-1",
+        displayName: "Bella Vista Push",
+      },
+    });
+
+    render(<ConfigPage />);
+
+    fireEvent.change(screen.getByLabelText("Nom de la source"), {
+      target: { value: "Bella Vista Push" },
+    });
+    fireEvent.change(
+      screen.getByLabelText(
+        "Source objects (un par ligne ou separes par virgule)",
+      ),
+      {
+        target: { value: "sites\nsales_hourly\nstaffing_daily" },
+      },
+    );
+    fireEvent.change(screen.getByLabelText("Config JSON"), {
+      target: {
+        value:
+          '{\n  "datasetMappings": {\n    "sales_hourly": {\n      "dataset": {\n        "name": "Sales Hourly",\n        "table_name": "sales_hourly",\n        "temporal_index": "business_at",\n        "group_by": ["site_code"],\n        "pipeline_config": {}\n      },\n      "fields": []\n    }\n  }\n}',
+      },
+    });
+    fireEvent.change(screen.getByLabelText("Credentials JSON"), {
+      target: { value: '{\n  "apiKey": "bella-vista-key"\n}' },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Creer la source" }));
+
+    await waitFor(() => {
+      expect(mockApiPost).toHaveBeenCalledWith(
+        "/api/v1/admin/organizations/org-1/integrations/connections",
+        {
+          vendor: "custom_data",
+          displayName: "Bella Vista Push",
+          authMode: "api_key",
+          sourceObjects: ["sites", "sales_hourly", "staffing_daily"],
+          runtimeEnvironment: "production",
+          baseUrl: null,
+          config: {
+            datasetMappings: {
+              sales_hourly: {
+                dataset: {
+                  name: "Sales Hourly",
+                  table_name: "sales_hourly",
+                  temporal_index: "business_at",
+                  group_by: ["site_code"],
+                  pipeline_config: {},
+                },
+                fields: [],
+              },
+            },
+          },
+          credentials: {
+            apiKey: "bella-vista-key",
+          },
+        },
+        expect.any(Function),
+      );
+    });
+
+    expect(
+      await screen.findByText("Source Bella Vista Push creee."),
+    ).toBeInTheDocument();
   });
 
   it("triggers a replay sync from the config page", async () => {

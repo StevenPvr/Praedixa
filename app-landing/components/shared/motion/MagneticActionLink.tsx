@@ -70,7 +70,7 @@ function MagneticActionLinkInner({
   return (
     <motion.div
       className={cn("w-full will-change-transform", wrapperClassName)}
-      style={reducedMotion ? undefined : { x, y }}
+      {...(reducedMotion ? {} : { style: { x, y } })}
       onMouseMove={handleMouseMove}
       onMouseLeave={resetMagnet}
     >

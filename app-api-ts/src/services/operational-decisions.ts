@@ -4,6 +4,7 @@ import type {
   OperationalDecision,
   OverrideStatistics,
   ScenarioOptionType,
+  ShiftType,
 } from "@praedixa/shared-types/domain";
 
 import type { SiteAccessScope } from "./operational-data.js";
@@ -76,6 +77,18 @@ interface DbScenarioOptionContextRow extends QueryResultRow {
   cout_total_eur: string | number;
   service_attendu_pct: string | number | null;
   recommendation_policy_version: string | null;
+}
+
+function normalizeShiftType(rawShift: string): ShiftType {
+  if (rawShift === "am" || rawShift === "pm") {
+    return rawShift;
+  }
+
+  throw new PersistenceError(
+    "Operational decision shift is invalid.",
+    500,
+    "INVALID_OPERATIONAL_DECISION_SHIFT",
+  );
 }
 
 function assertOrganizationId(organizationId: string): void {
@@ -225,24 +238,44 @@ function mapOperationalDecisionRow(
     createdAt: toIsoDateTime(row.created_at)!,
     updatedAt: toIsoDateTime(row.updated_at)!,
     coverageAlertId: row.coverage_alert_id,
-    recommendedOptionId: row.recommended_option_id ?? undefined,
-    chosenOptionId: row.chosen_option_id ?? undefined,
+    ...(row.recommended_option_id != null
+      ? { recommendedOptionId: row.recommended_option_id }
+      : {}),
+    ...(row.chosen_option_id != null
+      ? { chosenOptionId: row.chosen_option_id }
+      : {}),
     siteId: row.site_id,
     decisionDate: toIsoDateOnly(row.decision_date),
-    shift: row.shift as OperationalDecision["shift"],
-    horizon: row.horizon as OperationalDecision["horizon"],
+    shift: normalizeShiftType(row.shift),
+    horizon: row.horizon,
     gapH: toRequiredNumber(row.gap_h),
     isOverride: row.is_override,
-    overrideReason: row.override_reason ?? undefined,
-    overrideCategory: row.override_category ?? undefined,
-    exogenousEventTag: row.exogenous_event_tag ?? undefined,
-    recommendationPolicyVersion: row.recommendation_policy_version ?? undefined,
-    coutAttenduEur: toNumber(row.cout_attendu_eur) ?? undefined,
-    serviceAttenduPct: toNumber(row.service_attendu_pct) ?? undefined,
-    coutObserveEur: toNumber(row.cout_observe_eur) ?? undefined,
-    serviceObservePct: toNumber(row.service_observe_pct) ?? undefined,
+    ...(row.override_reason != null
+      ? { overrideReason: row.override_reason }
+      : {}),
+    ...(row.override_category != null
+      ? { overrideCategory: row.override_category }
+      : {}),
+    ...(row.exogenous_event_tag != null
+      ? { exogenousEventTag: row.exogenous_event_tag }
+      : {}),
+    ...(row.recommendation_policy_version != null
+      ? { recommendationPolicyVersion: row.recommendation_policy_version }
+      : {}),
+    ...(toNumber(row.cout_attendu_eur) != null
+      ? { coutAttenduEur: toNumber(row.cout_attendu_eur)! }
+      : {}),
+    ...(toNumber(row.service_attendu_pct) != null
+      ? { serviceAttenduPct: toNumber(row.service_attendu_pct)! }
+      : {}),
+    ...(toNumber(row.cout_observe_eur) != null
+      ? { coutObserveEur: toNumber(row.cout_observe_eur)! }
+      : {}),
+    ...(toNumber(row.service_observe_pct) != null
+      ? { serviceObservePct: toNumber(row.service_observe_pct)! }
+      : {}),
     decidedBy: row.decided_by,
-    comment: row.comment ?? undefined,
+    ...(row.comment != null ? { comment: row.comment } : {}),
   };
 }
 

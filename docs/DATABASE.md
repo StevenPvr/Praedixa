@@ -2,6 +2,12 @@
 
 PostgreSQL 16 avec acces async via **asyncpg**, ORM **SQLAlchemy 2.0** (mapped_column, Mapped[T]), et migrations **Alembic**.
 
+Lire aussi:
+
+- `docs/cto/04-schema-public-postgres.md` pour le dictionnaire CTO table par table.
+- `docs/cto/18-audit-ecarts-database-doc.md` pour les ecarts entre cette synthese et le code.
+- `docs/cto/20-hierarchie-documentaire-et-normativite.md` pour savoir quand cette page est normative et quand il faut remonter au code.
+
 ## Structure des schemas
 
 La base de donnees utilise deux types de schemas :
@@ -13,7 +19,7 @@ La base de donnees utilise deux types de schemas :
 
 ### Schema public
 
-Contient les 32 tables gerees par Alembic. Toutes les entites metier vivent ici : organisations, utilisateurs, previsions, decisions, alertes, audit, onboarding BPM, etc.
+Contient aujourd'hui 47 tables versionnees par les modeles SQLAlchemy et Alembic. Toutes les entites metier vivent ici : organisations, utilisateurs, previsions, read-models DecisionOps, alertes, audit, onboarding BPM, integrations, conformite, contact public et MLOps.
 
 ### Schemas par client (`{org_slug}_data`)
 
@@ -40,6 +46,8 @@ Chaque dataset du catalogue genere deux tables dans ce schema :
 ## Entites et relations
 
 ### Diagramme des relations principales
+
+Note: ce diagramme garde une trace historique utile mais il n'est pas une source de verite exhaustive du schema courant. Les references `Employee`, `Absence` et `ActionPlan` doivent etre lues comme heritage de migrations initiales, pas comme tables actives du schema courant.
 
 ```mermaid
 erDiagram
@@ -142,12 +150,124 @@ erDiagram
 | `OnboardingBlocker` | `onboarding_case_blockers` | aucun            | id, case_id, blocker_key, domain, severity, status, details_json, opened_at, resolved_at                                                             |
 | `OnboardingEvent`   | `onboarding_case_events`   | aucun            | id, case_id, actor_user_id, event_type, message, payload_json, occurred_at                                                                           |
 
+#### Conformite et contact public
+
+| Modele                  | Table                       | Mixin            | Colonnes cles                                                                                                  |
+| ----------------------- | --------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------- |
+| `RgpdErasureRequest`    | `rgpd_erasure_requests`     | `TimestampMixin` | id, organization_id, org_slug, initiated_by, approved_by, status, completed_at                                 |
+| `RgpdErasureAuditEvent` | `rgpd_erasure_audit_events` | aucun            | id, erasure_request_id, sequence_no, message, created_at                                                       |
+| `ContactRequest`        | `contact_requests`          | `TimestampMixin` | id, locale, request_type, company_name, email, subject, status, consent, source_ip_hash, metadata_json (JSONB) |
+
+#### MLOps et lineage
+
+| Modele                   | Table                       | Mixin         | Colonnes cles                                                                                                        |
+| ------------------------ | --------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `ModelRegistry`          | `model_registry`            | `TenantMixin` | id, organization_id, model_family, version, status, artifact_uri, sha256, metadata_hmac, features_schema_json        |
+| `ModelInferenceJob`      | `model_inference_jobs`      | `TenantMixin` | id, organization_id, model_registry_id, status, scope_json, started_at, ended_at, rows_in, rows_out, forecast_run_id |
+| `ModelArtifactAccessLog` | `model_artifact_access_log` | `TenantMixin` | id, organization_id, model_registry_id, actor_service, action, request_id, ip_hash, metadata_json                    |
+| `DataLineageEvent`       | `data_lineage_events`       | `TenantMixin` | id, organization_id, source_type, source_ref, target_type, target_ref, checksum_sha256, metadata_json                |
+
 #### Autre
 
 | Modele           | Table              | Mixin         | Colonnes cles                                                                                              |
 | ---------------- | ------------------ | ------------- | ---------------------------------------------------------------------------------------------------------- |
 | `DashboardAlert` | `dashboard_alerts` | `TenantMixin` | id, organization_id, type, severity, title, message, related_entity_type, dismissed_at, expires_at         |
 | `Absence`        | `absences`         | `TenantMixin` | id, organization_id, employee_id, type, category, start_date, end_date, status, recurrence_pattern (JSONB) |
+
+## Plateforme d'integration
+
+Le domaine integration merite une lecture specifique, car la cible relationnelle et la persistence runtime actuelle ne sont pas encore pleinement alignees.
+
+### Cible relationnelle versionnee
+
+Le modele Python et la migration `026_integration_platform_foundation.py` versionnent les tables suivantes:
+
+- `integration_connections`
+- `integration_sync_runs`
+- `integration_sync_state`
+- `integration_raw_events`
+- `integration_field_mappings`
+- `integration_error_events`
+- `integration_dead_letter_queue`
+- `integration_webhook_receipts`
+- `integration_audit_events`
+
+Ces tables racontent une plateforme d'integration relationnelle classique:
+
+- `integration_connections` pour la configuration et l'etat d'une connexion fournisseur;
+- `integration_sync_runs` pour la queue et l'execution des synchronisations;
+- `integration_sync_state` pour le curseur par `connection + source_object`;
+- `integration_raw_events` pour l'append-only Bronze proche du fournisseur;
+- `integration_field_mappings` pour la normalisation par objet source;
+- `integration_error_events` et `integration_dead_letter_queue` pour les echecs operables;
+- `integration_webhook_receipts` pour les receptions push;
+- `integration_audit_events` pour les actions humaines et machine.
+
+### Persistence runtime actuelle de `app-connectors`
+
+Le runtime TypeScript `app-connectors` est operable, mais il persiste aujourd'hui son etat principalement dans:
+
+- `connector_runtime_snapshots`
+- `connector_secret_records`
+
+Le snapshot JSONB contient notamment:
+
+- `connections`
+- `runs`
+- `syncStates`
+- `rawEvents`
+- `ingestCredentials`
+- `auditEvents`
+- `authorizationSessions`
+
+Les payloads bruts restent stockes a part via le payload store / object store.
+
+### Consequence architecturale
+
+Pour un CTO, il faut donc distinguer explicitement:
+
+- la cible relationnelle `integration_*`, utile pour comprendre le modele durable vise;
+- l'etat runtime actuel de `app-connectors`, utile pour comprendre comment le systeme tourne reellement aujourd'hui.
+
+Cette dualite n'est pas cosmetique. Elle impacte:
+
+- la lecture de la source de verite;
+- les audits schema-vers-runtime;
+- la convergence future entre control plane TypeScript et data-plane Python.
+
+### Flux operable actuel
+
+Le flux runtime connecteurs est le suivant:
+
+1. `app-api-ts` ou `app-admin` cree/teste/configure une connexion via `app-connectors`.
+2. `app-connectors` stocke configuration, secrets scelles et etat runtime.
+3. un worker Python reclame les `sync_runs`.
+4. le runtime renvoie un `execution plan` borne au run claimé.
+5. le worker choisit le chemin `provider-events` ou `sftpPull`.
+6. les payloads bruts sont stockes, puis ingeres vers datasets et couches medallion.
+
+### Point de vigilance - auth mode `session`
+
+Le runtime `app-connectors` supporte aujourd'hui `session` comme mode d'authentification, notamment pour `Geotab`.
+
+En revanche, l'enum relationnel `integrationauthmode` defini par Alembic ne couvre aujourd'hui que:
+
+- `oauth2`
+- `api_key`
+- `service_account`
+- `sftp`
+
+Si la convergence vers `integration_connections` devient prioritaire, cet ecart devra etre traite explicitement.
+
+### Lecture recommandee
+
+Pour ce domaine, lire dans cet ordre:
+
+1. `docs/cto/07-connecteurs-et-sync-runs.md`
+2. `app-connectors/README.md`
+3. `app-connectors/src/README.md`
+4. `app-api/app/models/integration.py`
+5. `app-api/alembic/versions/026_integration_platform_foundation.py`
 
 ## Reference des enums
 
@@ -219,29 +339,30 @@ class TenantMixin(TimestampMixin):
 
 ## Historique des migrations
 
-| #   | Fichier                                  | Description                                                                                                                              |
-| --- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| 001 | `001_initial_schema.py`                  | Schema initial : organizations, sites, departments, users, employees, absences, forecast_runs, decisions, action_plans, dashboard_alerts |
-| 002 | `002_pgcrypto_extension.py`              | Extension `pgcrypto` pour `gen_random_uuid()`                                                                                            |
-| 003 | `003_data_catalog_enums.py`              | Enums PostgreSQL pour le data catalog (DatasetStatus, IngestionMode, RunStatus, ColumnDtype, ColumnRole)                                 |
-| 004 | `004_data_catalog_tables.py`             | Tables data catalog : client_datasets, dataset_columns, fit_parameters, ingestion_log, pipeline_config_history                           |
-| 005 | `005_fit_parameters_immutability.py`     | Trigger d'immutabilite sur fit_parameters (INSERT-only)                                                                                  |
-| 006 | `006_role_architecture.py`               | Extension du systeme de roles (UserRole enum etendu)                                                                                     |
-| 007 | `007_rls_policies.py`                    | Politiques Row-Level Security initiales                                                                                                  |
-| 008 | `008_file_upload_ingestion.py`           | Champs file_name, file_size sur ingestion_log + table quality_reports                                                                    |
-| 009 | `009_quality_report.py`                  | Extension quality_reports (column_details, strategy_config)                                                                              |
-| 010 | `010_admin_backoffice.py`                | Tables admin : admin_audit_log, plan_change_history, onboarding_states                                                                   |
-| 011 | `011_features_access_control.py`         | Controle d'acces aux features par organisation                                                                                           |
-| 012 | `012_operational_layer.py`               | Tables operationnelles : canonical_records, cost_parameters, coverage_alerts, scenario_options, operational_decisions, proof_records     |
-| 013 | `013_rls_hardening.py`                   | Renforcement des politiques RLS (defense en profondeur)                                                                                  |
-| 014 | `014_merge_schemas.py`                   | Fusion des schemas platform/public                                                                                                       |
-| 015 | `015_add_user_site_id.py`                | Ajout site_id sur users pour filtrage par site                                                                                           |
-| 016 | `016_decision_engine_v2_fields.py`       | Champs supplementaires pour le moteur de decision v2                                                                                     |
-| 017 | `017_conversations.py`                   | Tables messagerie : conversations, messages                                                                                              |
-| 018 | `018_daily_forecast_capacity_curves.py`  | Champs capacity curves sur daily_forecasts (capacity_planned_current, capacity_planned_predicted, capacity_optimal_predicted)            |
-| 027 | `027_decisionops_runtime_persistence.py` | Persistance DecisionOps read-model : decision_approvals, action_dispatches, decision_ledger_entries + RLS                                |
-| 028 | `028_onboarding_bpm_foundation.py`       | Fondations persistantes du control plane onboarding BPM : cases, tasks, blockers, events + RLS direct/indirect                           |
-| 029 | `029_onboarding_camunda_only.py`         | Verrouille `onboarding_cases.workflow_provider` sur `camunda` et migre les anciennes lignes `local_projection`                           |
+| #   | Fichier                                  | Description                                                                                                                                |
+| --- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 001 | `001_initial_schema.py`                  | Schema initial : organizations, sites, departments, users, employees, absences, forecast_runs, decisions, action_plans, dashboard_alerts   |
+| 002 | `002_pgcrypto_extension.py`              | Extension `pgcrypto` pour `gen_random_uuid()`                                                                                              |
+| 003 | `003_data_catalog_enums.py`              | Enums PostgreSQL pour le data catalog (DatasetStatus, IngestionMode, RunStatus, ColumnDtype, ColumnRole)                                   |
+| 004 | `004_data_catalog_tables.py`             | Tables data catalog : client_datasets, dataset_columns, fit_parameters, ingestion_log, pipeline_config_history                             |
+| 005 | `005_fit_parameters_immutability.py`     | Trigger d'immutabilite sur fit_parameters (INSERT-only)                                                                                    |
+| 006 | `006_role_architecture.py`               | Extension du systeme de roles (UserRole enum etendu)                                                                                       |
+| 007 | `007_rls_policies.py`                    | Politiques Row-Level Security initiales                                                                                                    |
+| 008 | `008_file_upload_ingestion.py`           | Champs file_name, file_size sur ingestion_log + table quality_reports                                                                      |
+| 009 | `009_quality_report.py`                  | Extension quality_reports (column_details, strategy_config)                                                                                |
+| 010 | `010_admin_backoffice.py`                | Tables admin : admin_audit_log, plan_change_history, onboarding_states                                                                     |
+| 011 | `011_features_access_control.py`         | Controle d'acces aux features par organisation                                                                                             |
+| 012 | `012_operational_layer.py`               | Tables operationnelles : canonical_records, cost_parameters, coverage_alerts, scenario_options, operational_decisions, proof_records       |
+| 013 | `013_rls_hardening.py`                   | Renforcement des politiques RLS (defense en profondeur)                                                                                    |
+| 014 | `014_merge_schemas.py`                   | Fusion des schemas platform/public                                                                                                         |
+| 015 | `015_add_user_site_id.py`                | Ajout site_id sur users pour filtrage par site                                                                                             |
+| 016 | `016_decision_engine_v2_fields.py`       | Champs supplementaires pour le moteur de decision v2                                                                                       |
+| 017 | `017_conversations.py`                   | Tables messagerie : conversations, messages                                                                                                |
+| 018 | `018_daily_forecast_capacity_curves.py`  | Champs capacity curves sur daily_forecasts (capacity_planned_current, capacity_planned_predicted, capacity_optimal_predicted)              |
+| 019 | `019_remove_orphan_models.py`            | Retire les tables legacy `employees`, `absences` et `action_plans`; point de vigilance pour les docs et modeles qui les mentionnent encore |
+| 027 | `027_decisionops_runtime_persistence.py` | Persistance DecisionOps read-model : decision_approvals, action_dispatches, decision_ledger_entries + RLS                                  |
+| 028 | `028_onboarding_bpm_foundation.py`       | Fondations persistantes du control plane onboarding BPM : cases, tasks, blockers, events + RLS direct/indirect                             |
+| 029 | `029_onboarding_camunda_only.py`         | Verrouille `onboarding_cases.workflow_provider` sur `camunda` et migre les anciennes lignes `local_projection`                             |
 
 ## Politiques RLS
 
@@ -352,10 +473,10 @@ cd app-api && uv run alembic downgrade base  # Tout annuler (attention !)
 
 ```bash
 cd app-api
-uv run python -m scripts.seed_demo_data          # Donnees de demonstration
-uv run python -m scripts.seed_canonical_data      # Donnees canoniques
-uv run python -m scripts.seed_full_demo           # Seed complet (toutes les tables)
+uv run python -m scripts.seed_full_demo --org-id <uuid>  # Seed demo complet (bootstrap + artefacts operationnels)
 ```
+
+Le bootstrap persistant minimal d'une organisation est porte par `app/services/organization_foundation.py`.
 
 En mode `DEBUG=true`, l'API execute automatiquement `seed_full_demo` au demarrage (`_auto_seed_dev` dans `app/main.py`).
 

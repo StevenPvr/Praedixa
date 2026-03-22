@@ -64,7 +64,7 @@ export function HeroV2Client({ poster, videoSrc }: HeroV2ClientProps) {
       poster={poster}
       className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-700 [&[data-loaded]]:opacity-100"
       onLoadedData={(e) =>
-        ((e.target as HTMLVideoElement).dataset.loaded = "true")
+        ((e.target as HTMLVideoElement).dataset["loaded"] = "true")
       }
       aria-hidden="true"
     >

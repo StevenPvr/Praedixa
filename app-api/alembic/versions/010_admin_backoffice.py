@@ -22,7 +22,14 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import ENUM as PG_ENUM
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
-from alembic import op
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
+
+NOW_SQL = "now()"
+ON_DELETE_CASCADE = "CASCADE"
+ON_DELETE_SET_NULL = "SET NULL"
+USERS_ID_REF = "users.id"
+ORGANIZATIONS_ID_REF = "organizations.id"
+CREATED_AT_DESC = "created_at DESC"
 
 # revision identifiers, used by Alembic.
 revision = "010"
@@ -63,14 +70,14 @@ def upgrade() -> None:
         sa.Column(
             "admin_user_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("users.id", ondelete="CASCADE"),
+            sa.ForeignKey(USERS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
             index=True,
         ),
         sa.Column(
             "target_org_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("organizations.id", ondelete="SET NULL"),
+            sa.ForeignKey(ORGANIZATIONS_ID_REF, ondelete=ON_DELETE_SET_NULL),
             nullable=True,
         ),
         sa.Column(
@@ -88,13 +95,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )
@@ -105,13 +112,13 @@ def upgrade() -> None:
         sa.Column(
             "organization_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("organizations.id", ondelete="CASCADE"),
+            sa.ForeignKey(ORGANIZATIONS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column(
             "changed_by",
             UUID(as_uuid=True),
-            sa.ForeignKey("users.id", ondelete="CASCADE"),
+            sa.ForeignKey(USERS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column(
@@ -129,13 +136,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )
@@ -146,14 +153,14 @@ def upgrade() -> None:
         sa.Column(
             "organization_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("organizations.id", ondelete="CASCADE"),
+            sa.ForeignKey(ORGANIZATIONS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
             unique=True,
         ),
         sa.Column(
             "initiated_by",
             UUID(as_uuid=True),
-            sa.ForeignKey("users.id", ondelete="CASCADE"),
+            sa.ForeignKey(USERS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column(
@@ -167,13 +174,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )
@@ -183,17 +190,17 @@ def upgrade() -> None:
     op.create_index(
         "ix_admin_audit_log_admin_created",
         "admin_audit_log",
-        ["admin_user_id", sa.text("created_at DESC")],
+        ["admin_user_id", sa.text(CREATED_AT_DESC)],
     )
     op.create_index(
         "ix_admin_audit_log_org_created",
         "admin_audit_log",
-        ["target_org_id", sa.text("created_at DESC")],
+        ["target_org_id", sa.text(CREATED_AT_DESC)],
     )
     op.create_index(
         "ix_admin_audit_log_action_created",
         "admin_audit_log",
-        ["action", sa.text("created_at DESC")],
+        ["action", sa.text(CREATED_AT_DESC)],
     )
     op.create_index(
         "ix_plan_change_history_org_created",

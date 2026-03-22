@@ -9,7 +9,8 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./brand-tokens.css": "./src/brand-tokens.css"
+    "./brand-tokens.css": "./src/brand-tokens.css",
+    "./tailwind-theme.css": "./src/tailwind-theme.css"
   },
   "scripts": {
     "build": "tsc --build --force",

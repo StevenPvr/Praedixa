@@ -10,7 +10,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-from alembic import op
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
 
 revision: str = "023"
 down_revision: str | None = "022"

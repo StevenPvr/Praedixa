@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
 import { AdminShell } from "@/components/admin-shell";
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+type AdminLayoutProps = Readonly<{
+  children: ReactNode;
+}>;
+
+export default function AdminLayout({ children }: AdminLayoutProps) {
   return <AdminShell>{children}</AdminShell>;
 }

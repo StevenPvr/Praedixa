@@ -25,9 +25,9 @@ vi.mock("next/navigation", () => ({
   usePathname: () => mockPathname(),
 }));
 
-const mockUseCurrentUser = vi.fn();
+const mockUseCurrentUserState = vi.fn();
 vi.mock("@/lib/auth/client", () => ({
-  useCurrentUser: () => mockUseCurrentUser(),
+  useCurrentUserState: () => mockUseCurrentUserState(),
 }));
 
 const FULL_PERMISSIONS = [
@@ -44,8 +44,9 @@ const FULL_PERMISSIONS = [
 describe("ClientTabsNav", () => {
   it("renders all workspace tabs", () => {
     mockPathname.mockReturnValue("/clients/org-1/dashboard");
-    mockUseCurrentUser.mockReturnValue({
-      permissions: FULL_PERMISSIONS,
+    mockUseCurrentUserState.mockReturnValue({
+      user: { permissions: FULL_PERMISSIONS },
+      loading: false,
     });
     render(<ClientTabsNav basePath="/clients/org-1" />);
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
@@ -64,8 +65,9 @@ describe("ClientTabsNav", () => {
 
   it("highlights the active tab", () => {
     mockPathname.mockReturnValue("/clients/org-1/donnees");
-    mockUseCurrentUser.mockReturnValue({
-      permissions: FULL_PERMISSIONS,
+    mockUseCurrentUserState.mockReturnValue({
+      user: { permissions: FULL_PERMISSIONS },
+      loading: false,
     });
     render(<ClientTabsNav basePath="/clients/org-1" />);
     const donneesLink = screen.getByText("Donnees").closest("a");
@@ -74,8 +76,9 @@ describe("ClientTabsNav", () => {
 
   it("renders correct hrefs", () => {
     mockPathname.mockReturnValue("/clients/org-1/dashboard");
-    mockUseCurrentUser.mockReturnValue({
-      permissions: FULL_PERMISSIONS,
+    mockUseCurrentUserState.mockReturnValue({
+      user: { permissions: FULL_PERMISSIONS },
+      loading: false,
     });
     render(<ClientTabsNav basePath="/clients/org-1" />);
     const links = screen.getAllByRole("link");
@@ -91,8 +94,9 @@ describe("ClientTabsNav", () => {
 
   it("hides tabs without permissions", () => {
     mockPathname.mockReturnValue("/clients/org-1/dashboard");
-    mockUseCurrentUser.mockReturnValue({
-      permissions: ["admin:org:read"],
+    mockUseCurrentUserState.mockReturnValue({
+      user: { permissions: ["admin:org:read"] },
+      loading: false,
     });
     render(<ClientTabsNav basePath="/clients/org-1" />);
 
@@ -105,10 +109,22 @@ describe("ClientTabsNav", () => {
 
   it("has aria-label for navigation", () => {
     mockPathname.mockReturnValue("/clients/org-1/dashboard");
-    mockUseCurrentUser.mockReturnValue({
-      permissions: FULL_PERMISSIONS,
+    mockUseCurrentUserState.mockReturnValue({
+      user: { permissions: FULL_PERMISSIONS },
+      loading: false,
     });
     render(<ClientTabsNav basePath="/clients/org-1" />);
     expect(screen.getByLabelText("Onglets client")).toBeInTheDocument();
+  });
+
+  it("renders nothing while permissions are still loading", () => {
+    mockPathname.mockReturnValue("/clients/org-1/dashboard");
+    mockUseCurrentUserState.mockReturnValue({
+      user: null,
+      loading: true,
+    });
+
+    const { container } = render(<ClientTabsNav basePath="/clients/org-1" />);
+    expect(container).toBeEmptyDOMElement();
   });
 });

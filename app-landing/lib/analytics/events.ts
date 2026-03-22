@@ -6,12 +6,9 @@
  * With params: trackEvent("form_step_complete", { step: 1 })
  */
 export function trackEvent(
-  eventName: string,
-  params?: Record<string, string | number | boolean>,
-) {
-  void eventName;
-  void params;
-}
+  _eventName: string,
+  _params?: Record<string, string | number | boolean>,
+) {}
 
 /* ── Pre-defined event names (from the playbook instrumentation plan) ── */
 

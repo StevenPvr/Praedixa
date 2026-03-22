@@ -191,16 +191,18 @@ export function normalizeDecisionScopeOverrides(
             ids: value.selector.ids ? [...value.selector.ids] : [],
           }
         : value.selector.mode === "query"
-          ? {
+          ? ({
               mode: "query" as const,
-              query: value.selector.query,
-            }
+              ...(value.selector.query !== undefined
+                ? { query: value.selector.query }
+                : {}),
+            } as const)
           : { mode: "all" as const };
 
   return {
-    entityType: value.entityType,
-    selector,
-    horizonId: value.horizonId,
-    dimensions: value.dimensions,
+    ...(value.entityType !== undefined ? { entityType: value.entityType } : {}),
+    ...(selector !== undefined ? { selector } : {}),
+    ...(value.horizonId !== undefined ? { horizonId: value.horizonId } : {}),
+    ...(value.dimensions !== undefined ? { dimensions: value.dimensions } : {}),
   };
 }

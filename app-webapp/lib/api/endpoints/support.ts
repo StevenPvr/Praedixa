@@ -30,17 +30,29 @@ interface ConversationMessage {
 
 export type { Conversation, ConversationMessage };
 
+function conversationsPath(): string {
+  return "/api/v1/conversations";
+}
+
+function conversationMessagesPath(convId: string): string {
+  return `${conversationsPath()}/${encodePathSegment(convId)}/messages`;
+}
+
+function unreadCountPath(): string {
+  return `${conversationsPath()}/unread-count`;
+}
+
 export function listConversations(
   token: GetAccessToken,
 ): Promise<ApiResponse<Conversation[]>> {
-  return getEndpoint<Conversation[]>("/api/v1/conversations", token);
+  return getEndpoint<Conversation[]>(conversationsPath(), token);
 }
 
 export function createConversation(
   body: { subject: string },
   token: GetAccessToken,
 ): Promise<ApiResponse<Conversation>> {
-  return postEndpoint<Conversation>("/api/v1/conversations", body, token);
+  return postEndpoint<Conversation>(conversationsPath(), body, token);
 }
 
 export function listConversationMessages(
@@ -48,7 +60,7 @@ export function listConversationMessages(
   token: GetAccessToken,
 ): Promise<ApiResponse<ConversationMessage[]>> {
   return getEndpoint<ConversationMessage[]>(
-    `/api/v1/conversations/${encodePathSegment(convId)}/messages`,
+    conversationMessagesPath(convId),
     token,
   );
 }
@@ -59,7 +71,7 @@ export function sendConversationMessage(
   token: GetAccessToken,
 ): Promise<ApiResponse<ConversationMessage>> {
   return postEndpoint<ConversationMessage>(
-    `/api/v1/conversations/${encodePathSegment(convId)}/messages`,
+    conversationMessagesPath(convId),
     body,
     token,
   );
@@ -68,8 +80,5 @@ export function sendConversationMessage(
 export function getUnreadCount(
   token: GetAccessToken,
 ): Promise<ApiResponse<{ unreadCount: number }>> {
-  return getEndpoint<{ unreadCount: number }>(
-    "/api/v1/conversations/unread-count",
-    token,
-  );
+  return getEndpoint<{ unreadCount: number }>(unreadCountPath(), token);
 }

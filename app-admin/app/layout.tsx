@@ -11,18 +11,18 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function RootLayout({
-  children,
-}: {
+type RootLayoutProps = Readonly<{
   children: React.ReactNode;
-}) {
+}>;
+
+export default async function RootLayout({ children }: RootLayoutProps) {
   const requestHeaders = await headers();
   const nonce = requestHeaders.get("x-nonce") ?? undefined;
 
   return (
     <html lang="fr" suppressHydrationWarning>
       <body className="font-sans antialiased">
-        <ThemeProvider nonce={nonce}>
+        <ThemeProvider {...(nonce ? { nonce } : {})}>
           <a href="#main-content" className="skip-link">
             Aller au contenu principal
           </a>

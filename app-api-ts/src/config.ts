@@ -504,7 +504,7 @@ export function loadConfig(rawEnv: NodeJS.ProcessEnv): AppConfig {
   const issuerRaw =
     parsed.AUTH_ISSUER_URL?.trim() ||
     (parsed.NODE_ENV === "development"
-      ? "https://auth.praedixa.com/realms/praedixa"
+      ? "http://localhost:8081/realms/praedixa"
       : "");
   const audience =
     parsed.AUTH_AUDIENCE?.trim() ||

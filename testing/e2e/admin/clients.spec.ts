@@ -63,7 +63,7 @@ test.describe("Clients page", () => {
   test("shows empty state", async ({ page }) => {
     await mockClientsApisEmpty(page);
     await page.goto("/clients");
-    await expect(page.getByText("0 clients au total")).toBeVisible();
+    await expect(page.getByText("0 client au total")).toBeVisible();
   });
 
   test("shows error fallback", async ({ page }) => {

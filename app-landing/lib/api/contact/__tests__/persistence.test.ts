@@ -79,7 +79,7 @@ describe("persistContactRequest", () => {
       metadataJson: Record<string, unknown>;
     };
 
-    expect(body.metadataJson.referer).toBe(
+    expect(body.metadataJson["referer"]).toBe(
       "https://www.praedixa.com/fr/contact",
     );
     expect(body.metadataJson).not.toHaveProperty("forwardedFor");

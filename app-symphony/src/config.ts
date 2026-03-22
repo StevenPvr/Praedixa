@@ -168,7 +168,8 @@ function normalizeSandboxPolicy(
     return null;
   }
   const record = value as Record<string, unknown>;
-  const rawType = typeof record.type === "string" ? record.type.trim() : "";
+  const rawType =
+    typeof record["type"] === "string" ? record["type"].trim() : "";
   const typeAliasMap = new Map<string, string>([
     ["dangerFullAccess", "dangerFullAccess"],
     ["danger-full-access", "dangerFullAccess"],
@@ -184,38 +185,34 @@ function normalizeSandboxPolicy(
     return null;
   }
 
-  const writableRoots = Array.isArray(record.writableRoots)
-    ? record.writableRoots.filter(
+  const writableRoots = Array.isArray(record["writableRoots"])
+    ? record["writableRoots"].filter(
         (item): item is string => typeof item === "string" && item.length > 0,
       )
     : undefined;
-  const readableRoots = Array.isArray(record.readableRoots)
-    ? record.readableRoots.filter(
+  const readableRoots = Array.isArray(record["readableRoots"])
+    ? record["readableRoots"].filter(
         (item): item is string => typeof item === "string" && item.length > 0,
       )
     : undefined;
 
   return {
     type,
-    networkAccess:
-      typeof record.networkAccess === "string" ||
-      typeof record.networkAccess === "boolean"
-        ? record.networkAccess
-        : undefined,
-    writableRoots,
-    readableRoots,
-    includePlatformDefaults:
-      typeof record.includePlatformDefaults === "boolean"
-        ? record.includePlatformDefaults
-        : undefined,
-    excludeSlashTmp:
-      typeof record.excludeSlashTmp === "boolean"
-        ? record.excludeSlashTmp
-        : undefined,
-    excludeTmpdirEnvVar:
-      typeof record.excludeTmpdirEnvVar === "boolean"
-        ? record.excludeTmpdirEnvVar
-        : undefined,
+    ...(typeof record["networkAccess"] === "string" ||
+    typeof record["networkAccess"] === "boolean"
+      ? { networkAccess: record["networkAccess"] }
+      : {}),
+    ...(writableRoots !== undefined ? { writableRoots } : {}),
+    ...(readableRoots !== undefined ? { readableRoots } : {}),
+    ...(typeof record["includePlatformDefaults"] === "boolean"
+      ? { includePlatformDefaults: record["includePlatformDefaults"] }
+      : {}),
+    ...(typeof record["excludeSlashTmp"] === "boolean"
+      ? { excludeSlashTmp: record["excludeSlashTmp"] }
+      : {}),
+    ...(typeof record["excludeTmpdirEnvVar"] === "boolean"
+      ? { excludeTmpdirEnvVar: record["excludeTmpdirEnvVar"] }
+      : {}),
   };
 }
 
@@ -242,22 +239,23 @@ function parseHarnessConfig(
 ): HarnessConfig {
   return {
     strategy:
-      rawHarness?.strategy === "directory" ? "directory" : "git_worktree",
+      rawHarness?.["strategy"] === "directory" ? "directory" : "git_worktree",
     baseRef:
-      typeof rawHarness?.base_ref === "string" && rawHarness.base_ref.trim()
-        ? rawHarness.base_ref.trim()
+      typeof rawHarness?.["base_ref"] === "string" &&
+      rawHarness["base_ref"].trim()
+        ? rawHarness["base_ref"].trim()
         : "HEAD",
     branchPrefix:
-      typeof rawHarness?.branch_prefix === "string" &&
-      rawHarness.branch_prefix.trim()
-        ? rawHarness.branch_prefix.trim()
+      typeof rawHarness?.["branch_prefix"] === "string" &&
+      rawHarness["branch_prefix"].trim()
+        ? rawHarness["branch_prefix"].trim()
         : "symphony/",
-    copyFiles: parseStringArray(rawHarness?.copy_files, []),
-    portCount: parseInteger(rawHarness?.port_count, 4),
+    copyFiles: parseStringArray(rawHarness?.["copy_files"], []),
+    portCount: parseInteger(rawHarness?.["port_count"], 4),
     metadataDirName:
-      typeof rawHarness?.metadata_dir_name === "string" &&
-      rawHarness.metadata_dir_name.trim()
-        ? rawHarness.metadata_dir_name.trim()
+      typeof rawHarness?.["metadata_dir_name"] === "string" &&
+      rawHarness["metadata_dir_name"].trim()
+        ? rawHarness["metadata_dir_name"].trim()
         : ".symphony",
   };
 }
@@ -265,8 +263,8 @@ function parseHarnessConfig(
 function parseStatusServerConfig(
   rawServer: Record<string, unknown> | undefined,
 ): StatusServerConfig {
-  const port = parseInteger(rawServer?.port, 0, { allowZero: true });
-  const rawPort = rawServer?.port;
+  const port = parseInteger(rawServer?.["port"], 0, { allowZero: true });
+  const rawPort = rawServer?.["port"];
   const portExplicitlyConfigured =
     rawPort === 0 ||
     rawPort === "0" ||
@@ -276,8 +274,8 @@ function parseStatusServerConfig(
       Number.parseInt(rawPort, 10) > 0);
   return {
     host:
-      typeof rawServer?.host === "string" && rawServer.host.trim()
-        ? rawServer.host.trim()
+      typeof rawServer?.["host"] === "string" && rawServer["host"].trim()
+        ? rawServer["host"].trim()
         : "127.0.0.1",
     port: portExplicitlyConfigured ? port : null,
   };
@@ -297,16 +295,18 @@ export function buildServiceConfig(
   const codex = parsed.codex ?? {};
 
   const activeStates = parseStringArray(
-    tracker.active_states,
+    tracker["active_states"],
     DEFAULT_ACTIVE_STATES,
   );
   const terminalStates = parseStringArray(
-    tracker.terminal_states,
+    tracker["terminal_states"],
     DEFAULT_TERMINAL_STATES,
   );
 
   const trackerApiKey =
-    resolveEnvToken(tracker.api_key, env) ?? env.LINEAR_API_KEY?.trim() ?? null;
+    resolveEnvToken(tracker["api_key"], env) ??
+    env["LINEAR_API_KEY"]?.trim() ??
+    null;
 
   return {
     processCwd,
@@ -314,27 +314,31 @@ export function buildServiceConfig(
     workflowDir: path.dirname(workflow.filePath),
     tracker: {
       kind:
-        typeof tracker.kind === "string" && tracker.kind.trim().length > 0
-          ? tracker.kind.trim()
+        typeof tracker["kind"] === "string" && tracker["kind"].trim().length > 0
+          ? tracker["kind"].trim()
           : "",
       endpoint:
-        resolveEnvToken(tracker.endpoint, env) ?? DEFAULT_TRACKER_ENDPOINT,
+        resolveEnvToken(tracker["endpoint"], env) ?? DEFAULT_TRACKER_ENDPOINT,
       apiKey: trackerApiKey ?? "",
-      projectSlug: resolveEnvToken(tracker.project_slug, env) ?? "",
+      projectSlug: resolveEnvToken(tracker["project_slug"], env) ?? "",
       activeStates,
       terminalStates,
       normalizedActiveStates: new Set(activeStates.map(normalizeStateName)),
       normalizedTerminalStates: new Set(terminalStates.map(normalizeStateName)),
     },
     polling: {
-      intervalMs: parseInteger(polling.interval_ms, DEFAULT_POLL_INTERVAL_MS, {
-        minimum: 1,
-      }),
+      intervalMs: parseInteger(
+        polling["interval_ms"],
+        DEFAULT_POLL_INTERVAL_MS,
+        {
+          minimum: 1,
+        },
+      ),
     },
     workspace: {
-      root: resolveEnvToken(workspace.root, env) ?? DEFAULT_WORKSPACE_ROOT,
+      root: resolveEnvToken(workspace["root"], env) ?? DEFAULT_WORKSPACE_ROOT,
       absoluteRoot: expandPathLike(
-        workspace.root,
+        workspace["root"],
         path.dirname(workflow.filePath),
         env,
         DEFAULT_WORKSPACE_ROOT,
@@ -342,64 +346,75 @@ export function buildServiceConfig(
     },
     hooks: {
       afterCreate:
-        typeof hooks.after_create === "string" ? hooks.after_create : null,
-      beforeRun: typeof hooks.before_run === "string" ? hooks.before_run : null,
-      afterRun: typeof hooks.after_run === "string" ? hooks.after_run : null,
+        typeof hooks["after_create"] === "string"
+          ? hooks["after_create"]
+          : null,
+      beforeRun:
+        typeof hooks["before_run"] === "string" ? hooks["before_run"] : null,
+      afterRun:
+        typeof hooks["after_run"] === "string" ? hooks["after_run"] : null,
       beforeRemove:
-        typeof hooks.before_remove === "string" ? hooks.before_remove : null,
-      timeoutMs: parseInteger(hooks.timeout_ms, DEFAULT_HOOK_TIMEOUT_MS, {
+        typeof hooks["before_remove"] === "string"
+          ? hooks["before_remove"]
+          : null,
+      timeoutMs: parseInteger(hooks["timeout_ms"], DEFAULT_HOOK_TIMEOUT_MS, {
         minimum: 1,
       }),
     },
     agent: {
       maxConcurrentAgents: parseInteger(
-        agent.max_concurrent_agents,
+        agent["max_concurrent_agents"],
         DEFAULT_MAX_CONCURRENT_AGENTS,
       ),
       maxConcurrentAgentsByState: parsePerStateConcurrency(
-        agent.max_concurrent_agents_by_state,
+        agent["max_concurrent_agents_by_state"],
       ),
       maxRetryBackoffMs: parseInteger(
-        agent.max_retry_backoff_ms,
+        agent["max_retry_backoff_ms"],
         DEFAULT_MAX_RETRY_BACKOFF_MS,
       ),
-      maxTurns: parseInteger(agent.max_turns, DEFAULT_MAX_TURNS),
+      maxTurns: parseInteger(agent["max_turns"], DEFAULT_MAX_TURNS),
     },
     codex: {
       command:
-        typeof codex.command === "string" && codex.command.trim().length > 0
-          ? codex.command.trim()
+        typeof codex["command"] === "string" &&
+        codex["command"].trim().length > 0
+          ? codex["command"].trim()
           : "codex app-server",
-      approvalPolicy: normalizeApprovalPolicy(codex.approval_policy),
+      approvalPolicy: normalizeApprovalPolicy(codex["approval_policy"]),
       approvalsReviewer:
-        typeof codex.approvals_reviewer === "string"
-          ? codex.approvals_reviewer
+        typeof codex["approvals_reviewer"] === "string"
+          ? codex["approvals_reviewer"]
           : null,
-      threadSandbox: normalizeSandboxMode(codex.thread_sandbox),
-      turnSandboxPolicy: normalizeSandboxPolicy(codex.turn_sandbox_policy) ?? {
+      threadSandbox: normalizeSandboxMode(codex["thread_sandbox"]),
+      turnSandboxPolicy: normalizeSandboxPolicy(
+        codex["turn_sandbox_policy"],
+      ) ?? {
         type: "workspaceWrite",
         networkAccess: true,
       },
       turnTimeoutMs: parseInteger(
-        codex.turn_timeout_ms,
+        codex["turn_timeout_ms"],
         DEFAULT_TURN_TIMEOUT_MS,
       ),
       readTimeoutMs: parseInteger(
-        codex.read_timeout_ms,
+        codex["read_timeout_ms"],
         DEFAULT_READ_TIMEOUT_MS,
       ),
       stallTimeoutMs: parseInteger(
-        codex.stall_timeout_ms,
+        codex["stall_timeout_ms"],
         DEFAULT_STALL_TIMEOUT_MS,
         { minimum: 1, allowZero: true },
       ),
-      model: typeof codex.model === "string" ? codex.model : null,
-      effort: typeof codex.effort === "string" ? codex.effort : null,
-      summary: typeof codex.summary === "string" ? codex.summary : null,
+      model: typeof codex["model"] === "string" ? codex["model"] : null,
+      effort: typeof codex["effort"] === "string" ? codex["effort"] : null,
+      summary: typeof codex["summary"] === "string" ? codex["summary"] : null,
       personality:
-        typeof codex.personality === "string" ? codex.personality : null,
+        typeof codex["personality"] === "string" ? codex["personality"] : null,
       serviceTier:
-        typeof codex.service_tier === "string" ? codex.service_tier : null,
+        typeof codex["service_tier"] === "string"
+          ? codex["service_tier"]
+          : null,
     },
     harness: parseHarnessConfig(parsed.harness),
     server: parseStatusServerConfig(parsed.server),

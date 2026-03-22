@@ -14,10 +14,11 @@ const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   variable: "--font-ibm-plex-mono",
   display: "swap",
+  preload: false,
 });
 import { defaultLocale, isValidLocale } from "../lib/i18n/config";
 
-const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION;
+const googleSiteVerification = process.env["GOOGLE_SITE_VERIFICATION"];
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.praedixa.com"),

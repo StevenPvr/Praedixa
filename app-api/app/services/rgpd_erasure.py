@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 import structlog
 from pydantic import BaseModel, ConfigDict, Field
@@ -158,6 +158,10 @@ _VERIFICATION_TABLES: list[tuple[str, type]] = [
     ("users", User),
     ("organizations", Organization),
 ]
+
+
+class _OrganizationScopedModel(Protocol):
+    organization_id: Any
 
 
 def _validate_transition(
@@ -325,11 +329,12 @@ async def verify_erasure(
                 )
             )
         elif hasattr(model, "organization_id"):
+            scoped_model = cast("_OrganizationScopedModel", model)
             result = await db.execute(
                 select(func.count())
                 .select_from(model)
                 .where(
-                    model.organization_id == org_id,
+                    scoped_model.organization_id == org_id,
                 )
             )
         else:

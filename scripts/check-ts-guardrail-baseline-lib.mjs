@@ -31,6 +31,7 @@ const IGNORED_DIR_NAMES = new Set([
   "playwright-report",
   "test-results",
   "__tests__",
+  "presentations-clients",
   "skolae",
   "centaurus",
 ]);

@@ -6,8 +6,8 @@ import matter from "gray-matter";
 
 const SITE_BASE_URL = "https://www.praedixa.com";
 const CONTENT_CANDIDATES = [
-  path.resolve(process.cwd(), "content"),
-  path.resolve(process.cwd(), "..", "content"),
+  path.resolve(process.cwd(), "marketing", "content"),
+  path.resolve(process.cwd(), "..", "marketing", "content"),
 ];
 
 function resolveContentDirectory() {

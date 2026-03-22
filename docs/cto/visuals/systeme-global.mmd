@@ -1,0 +1,68 @@
+graph TB
+    subgraph Browser["Navigateurs"]
+        Visitor["Visiteur landing"]
+        ClientUser["Utilisateur webapp"]
+        AdminUser["Utilisateur admin"]
+    end
+
+    subgraph Frontends["Frontends Next.js"]
+        Landing["app-landing"]
+        Webapp["app-webapp"]
+        Admin["app-admin"]
+    end
+
+    subgraph Identity["Identite"]
+        Keycloak["Keycloak OIDC"]
+    end
+
+    subgraph Core["Runtime produit/admin"]
+        ApiTs["app-api-ts"]
+        Camunda["Camunda 8"]
+    end
+
+    subgraph Integration["Control plane integrations"]
+        Connectors["app-connectors"]
+        ObjectStore["Payload/Object store"]
+    end
+
+    subgraph Data["Data plane"]
+        Python["app-api Python"]
+        Postgres[("PostgreSQL\npublic + {org}_data")]
+        Medallion["Bronze / Silver / Gold"]
+    end
+
+    subgraph Vendors["Fournisseurs externes"]
+        VendorApis["APIs vendors"]
+        Sftp["SFTP / fichiers"]
+    end
+
+    Visitor --> Landing
+    ClientUser --> Webapp
+    AdminUser --> Admin
+
+    Webapp -->|BFF same-origin /api/v1/*| ApiTs
+    Admin -->|BFF same-origin /api/v1/*| ApiTs
+    Landing -->|routes publiques / formulaires| ApiTs
+
+    Webapp -->|OIDC code + PKCE| Keycloak
+    Admin -->|OIDC code + PKCE| Keycloak
+    ApiTs -. verification JWT / claims .-> Keycloak
+
+    ApiTs --> Postgres
+    ApiTs --> Camunda
+    ApiTs -->|integrations admin| Connectors
+
+    Connectors --> Postgres
+    Connectors --> ObjectStore
+    Connectors --> VendorApis
+
+    Python -->|claim sync runs / access-context / provider-events| Connectors
+    Python --> Postgres
+    Python --> Medallion
+    Medallion --> Postgres
+
+    VendorApis --> Connectors
+    Sftp --> Python
+
+    Postgres --> ApiTs
+    Medallion --> ApiTs

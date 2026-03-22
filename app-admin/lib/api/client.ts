@@ -5,7 +5,13 @@ import type {
 } from "@praedixa/shared-types";
 
 const TEST_BASE_URL = "http://localhost:8000";
-const isProduction = process.env.NODE_ENV === "production";
+const isProduction = process.env["NODE_ENV"] === "production";
+
+export function isDirectAdminApiMode(): boolean {
+  return (
+    (process.env["NEXT_PUBLIC_ADMIN_API_MODE"]?.trim() ?? "proxy") === "direct"
+  );
+}
 
 function isLoopbackHostname(hostname: string): boolean {
   return (
@@ -14,16 +20,15 @@ function isLoopbackHostname(hostname: string): boolean {
 }
 
 function resolveApiBaseUrl(): string {
-  const apiMode = process.env.NEXT_PUBLIC_ADMIN_API_MODE?.trim() ?? "proxy";
-  if (apiMode === "proxy") {
+  if (!isDirectAdminApiMode()) {
     return "";
   }
 
-  if (process.env.NODE_ENV === "test") {
+  if (process.env["NODE_ENV"] === "test") {
     return TEST_BASE_URL;
   }
 
-  const configuredBaseUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+  const configuredBaseUrl = process.env["NEXT_PUBLIC_API_URL"]?.trim();
   if (!configuredBaseUrl) {
     throw new Error(
       "NEXT_PUBLIC_API_URL is required when NEXT_PUBLIC_ADMIN_API_MODE=direct.",
@@ -113,16 +118,76 @@ async function request<T>(
   };
 
   if (token) {
-    headers.Authorization = `Bearer ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(buildUrl(path), {
+  const requestInit: RequestInit = {
     method,
     headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
     credentials: "include",
-    signal: options?.signal,
-  });
+  };
+  if (body !== undefined) {
+    requestInit.body = JSON.stringify(body);
+  }
+  if (options?.signal) {
+    requestInit.signal = options.signal;
+  }
+
+  const response = await fetch(buildUrl(path), requestInit);
+
+  if (!response.ok) {
+    let errorData: ErrorResponse | null = null;
+    try {
+      errorData = (await response.json()) as ErrorResponse;
+    } catch {
+      // Response body is not JSON.
+    }
+
+    throw new ApiError(
+      errorData?.error?.message ??
+        `Request failed with status ${response.status}`,
+      response.status,
+      errorData?.error?.code,
+      errorData?.error?.details,
+      errorData?.requestId,
+    );
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  return (await response.json()) as T;
+}
+
+async function requestFormData<T>(
+  method: string,
+  path: string,
+  getAccessToken: GetAccessToken,
+  formData: FormData,
+  options?: RequestOptions,
+): Promise<T> {
+  const token = getBaseUrl().length > 0 ? await getAccessToken() : null;
+  const headers: Record<string, string> = {
+    "X-Request-ID": crypto.randomUUID(),
+    ...options?.headers,
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const requestInit: RequestInit = {
+    method,
+    headers,
+    credentials: "include",
+    body: formData,
+  };
+  if (options?.signal) {
+    requestInit.signal = options.signal;
+  }
+
+  const response = await fetch(buildUrl(path), requestInit);
 
   if (!response.ok) {
     let errorData: ErrorResponse | null = null;
@@ -184,6 +249,21 @@ export function apiPost<T>(
   options?: RequestOptions,
 ): Promise<ApiResponse<T>> {
   return request<ApiResponse<T>>("POST", path, getAccessToken, body, options);
+}
+
+export function apiPostFormData<T>(
+  path: string,
+  body: FormData,
+  getAccessToken: GetAccessToken,
+  options?: RequestOptions,
+): Promise<ApiResponse<T>> {
+  return requestFormData<ApiResponse<T>>(
+    "POST",
+    path,
+    getAccessToken,
+    body,
+    options,
+  );
 }
 
 export function apiPatch<T>(

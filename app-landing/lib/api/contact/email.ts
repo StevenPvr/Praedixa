@@ -18,9 +18,9 @@ export async function sendContactEmails(
   data: ContactPayload,
   ip: string,
 ): Promise<void> {
-  const fromEmail = process.env.RESEND_FROM_EMAIL || DEFAULT_FROM_EMAIL;
+  const fromEmail = process.env["RESEND_FROM_EMAIL"] || DEFAULT_FROM_EMAIL;
   const replyToEmail =
-    process.env.RESEND_REPLY_TO_EMAIL || siteConfig.contact.email;
+    process.env["RESEND_REPLY_TO_EMAIL"] || siteConfig.contact.email;
   const safeData = sanitizeContactPayload(data, ip);
 
   const adminPrefix = data.locale === "en" ? "New contact" : "Nouveau contact";

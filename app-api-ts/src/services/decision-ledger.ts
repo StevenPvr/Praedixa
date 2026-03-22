@@ -128,8 +128,9 @@ export function computeLedgerRoi(
   return {
     currency,
     estimatedValue,
-    realizedValue:
-      validationStatus === "validated" ? estimatedValue : undefined,
+    ...(validationStatus === "validated"
+      ? { realizedValue: estimatedValue }
+      : {}),
     validationStatus,
     components: normalizedComponents,
   };
@@ -150,27 +151,29 @@ export function setLedgerValidationStatus(
   validatedBy?: string,
 ): LedgerEntry {
   if (validationStatus === "validated") {
+    const realizedValue = entry.roi.realizedValue ?? entry.roi.estimatedValue;
     return {
       ...entry,
       roi: {
         ...entry.roi,
         validationStatus,
-        realizedValue: entry.roi.realizedValue ?? entry.roi.estimatedValue,
+        ...(realizedValue !== undefined ? { realizedValue } : {}),
         validatedAt: changedAt,
-        validatedBy,
+        ...(validatedBy !== undefined ? { validatedBy } : {}),
       },
     };
   }
 
   if (validationStatus === "estimated") {
+    const roi = { ...entry.roi };
+    delete roi.realizedValue;
+    delete roi.validatedAt;
+    delete roi.validatedBy;
     return {
       ...entry,
       roi: {
-        ...entry.roi,
+        ...roi,
         validationStatus,
-        realizedValue: undefined,
-        validatedAt: undefined,
-        validatedBy: undefined,
       },
     };
   }

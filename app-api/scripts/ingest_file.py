@@ -139,20 +139,12 @@ async def _ingest_single_file(
         )
         return False
 
-    if parse_result.warnings:
-        for _w in parse_result.warnings:
-            pass
-
     # Map columns
     mapping_result = map_columns(
         source_columns=parse_result.source_columns,
         dataset_columns=columns,
         format_hint=format_hint,
     )
-    sum(1 for m in mapping_result.mappings if m.confidence > 0)
-    if mapping_result.warnings:
-        for _w in mapping_result.warnings:
-            pass
 
     # Insert
     try:
@@ -174,10 +166,6 @@ async def _ingest_single_file(
             file_size,
         )
         return False
-
-    if result.warnings:
-        for _w in result.warnings:
-            pass
 
     # Log success
     await _log_ingestion(
@@ -242,7 +230,6 @@ async def main() -> None:
             sys.exit(1)
 
     # Process files
-    success_count = 0
     fail_count = 0
     for file_path in files:
         ok = await _ingest_single_file(
@@ -252,9 +239,7 @@ async def main() -> None:
             args.format,
             args.sheet_name,
         )
-        if ok:
-            success_count += 1
-        else:
+        if not ok:
             fail_count += 1
 
     # Summary

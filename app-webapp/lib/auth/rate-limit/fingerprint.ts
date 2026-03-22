@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { requireRateLimitKeySalt } from "./policy";
 
 function shouldTrustProxyIpHeaders(): boolean {
-  return process.env.AUTH_TRUST_X_FORWARDED_FOR === "1";
+  return process.env["AUTH_TRUST_X_FORWARDED_FOR"] === "1";
 }
 
 function hashString(value: string): string {

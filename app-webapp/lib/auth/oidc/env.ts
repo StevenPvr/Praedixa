@@ -30,11 +30,11 @@ function validateSessionSecret(secret: string): void {
 }
 
 export function getOidcEnv(): OidcEnv {
-  const issuerUrl = process.env.AUTH_OIDC_ISSUER_URL?.trim() ?? "";
-  const clientId = process.env.AUTH_OIDC_CLIENT_ID?.trim() ?? "";
-  const clientSecret = process.env.AUTH_OIDC_CLIENT_SECRET?.trim() ?? "";
-  const scope = process.env.AUTH_OIDC_SCOPE?.trim() || DEFAULT_SCOPE;
-  const sessionSecret = process.env.AUTH_SESSION_SECRET?.trim() ?? "";
+  const issuerUrl = process.env["AUTH_OIDC_ISSUER_URL"]?.trim() ?? "";
+  const clientId = process.env["AUTH_OIDC_CLIENT_ID"]?.trim() ?? "";
+  const clientSecret = process.env["AUTH_OIDC_CLIENT_SECRET"]?.trim() ?? "";
+  const scope = process.env["AUTH_OIDC_SCOPE"]?.trim() || DEFAULT_SCOPE;
+  const sessionSecret = process.env["AUTH_SESSION_SECRET"]?.trim() ?? "";
 
   if (!issuerUrl || !clientId || !sessionSecret) {
     throw new Error(

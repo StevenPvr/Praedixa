@@ -5,6 +5,7 @@ import {
   CONFIG_ACCESS,
   CONFIG_WRITE,
   INTEGRATIONS_READ,
+  MESSAGES_ACCESS,
   MONITORING_READ,
   ONBOARDING_ACCESS,
   ONBOARDING_WRITE,
@@ -22,6 +23,7 @@ const WORKSPACE_HEADER_ACCESS = dedupePermissions([
   ...USERS_ACCESS,
   ...CONFIG_ACCESS,
   ...ONBOARDING_ACCESS,
+  ...MESSAGES_ACCESS,
 ]);
 const PROOF_PACK_ACCESS = dedupePermissions([...ORG_READ, ...CONFIG_ACCESS]);
 
@@ -254,6 +256,20 @@ export const ADMIN_API_CORE_POLICIES: readonly AdminApiPolicy[] = [
     id: "org-onboarding-task-complete",
     pattern:
       "/api/v1/admin/organizations/[orgId]/onboarding/cases/[caseId]/tasks/[taskId]/complete",
+    methods: ["POST"],
+    requiredPermissions: ONBOARDING_WRITE,
+  }),
+  createApiPolicy({
+    id: "org-onboarding-task-file-upload",
+    pattern:
+      "/api/v1/admin/organizations/[orgId]/onboarding/cases/[caseId]/tasks/[taskId]/file-sources/upload",
+    methods: ["POST"],
+    requiredPermissions: ONBOARDING_WRITE,
+  }),
+  createApiPolicy({
+    id: "org-onboarding-task-api-source-activate",
+    pattern:
+      "/api/v1/admin/organizations/[orgId]/onboarding/cases/[caseId]/tasks/[taskId]/api-sources/activate",
     methods: ["POST"],
     requiredPermissions: ONBOARDING_WRITE,
   }),

@@ -12,7 +12,9 @@ import type {
   ProofPack,
 } from "./config-types";
 
-function renderDateCell(value: string) {
+type FormatDateTime = (value: string | undefined | null) => string;
+
+function renderMutedDateCell(value: string) {
   return (
     <span className="text-xs text-ink-tertiary">
       {new Date(value).toLocaleDateString("fr-FR")}
@@ -20,36 +22,77 @@ function renderDateCell(value: string) {
   );
 }
 
+function renderOptionalDateCell(value?: string | null) {
+  if (!value) {
+    return <span className="text-xs text-ink-tertiary">-</span>;
+  }
+
+  return renderMutedDateCell(value);
+}
+
+function renderDateTimeCell(
+  value: string | undefined | null,
+  formatDateTime: FormatDateTime,
+) {
+  return (
+    <span className="text-xs text-ink-tertiary">{formatDateTime(value)}</span>
+  );
+}
+
+function renderMediumText(value: string) {
+  return <span className="font-medium text-ink">{value}</span>;
+}
+
+function renderNumberCell(value: number) {
+  return <span>{value}</span>;
+}
+
+function renderLocalizedNumberCell(value: number) {
+  return <span>{value.toLocaleString("fr-FR")}</span>;
+}
+
+function resolveProofStatusClass(status: string) {
+  if (status === "generated") {
+    return "text-success";
+  }
+  if (status === "pending") {
+    return "text-primary";
+  }
+  return "text-ink-tertiary";
+}
+
+function resolveVersionStatusClass(status: string) {
+  if (status === "active") {
+    return "text-success";
+  }
+  if (status === "scheduled") {
+    return "text-primary";
+  }
+  return "text-ink-tertiary";
+}
+
 export function buildCostColumns(): DataTableColumn<CostParam>[] {
   return [
     {
       key: "category",
       label: "Categorie",
-      render: (row) => (
-        <span className="font-medium text-ink">{row.category}</span>
-      ),
+      render: (row) => renderMediumText(row.category),
     },
     {
       key: "value",
       label: "Valeur",
       align: "right",
-      render: (row) => <span>{row.value}</span>,
+      render: (row) => renderNumberCell(row.value),
     },
     {
       key: "effectiveFrom",
       label: "Debut",
-      render: (row) => renderDateCell(row.effectiveFrom),
+      render: (row) => renderMutedDateCell(row.effectiveFrom),
     },
     {
       key: "effectiveUntil",
       label: "Fin",
-      render: (row) => (
-        <span className="text-xs text-ink-tertiary">
-          {row.effectiveUntil
-            ? new Date(row.effectiveUntil).toLocaleDateString("fr-FR")
-            : "-"}
-        </span>
-      ),
+      render: (row) => renderOptionalDateCell(row.effectiveUntil),
     },
     {
       key: "siteName",
@@ -64,21 +107,13 @@ export function buildProofColumns(): DataTableColumn<ProofPack>[] {
     {
       key: "name",
       label: "Nom",
-      render: (row) => <span className="font-medium text-ink">{row.name}</span>,
+      render: (row) => renderMediumText(row.name),
     },
     {
       key: "status",
       label: "Statut",
       render: (row) => (
-        <span
-          className={
-            row.status === "generated"
-              ? "text-success"
-              : row.status === "pending"
-                ? "text-primary"
-                : "text-ink-tertiary"
-          }
-        >
+        <span className={resolveProofStatusClass(row.status)}>
           {row.status}
         </span>
       ),
@@ -86,13 +121,7 @@ export function buildProofColumns(): DataTableColumn<ProofPack>[] {
     {
       key: "generatedAt",
       label: "Genere le",
-      render: (row) => (
-        <span className="text-xs text-ink-tertiary">
-          {row.generatedAt
-            ? new Date(row.generatedAt).toLocaleDateString("fr-FR")
-            : "-"}
-        </span>
-      ),
+      render: (row) => renderOptionalDateCell(row.generatedAt),
     },
     {
       key: "downloadUrl",
@@ -125,7 +154,7 @@ export function buildVersionColumns({
   onCancel,
 }: {
   compactVersionId: (versionId: string) => string;
-  formatDateTime: (value: string | undefined | null) => string;
+  formatDateTime: FormatDateTime;
   canManageConfig: boolean;
   actionLoading: string | null;
   onRollback: (version: DecisionEngineConfigVersion) => void;
@@ -145,15 +174,7 @@ export function buildVersionColumns({
       key: "status",
       label: "Statut",
       render: (row) => (
-        <span
-          className={
-            row.status === "active"
-              ? "text-success"
-              : row.status === "scheduled"
-                ? "text-primary"
-                : "text-ink-tertiary"
-          }
-        >
+        <span className={resolveVersionStatusClass(row.status)}>
           {row.status}
         </span>
       ),
@@ -161,11 +182,7 @@ export function buildVersionColumns({
     {
       key: "effectiveAt",
       label: "Effet",
-      render: (row) => (
-        <span className="text-xs text-ink-tertiary">
-          {formatDateTime(row.effectiveAt)}
-        </span>
-      ),
+      render: (row) => renderDateTimeCell(row.effectiveAt, formatDateTime),
     },
     {
       key: "scope",
@@ -208,15 +225,13 @@ export function buildVersionColumns({
 export function buildIntegrationColumns({
   formatDateTime,
 }: {
-  formatDateTime: (value: string | undefined | null) => string;
+  formatDateTime: FormatDateTime;
 }): DataTableColumn<IntegrationConnection>[] {
   return [
     {
       key: "displayName",
       label: "Connexion",
-      render: (row) => (
-        <span className="font-medium text-ink">{row.displayName}</span>
-      ),
+      render: (row) => renderMediumText(row.displayName),
     },
     { key: "vendor", label: "Vendor" },
     { key: "authMode", label: "Auth" },
@@ -224,11 +239,7 @@ export function buildIntegrationColumns({
     {
       key: "updatedAt",
       label: "Mise a jour",
-      render: (row) => (
-        <span className="text-xs text-ink-tertiary">
-          {formatDateTime(row.updatedAt)}
-        </span>
-      ),
+      render: (row) => renderDateTimeCell(row.updatedAt, formatDateTime),
     },
   ];
 }
@@ -239,7 +250,7 @@ export function buildIngestCredentialColumns({
   actionLoading,
   onRevoke,
 }: {
-  formatDateTime: (value: string | undefined | null) => string;
+  formatDateTime: FormatDateTime;
   canManageIntegrations: boolean;
   actionLoading: string | null;
   onRevoke: (credentialId: string) => void;
@@ -248,9 +259,7 @@ export function buildIngestCredentialColumns({
     {
       key: "label",
       label: "Credential",
-      render: (row) => (
-        <span className="font-medium text-ink">{row.label}</span>
-      ),
+      render: (row) => renderMediumText(row.label),
     },
     { key: "authMode", label: "Mode" },
     {
@@ -263,20 +272,12 @@ export function buildIngestCredentialColumns({
     {
       key: "lastUsedAt",
       label: "Derniere utilisation",
-      render: (row) => (
-        <span className="text-xs text-ink-tertiary">
-          {formatDateTime(row.lastUsedAt)}
-        </span>
-      ),
+      render: (row) => renderDateTimeCell(row.lastUsedAt, formatDateTime),
     },
     {
       key: "expiresAt",
       label: "Expire le",
-      render: (row) => (
-        <span className="text-xs text-ink-tertiary">
-          {formatDateTime(row.expiresAt)}
-        </span>
-      ),
+      render: (row) => renderDateTimeCell(row.expiresAt, formatDateTime),
     },
     {
       key: "actions",
@@ -303,7 +304,7 @@ export function buildIngestCredentialColumns({
 export function buildRawEventColumns({
   formatDateTime,
 }: {
-  formatDateTime: (value: string | undefined | null) => string;
+  formatDateTime: FormatDateTime;
 }): DataTableColumn<IntegrationRawEvent>[] {
   return [
     { key: "sourceObject", label: "Objet" },
@@ -318,16 +319,12 @@ export function buildRawEventColumns({
       key: "sizeBytes",
       label: "Taille",
       align: "right",
-      render: (row) => <span>{row.sizeBytes.toLocaleString("fr-FR")}</span>,
+      render: (row) => renderLocalizedNumberCell(row.sizeBytes),
     },
     {
       key: "receivedAt",
       label: "Recu le",
-      render: (row) => (
-        <span className="text-xs text-ink-tertiary">
-          {formatDateTime(row.receivedAt)}
-        </span>
-      ),
+      render: (row) => renderDateTimeCell(row.receivedAt, formatDateTime),
     },
   ];
 }
@@ -335,15 +332,13 @@ export function buildRawEventColumns({
 export function buildSyncRunColumns({
   formatDateTime,
 }: {
-  formatDateTime: (value: string | undefined | null) => string;
+  formatDateTime: FormatDateTime;
 }): DataTableColumn<IntegrationSyncRun>[] {
   return [
     {
       key: "triggerType",
       label: "Trigger",
-      render: (row) => (
-        <span className="font-medium text-ink">{row.triggerType}</span>
-      ),
+      render: (row) => renderMediumText(row.triggerType),
     },
     { key: "status", label: "Statut" },
     {
@@ -361,26 +356,18 @@ export function buildSyncRunColumns({
       key: "recordsFetched",
       label: "Records lus",
       align: "right",
-      render: (row) => (
-        <span>{row.recordsFetched.toLocaleString("fr-FR")}</span>
-      ),
+      render: (row) => renderLocalizedNumberCell(row.recordsFetched),
     },
     {
       key: "recordsWritten",
       label: "Records ecrits",
       align: "right",
-      render: (row) => (
-        <span>{row.recordsWritten.toLocaleString("fr-FR")}</span>
-      ),
+      render: (row) => renderLocalizedNumberCell(row.recordsWritten),
     },
     {
       key: "createdAt",
       label: "Cree le",
-      render: (row) => (
-        <span className="text-xs text-ink-tertiary">
-          {formatDateTime(row.createdAt)}
-        </span>
-      ),
+      render: (row) => renderDateTimeCell(row.createdAt, formatDateTime),
     },
   ];
 }

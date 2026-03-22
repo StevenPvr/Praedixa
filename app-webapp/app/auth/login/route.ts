@@ -47,6 +47,10 @@ function applyRateLimitHeaders(
   }
 }
 
+function describeOidcLoginError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export async function GET(request: NextRequest) {
   const next = sanitizeNextPath(
     request.nextUrl.searchParams.get("next"),
@@ -122,12 +126,19 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
+    const isMissingConfig = isMissingOidcEnvError(error);
+    const isInsecureConfig = isInsecureOidcEnvError(error);
+    if (!isMissingConfig && !isInsecureConfig) {
+      process.emitWarning(
+        `[webapp-auth-login] OIDC login bootstrap failed: ${describeOidcLoginError(error)}`,
+      );
+    }
     const fallbackUrl = new URL("/login", appOrigin);
     fallbackUrl.searchParams.set(
       "error",
-      isMissingOidcEnvError(error)
+      isMissingConfig
         ? "oidc_config_missing"
-        : isInsecureOidcEnvError(error)
+        : isInsecureConfig
           ? "oidc_config_insecure"
           : "oidc_provider_untrusted",
     );

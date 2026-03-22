@@ -17,19 +17,22 @@ import {
 } from "lucide-react";
 import { cn } from "@praedixa/ui";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { ADMIN_GLOBAL_NAV_ITEMS, canAccessPath } from "@/lib/auth/route-access";
+import {
+  ADMIN_GLOBAL_NAV_ITEMS,
+  canAccessPath,
+} from "@/lib/auth/admin-route-policies";
 
-interface AdminTopbarProps {
+type AdminTopbarProps = Readonly<{
   mobileOpen: boolean;
   onToggleMobile: () => void;
-  title?: string;
-  userEmail?: string;
-  userRole?: string;
-  permissions?: readonly string[] | null;
-  onOpenCommandPalette?: () => void;
-  onLogout?: () => Promise<void>;
-  isSigningOut?: boolean;
-}
+  title: string | undefined;
+  userEmail: string | undefined;
+  userRole: string | undefined;
+  permissions: readonly string[] | null | undefined;
+  onOpenCommandPalette: (() => void) | undefined;
+  onLogout: (() => Promise<void>) | undefined;
+  isSigningOut: boolean | undefined;
+}>;
 
 const PROFILE_MENU_ICON_BY_ROUTE: Record<string, LucideIcon> = {
   "/": LayoutGrid,
@@ -50,31 +53,33 @@ export function AdminTopbar({
   permissions,
   onOpenCommandPalette,
   onLogout,
-  isSigningOut = false,
+  isSigningOut,
 }: AdminTopbarProps) {
   const router = useRouter();
   const [profileMenuOpen, setProfileMenuOpen] = React.useState(false);
   const profileMenuRef = React.useRef<HTMLDivElement>(null);
   const profileMenuButtonRef = React.useRef<HTMLButtonElement>(null);
+  const hasNoPermissions = permissions === null || permissions === undefined;
   const profileMenuItems = React.useMemo(
     () =>
       ADMIN_GLOBAL_NAV_ITEMS.filter(
         (item) =>
           PROFILE_MENU_PATHS.has(item.href) &&
-          (permissions == null || canAccessPath(item.href, permissions)),
+          (hasNoPermissions || canAccessPath(item.href, permissions)),
       ),
-    [permissions],
+    [hasNoPermissions, permissions],
   );
 
   React.useEffect(() => {
-    if (!profileMenuOpen) return;
+    if (profileMenuOpen === false) return;
 
     const handleMouseDown = (event: MouseEvent) => {
-      if (
-        profileMenuRef.current &&
+      const clickedOutsideMenu =
+        profileMenuRef.current !== null &&
         event.target instanceof Node &&
-        !profileMenuRef.current.contains(event.target)
-      ) {
+        profileMenuRef.current.contains(event.target) === false;
+
+      if (clickedOutsideMenu) {
         setProfileMenuOpen(false);
       }
     };
@@ -95,6 +100,16 @@ export function AdminTopbar({
   }, [profileMenuOpen]);
 
   const userInitial = userEmail?.charAt(0).toUpperCase() ?? "U";
+  const hasTitle = title !== undefined;
+  const isCurrentlySigningOut = isSigningOut === true;
+  const handleProfileMenuToggle = () =>
+    setProfileMenuOpen((previous) => previous === false);
+  const handleLogout = async () => {
+    if (onLogout) {
+      await onLogout();
+    }
+    setProfileMenuOpen(false);
+  };
 
   return (
     <header className="sticky top-0 z-20 flex h-topbar items-center justify-between border-b border-border/60 bg-[var(--topbar-bg)] px-4 sm:px-6">
@@ -118,14 +133,14 @@ export function AdminTopbar({
           <span className="text-xs font-medium uppercase tracking-wider text-ink-tertiary">
             Admin
           </span>
-          {title && (
+          {hasTitle ? (
             <>
               <span className="text-ink-placeholder" aria-hidden="true">
                 /
               </span>
               <span className="text-sm font-semibold text-ink">{title}</span>
             </>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -162,7 +177,7 @@ export function AdminTopbar({
           <button
             ref={profileMenuButtonRef}
             type="button"
-            onClick={() => setProfileMenuOpen((prev) => !prev)}
+            onClick={handleProfileMenuToggle}
             className={cn(
               "flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-white shadow-raised transition-colors duration-fast",
               "hover:bg-primary-600",
@@ -217,15 +232,12 @@ export function AdminTopbar({
                 <button
                   type="button"
                   role="menuitem"
-                  disabled={isSigningOut}
-                  onClick={() => {
-                    void onLogout?.();
-                    setProfileMenuOpen(false);
-                  }}
+                  disabled={isCurrentlySigningOut}
+                  onClick={handleLogout}
                   className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-danger-text transition-colors duration-fast hover:bg-danger-light/35 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <LogOut className="h-4 w-4" />
-                  {isSigningOut ? "Deconnexion..." : "Se deconnecter"}
+                  {isCurrentlySigningOut ? "Deconnexion..." : "Se deconnecter"}
                 </button>
               </div>
             </div>

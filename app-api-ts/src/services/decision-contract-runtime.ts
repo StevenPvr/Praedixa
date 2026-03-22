@@ -79,6 +79,15 @@ interface RollbackInput {
   actor: DecisionContractActor;
 }
 
+const DECISION_CONTRACT_AUDIT_ACTIONS = {
+  archived: "decision_contract_archived",
+  created: "decision_contract_created",
+  forked: "decision_contract_forked",
+  rollbackCreated: "decision_contract_rollback_created",
+  saved: "decision_contract_saved",
+  transitionPrefix: "decision_contract_transition_",
+} as const;
+
 function prepareSavedDraftContract(
   contracts: readonly StoredContract[],
   input: SaveDraftInput,
@@ -119,7 +128,9 @@ function prepareSavedDraftContract(
   assertSameLineage(contract, existing.contract);
   assertDraftStatus(existing.contract);
   contract.organizationId = input.organizationId;
-  contract.workspaceId = workspaceId ?? undefined;
+  if (workspaceId !== null) {
+    contract.workspaceId = workspaceId;
+  }
   contract.audit = {
     ...existing.contract.audit,
     updatedBy: input.actor.userId,
@@ -222,8 +233,8 @@ export class DecisionContractRuntimeService {
       buildAuditEntry(
         prepared.contract,
         prepared.existing
-          ? "decision_contract_saved"
-          : "decision_contract_created",
+          ? DECISION_CONTRACT_AUDIT_ACTIONS.saved
+          : DECISION_CONTRACT_AUDIT_ACTIONS.created,
         input.actor.reason,
         input.actor.userId,
       ),
@@ -234,21 +245,37 @@ export class DecisionContractRuntimeService {
     return this.getContractDetail(input.organizationId, {
       contractId: prepared.contract.contractId,
       contractVersion: prepared.contract.contractVersion,
-      compareToVersion: prepared.contract.audit.previousVersion ?? undefined,
+      ...(prepared.contract.audit.previousVersion != null
+        ? { compareToVersion: prepared.contract.audit.previousVersion }
+        : {}),
     });
   }
 
   async createDraftFromTemplate(
     input: CreateDraftInput,
   ): Promise<DecisionContractStudioDetailResponse> {
+    const scopeOverrides = normalizeScopeOverrides(
+      input.request.scopeOverrides,
+    );
     const contract = materializeDecisionContractTemplate({
-      ...input.request,
-      scopeOverrides: normalizeScopeOverrides(input.request.scopeOverrides),
+      templateId: input.request.templateId,
+      ...(input.request.templateVersion !== undefined
+        ? { templateVersion: input.request.templateVersion }
+        : {}),
+      contractId: input.request.contractId,
+      name: input.request.name,
+      ...(input.request.description !== undefined
+        ? { description: input.request.description }
+        : {}),
+      ...(input.request.tags !== undefined ? { tags: input.request.tags } : {}),
+      ...(scopeOverrides !== undefined ? { scopeOverrides } : {}),
       actor: input.actor,
     });
     return this.saveDraft({
       organizationId: input.organizationId,
-      workspaceId: input.workspaceId,
+      ...(input.workspaceId !== undefined
+        ? { workspaceId: input.workspaceId }
+        : {}),
       actor: input.actor,
       request: { contract },
     });
@@ -273,13 +300,13 @@ export class DecisionContractRuntimeService {
         userId: actor.userId,
         decidedAt: actor.decidedAt,
         reason: `superseded_by_v${currentContract.contractVersion}`,
-        notes: actor.notes,
+        ...(actor.notes !== undefined ? { notes: actor.notes } : {}),
       });
       await this.store.persistStoredContract(archived);
       await this.store.appendAuditEntry(
         buildAuditEntry(
           archived,
-          "decision_contract_archived",
+          DECISION_CONTRACT_AUDIT_ACTIONS.archived,
           archived.audit.changeReason,
           actor.userId,
           { supersededByVersion: currentContract.contractVersion },
@@ -317,7 +344,7 @@ export class DecisionContractRuntimeService {
     await this.store.appendAuditEntry(
       buildAuditEntry(
         next,
-        `decision_contract_transition_${input.request.transition}`,
+        `${DECISION_CONTRACT_AUDIT_ACTIONS.transitionPrefix}${input.request.transition}`,
         input.request.reason,
         input.actor.userId,
       ),
@@ -328,7 +355,9 @@ export class DecisionContractRuntimeService {
     return this.getContractDetail(input.organizationId, {
       contractId: next.contractId,
       contractVersion: next.contractVersion,
-      compareToVersion: next.audit.previousVersion ?? undefined,
+      ...(next.audit.previousVersion != null
+        ? { compareToVersion: next.audit.previousVersion }
+        : {}),
     });
   }
 
@@ -343,16 +372,20 @@ export class DecisionContractRuntimeService {
     );
     const forked = forkDecisionContractVersion(stored.contract, {
       actor: input.actor,
-      name: input.request.name,
-      description: input.request.description,
+      ...(input.request.name !== undefined ? { name: input.request.name } : {}),
+      ...(input.request.description !== undefined
+        ? { description: input.request.description }
+        : {}),
     });
     forked.organizationId = input.organizationId;
-    forked.workspaceId = stored.workspaceId ?? undefined;
+    if (stored.workspaceId != null) {
+      forked.workspaceId = stored.workspaceId;
+    }
     await this.store.persistStoredContract(forked);
     await this.store.appendAuditEntry(
       buildAuditEntry(
         forked,
-        "decision_contract_forked",
+        DECISION_CONTRACT_AUDIT_ACTIONS.forked,
         input.request.reason,
         input.actor.userId,
         { sourceContractVersion: stored.contract.contractVersion },
@@ -365,8 +398,10 @@ export class DecisionContractRuntimeService {
       contractId: stored.contract.contractId,
       contractVersion: stored.contract.contractVersion,
       actor: input.actor,
-      name: input.request.name,
-      description: input.request.description,
+      ...(input.request.name !== undefined ? { name: input.request.name } : {}),
+      ...(input.request.description !== undefined
+        ? { description: input.request.description }
+        : {}),
     });
   }
 
@@ -410,13 +445,15 @@ export class DecisionContractRuntimeService {
       input.request.description,
     );
     draft.organizationId = input.organizationId;
-    draft.workspaceId = current.workspaceId ?? undefined;
+    if (current.workspaceId != null) {
+      draft.workspaceId = current.workspaceId;
+    }
     validateDecisionContract(draft);
     await this.store.persistStoredContract(draft);
     await this.store.appendAuditEntry(
       buildAuditEntry(
         draft,
-        "decision_contract_rollback_created",
+        DECISION_CONTRACT_AUDIT_ACTIONS.rollbackCreated,
         input.request.reason,
         input.actor.userId,
         {
@@ -456,7 +493,7 @@ export async function initializeDecisionContractRuntimeService(
 export function getDecisionContractRuntimeService(): DecisionContractRuntimeService {
   if (!singleton) {
     singleton = new DecisionContractRuntimeService(
-      process.env.DATABASE_URL?.trim() || null,
+      process.env["DATABASE_URL"]?.trim() || null,
     );
   }
   return singleton;

@@ -21,6 +21,11 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 _E = TypeVar("_E", bound=enum.Enum)
 
 
+def _enum_values(enum_members: type[_E]) -> list[str]:
+    """Return lowercase DB enum values for a Python Enum class."""
+    return [str(member.value) for member in enum_members]
+
+
 def sa_enum(enum_cls: type[_E]) -> SAEnum:
     """Create a SQLAlchemy Enum that uses .value (lowercase) for DB storage.
 
@@ -29,7 +34,7 @@ def sa_enum(enum_cls: type[_E]) -> SAEnum:
     """
     return SAEnum(
         enum_cls,
-        values_callable=lambda x: [e.value for e in x],
+        values_callable=_enum_values,
         native_enum=True,
         create_constraint=False,
         create_type=False,

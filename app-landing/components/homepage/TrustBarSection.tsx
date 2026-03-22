@@ -8,54 +8,38 @@ interface TrustBarSectionProps {
 const COPY = {
   fr: {
     heading: "Ils nous font confiance",
-    placeholder: "Soyez les premiers a optimiser votre ROI",
   },
   en: {
     heading: "They trust us",
-    placeholder: "Be the first to optimize your ROI",
   },
 } as const;
 
 interface TrustItem {
-  type: "logo" | "placeholder";
+  type: "logo";
   name: string;
-  logo?: string;
+  logo: string;
 }
 
-function getTrustItems(placeholderText: string): TrustItem[] {
+function getTrustItems(): TrustItem[] {
   return [
     {
       type: "logo",
       name: "EuraTechnologies",
       logo: "/partners/euratechnologies-logo-black.svg",
     },
-    { type: "placeholder", name: placeholderText },
-    { type: "placeholder", name: placeholderText },
-    { type: "placeholder", name: placeholderText },
-    { type: "placeholder", name: placeholderText },
   ];
 }
 
 function TrustItemCard({ item }: { item: TrustItem }) {
-  if (item.type === "logo" && item.logo) {
-    return (
-      <div className="flex h-16 w-52 shrink-0 items-center justify-center rounded-xl border border-v2-border-100 bg-surface-0 px-6">
-        <Image
-          src={item.logo}
-          alt={item.name}
-          width={160}
-          height={40}
-          className="h-8 w-auto object-contain"
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex h-16 w-52 shrink-0 items-center justify-center rounded-xl border border-dashed border-v2-border-300 bg-surface-50 px-4">
-      <p className="text-center text-xs font-medium leading-tight text-ink-600">
-        {item.name}
-      </p>
+    <div className="flex h-16 w-52 shrink-0 items-center justify-center rounded-xl border border-v2-border-100 bg-surface-0 px-6">
+      <Image
+        src={item.logo}
+        alt={item.name}
+        width={160}
+        height={40}
+        className="h-8 w-auto object-contain"
+      />
     </div>
   );
 }
@@ -76,7 +60,7 @@ function MarqueeTrack({ items }: { items: TrustItem[] }) {
 
 export function TrustBarSection({ locale }: TrustBarSectionProps) {
   const t = COPY[locale];
-  const items = getTrustItems(t.placeholder);
+  const items = getTrustItems();
 
   return (
     <section className="overflow-hidden border-b border-v2-border-100 bg-surface-50 py-10">

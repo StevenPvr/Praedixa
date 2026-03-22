@@ -107,103 +107,146 @@ export const ACTION_LABELS: Record<string, string> = {
   decision_config_rollback: "Rollback decision-config",
 };
 
+const INBOX_PRIORITY_ORDER: Record<InboxPriority, number> = {
+  urgent: 0,
+  warning: 1,
+  info: 2,
+};
+
+function buildAlertInboxItems(alerts: AlertsByOrg | null): InboxItem[] {
+  const items: InboxItem[] = [];
+  const organizations = alerts?.organizations ?? [];
+
+  for (const org of organizations) {
+    const encodedOrgId = encodeURIComponent(org.orgId);
+
+    if (org.critical > 0) {
+      items.push({
+        id: `alert-critical-${org.orgId}`,
+        priority: "urgent",
+        title: `${org.critical} alerte(s) critique(s)`,
+        description: `${org.orgName} — ${org.total} alertes au total`,
+        source: "Alertes",
+        href: `/clients/${encodedOrgId}/alertes`,
+      });
+      continue;
+    }
+
+    if (org.high > 0) {
+      items.push({
+        id: `alert-high-${org.orgId}`,
+        priority: "warning",
+        title: `${org.high} alerte(s) elevee(s)`,
+        description: `${org.orgName} — necessite une attention`,
+        source: "Alertes",
+        href: `/clients/${encodedOrgId}/alertes`,
+      });
+    }
+  }
+
+  return items;
+}
+
+function buildUnreadInboxItems(unread: UnreadCount | null): InboxItem[] {
+  const items: InboxItem[] = [];
+  const organizations = unread?.byOrg ?? [];
+
+  for (const org of organizations) {
+    const encodedOrgId = encodeURIComponent(org.orgId);
+
+    if (org.count > 5) {
+      items.push({
+        id: `unread-urgent-${org.orgId}`,
+        priority: "urgent",
+        title: `${org.count} messages non lus`,
+        description: `${org.orgName} — reponse en attente`,
+        source: "Messages",
+        href: `/clients/${encodedOrgId}/messages`,
+      });
+      continue;
+    }
+
+    if (org.count > 0) {
+      items.push({
+        id: `unread-${org.orgId}`,
+        priority: "info",
+        title: `${org.count} message(s) non lu(s)`,
+        description: org.orgName,
+        source: "Messages",
+        href: `/clients/${encodedOrgId}/messages`,
+      });
+    }
+  }
+
+  return items;
+}
+
+function buildCostParamInboxItems(
+  costParams: CostParamsMissing | null,
+): InboxItem[] {
+  const items: InboxItem[] = [];
+  const organizations = costParams?.organizations ?? [];
+
+  for (const org of organizations) {
+    if (org.missingSites <= 0) {
+      continue;
+    }
+
+    const encodedOrgId = encodeURIComponent(org.orgId);
+    items.push({
+      id: `cost-missing-${org.orgId}`,
+      priority: "warning",
+      title: "Parametres de cout manquants",
+      description: `${org.orgName} — ${org.missingSites}/${org.totalSites} sites non configures`,
+      source: "Configuration",
+      href: `/clients/${encodedOrgId}/config`,
+    });
+  }
+
+  return items;
+}
+
+function buildAdoptionInboxItems(
+  adoption: DecisionsAdoption | null,
+): InboxItem[] {
+  const items: InboxItem[] = [];
+  const organizations = adoption?.organizations ?? [];
+
+  for (const org of organizations) {
+    if (org.adoptionRate >= 50 || org.totalDecisions <= 0) {
+      continue;
+    }
+
+    const encodedOrgId = encodeURIComponent(org.orgId);
+    items.push({
+      id: `adoption-low-${org.orgId}`,
+      priority: "warning",
+      title: `Adoption faible (${Math.round(org.adoptionRate)}%)`,
+      description: `${org.orgName} — ${org.totalDecisions} decisions au total`,
+      source: "Adoption",
+      href: `/clients/${encodedOrgId}/vue-client`,
+    });
+  }
+
+  return items;
+}
+
 export function buildInboxItems(
   alerts: AlertsByOrg | null,
   costParams: CostParamsMissing | null,
   adoption: DecisionsAdoption | null,
   unread: UnreadCount | null,
 ): InboxItem[] {
-  const items: InboxItem[] = [];
+  const items = [
+    ...buildAlertInboxItems(alerts),
+    ...buildUnreadInboxItems(unread),
+    ...buildCostParamInboxItems(costParams),
+    ...buildAdoptionInboxItems(adoption),
+  ];
 
-  if (alerts?.organizations) {
-    for (const org of alerts.organizations) {
-      const encodedOrgId = encodeURIComponent(org.orgId);
-      if (org.critical > 0) {
-        items.push({
-          id: `alert-critical-${org.orgId}`,
-          priority: "urgent",
-          title: `${org.critical} alerte(s) critique(s)`,
-          description: `${org.orgName} — ${org.total} alertes au total`,
-          source: "Alertes",
-          href: `/clients/${encodedOrgId}/alertes`,
-        });
-      }
-      if (org.high > 0 && org.critical === 0) {
-        items.push({
-          id: `alert-high-${org.orgId}`,
-          priority: "warning",
-          title: `${org.high} alerte(s) elevee(s)`,
-          description: `${org.orgName} — necessite une attention`,
-          source: "Alertes",
-          href: `/clients/${encodedOrgId}/alertes`,
-        });
-      }
-    }
-  }
-
-  if (unread?.byOrg) {
-    for (const org of unread.byOrg) {
-      const encodedOrgId = encodeURIComponent(org.orgId);
-      if (org.count > 5) {
-        items.push({
-          id: `unread-urgent-${org.orgId}`,
-          priority: "urgent",
-          title: `${org.count} messages non lus`,
-          description: `${org.orgName} — reponse en attente`,
-          source: "Messages",
-          href: `/clients/${encodedOrgId}/messages`,
-        });
-      } else if (org.count > 0) {
-        items.push({
-          id: `unread-${org.orgId}`,
-          priority: "info",
-          title: `${org.count} message(s) non lu(s)`,
-          description: org.orgName,
-          source: "Messages",
-          href: `/clients/${encodedOrgId}/messages`,
-        });
-      }
-    }
-  }
-
-  if (costParams?.organizations) {
-    for (const org of costParams.organizations) {
-      const encodedOrgId = encodeURIComponent(org.orgId);
-      if (org.missingSites > 0) {
-        items.push({
-          id: `cost-missing-${org.orgId}`,
-          priority: "warning",
-          title: `Parametres de cout manquants`,
-          description: `${org.orgName} — ${org.missingSites}/${org.totalSites} sites non configures`,
-          source: "Configuration",
-          href: `/clients/${encodedOrgId}/config`,
-        });
-      }
-    }
-  }
-
-  if (adoption?.organizations) {
-    for (const org of adoption.organizations) {
-      const encodedOrgId = encodeURIComponent(org.orgId);
-      if (org.adoptionRate < 50 && org.totalDecisions > 0) {
-        items.push({
-          id: `adoption-low-${org.orgId}`,
-          priority: "warning",
-          title: `Adoption faible (${Math.round(org.adoptionRate)}%)`,
-          description: `${org.orgName} — ${org.totalDecisions} decisions au total`,
-          source: "Adoption",
-          href: `/clients/${encodedOrgId}/vue-client`,
-        });
-      }
-    }
-  }
-
-  const priorityOrder: Record<InboxPriority, number> = {
-    urgent: 0,
-    warning: 1,
-    info: 2,
-  };
-  items.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-
+  items.sort(
+    (a, b) =>
+      INBOX_PRIORITY_ORDER[a.priority] - INBOX_PRIORITY_ORDER[b.priority],
+  );
   return items;
 }

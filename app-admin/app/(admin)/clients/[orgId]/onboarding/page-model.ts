@@ -1,7 +1,7 @@
 import type {
   CompleteOnboardingCaseTaskRequest,
   CreateOnboardingCaseRequest,
-  OnboardingCaseBundle,
+  OnboardingCaseBundle as ApiOnboardingCaseBundle,
   OnboardingCaseBlocker,
   OnboardingCaseDetail,
   OnboardingCaseSummary,
@@ -32,38 +32,44 @@ export type OnboardingFormState = {
 };
 
 export type CompleteTaskFormState = CompleteOnboardingCaseTaskRequest;
-export type { OnboardingCaseBundle };
+export type { OnboardingCaseBundle } from "@praedixa/shared-types/api";
 
 export type OnboardingTaskDraftPayload = Record<string, unknown>;
+export type OnboardingUiStepKey =
+  | "dossier"
+  | "acces"
+  | "sources"
+  | "parametrage"
+  | "activation";
 
 export const ACTIVATION_MODE_OPTIONS = [
   {
     value: "shadow",
-    label: "Shadow",
-    hint: "Verifier le cycle decisionnel sans action live.",
+    label: "Simulation",
+    hint: "Verifier le cycle decisionnel sans action en production.",
   },
   {
     value: "limited",
     label: "Pilote limite",
-    hint: "Activer un perimetre borne avant le full rollout.",
+    hint: "Activer un perimetre borne avant le deploiement complet.",
   },
   {
     value: "full",
-    label: "Full scope",
-    hint: "Preparer une activation complete des le readiness gate.",
+    label: "Perimetre complet",
+    hint: "Preparer une activation complete des validation finale.",
   },
 ] as const;
 
 export const ENVIRONMENT_OPTIONS = [
   {
     value: "sandbox",
-    label: "Sandbox",
-    hint: "Branchement fournisseur non destructif et first sync de confiance.",
+    label: "Bac a sable",
+    hint: "Branchement fournisseur non destructif et premier cycle de synchronisation de confiance.",
   },
   {
     value: "production",
     label: "Production",
-    hint: "Cible runtime finale avec activation progressive controlee.",
+    hint: "Cible technique finale avec activation progressive controlee.",
   },
 ] as const;
 
@@ -71,12 +77,12 @@ export const SOURCE_MODE_OPTIONS = [
   {
     value: "api",
     label: "API / SaaS",
-    hint: "Probe fournisseur, auth et sync initiale.",
+    hint: "Test fournisseur, authentification et synchronisation initiale.",
   },
   {
     value: "file",
     label: "CSV / Excel",
-    hint: "Upload versionne, preview et mapping.",
+    hint: "Depot versionne, apercu et correspondance.",
   },
   {
     value: "sftp",
@@ -86,24 +92,24 @@ export const SOURCE_MODE_OPTIONS = [
 ] as const;
 
 export const SUBSCRIPTION_MODULE_OPTIONS = [
-  { value: "control-tower", label: "Control tower" },
+  { value: "control-tower", label: "Tour de pilotage" },
   { value: "connectors", label: "Connecteurs" },
-  { value: "forecasting", label: "Forecasting" },
-  { value: "decision-runtime", label: "Decision runtime" },
-  { value: "proof-packs", label: "Proof packs" },
+  { value: "forecasting", label: "Previsions" },
+  { value: "decision-runtime", label: "Moteur de decision" },
+  { value: "proof-packs", label: "Dossiers de preuve" },
 ] as const;
 
 export const PACK_OPTIONS = [
-  { value: "coverage", label: "Coverage" },
-  { value: "flow", label: "Flow" },
+  { value: "coverage", label: "Couverture" },
+  { value: "flow", label: "Flux" },
   { value: "allocation", label: "Allocation" },
-  { value: "core", label: "Core" },
+  { value: "core", label: "Socle" },
 ] as const;
 
 export const DATA_RESIDENCY_OPTIONS = [
-  { value: "fr-par", label: "FR Paris" },
-  { value: "eu-west-1", label: "EU West" },
-  { value: "eu-central-1", label: "EU Central" },
+  { value: "fr-par", label: "France - Paris" },
+  { value: "eu-west-1", label: "Europe de l'Ouest" },
+  { value: "eu-central-1", label: "Europe centrale" },
 ] as const;
 
 export const DEFAULT_FORM_STATE: OnboardingFormState = {
@@ -117,6 +123,38 @@ export const DEFAULT_FORM_STATE: OnboardingFormState = {
   sourceModes: ["api", "file"],
   targetGoLiveAt: "",
 };
+
+export const ONBOARDING_UI_STEPS: readonly {
+  key: OnboardingUiStepKey;
+  label: string;
+  description: string;
+}[] = [
+  {
+    key: "dossier",
+    label: "Dossier",
+    description: "Creer ou choisir le dossier d'activation.",
+  },
+  {
+    key: "acces",
+    label: "Acces",
+    description: "Inviter le client et verrouiller les droits.",
+  },
+  {
+    key: "sources",
+    label: "Sources",
+    description: "Brancher les fichiers et les flux de donnees.",
+  },
+  {
+    key: "parametrage",
+    label: "Parametrage",
+    description: "Finaliser mappings, indicateurs et perimetre produit.",
+  },
+  {
+    key: "activation",
+    label: "Activation",
+    description: "Passer la revue finale et cloturer la mise en service.",
+  },
+] as const;
 
 export function toggleListValue(values: string[], value: string): string[] {
   return values.includes(value)
@@ -180,7 +218,7 @@ export function blockerTone(blocker: OnboardingCaseBlocker): string {
 }
 
 export function isTaskActionable(task: OnboardingCaseTask): boolean {
-  const workflowTaskKey = task.detailsJson.workflowTaskKey;
+  const workflowTaskKey = task.detailsJson["workflowTaskKey"];
   return (
     task.status !== "done" &&
     typeof workflowTaskKey === "string" &&
@@ -221,8 +259,63 @@ export function userLabel(user: OrgUserItem): string {
 }
 
 export function statsSourceFromCases(
-  caseBundle: OnboardingCaseBundle | null,
+  caseBundle: ApiOnboardingCaseBundle | null,
   cases: readonly OnboardingCaseSummary[],
 ): OnboardingCaseSummary | OnboardingCaseDetail | null {
   return caseBundle?.case ?? cases[0] ?? null;
+}
+
+export function stepFromTaskKey(taskKey: string): OnboardingUiStepKey {
+  switch (taskKey) {
+    case "scope-contract":
+      return "dossier";
+    case "access-model":
+      return "acces";
+    case "source-strategy":
+    case "activate-api-sources":
+    case "configure-file-sources":
+      return "sources";
+    case "publish-mappings":
+    case "configure-product-scope":
+      return "parametrage";
+    case "activation-review":
+    case "execute-activation":
+    case "close-hypercare":
+      return "activation";
+    default:
+      return "dossier";
+  }
+}
+
+export function tasksForStep(
+  tasks: readonly OnboardingCaseTask[],
+  stepKey: OnboardingUiStepKey,
+): OnboardingCaseTask[] {
+  return tasks.filter((task) => stepFromTaskKey(task.taskKey) === stepKey);
+}
+
+export function firstRelevantStep(
+  bundle: ApiOnboardingCaseBundle | null,
+): OnboardingUiStepKey {
+  if (!bundle) {
+    return "dossier";
+  }
+  const nextTask = bundle.tasks.find((task) => task.status !== "done");
+  if (!nextTask) {
+    return "activation";
+  }
+  return stepFromTaskKey(nextTask.taskKey);
+}
+
+export function labelForActivationMode(value: string): string {
+  return (
+    ACTIVATION_MODE_OPTIONS.find((option) => option.value === value)?.label ??
+    value
+  );
+}
+
+export function labelForEnvironment(value: string): string {
+  return (
+    ENVIRONMENT_OPTIONS.find((option) => option.value === value)?.label ?? value
+  );
 }

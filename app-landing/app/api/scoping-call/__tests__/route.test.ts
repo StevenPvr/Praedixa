@@ -58,7 +58,7 @@ describe("POST /api/scoping-call", () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    process.env.RESEND_API_KEY = "re_test_key";
+    process.env["RESEND_API_KEY"] = "re_test_key";
     const mod = await import("../route");
     POST = mod.POST as unknown as typeof POST;
   });

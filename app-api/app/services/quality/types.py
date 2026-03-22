@@ -6,10 +6,7 @@ import contextlib
 import datetime
 import math
 from dataclasses import asdict, dataclass, field
-from typing import TYPE_CHECKING, Any
-
-if TYPE_CHECKING:
-    from app.models.data_catalog import DatasetColumn  # noqa: F401
+from typing import Any
 
 __all__ = [
     "QualityConfig",
@@ -34,6 +31,10 @@ __all__ = [
     "zscore_bounds",
     "config_to_dict",
 ]
+
+
+def _empty_overrides() -> dict[str, dict[str, Any]]:
+    return {}
 
 
 SYSTEM_COLUMNS: frozenset[str] = frozenset({"_row_id", "_ingested_at", "_batch_id"})
@@ -68,7 +69,9 @@ class QualityConfig:
     outlier_iqr_factor: float = 1.5
     outlier_zscore_threshold: float = 3.0
     imputation_window_days: int = 14
-    column_overrides: dict[str, dict[str, Any]] = field(default_factory=dict)
+    column_overrides: dict[str, dict[str, Any]] = field(
+        default_factory=_empty_overrides
+    )
 
 
 @dataclass(frozen=True)

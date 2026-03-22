@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import uuid
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from sqlalchemy import select
 
@@ -51,6 +51,7 @@ _OUTSOURCE_MULTIPLIER = Decimal("1.50")  # 1.5x interim rate
 _MIN_SERVICE_THRESHOLD = Decimal("0.9800")
 _MIN_FEASIBILITY_THRESHOLD = Decimal("0.6000")
 _RECOMMENDATION_POLICY_VERSION = "policy_service98_min_cost_v1"
+_ScenarioBlueprint = dict[str, object]
 
 
 def _horizon_to_days(horizon: object) -> int:
@@ -317,7 +318,7 @@ def _compute_all_options(
     cap_interim_site = _require_int_cost_param(cost_param, "cap_interim_site")
     lead_time_jours = _require_int_cost_param(cost_param, "lead_time_jours")
 
-    options = []
+    options: list[_ScenarioBlueprint] = []
     zero = Decimal("0.00")
 
     def _policy_compliance(service: Decimal, feasibility: Decimal) -> bool:
@@ -515,8 +516,8 @@ def _round4(v: Decimal) -> Decimal:
 
 
 def _finalize_blueprint_options(
-    options: list[dict[str, object]],
-) -> list[dict[str, object]]:
+    options: list[_ScenarioBlueprint],
+) -> list[_ScenarioBlueprint]:
     for option in options:
         option.setdefault("is_pareto_optimal", False)
         option.setdefault("is_recommended", False)
@@ -526,7 +527,7 @@ def _finalize_blueprint_options(
 def _require_cost_param_value(cost_param: object, field_name: str) -> object:
     value = getattr(cost_param, field_name, None)
     if value is None and isinstance(cost_param, dict):
-        value = cost_param.get(field_name)
+        value = cast("dict[str, Any]", cost_param).get(field_name)
     if value is None:
         raise ValueError(f"unconfigured cost parameter: {field_name}")
     return value

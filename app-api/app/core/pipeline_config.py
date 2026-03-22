@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, cast
 
 from app.core.config import settings
 from app.core.exceptions import PraedixaError
@@ -60,7 +60,7 @@ def _require_mapping(value: Any, *, field: str) -> Mapping[str, Any]:
             "Pipeline configuration must be a JSON object",
             field=field,
         )
-    return value
+    return cast("Mapping[str, Any]", value)
 
 
 def _require_bool(value: Any, *, field: str) -> bool:
@@ -69,29 +69,34 @@ def _require_bool(value: Any, *, field: str) -> bool:
     raise PipelineConfigValidationError("Expected a boolean value", field=field)
 
 
+def _require_list(value: Any, *, field: str) -> list[Any]:
+    if not isinstance(value, list):
+        raise PipelineConfigValidationError(
+            "Expected a list of integers",
+            field=field,
+        )
+    return cast("list[Any]", value)  # type: ignore[redundant-cast]
+
+
 def _sanitize_window_list(
     value: Any,
     *,
     field: str,
     min_size: int,
 ) -> list[int]:
-    if not isinstance(value, list):
-        raise PipelineConfigValidationError(
-            "Expected a list of integers",
-            field=field,
-        )
+    typed_value = _require_list(value, field=field)
 
     max_windows = settings.MAX_WINDOWS_PER_DATASET
-    if len(value) > max_windows:
+    if len(typed_value) > max_windows:
         raise PipelineConfigValidationError(
-            f"Too many windows ({len(value)} > {max_windows})",
+            f"Too many windows ({len(typed_value)} > {max_windows})",
             field=field,
         )
 
     out: list[int] = []
     seen: set[int] = set()
     max_size = settings.MAX_WINDOW_SIZE
-    for item in value:
+    for item in typed_value:
         if not isinstance(item, int) or isinstance(item, bool):
             raise PipelineConfigValidationError(
                 "Window values must be integers",

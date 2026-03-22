@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from psycopg import errors, sql
 
@@ -54,6 +54,10 @@ _DTYPE_TO_PG: dict[str, str] = {
     "boolean": "BOOLEAN",
     "text": "TEXT",
 }
+
+
+def _validated_type_sql(pg_type: str) -> sql.SQL:
+    return sql.SQL(cast("Any", pg_type))
 
 
 # ── Public API ───────────────────────────────────────────
@@ -143,7 +147,8 @@ async def create_dataset_tables(
         validated_columns.append((col_name, pg_type))
 
     # Compute transformed feature columns
-    feature_columns = resolve_transformed_columns(columns, dataset.pipeline_config)
+    pipeline_config = cast("dict[str, object]", cast("Any", dataset).pipeline_config)
+    feature_columns = resolve_transformed_columns(columns, pipeline_config)
 
     def _sync_create() -> None:
         with ddl_connection() as conn, conn.cursor() as cur:
@@ -259,7 +264,9 @@ def resolve_transformed_columns(
 
         col_name = col.name
         # Per-column overrides from rules_override
-        overrides = sanitize_feature_rules_override(col.rules_override) or {}
+        overrides = (
+            sanitize_feature_rules_override(cast("Any", col).rules_override) or {}
+        )
         col_lags = overrides.get("lags", lags)
         col_rolling = overrides.get("rolling_windows", rolling_windows)
         col_normalize = overrides.get("normalize", normalize)
@@ -340,7 +347,7 @@ def _create_raw_table(
         col_defs.append(
             sql.SQL("{} {}").format(
                 sql.Identifier(col_name),
-                sql.SQL(pg_type),
+                _validated_type_sql(pg_type),
             )
         )
 
@@ -402,7 +409,7 @@ def _create_transformed_table(
         col_defs.append(
             sql.SQL("{} {}").format(
                 sql.Identifier(col_name),
-                sql.SQL(pg_type),
+                _validated_type_sql(pg_type),
             )
         )
 
@@ -413,7 +420,7 @@ def _create_transformed_table(
         col_defs.append(
             sql.SQL("{} {}").format(
                 sql.Identifier(col_name),
-                sql.SQL(pg_type),
+                _validated_type_sql(pg_type),
             )
         )
 

@@ -1,3 +1,5 @@
+import type { EmailDeliveryProof } from "./email-delivery-proof.js";
+
 export type AdminOrganizationStatus =
   | "trial"
   | "active"
@@ -21,6 +23,7 @@ export interface AdminOrganizationSummary {
   userCount: number;
   siteCount: number;
   createdAt: string;
+  initialInviteProof?: EmailDeliveryProof | null;
 }
 
 export interface CreateAdminOrganizationRequest {

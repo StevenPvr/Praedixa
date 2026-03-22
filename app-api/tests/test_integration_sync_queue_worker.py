@@ -33,6 +33,9 @@ async def test_drain_sync_queue_once_processes_claimed_runs(
                         trigger_type="manual",
                         attempts=1,
                         max_attempts=8,
+                        source_window_start="2026-03-01T00:00:00Z",
+                        source_window_end="2026-03-07T00:00:00Z",
+                        force_full_sync=True,
                     )
                 ]
             ),
@@ -62,6 +65,9 @@ async def test_drain_sync_queue_once_processes_claimed_runs(
         assert session_arg is session
         assert runtime_client_arg is runtime_client
         assert claimed_run.id == "sync-run-1"
+        assert claimed_run.source_window_start == "2026-03-01T00:00:00Z"
+        assert claimed_run.source_window_end == "2026-03-07T00:00:00Z"
+        assert claimed_run.force_full_sync is True
         assert worker_id == "queue-worker-1"
         assert limit == 75
         assert request_id == "req-batch-1"

@@ -47,6 +47,15 @@ vi.mock("@/hooks/use-api", () => ({
   }),
 }));
 
+vi.mock("@/lib/runtime-features", () => ({
+  WEBAPP_RUNTIME_FEATURES: {
+    messagingWorkspace: true,
+    operationalDecisionHistory: false,
+    userPreferencesPersistence: false,
+  },
+  unavailableFeatureMessage: (label: string) => `${label} indisponible`,
+}));
+
 vi.mock("@/components/ui/page-header", () => ({
   PageHeader: ({ title, subtitle }: { title: string; subtitle?: string }) => (
     <div data-testid="page-header">

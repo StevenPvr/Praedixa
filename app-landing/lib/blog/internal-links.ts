@@ -113,10 +113,10 @@ function parseRule(input: unknown, index: number): InternalLinkRule {
     throw new Error(`Invalid internal link rule at index ${index}.`);
   }
 
-  const idRaw = input.id;
-  const patternsRaw = input.patterns;
-  const urlRaw = input.url;
-  const maxPerDocRaw = input.maxPerDoc;
+  const idRaw = input["id"];
+  const patternsRaw = input["patterns"];
+  const urlRaw = input["url"];
+  const maxPerDocRaw = input["maxPerDoc"];
   if (typeof idRaw !== "string" || idRaw.trim().length === 0) {
     throw new Error(
       `Internal link rule at index ${index} must define a non-empty string 'id'.`,
@@ -231,33 +231,35 @@ export function getInternalLinkRules(options?: {
 }
 
 function isTextNode(node: HastNode): node is HastText {
-  return node.type === "text" && typeof (node as HastText).value === "string";
+  return (
+    node["type"] === "text" && typeof (node as HastText).value === "string"
+  );
 }
 
 function isElementNode(node: HastNode): node is HastElement {
   return (
-    node.type === "element" &&
+    node["type"] === "element" &&
     typeof (node as HastElement).tagName === "string" &&
     Array.isArray((node as HastElement).children)
   );
 }
 
 function isRootNode(node: HastNode): node is HastRoot {
-  return node.type === "root" && Array.isArray((node as HastRoot).children);
+  return node["type"] === "root" && Array.isArray((node as HastRoot).children);
 }
 
 function toHastRoot(tree: unknown): HastRoot | null {
   if (
     !isObjectRecord(tree) ||
-    !Array.isArray(tree.children) ||
-    tree.type !== "root"
+    !Array.isArray(tree["children"]) ||
+    tree["type"] !== "root"
   ) {
     return null;
   }
 
   return {
     type: "root",
-    children: tree.children as HastNode[],
+    children: tree["children"] as HastNode[],
   };
 }
 
@@ -281,7 +283,7 @@ function normalizeTrackedUrl(url: string): string {
 }
 
 function getElementHref(node: HastElement): string | null {
-  const hrefValue = node.properties?.href;
+  const hrefValue = node.properties?.["href"];
   if (typeof hrefValue !== "string") {
     return null;
   }

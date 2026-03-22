@@ -24,7 +24,7 @@ import logging
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from psycopg import sql
 from sqlalchemy import column, insert, table
@@ -45,6 +45,10 @@ __all__ = [
 ]
 
 _POSTGRES_MAX_BIND_PARAMS = 65_535
+
+
+def _empty_warnings() -> list[str]:
+    return []
 
 
 def _build_validated_insert_plan(
@@ -125,7 +129,7 @@ class InsertionResult:
     schema_name: str
     table_name: str
     max_ingested_at: datetime | None = None
-    warnings: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=_empty_warnings)
 
 
 # ── Public API ───────────────────────────────────────────
@@ -294,9 +298,12 @@ async def insert_raw_rows_in_session(
         batch_size=batch_size,
     )
 
+    table_columns: list[Any] = [
+        cast("Any", column(col_name)) for col_name in all_columns
+    ]
     table_clause = table(
         validated_table,
-        *[column(col_name) for col_name in all_columns],
+        *table_columns,
         schema=validated_schema,
     )
     stmt = insert(table_clause)

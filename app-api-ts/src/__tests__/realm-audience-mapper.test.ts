@@ -154,7 +154,7 @@ describe("infra/auth/realm-praedixa canonical access-token mapping", () => {
     );
     expect(permissionsMapper.config?.["user.attribute"]).toBe("permissions");
     expect(permissionsMapper.config?.["claim.name"]).toBe("permissions");
-    expect(permissionsMapper.config?.multivalued).toBe("true");
+    expect(permissionsMapper.config?.["multivalued"]).toBe("true");
     expect(permissionsMapper.config?.["access.token.claim"]).toBe("true");
     expect(permissionsMapper.config?.["id.token.claim"]).toBe("false");
 

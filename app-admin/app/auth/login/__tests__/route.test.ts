@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockRedirect = vi.fn();
 
@@ -41,6 +41,10 @@ vi.mock("@/lib/security/rate-limit", () => ({
 
 import { GET } from "../route";
 
+const emitWarningSpy = vi
+  .spyOn(process, "emitWarning")
+  .mockImplementation(() => undefined);
+
 function createRedirectResponse(url: string | URL) {
   return {
     status: 302,
@@ -55,7 +59,14 @@ function createRedirectResponse(url: string | URL) {
 }
 
 function createMockRequest(query: Record<string, string> = {}) {
-  const url = new URL("/auth/login", "https://admin.praedixa.com");
+  return createMockRequestWithOrigin("https://admin.praedixa.com", query);
+}
+
+function createMockRequestWithOrigin(
+  origin: string,
+  query: Record<string, string> = {},
+) {
+  const url = new URL("/auth/login", origin);
   for (const [key, value] of Object.entries(query)) {
     url.searchParams.set(key, value);
   }
@@ -106,6 +117,10 @@ describe("GET /auth/login (admin)", () => {
       retryAfterSeconds: 300,
       resetAtEpochSeconds: 1_900_000_000,
     });
+  });
+
+  afterEach(() => {
+    emitWarningSpy.mockClear();
   });
 
   it("redirects to OIDC authorization endpoint and sets login cookies", async () => {
@@ -178,7 +193,9 @@ describe("GET /auth/login (admin)", () => {
 
   it("redirects to /login with oidc_provider_untrusted when discovery is invalid", async () => {
     mockGetTrustedOidcEndpoints.mockRejectedValueOnce(
-      new Error("OIDC discovery request failed"),
+      new Error(
+        "OIDC discovery request failed (404 Not Found: Realm does not exist)",
+      ),
     );
     mockIsMissingOidcEnvError.mockReturnValueOnce(false);
 
@@ -194,9 +211,55 @@ describe("GET /auth/login (admin)", () => {
       "oidc_provider_untrusted",
     );
     expect(redirectUrl.searchParams.get("next")).toBe("/");
+    expect(emitWarningSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Realm does not exist"),
+    );
     expect(
       (response as { headers: { set: ReturnType<typeof vi.fn> } }).headers.set,
     ).toHaveBeenCalledWith("Cache-Control", "no-store");
+  });
+
+  it("preserves the provider retry marker when an auto-retry bounce still fails", async () => {
+    mockGetTrustedOidcEndpoints.mockRejectedValueOnce(
+      new Error("OIDC discovery request failed (503 Service Unavailable)"),
+    );
+    mockIsMissingOidcEnvError.mockReturnValueOnce(false);
+
+    const response = (await GET(
+      createMockRequest({ next: "/", provider_retry_at: "1711080000000" }),
+    )) as {
+      redirectUrl: string;
+    };
+
+    const redirectUrl = new URL(response.redirectUrl);
+    expect(redirectUrl.searchParams.get("error")).toBe(
+      "oidc_provider_untrusted",
+    );
+    expect(redirectUrl.searchParams.get("provider_retry_at")).toBe(
+      "1711080000000",
+    );
+  });
+
+  it("redirects to the configured auth origin before starting OIDC on a loopback alias", async () => {
+    mockResolveAuthAppOrigin.mockReturnValue("http://localhost:3002");
+
+    const response = (await GET(
+      createMockRequestWithOrigin("http://127.0.0.1:3002", { next: "/" }),
+    )) as {
+      redirectUrl: string;
+      headers: { set: ReturnType<typeof vi.fn> };
+    };
+
+    const redirectUrl = new URL(response.redirectUrl);
+    expect(redirectUrl.origin + redirectUrl.pathname).toBe(
+      "http://localhost:3002/auth/login",
+    );
+    expect(redirectUrl.searchParams.get("next")).toBe("/");
+    expect(mockGetTrustedOidcEndpoints).not.toHaveBeenCalled();
+    expect(response.headers.set).toHaveBeenCalledWith(
+      "Cache-Control",
+      "no-store",
+    );
   });
 
   it("redirects to /login with rate_limited when the client exceeds the login budget", async () => {

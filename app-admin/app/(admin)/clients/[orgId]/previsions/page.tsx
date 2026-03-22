@@ -71,6 +71,193 @@ const DRIFT_COLUMNS: DataTableColumn<MlDriftPoint>[] = [
   },
 ];
 
+type PrevisionsRetryHandlers = {
+  summaryRefetch: () => void;
+  driftRefetch: () => void;
+  scenariosRefetch: () => void;
+};
+
+function buildScenarioColumns(): DataTableColumn<ScenarioItem>[] {
+  return [
+    {
+      key: "name",
+      label: "Nom",
+      render: (row) => <span className="font-medium text-ink">{row.name}</span>,
+    },
+    { key: "type", label: "Type" },
+    {
+      key: "status",
+      label: "Statut",
+      render: (row) => (
+        <span className={STATUS_COLORS[row.status] ?? "text-ink-tertiary"}>
+          {row.status}
+        </span>
+      ),
+    },
+    {
+      key: "createdAt",
+      label: "Cree le",
+      render: (row) => (
+        <span className="text-xs text-ink-tertiary">
+          {new Date(row.createdAt).toLocaleDateString("fr-FR")}
+        </span>
+      ),
+    },
+  ];
+}
+
+function renderForecastingUnavailableState() {
+  return (
+    <div className="space-y-6">
+      <h2 className="font-serif text-lg font-semibold text-ink">Previsions</h2>
+      <ErrorFallback
+        message={featureUnavailableMessage(
+          "Le workspace previsions et ML monitoring",
+        )}
+      />
+    </div>
+  );
+}
+
+function renderPrevisionsErrorState(retryHandlers: PrevisionsRetryHandlers) {
+  const { summaryRefetch, driftRefetch, scenariosRefetch } = retryHandlers;
+  function handleRetry() {
+    summaryRefetch();
+    driftRefetch();
+    scenariosRefetch();
+  }
+
+  return (
+    <ErrorFallback
+      message="Impossible de charger la supervision previsionnelle"
+      onRetry={handleRetry}
+    />
+  );
+}
+
+function renderSummaryCards(
+  summary: MlMonitoringSummary | null | undefined,
+  summaryLoading: boolean,
+) {
+  if (summaryLoading) {
+    return (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
+    );
+  }
+
+  const mapeValue =
+    typeof summary?.mape === "number" ? `${summary.mape.toFixed(1)}%` : "--";
+  const driftScoreValue =
+    typeof summary?.driftScore === "number"
+      ? `${(summary.driftScore * 100).toFixed(1)}%`
+      : "--";
+  const lastTrainingValue = summary?.lastTrainingAt
+    ? new Date(summary.lastTrainingAt).toLocaleDateString("fr-FR")
+    : "--";
+  const driftVariant = summary?.status === "degraded" ? "warning" : undefined;
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <StatCard
+        label="Version modele"
+        value={summary?.modelVersion ?? "--"}
+        icon={<Activity className="h-4 w-4" />}
+      />
+      <StatCard
+        label="MAPE"
+        value={mapeValue}
+        icon={<Gauge className="h-4 w-4" />}
+      />
+      <StatCard
+        label="Drift global"
+        value={driftScoreValue}
+        icon={<Radar className="h-4 w-4" />}
+        variant={driftVariant}
+      />
+      <StatCard
+        label="Dernier entrainement"
+        value={lastTrainingValue}
+        icon={<Timer className="h-4 w-4" />}
+      />
+    </div>
+  );
+}
+
+function renderDriftSection(
+  driftLoading: boolean,
+  driftError: string | null,
+  driftRefetch: () => void,
+  drift: MlDriftPoint[] | null | undefined,
+) {
+  let content = (
+    <Card className="rounded-2xl shadow-soft">
+      <CardContent className="p-0">
+        <DataTable
+          columns={DRIFT_COLUMNS}
+          data={drift ?? []}
+          getRowKey={(row) => row.id}
+          emptyMessage="Aucune derive significative"
+        />
+      </CardContent>
+    </Card>
+  );
+
+  if (driftLoading) {
+    content = <SkeletonCard />;
+  } else if (driftError) {
+    content = <ErrorFallback message={driftError} onRetry={driftRefetch} />;
+  }
+
+  return (
+    <div>
+      <h3 className="mb-3 text-sm font-medium text-ink-secondary">
+        Derive recente (drift)
+      </h3>
+      {content}
+    </div>
+  );
+}
+
+function renderScenariosSection(
+  scenariosLoading: boolean,
+  scenariosError: string | null,
+  scenariosRefetch: () => void,
+  scenarios: ScenarioItem[] | null | undefined,
+  scenarioColumns: DataTableColumn<ScenarioItem>[],
+) {
+  let content = (
+    <Card className="rounded-2xl shadow-soft">
+      <CardContent className="p-0">
+        <DataTable
+          columns={scenarioColumns}
+          data={scenarios ?? []}
+          getRowKey={(row) => row.id}
+        />
+      </CardContent>
+    </Card>
+  );
+
+  if (scenariosLoading) {
+    content = <SkeletonCard />;
+  } else if (scenariosError) {
+    content = (
+      <ErrorFallback message={scenariosError} onRetry={scenariosRefetch} />
+    );
+  }
+
+  return (
+    <div>
+      <h3 className="mb-3 text-sm font-medium text-ink-secondary">Scenarios</h3>
+      {content}
+    </div>
+  );
+}
+
 export default function PrevisionsPage() {
   const { orgId } = useClientContext();
   const forecastingEnabled = ADMIN_WORKSPACE_FEATURE_GATES.forecastingWorkspace;
@@ -103,151 +290,31 @@ export default function PrevisionsPage() {
   );
 
   if (!forecastingEnabled) {
-    return (
-      <div className="space-y-6">
-        <h2 className="font-serif text-lg font-semibold text-ink">
-          Previsions
-        </h2>
-        <ErrorFallback
-          message={featureUnavailableMessage(
-            "Le workspace previsions et ML monitoring",
-          )}
-        />
-      </div>
-    );
+    return renderForecastingUnavailableState();
   }
 
-  const scenarioColumns: DataTableColumn<ScenarioItem>[] = [
-    {
-      key: "name",
-      label: "Nom",
-      render: (row) => <span className="font-medium text-ink">{row.name}</span>,
-    },
-    { key: "type", label: "Type" },
-    {
-      key: "status",
-      label: "Statut",
-      render: (row) => (
-        <span className={STATUS_COLORS[row.status] ?? "text-ink-tertiary"}>
-          {row.status}
-        </span>
-      ),
-    },
-    {
-      key: "createdAt",
-      label: "Cree le",
-      render: (row) => (
-        <span className="text-xs text-ink-tertiary">
-          {new Date(row.createdAt).toLocaleDateString("fr-FR")}
-        </span>
-      ),
-    },
-  ];
+  const scenarioColumns = buildScenarioColumns();
 
   if (summaryError && driftError && scenariosError) {
-    return (
-      <ErrorFallback
-        message="Impossible de charger la supervision previsionnelle"
-        onRetry={() => {
-          summaryRefetch();
-          driftRefetch();
-          scenariosRefetch();
-        }}
-      />
-    );
+    return renderPrevisionsErrorState({
+      summaryRefetch,
+      driftRefetch,
+      scenariosRefetch,
+    });
   }
 
   return (
     <div className="space-y-6">
       <h2 className="font-serif text-lg font-semibold text-ink">Previsions</h2>
-
-      {summaryLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            label="Version modele"
-            value={summary?.modelVersion ?? "--"}
-            icon={<Activity className="h-4 w-4" />}
-          />
-          <StatCard
-            label="MAPE"
-            value={
-              typeof summary?.mape === "number"
-                ? `${summary.mape.toFixed(1)}%`
-                : "--"
-            }
-            icon={<Gauge className="h-4 w-4" />}
-          />
-          <StatCard
-            label="Drift global"
-            value={
-              typeof summary?.driftScore === "number"
-                ? `${(summary.driftScore * 100).toFixed(1)}%`
-                : "--"
-            }
-            icon={<Radar className="h-4 w-4" />}
-            variant={summary?.status === "degraded" ? "warning" : undefined}
-          />
-          <StatCard
-            label="Dernier entrainement"
-            value={
-              summary?.lastTrainingAt
-                ? new Date(summary.lastTrainingAt).toLocaleDateString("fr-FR")
-                : "--"
-            }
-            icon={<Timer className="h-4 w-4" />}
-          />
-        </div>
+      {renderSummaryCards(summary, summaryLoading)}
+      {renderDriftSection(driftLoading, driftError, driftRefetch, drift)}
+      {renderScenariosSection(
+        scenariosLoading,
+        scenariosError,
+        scenariosRefetch,
+        scenarios,
+        scenarioColumns,
       )}
-
-      <div>
-        <h3 className="mb-3 text-sm font-medium text-ink-secondary">
-          Derive recente (drift)
-        </h3>
-        {driftLoading ? (
-          <SkeletonCard />
-        ) : driftError ? (
-          <ErrorFallback message={driftError} onRetry={driftRefetch} />
-        ) : (
-          <Card className="rounded-2xl shadow-soft">
-            <CardContent className="p-0">
-              <DataTable
-                columns={DRIFT_COLUMNS}
-                data={drift ?? []}
-                getRowKey={(row) => row.id}
-                emptyMessage="Aucune derive significative"
-              />
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      <div>
-        <h3 className="mb-3 text-sm font-medium text-ink-secondary">
-          Scenarios
-        </h3>
-        {scenariosLoading ? (
-          <SkeletonCard />
-        ) : scenariosError ? (
-          <ErrorFallback message={scenariosError} onRetry={scenariosRefetch} />
-        ) : (
-          <Card className="rounded-2xl shadow-soft">
-            <CardContent className="p-0">
-              <DataTable
-                columns={scenarioColumns}
-                data={scenarios ?? []}
-                getRowKey={(row) => row.id}
-              />
-            </CardContent>
-          </Card>
-        )}
-      </div>
     </div>
   );
 }

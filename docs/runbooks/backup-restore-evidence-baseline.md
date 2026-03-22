@@ -29,8 +29,8 @@ Donner une procedure unique pour:
 Le repo versionne maintenant deux wrappers standards:
 
 ```bash
-./scripts/scw-rdb-backup-evidence.sh --instance-id <INSTANCE_ID> --output-dir .release/<tag>/backup-api-prod
-./scripts/scw-rdb-restore-drill.sh --instance-id <INSTANCE_ID> --backup-id <BACKUP_ID> --database-name <DATABASE_NAME> --output-dir .release/<tag>/restore-api-prod \
+./scripts/scw/scw-rdb-backup-evidence.sh --instance-id <INSTANCE_ID> --output-dir .meta/.release/<tag>/backup-api-prod
+./scripts/scw/scw-rdb-restore-drill.sh --instance-id <INSTANCE_ID> --backup-id <BACKUP_ID> --database-name <DATABASE_NAME> --output-dir .meta/.release/<tag>/restore-api-prod \
   --check tenant_site_registry_restored=pass \
   --check rbac_assignments_restored=pass \
   --check accessible_site_scopes_restored=pass \
@@ -53,9 +53,9 @@ Les checks semantiques requis sont versionnes dans `docs/security/control-plane-
 Pour chaque instance critique:
 
 ```bash
-./scripts/scw-rdb-backup-evidence.sh \
+./scripts/scw/scw-rdb-backup-evidence.sh \
   --instance-id <INSTANCE_ID> \
-  --output-dir .release/<tag>/backup-<service>
+  --output-dir .meta/.release/<tag>/backup-<service>
 ```
 
 Verifier au minimum:
@@ -68,11 +68,11 @@ Verifier au minimum:
 Avant un changement risqué, creer aussi un backup manuel nomme:
 
 ```bash
-./scripts/scw-rdb-backup-evidence.sh \
+./scripts/scw/scw-rdb-backup-evidence.sh \
   --instance-id <INSTANCE_ID> \
   --database-name <DATABASE_NAME> \
   --create-manual-backup \
-  --output-dir .release/<tag>/backup-<service>
+  --output-dir .meta/.release/<tag>/backup-<service>
 ```
 
 ## Procedure RDB - Restore drill
@@ -85,11 +85,11 @@ Avant un changement risqué, creer aussi un backup manuel nomme:
 Commande type:
 
 ```bash
-./scripts/scw-rdb-restore-drill.sh \
+./scripts/scw/scw-rdb-restore-drill.sh \
   --instance-id <INSTANCE_ID> \
   --backup-id <BACKUP_ID> \
   --database-name <DATABASE_NAME> \
-  --output-dir .release/<tag>/restore-<service>
+  --output-dir .meta/.release/<tag>/restore-<service>
 ```
 
 Verification minimale apres restore:

@@ -10,6 +10,7 @@ Source de verite des types partages Praedixa.
 - `api/approval-decision.ts` porte le contrat interne admin pour une decision d'approbation persistante (`granted` / `rejected`) et son retour de synchronisation runtime.
 - `api/admin-onboarding.ts` porte le contrat partage du control plane onboarding BPM admin (`cases`, `tasks`, `blockers`, `events`, payloads de creation, de sauvegarde de brouillon, de completion de tache et d'actions lifecycle sur un case).
 - `admin-permissions.ts` porte la taxonomie admin versionnee partagee entre parsing OIDC admin, garde-fous API et scripts de provisionnement.
+- `oidc-discovery.ts` porte la discovery OIDC runtime partagee entre `app-admin` et `app-webapp`, y compris la policy de confiance locale `localhost` hors production.
 - `domain/` contient les modeles metier reutilises dans plusieurs apps.
 - `utils/` contient les helpers de typage ou de manipulation de donnees partages.
 - `__tests__/` couvre les invariants de types, transformations et helpers exposes.

@@ -32,7 +32,9 @@ Zone multi-tenant principale du back-office.
 - les onglets visibles viennent de `lib/auth/admin-route-policies.ts`
 - `client-context.tsx` expose surtout `orgId`, `selectedSiteId` et la hierarchie site/departements
 - le `SiteTree` et les pages lisent ce contexte plutot que de reconstruire localement le scope
+- `page.tsx` pour `/clients` reste presentational; l'etat de filtres, la pagination, la selection et les actions CSV/navigation vivent maintenant dans `use-clients-page-model.ts`
 - `/clients` depend maintenant d'une vraie pagination persistante sur `GET /api/v1/admin/organizations`, avec filtres `search`, `status` et `plan`; le layout `/clients/[orgId]` depend aussi du detail persistant `GET /api/v1/admin/organizations/:orgId` pour monter `OrgHeader` et `SiteTree`, et le dashboard consomme le payload composite `GET /api/v1/admin/organizations/:orgId/overview`.
 - Le CTA `Nouveau client` n'est visible que pour `admin:org:write`; il ouvre `/parametres`, ou un formulaire cree l'organisation persistante via `POST /api/v1/admin/organizations` avant de basculer automatiquement sur `/clients/[orgId]/onboarding`.
 - Le flag `isTest` voyage maintenant du formulaire de creation jusqu'aux lectures `/clients` et `/clients/[orgId]`; les clients tests sont badgés et seuls eux exposent une suppression definitive multi-confirmations dans `/clients/[orgId]/dashboard`.
 - l'export CSV de la selection `/clients` passe par `lib/security/csv.ts` pour neutraliser les cellules dangereuses pour Excel/LibreOffice.
+- `use-clients-page-model.ts` construit maintenant le suffixe de query (`querySuffix`) hors template literal final pour eviter les templates imbriques autour de `queryString`.

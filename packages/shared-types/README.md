@@ -8,6 +8,7 @@ Definitions de types TypeScript partages entre les apps Praedixa et le runtime `
 - [Inventaire des modules](#inventaire-des-modules)
   - [Domaine](#domaine)
   - [API](#api)
+  - [OIDC runtime](#oidc-runtime)
   - [Utilitaires](#utilitaires)
 - [Exemples d'utilisation](#exemples-dutilisation)
 - [Conventions](#conventions)
@@ -32,6 +33,7 @@ Des sous-chemins d'import sont disponibles pour limiter le scope :
 ```typescript
 import type { ApiResponse } from "@praedixa/shared-types/api";
 import type { Organization } from "@praedixa/shared-types/domain";
+import { getTrustedOidcEndpoints } from "@praedixa/shared-types/oidc-discovery";
 import { ADMIN_PERMISSION_NAMES } from "@praedixa/shared-types";
 ```
 
@@ -129,10 +131,7 @@ pnpm --filter @praedixa/shared-types dev
 | `Decision`                            | Recommandation IA avec cout estime, ROI, score de confiance                                                    |
 | `DecisionOutcome`                     | Resultat apres mise en oeuvre                                                                                  |
 | `DecisionSummary`                     | Vue allegee pour les listes                                                                                    |
-| `ReplacementRecommendation`           | Recommandation de remplacement pour un absent                                                                  |
-| `ReplacementCandidate`                | Candidat avec score de correspondance, competences, disponibilite                                              |
 | `CostImpactAnalysis`                  | Analyse couts directs + indirects                                                                              |
-| `ActionPlan`                          | Plan d'action groupant plusieurs decisions                                                                     |
 | `ArbitrageOption` / `ArbitrageResult` | Options d'arbitrage avec frontiere cout/service                                                                |
 | `DashboardAlert`                      | Alerte du tableau de bord (risque, decision, prevision, systeme)                                               |
 | `DecisionType`                        | `"replacement" \| "redistribution" \| "postponement" \| "overtime" \| "external" \| "training" \| "no_action"` |
@@ -223,6 +222,16 @@ Le catalogue versionne des operations publiques non-admin vit dans `src/api/publ
 Les payloads write publics nommes vivent dans `src/api/requests.ts` et sont references directement par les composants schemas OpenAPI, ce qui evite les `object` generiques permissifs.
 Les contrats DecisionOps/admin internes typent aussi les surfaces persistantes non-publiques, par exemple `src/api/approval-inbox.ts`, `src/api/action-dispatch-detail.ts`, `src/api/action-dispatch-fallback.ts`, `src/api/ledger-detail.ts`, `src/api/approval-decision.ts` et `src/api/decision-contract-studio.ts` pour le Contract Studio runtime.
 Le helper Node `@praedixa/shared-types/public-contract-node` sert uniquement aux tests et audits de contrat; il parse `contracts/openapi/public.yaml` de maniere structurelle sans tirer `fs` ou `yaml` dans les exports browser du package.
+
+### OIDC runtime
+
+- `src/oidc-discovery.ts` porte maintenant la politique runtime partagee de discovery/trust OIDC utilisee par `app-admin` et `app-webapp`.
+- Le sous-export `@praedixa/shared-types/oidc-discovery` est la source de verite pour:
+  - la validation `https`-only par defaut
+  - l'exception locale limitee a `http://localhost`, `127.0.0.1` et `::1` hors production
+  - la verification que `issuer`, `authorization_endpoint`, `token_endpoint` et `revocation_endpoint` restent sur la meme origin
+  - la remontee du statut HTTP et d'un extrait utile du payload d'erreur de discovery
+- Toute evolution de confiance OIDC doit etre faite ici d'abord, puis verifiee via les suites des deux apps consommatrices.
 
 ### Helpers transverses racine
 

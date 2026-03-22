@@ -1,0 +1,152 @@
+---
+title: "Coût de sous-couverture multi-sites : un modèle simple pour chiffrer avant qu'il ne soit trop tard"
+description: "Une méthode simple pour chiffrer le coût réel de la sous-couverture multi-sites avant que le sujet ne dérive en heures d'urgence, service dégradé et marge perdue."
+answerSummary: "Le coût de sous-couverture ne se limite pas aux heures manquantes : il additionne urgence, service dégradé, marge perdue et décisions de rattrapage plus chères site par site."
+date: "2026-03-18"
+tags: ["roi", "ops-finance", "decision-intelligence"]
+draft: false
+authors: ["Praedixa"]
+lang: "fr"
+translationKey: "coverage-gap-cost-simple-model"
+keyPoints:
+  - "La sous-couverture doit se lire en coût complet, pas seulement en effectifs manquants."
+  - "Le vrai sujet est de chiffrer l'inaction assez tôt pour comparer plusieurs options encore actionnables."
+  - "Un modèle simple vaut mieux qu'un calcul trop tardif reconstruit après la crise."
+sources:
+  - label: "Praedixa - Ressource coût de sous-couverture"
+    url: "https://www.praedixa.com/fr/ressources/cout-sous-couverture"
+  - label: "Praedixa - Preuve sur historique"
+    url: "https://www.praedixa.com/fr/decision-log-preuve-roi"
+  - label: "Praedixa - Produit & méthode"
+    url: "https://www.praedixa.com/fr/produit-methode"
+---
+
+Le **coût de sous-couverture multi-sites** ne se limite pas à “des heures manquantes”. Il se compose d'un coût d'urgence, d'un coût de service dégradé, d'un coût de marge perdue et d'un coût d'arbitrage tardif. Si vous ne chiffreez qu'un morceau du problème, vous comparez ensuite vos options sur une base fausse.
+
+Le bon réflexe est donc de construire un **modèle assez simple pour être utilisé avant la tension**, pas un calcul sophistiqué refait après coup pour raconter ce qui s'est passé.
+
+## Quels blocs de coût faut-il regarder ?
+
+Dans la plupart des réseaux multi-sites, quatre blocs suffisent à rendre la lecture utile.
+
+### 1. Le coût de correction immédiate
+
+Quand le signal arrive tard, l'organisation se replie vers les options les plus chères :
+
+- heures supplémentaires ;
+- extras ;
+- intérim ;
+- réaffectation de dernière minute ;
+- baisse ponctuelle du niveau de service.
+
+Ce premier bloc est le plus visible, mais rarement le plus complet.
+
+### 2. Le coût de non-action
+
+Si vous ne faites rien, il faut chiffrer ce qui risque de se dégrader :
+
+- service client ;
+- productivité ;
+- backlog ;
+- annulations ;
+- ventes perdues ;
+- délai de traitement ;
+- fatigue terrain.
+
+Ce coût de non-action doit être formulé de façon opérationnelle. Il ne s'agit pas de produire une macro-estimation abstraite, mais de rendre visible ce que coûte réellement une journée ou une semaine sous le seuil utile.
+
+### 3. Le coût de propagation réseau
+
+En multi-sites, une sous-couverture locale déborde souvent ailleurs :
+
+- un site voisin absorbe la charge ;
+- une équipe centrale arbitre dans l'urgence ;
+- les managers déplacent des ressources au détriment d'un autre site ;
+- un problème service devient un problème finance.
+
+Ce troisième bloc est souvent oublié alors qu'il explique pourquoi le sujet “remonte” si vite en comité.
+
+### 4. Le coût de répétition
+
+Quand la même tension revient sans cadre de décision, l'entreprise repaie plusieurs fois le même apprentissage :
+
+- mêmes débats ;
+- mêmes hypothèses implicites ;
+- même absence de baseline ;
+- même difficulté à prouver ce qui a vraiment rapporté.
+
+Autrement dit, une sous-couverture mal relue coûte aussi plus cher la fois suivante.
+
+## Comment construire un modèle simple et actionnable ?
+
+Le plus robuste est de raisonner en trois colonnes.
+
+### Colonne A. Situation si rien ne change
+
+Décrivez :
+
+- le site ou le groupe de sites concernés ;
+- l'horizon de tension ;
+- la couverture disponible ;
+- le risque business si vous n'agissez pas.
+
+### Colonne B. Options encore réalistes
+
+Comparez ensuite deux ou trois options encore exécutables :
+
+- renforcer localement ;
+- déplacer de la capacité ;
+- réduire une promesse de service ;
+- retarder ou filtrer une partie de la demande.
+
+L'objectif n'est pas de lister tout ce qui serait théoriquement possible. L'objectif est de comparer ce qui reste réellement faisable au moment où vous décidez.
+
+### Colonne C. Coût total attendu
+
+Pour chaque option, additionnez :
+
+- coût d'action ;
+- coût de non-action résiduel ;
+- risque service ;
+- limites connues de lecture.
+
+Cette structure oblige déjà à mieux cadrer la discussion Ops/Finance. Elle évite surtout qu'une option paraisse artificiellement “moins chère” parce que le coût de non-action n'a jamais été explicité.
+
+## Quelle mesure retenir avant d'agir ?
+
+Le bon modèle n'est pas seulement un calcul de coût. Il doit aussi préciser **comment la décision sera relue**.
+
+Avant l'action, posez au minimum :
+
+- la baseline retenue ;
+- le KPI principal ;
+- l'horizon de revue ;
+- ce qu'on ne pourra pas conclure proprement.
+
+La logique détaillée dans la [preuve sur historique](https://www.praedixa.com/fr/decision-log-preuve-roi) est utile ici parce qu'elle évite le faux “avant/après” trop narratif. On compare une baseline, une option recommandée et un réel observé. C'est cette discipline qui transforme un chiffrage rapide en lecture défendable ensuite.
+
+## Quand ce modèle devient-il indispensable ?
+
+Le besoin devient immédiat quand :
+
+- plusieurs sites se disputent la même capacité ;
+- les options de rattrapage deviennent très vite plus chères ;
+- le sujet bascule en arbitrage Ops/Finance ;
+- personne n'arrive à prouver si la dernière décision a vraiment protégé la marge.
+
+Dans ces cas-là, le vrai enjeu n'est pas seulement de prévoir. Il est de **rendre comparable le coût des options** avant que l'organisation ne soit contrainte par l'urgence.
+
+## Que faire dès maintenant ?
+
+Reprenez votre dernier cas de sous-couverture réseau et refaites-le avec seulement ces quatre blocs :
+
+1. coût de correction immédiate ;
+2. coût de non-action ;
+3. coût de propagation réseau ;
+4. coût de répétition.
+
+Si le résultat change sensiblement par rapport au récit “on manquait juste d'heures”, c'est déjà un signal. Cela veut dire que votre sujet n'est pas un problème de planning isolé, mais un problème de décision multi-sites à cadrer plus tôt.
+
+Pour aller plus loin, partez de la ressource [Coût de sous-couverture](https://www.praedixa.com/fr/ressources/cout-sous-couverture), puis relisez la façon dont [Praedixa structure la méthode](https://www.praedixa.com/fr/produit-methode) et la [preuve de ROI](https://www.praedixa.com/fr/decision-log-preuve-roi).
+
+Si votre vrai arbitrage porte ensuite sur le choix entre heures supplémentaires et renfort, poursuivez avec [Ops/Finance : heures sup ou renfort, comment trancher](https://www.praedixa.com/fr/blog/ops-finance-heures-sup-ou-renfort-comment-trancher). Et si le sujet du comité est surtout de rendre la décision prouvable, la lecture complémentaire utile est [comment prouver le ROI d'une décision en comité Ops/Finance](https://www.praedixa.com/fr/blog/comite-ops-finance-prouver-roi-decision).

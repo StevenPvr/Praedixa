@@ -12,26 +12,20 @@ import { DecisionConfigSection } from "./decision-config-section";
 import { IntegrationsSection } from "./integrations-section";
 import { ProofPacksSection } from "./proof-packs-section";
 
-function ActionFeedbackBanner({
-  actionError,
-  actionSuccess,
-}: {
+type ActionFeedbackBannerProps = {
   actionError: string | null;
   actionSuccess: string | null;
-}) {
-  if (!actionError && !actionSuccess) return null;
+};
 
-  return (
-    <div
-      className={`rounded-xl border px-4 py-3 text-sm ${
-        actionError
-          ? "border-warning-light bg-warning-light/20 text-warning-text"
-          : "border-success/40 bg-success/10 text-success"
-      }`}
-    >
-      {actionError ?? actionSuccess}
-    </div>
-  );
+function ActionFeedbackBanner(props: Readonly<ActionFeedbackBannerProps>) {
+  const { actionError, actionSuccess } = props;
+  if (!actionError && !actionSuccess) return null;
+  const toneClassName = actionError
+    ? "border-warning-light bg-warning-light/20 text-warning-text"
+    : "border-success/40 bg-success/10 text-success";
+  const className = `rounded-xl border px-4 py-3 text-sm ${toneClassName}`;
+
+  return <div className={className}>{actionError ?? actionSuccess}</div>;
 }
 
 export default function ConfigPage() {
@@ -49,6 +43,13 @@ export default function ConfigPage() {
   const canManageIntegrations = hasAnyPermission(currentUser?.permissions, [
     "admin:integrations:write",
   ]);
+  const isReadonlyConfig = canManageConfig === false;
+  const readonlyNotice = isReadonlyConfig ? (
+    <ConfigReadonlyNotice
+      message="Mode lecture seule. Permission requise pour planifier, annuler, rollbacker ou recalculer une configuration:"
+      permission="admin:org:write"
+    />
+  ) : null;
 
   return (
     <div className="space-y-6">
@@ -59,12 +60,7 @@ export default function ConfigPage() {
         actionError={actionError}
         actionSuccess={actionSuccess}
       />
-      {!canManageConfig ? (
-        <ConfigReadonlyNotice
-          message="Mode lecture seule. Permission requise pour planifier, annuler, rollbacker ou recalculer une configuration:"
-          permission="admin:org:write"
-        />
-      ) : null}
+      {readonlyNotice}
       <CostParamsSection orgId={orgId} selectedSiteId={selectedSiteId} />
       <DecisionConfigSection
         orgId={orgId}

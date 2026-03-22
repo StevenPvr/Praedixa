@@ -42,6 +42,15 @@ pnpm --filter @praedixa/ui dev
 **Dependances runtime** : `class-variance-authority`, `clsx`, `tailwind-merge`.
 **Peer dependencies** : `react ^19.0.0`, `react-dom ^19.0.0`.
 
+## Tailwind partage
+
+Le package exporte maintenant deux fichiers CSS de design system pour les apps Next du monorepo :
+
+- `@praedixa/ui/brand-tokens.css` : primitives de marque et d'elevation.
+- `@praedixa/ui/tailwind-theme.css` : bridge Tailwind CSS v4 en mode CSS-first, qui importe `brand-tokens.css`, expose les tokens semantiques communs (`page`, `card`, `surface`, `ink`, `primary`, `accent`, etc.) et fournit les utilitaires partages comme `text-display-*`, `text-body-*`, `duration-*`, `ease-*` et `shine-effect`.
+
+Les apps (`app-landing`, `app-webapp`, `app-admin`) importent d'abord `tailwindcss`, puis `tailwind-theme.css` dans leur `app/globals.css`, avant d'ajouter seulement leurs extensions locales via `@theme inline` et quelques `@utility` specifiques.
+
 ---
 
 ## Catalogue des composants
@@ -795,24 +804,14 @@ cn("px-4 py-2", isActive && "bg-amber-500", className);
 Hook client (`"use client"`) qui ecoute un media query CSS.
 
 ```typescript
-import { useMediaQuery, breakpoints } from "@praedixa/ui";
+import { useMediaQuery } from "@praedixa/ui";
 
 function MyComponent() {
-  const isDesktop = useMediaQuery(breakpoints.lg); // "(min-width: 1024px)"
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
   const isMobile = useMediaQuery("(max-width: 639px)");
   // ...
 }
 ```
-
-Breakpoints pre-definis (alignes sur Tailwind) :
-
-| Cle   | Query                 |
-| ----- | --------------------- |
-| `sm`  | `(min-width: 640px)`  |
-| `md`  | `(min-width: 768px)`  |
-| `lg`  | `(min-width: 1024px)` |
-| `xl`  | `(min-width: 1280px)` |
-| `2xl` | `(min-width: 1536px)` |
 
 ---
 

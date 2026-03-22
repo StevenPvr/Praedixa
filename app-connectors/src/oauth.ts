@@ -54,20 +54,21 @@ async function fetchToken(
       throw new Error("OAuth token exchange failed");
     }
 
-    const accessToken = payload.access_token;
+    const accessToken = payload["access_token"];
     const tokenType =
-      typeof payload.token_type === "string" && payload.token_type.length > 0
-        ? payload.token_type
+      typeof payload["token_type"] === "string" &&
+      payload["token_type"].length > 0
+        ? payload["token_type"]
         : "Bearer";
     if (typeof accessToken !== "string" || accessToken.length === 0) {
       throw new Error("OAuth token response is missing access_token");
     }
 
     const expiresIn =
-      typeof payload.expires_in === "number"
-        ? payload.expires_in
-        : typeof payload.expires_in === "string"
-          ? Number(payload.expires_in)
+      typeof payload["expires_in"] === "number"
+        ? payload["expires_in"]
+        : typeof payload["expires_in"] === "string"
+          ? Number(payload["expires_in"])
           : null;
     const expiresAt =
       expiresIn != null && Number.isFinite(expiresIn) && expiresIn > 0
@@ -77,11 +78,11 @@ async function fetchToken(
     return {
       accessToken,
       refreshToken:
-        typeof payload.refresh_token === "string"
-          ? payload.refresh_token
+        typeof payload["refresh_token"] === "string"
+          ? payload["refresh_token"]
           : null,
       expiresAt,
-      scope: normalizeScope(payload.scope),
+      scope: normalizeScope(payload["scope"]),
       tokenType,
       raw: payload,
     };
@@ -167,9 +168,11 @@ export function getOAuthClientCredentials(
   payload: CredentialInput,
 ): OAuthClientCredentials {
   const clientId =
-    typeof payload.clientId === "string" ? payload.clientId.trim() : "";
+    typeof payload["clientId"] === "string" ? payload["clientId"].trim() : "";
   const clientSecret =
-    typeof payload.clientSecret === "string" ? payload.clientSecret.trim() : "";
+    typeof payload["clientSecret"] === "string"
+      ? payload["clientSecret"].trim()
+      : "";
   if (clientId.length === 0 || clientSecret.length < 8) {
     throw new Error("OAuth clientId and clientSecret are required");
   }

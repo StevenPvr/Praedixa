@@ -1,10 +1,10 @@
 import { PraedixaLogo } from "../../components/praedixa-logo";
 
-export default function AuthLayout({
-  children,
-}: {
+type AuthLayoutProps = Readonly<{
   children: React.ReactNode;
-}) {
+}>;
+
+export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-page px-4">
       <div

@@ -26,7 +26,7 @@ export function ContractStudioPanels({
   templates,
   canMutate,
   onSelectionChange,
-}: ContractStudioPanelsProps) {
+}: Readonly<ContractStudioPanelsProps>) {
   if (!detail) {
     return templates ? (
       <ContractStudioCreatePanel

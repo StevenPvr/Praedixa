@@ -46,6 +46,17 @@ const API_EXPOSURE_POLICIES: readonly ApiExposurePolicy[] = [
     loggingRequired: true,
   },
   {
+    id: "api-webhooks-resend-delivery",
+    matcher: { type: "exact", value: "/api/v1/webhooks/resend/email-delivery" },
+    classification: "P1",
+    audience: "internal_automation",
+    access: "restricted",
+    requestBudget: "provider-webhook",
+    ownerBusiness: "Operations",
+    ownerTechnical: "Backend",
+    loggingRequired: true,
+  },
+  {
     id: "api-admin",
     matcher: { type: "group", value: "/api/v1/admin" },
     classification: "P0",

@@ -121,7 +121,7 @@ Sans journal append-only, une mutation critique n'est pas conforme.
 - Re-authentification MFA obligatoire pour l'octroi de permission, la rotation de secret, la restauration de metadonnees critiques et le break-glass.
 - Aucun bypass permanent ; seule la procedure break-glass documentee peut servir d'exception tracee.
 - Le repo doit rendre cette exigence verifiable: `admin-prod` porte un `AUTH_ADMIN_REQUIRED_AMR` explicite, le callback admin refuse tout access token sans `amr` compatible, le client OIDC `praedixa-admin` expose explicitement `claim-amr` sur l'access token, et la policy Keycloak du browser flow admin MFA reste versionnee dans `infra/auth/admin-mfa-browser-flow-policy.json`.
-- Le validateur repo `node scripts/verify-admin-mfa-readiness.mjs` et le verifier live `scripts/keycloak-verify-admin-mfa-flow.sh` doivent rester verts avant une release auth/admin.
+- Le validateur repo `node scripts/verify-admin-mfa-readiness.mjs` et le verifier live `scripts/keycloak/keycloak-verify-admin-mfa-flow.sh` doivent rester verts avant une release auth/admin.
 
 ## Rotation des secrets
 

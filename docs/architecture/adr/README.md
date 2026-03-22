@@ -10,6 +10,7 @@ Une ADR ici doit rester courte, actionnable et verifiable dans le repo.
 | ADR-001 | accepted | Frontiere runtimes TS user-facing vs Python data/ML | 2026-03-12 |
 | ADR-002 | accepted | Contrats partages et packages de reference          | 2026-03-12 |
 | ADR-003 | accepted | Isolation multi-tenant en profondeur                | 2026-03-12 |
+| ADR-004 | accepted | Source de verite runtime des integrations           | 2026-03-21 |
 
 ## Regles de tenue
 

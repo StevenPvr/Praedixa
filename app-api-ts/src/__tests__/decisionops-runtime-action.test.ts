@@ -75,7 +75,6 @@ function buildActionRecord(
     idempotencyKey: "coverage-core:222:wfm.shift",
     payloadPreview: { site_code: "site-lyon" },
     attempts: [],
-    fallback: undefined,
     createdAt: "2026-03-13T10:58:00.000Z",
     updatedAt: "2026-03-13T10:59:00.000Z",
     ...overrides,
@@ -318,7 +317,6 @@ describe("decidePersistentActionFallback", () => {
         backoffStrategy: "fixed",
         initialDelayMs: 1000,
       },
-      fallback: undefined,
     });
     const ledger = buildLedger("open");
     const client = createClientWithResponses([
@@ -420,7 +418,6 @@ describe("decidePersistentActionFallback", () => {
           errorMessage: "Timeout",
         },
       ],
-      fallback: undefined,
     });
     const client = createClientWithResponses([
       { rows: [buildActionRow(failed)] },
@@ -468,7 +465,6 @@ describe("decidePersistentActionFallback", () => {
         backoffStrategy: "fixed",
         initialDelayMs: 1000,
       },
-      fallback: undefined,
     });
     const client = createClientWithResponses([
       { rows: [buildActionRow(failed)] },

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockRedirect = vi.fn();
 const mockJson = vi.fn();
@@ -48,6 +48,10 @@ vi.mock("@/lib/auth/rate-limit", () => ({
 }));
 
 import { GET } from "../route";
+
+const emitWarningSpy = vi
+  .spyOn(process, "emitWarning")
+  .mockImplementation(() => undefined);
 
 function createRedirectResponse(url: string | URL) {
   return {
@@ -128,6 +132,10 @@ describe("GET /auth/login (webapp)", () => {
       remaining: 19,
       resetAtEpochSeconds: 2_000_000_000,
     });
+  });
+
+  afterEach(() => {
+    emitWarningSpy.mockClear();
   });
 
   it("redirects to OIDC authorization endpoint and sets login cookies", async () => {
@@ -225,7 +233,9 @@ describe("GET /auth/login (webapp)", () => {
 
   it("redirects to /login with oidc_provider_untrusted when discovery is invalid", async () => {
     mockGetTrustedOidcEndpoints.mockRejectedValueOnce(
-      new Error("OIDC discovery request failed"),
+      new Error(
+        "OIDC discovery request failed (404 Not Found: Realm does not exist)",
+      ),
     );
     mockIsMissingOidcEnvError.mockReturnValueOnce(false);
 
@@ -241,6 +251,9 @@ describe("GET /auth/login (webapp)", () => {
       "oidc_provider_untrusted",
     );
     expect(redirectUrl.searchParams.get("next")).toBe("/dashboard");
+    expect(emitWarningSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Realm does not exist"),
+    );
   });
 
   it("redirects to /login with oidc_config_insecure when session secret is weak", async () => {

@@ -232,6 +232,7 @@ describe("admin onboarding service", () => {
           openBlockerCount: 2,
           ownerUserId: null,
           sponsorUserId: null,
+          metadataJson: {},
           startedAt: "2026-03-18T10:00:00.000Z",
           targetGoLiveAt: null,
           closedAt: null,

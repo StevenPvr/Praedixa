@@ -2,7 +2,7 @@
 
 Application Next.js du workspace client. Elle expose un shell authentifie simple autour de 5 pages metier, un login OIDC, un BFF same-origin vers l'API Praedixa et quelques hooks de fetch browser-aware.
 
-**Stack** : Next.js 16 / React 19 / OIDC PKCE / Tailwind CSS
+**Stack** : Next.js 16 / React 19 / OIDC PKCE / Tailwind CSS v4
 **Port** : `3001`
 **Package** : `@praedixa/webapp`
 
@@ -24,11 +24,13 @@ Application Next.js du workspace client. Elle expose un shell authentifie simple
 
 ```bash
 pnpm install
+pnpm dev:auth
 pnpm dev:api
 pnpm dev:webapp
 ```
 
 Le webapp attend une API Praedixa disponible sur `NEXT_PUBLIC_API_URL`.
+En local, `app-webapp/.env.local` pointe maintenant par defaut sur l'issuer `http://localhost:8081/realms/praedixa`; redemarrer `pnpm dev:webapp` apres toute modification de `.env.local`.
 
 ## Variables d'environnement utiles
 
@@ -51,6 +53,12 @@ Le webapp attend une API Praedixa disponible sur `NEXT_PUBLIC_API_URL`.
 | `AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS`              | optionnelle                                 | timeout connexion Redis                                                                                               |
 | `AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS`              | optionnelle                                 | timeout commande Redis                                                                                                |
 | `API_PROXY_MAX_BODY_BYTES`                              | optionnelle                                 | taille max acceptee par le proxy `/api/v1/*`                                                                          |
+
+## Tailwind v4
+
+- `app/globals.css` porte maintenant la configuration Tailwind CSS-first via `@import "tailwindcss"` en premier, puis `@import "@praedixa/ui/tailwind-theme.css"` et enfin `@theme inline`.
+- Le socle de tokens et d'utilitaires partages vient de `@praedixa/ui/tailwind-theme.css`; les alias webapp (`sidebar`, `max-w-page`, gradients de surface, ombres locales) restent definis ensuite dans `app/globals.css`.
+- `postcss.config.mjs` doit utiliser `@tailwindcss/postcss`; ne pas reintroduire `tailwind.config.js`, le preset JS historique ou `autoprefixer` dans ce workspace.
 
 ## Image et deploiement Scaleway
 

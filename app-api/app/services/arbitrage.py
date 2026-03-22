@@ -155,7 +155,7 @@ def _compute_deficit(forecasts: list[DailyForecast]) -> tuple[float, float, int]
         return 0.0, 0.0, 0
 
     total_deficit_hours = sum(abs(float(f.gap)) for f in deficit_rows)
-    deficit_pcts = []
+    deficit_pcts: list[float] = []
     for f in deficit_rows:
         demand = float(f.predicted_demand)
         if demand > 0:

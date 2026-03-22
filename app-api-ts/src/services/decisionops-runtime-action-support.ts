@@ -208,11 +208,12 @@ export function prepareActionDecisionFields(
     request.reasonCode,
     "INVALID_ACTION_REASON_CODE",
   );
+  const errorMessage = normalizeOptionalText(request.errorMessage) ?? comment;
 
   return {
-    comment,
+    ...(comment !== undefined ? { comment } : {}),
     errorCode: normalizeOptionalText(request.errorCode) ?? reasonCode,
-    errorMessage: normalizeOptionalText(request.errorMessage) ?? comment,
+    ...(errorMessage !== undefined ? { errorMessage } : {}),
   };
 }
 
@@ -224,15 +225,20 @@ export function appendDispatchAttempt(
 ): ActionDispatchRecord {
   const prepared = prepareActionDecisionFields(input.request);
   const canStoreError = outcome === "failed" || outcome === "canceled";
+  const targetReference = normalizeOptionalText(input.request.targetReference);
 
   return appendActionDispatchAttempt(record, {
     attemptNumber: record.attempts.length + 1,
     status: outcome,
     dispatchedAt: occurredAt,
-    latencyMs: input.request.latencyMs,
-    targetReference: normalizeOptionalText(input.request.targetReference),
-    errorCode: canStoreError ? prepared.errorCode : undefined,
-    errorMessage: canStoreError ? prepared.errorMessage : undefined,
+    ...(input.request.latencyMs !== undefined
+      ? { latencyMs: input.request.latencyMs }
+      : {}),
+    ...(targetReference !== undefined ? { targetReference } : {}),
+    ...(canStoreError ? { errorCode: prepared.errorCode } : {}),
+    ...(canStoreError && prepared.errorMessage !== undefined
+      ? { errorMessage: prepared.errorMessage }
+      : {}),
   });
 }
 
@@ -267,8 +273,12 @@ export function buildActionFallbackResponse(
     occurredAt,
     actionStatus: nextAction.status,
     fallbackStatus: nextAction.fallback?.status ?? "not_needed",
-    fallbackPreparedAt: nextAction.fallback?.preparedAt,
-    fallbackExecutedAt: nextAction.fallback?.executedAt,
+    ...(nextAction.fallback?.preparedAt !== undefined
+      ? { fallbackPreparedAt: nextAction.fallback.preparedAt }
+      : {}),
+    ...(nextAction.fallback?.executedAt !== undefined
+      ? { fallbackExecutedAt: nextAction.fallback.executedAt }
+      : {}),
     ledgerStatus,
     retryEligible,
   };

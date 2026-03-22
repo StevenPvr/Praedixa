@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { AdminBackofficeService } from "../services/admin-backoffice.js";
+import { KeycloakAdminIdentityError } from "../services/keycloak-admin-identity.js";
 
 const ORGANIZATION_ID = "44444444-4444-4444-4444-444444444444";
 const ADMIN_USER_ID = "55555555-5555-5555-5555-555555555555";
@@ -55,6 +56,37 @@ function createTransactionalService(
   const client = {
     query: vi.fn(async (sql: string, params?: unknown[]) => {
       calls.push({ sql, params });
+      if (
+        sql.includes(
+          "CREATE TABLE IF NOT EXISTS identity_invitation_delivery_",
+        ) ||
+        sql.includes(
+          "CREATE INDEX IF NOT EXISTS idx_identity_invitation_delivery_",
+        )
+      ) {
+        return { rows: [] };
+      }
+      if (sql.includes("INSERT INTO identity_invitation_delivery_attempts")) {
+        return {
+          rows: [
+            {
+              id: "99999999-9999-4999-8999-999999999999",
+              user_id:
+                typeof params?.[2] === "string" ? params[2] : TARGET_USER_ID,
+              email:
+                typeof params?.[4] === "string"
+                  ? params[4]
+                  : "member@praedixa.com",
+              proof_status: "pending",
+              initiated_at: new Date("2026-03-22T10:00:00.000Z"),
+              matched_event_type: null,
+              occurred_at: null,
+              observed_at: null,
+              matched_event_summary: null,
+            },
+          ],
+        };
+      }
       if (
         sql.includes(
           "SELECT id::text\n      FROM users\n      WHERE id::text = $1 OR auth_user_id = $1",
@@ -409,6 +441,139 @@ describe("admin backoffice organization users", () => {
       errorCode: "CONFLICT",
     });
     expect(readAuditSeverity(calls)).toBe("WARN");
+  });
+
+  it("retries user invitations after deleting an orphaned Keycloak login conflict", async () => {
+    const { service, client, calls, identityService } =
+      createTransactionalService(async (sql, params) => {
+        if (
+          sql === "BEGIN" ||
+          sql === "COMMIT" ||
+          sql === "ROLLBACK" ||
+          sql.includes(
+            "SELECT id::text\n      FROM users\n      WHERE id::text = $1 OR auth_user_id = $1",
+          ) ||
+          sql.includes("INSERT INTO admin_audit_log")
+        ) {
+          return { rows: [] };
+        }
+
+        if (
+          sql.includes(
+            "SELECT id::text FROM organizations WHERE id = $1::uuid LIMIT 1",
+          )
+        ) {
+          expect(params).toEqual([ORGANIZATION_ID]);
+          return { rows: [{ id: ORGANIZATION_ID }] };
+        }
+
+        if (sql.includes("FROM sites") && sql.includes("AND id = $2::uuid")) {
+          expect(params).toEqual([ORGANIZATION_ID, TARGET_SITE_ID]);
+          return { rows: [{ id: TARGET_SITE_ID }] };
+        }
+
+        if (
+          sql.includes("SELECT id::text FROM users WHERE email = $1 LIMIT 1")
+        ) {
+          expect(params).toEqual(["new.manager@praedixa.com"]);
+          return { rows: [] };
+        }
+
+        if (
+          sql.includes("FROM users u") &&
+          sql.includes(
+            "LEFT JOIN organizations o ON o.id = u.organization_id",
+          ) &&
+          sql.includes("WHERE u.auth_user_id = $1")
+        ) {
+          expect(params).toEqual(["orphan-keycloak-user-1"]);
+          return { rows: [] };
+        }
+
+        if (sql.includes("INSERT INTO users")) {
+          return {
+            rows: [
+              createDbUserRow({
+                auth_user_id: TARGET_AUTH_USER_ID,
+                email: "new.manager@praedixa.com",
+                role: "manager",
+                status: "pending",
+                site_id: TARGET_SITE_ID,
+              }),
+            ],
+          };
+        }
+
+        throw new Error(`Unexpected SQL in orphan invite retry test: ${sql}`);
+      });
+
+    identityService.provisionUser
+      .mockRejectedValueOnce(
+        new KeycloakAdminIdentityError(
+          "A Keycloak user with this username already exists",
+          409,
+          "CONFLICT",
+          {
+            email: "new.manager@praedixa.com",
+            username: "new.manager@praedixa.com",
+          },
+        ),
+      )
+      .mockResolvedValueOnce({ authUserId: TARGET_AUTH_USER_ID });
+    Reflect.set(
+      identityService as unknown as Record<string, unknown>,
+      "findManagedUsersByEmail",
+      vi.fn().mockResolvedValue([]),
+    );
+    Reflect.set(
+      identityService as unknown as Record<string, unknown>,
+      "findManagedUsersByUsername",
+      vi.fn().mockResolvedValue([
+        {
+          authUserId: "orphan-keycloak-user-1",
+          username: "new.manager@praedixa.com",
+          email: null,
+          organizationId: null,
+          role: null,
+          siteId: null,
+          enabled: true,
+        },
+      ]),
+    );
+
+    const result = await service.inviteOrganizationUser({
+      organizationId: ORGANIZATION_ID,
+      email: "new.manager@praedixa.com",
+      role: "manager",
+      siteId: TARGET_SITE_ID,
+      actorUserId: ADMIN_USER_ID,
+      actorEmail: "admin@praedixa.com",
+      requestId: "req-invite-orphan-retry",
+      clientIp: "127.0.0.1",
+      userAgent: "vitest",
+      permissionUsed: "admin:users:write",
+      routeTemplate: "/api/v1/admin/organizations/:orgId/users/invite",
+    });
+
+    expect(result.status).toBe("pending_invite");
+    expect(
+      Reflect.get(
+        identityService as unknown as Record<string, unknown>,
+        "findManagedUsersByEmail",
+      ),
+    ).toHaveBeenCalledWith("new.manager@praedixa.com");
+    expect(
+      Reflect.get(
+        identityService as unknown as Record<string, unknown>,
+        "findManagedUsersByUsername",
+      ),
+    ).toHaveBeenCalledWith("new.manager@praedixa.com");
+    expect(identityService.deleteProvisionedUser).toHaveBeenCalledWith(
+      "orphan-keycloak-user-1",
+    );
+    expect(identityService.provisionUser).toHaveBeenCalledTimes(2);
+    expect(client.release).toHaveBeenCalledTimes(1);
+    expect(readAuditSeverity(calls)).toBe("INFO");
   });
 
   it("audits missing-user role changes before rethrowing the not found error", async () => {

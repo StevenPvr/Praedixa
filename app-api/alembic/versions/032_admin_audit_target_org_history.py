@@ -8,8 +8,8 @@ Create Date: 2026-03-19 04:30:00.000000
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-from alembic import op
 
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
 
 # revision identifiers, used by Alembic.
 revision: str = "032_admin_audit_target_org"

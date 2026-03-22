@@ -72,8 +72,11 @@ function makeAdminContext(
     },
     clientIp: "127.0.0.1",
     userAgent: "vitest",
+    headers: {},
     params: {},
     body: null,
+    rawBody: null,
+    rawBodyBytes: null,
     user: {
       userId: "keycloak|admin-1",
       email: "admin@praedixa.com",

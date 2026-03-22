@@ -16,6 +16,7 @@ import { createIntegrationOperations } from "./config-operations";
 import { IntegrationsContent } from "./integrations-section-view";
 import type {
   ConfigActionHandlers,
+  IntegrationCatalogItem,
   IntegrationConnection,
   IntegrationConnectionTestResult,
   IntegrationIngestCredential,
@@ -38,6 +39,14 @@ function useIntegrationConnections(
   return useApiGet<IntegrationConnection[]>(
     canReadIntegrations && ADMIN_WORKSPACE_FEATURE_GATES.integrationsWorkspace
       ? ADMIN_ENDPOINTS.orgIntegrationConnections(orgId)
+      : null,
+  );
+}
+
+function useIntegrationCatalog(canReadIntegrations: boolean) {
+  return useApiGet<IntegrationCatalogItem[]>(
+    canReadIntegrations && ADMIN_WORKSPACE_FEATURE_GATES.integrationsWorkspace
+      ? ADMIN_ENDPOINTS.integrationsCatalog
       : null,
   );
 }
@@ -93,6 +102,21 @@ function useIntegrationResources(
 function useIntegrationControls(effectiveIntegrationId: string | null) {
   const [ingestCredentialLabel, setIngestCredentialLabel] =
     useState("CRM outbound");
+  const [createVendor, setCreateVendor] = useState("custom_data");
+  const [createDisplayName, setCreateDisplayName] = useState("");
+  const [createAuthMode, setCreateAuthMode] = useState("api_key");
+  const [createSourceObjectsInput, setCreateSourceObjectsInput] =
+    useState("dataset");
+  const [createRuntimeEnvironment, setCreateRuntimeEnvironment] = useState<
+    "production" | "sandbox"
+  >("production");
+  const [createBaseUrlInput, setCreateBaseUrlInput] = useState("");
+  const [createConfigJsonInput, setCreateConfigJsonInput] = useState(
+    '{\n  "datasetMappings": {}\n}',
+  );
+  const [createCredentialsJsonInput, setCreateCredentialsJsonInput] = useState(
+    '{\n  "apiKey": ""\n}',
+  );
   const [issuedCredential, setIssuedCredential] =
     useState<IntegrationIssueIngestCredentialResult | null>(null);
   const [connectionTestResult, setConnectionTestResult] =
@@ -110,6 +134,22 @@ function useIntegrationControls(effectiveIntegrationId: string | null) {
   return {
     ingestCredentialLabel,
     setIngestCredentialLabel,
+    createVendor,
+    setCreateVendor,
+    createDisplayName,
+    setCreateDisplayName,
+    createAuthMode,
+    setCreateAuthMode,
+    createSourceObjectsInput,
+    setCreateSourceObjectsInput,
+    createRuntimeEnvironment,
+    setCreateRuntimeEnvironment,
+    createBaseUrlInput,
+    setCreateBaseUrlInput,
+    createConfigJsonInput,
+    setCreateConfigJsonInput,
+    createCredentialsJsonInput,
+    setCreateCredentialsJsonInput,
     issuedCredential,
     setIssuedCredential,
     connectionTestResult,
@@ -130,7 +170,8 @@ function useIntegrationsSectionModel({
   canReadIntegrations,
   canManageIntegrations,
   ...actions
-}: IntegrationsSectionProps) {
+}: Readonly<IntegrationsSectionProps>) {
+  const catalog = useIntegrationCatalog(canReadIntegrations);
   const connections = useIntegrationConnections(orgId, canReadIntegrations);
   const selection = useIntegrationSelection(connections.data);
   const controls = useIntegrationControls(selection.effectiveIntegrationId);
@@ -145,7 +186,16 @@ function useIntegrationsSectionModel({
     ) ?? null;
   const operations = createIntegrationOperations({
     orgId,
+    catalog: catalog.data ?? [],
     effectiveIntegrationId: selection.effectiveIntegrationId,
+    createVendor: controls.createVendor,
+    createDisplayName: controls.createDisplayName,
+    createAuthMode: controls.createAuthMode,
+    createSourceObjectsInput: controls.createSourceObjectsInput,
+    createRuntimeEnvironment: controls.createRuntimeEnvironment,
+    createBaseUrlInput: controls.createBaseUrlInput,
+    createConfigJsonInput: controls.createConfigJsonInput,
+    createCredentialsJsonInput: controls.createCredentialsJsonInput,
     ingestCredentialLabel: controls.ingestCredentialLabel,
     syncTriggerType: controls.syncTriggerType,
     syncForceFull: controls.syncForceFull,
@@ -153,6 +203,12 @@ function useIntegrationsSectionModel({
     syncWindowEndInput: controls.syncWindowEndInput,
     canManageIntegrations,
     setIssuedCredential: controls.setIssuedCredential,
+    setCreateDisplayName: controls.setCreateDisplayName,
+    setCreateAuthMode: controls.setCreateAuthMode,
+    setCreateSourceObjectsInput: controls.setCreateSourceObjectsInput,
+    setCreateBaseUrlInput: controls.setCreateBaseUrlInput,
+    setCreateConfigJsonInput: controls.setCreateConfigJsonInput,
+    setCreateCredentialsJsonInput: controls.setCreateCredentialsJsonInput,
     setConnectionTestResult: controls.setConnectionTestResult,
     refetchIntegrations: connections.refetch,
     refetchIngestCredentials: resources.credentials.refetch,
@@ -163,6 +219,7 @@ function useIntegrationsSectionModel({
 
   return {
     connections,
+    catalog,
     selection,
     controls,
     resources,
@@ -174,11 +231,14 @@ function useIntegrationsSectionModel({
   };
 }
 
-function IntegrationsSectionState({
-  model,
-}: {
+type IntegrationsSectionStateProps = {
   model: ReturnType<typeof useIntegrationsSectionModel>;
-}) {
+};
+
+function IntegrationsSectionState(
+  props: Readonly<IntegrationsSectionStateProps>,
+) {
+  const { model } = props;
   if (!model.canReadIntegrations) {
     return (
       <ConfigReadonlyNotice
@@ -193,6 +253,15 @@ function IntegrationsSectionState({
   }
 
   if (model.connections.loading) return <SkeletonCard />;
+  if (model.catalog.loading) return <SkeletonCard />;
+  if (model.catalog.error) {
+    return (
+      <ErrorFallback
+        message={model.catalog.error}
+        onRetry={model.catalog.refetch}
+      />
+    );
+  }
   if (model.connections.error) {
     return (
       <ErrorFallback
@@ -205,16 +274,24 @@ function IntegrationsSectionState({
   return <LoadedIntegrationsState model={model} />;
 }
 
-function LoadedIntegrationsState({
-  model,
-}: {
-  model: ReturnType<typeof useIntegrationsSectionModel>;
-}) {
+function LoadedIntegrationsState(
+  props: Readonly<IntegrationsSectionStateProps>,
+) {
+  const { model } = props;
   return (
     <IntegrationsContent
+      catalog={model.catalog.data ?? []}
       connections={model.connections.data ?? []}
       activeConnection={model.activeConnection}
       effectiveIntegrationId={model.selection.effectiveIntegrationId}
+      createVendor={model.controls.createVendor}
+      createDisplayName={model.controls.createDisplayName}
+      createAuthMode={model.controls.createAuthMode}
+      createSourceObjectsInput={model.controls.createSourceObjectsInput}
+      createRuntimeEnvironment={model.controls.createRuntimeEnvironment}
+      createBaseUrlInput={model.controls.createBaseUrlInput}
+      createConfigJsonInput={model.controls.createConfigJsonInput}
+      createCredentialsJsonInput={model.controls.createCredentialsJsonInput}
       ingestCredentialLabel={model.controls.ingestCredentialLabel}
       issuedCredential={model.controls.issuedCredential}
       connectionTestResult={model.controls.connectionTestResult}
@@ -228,24 +305,51 @@ function LoadedIntegrationsState({
       rawEvents={model.resources.rawEvents}
       syncRuns={model.resources.syncRuns}
       onSelectIntegration={model.selection.setSelectedIntegrationId}
+      onCreateVendorChange={model.controls.setCreateVendor}
+      onCreateDisplayNameChange={model.controls.setCreateDisplayName}
+      onCreateAuthModeChange={model.controls.setCreateAuthMode}
+      onCreateSourceObjectsInputChange={
+        model.controls.setCreateSourceObjectsInput
+      }
+      onCreateRuntimeEnvironmentChange={
+        model.controls.setCreateRuntimeEnvironment
+      }
+      onCreateBaseUrlInputChange={model.controls.setCreateBaseUrlInput}
+      onCreateConfigJsonInputChange={model.controls.setCreateConfigJsonInput}
+      onCreateCredentialsJsonInputChange={
+        model.controls.setCreateCredentialsJsonInput
+      }
       onLabelChange={model.controls.setIngestCredentialLabel}
       onTriggerChange={model.controls.setSyncTriggerType}
       onSyncForceFullChange={model.controls.setSyncForceFull}
       onSyncWindowStartChange={model.controls.setSyncWindowStartInput}
       onSyncWindowEndChange={model.controls.setSyncWindowEndInput}
-      onIssueCredential={() => void model.operations.issueIngestCredential()}
-      onTestConnection={() =>
-        void model.operations.testIntegrationConnectionAction()
-      }
-      onTriggerSync={() => void model.operations.triggerIntegrationSyncAction()}
-      onRevokeCredential={(credentialId) =>
-        void model.operations.revokeIngestCredential(credentialId)
-      }
+      onIssueCredential={() => {
+        model.operations.issueIngestCredential().catch(() => undefined);
+      }}
+      onCreateConnection={() => {
+        model.operations
+          .createIntegrationConnectionAction()
+          .catch(() => undefined);
+      }}
+      onTestConnection={() => {
+        model.operations
+          .testIntegrationConnectionAction()
+          .catch(() => undefined);
+      }}
+      onTriggerSync={() => {
+        model.operations.triggerIntegrationSyncAction().catch(() => undefined);
+      }}
+      onRevokeCredential={(credentialId) => {
+        model.operations
+          .revokeIngestCredential(credentialId)
+          .catch(() => undefined);
+      }}
     />
   );
 }
 
-export function IntegrationsSection(props: IntegrationsSectionProps) {
+export function IntegrationsSection(props: Readonly<IntegrationsSectionProps>) {
   const model = useIntegrationsSectionModel(props);
 
   return (

@@ -46,7 +46,7 @@ Executer depuis la racine:
 ```bash
 pnpm install --frozen-lockfile
 cd app-api && uv sync --extra dev && cd ..
-./scripts/install-prek.sh
+./scripts/dev/install-prek.sh
 ```
 
 Installer les dependances outillage gate:

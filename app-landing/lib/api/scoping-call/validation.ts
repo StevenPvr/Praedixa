@@ -73,7 +73,7 @@ export function validateScopingCallBody(
     };
   }
 
-  const slots = readSlots(input.slots, locale);
+  const slots = readSlots(input["slots"], locale);
   if (!slots.valid) {
     return slots;
   }
@@ -104,8 +104,8 @@ export function validateScopingCallBody(
       slots: slots.value,
       notes,
       website:
-        typeof input.website === "string"
-          ? input.website.trim().slice(0, 200)
+        typeof input["website"] === "string"
+          ? input["website"].trim().slice(0, 200)
           : "",
       source,
     },
@@ -189,9 +189,7 @@ function normalizeLocale(value: string | null): "fr" | "en" | null {
   }
 
   const normalized = value.trim().toLowerCase();
-  return normalized === "fr" || normalized === "en"
-    ? (normalized as "fr" | "en")
-    : null;
+  return normalized === "fr" || normalized === "en" ? normalized : null;
 }
 
 function localize(locale: "fr" | "en", fr: string, en: string): string {

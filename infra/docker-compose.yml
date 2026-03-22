@@ -4,11 +4,39 @@
 # Services:
 #   postgres  — PostgreSQL 16 (port 5433 externally to avoid conflicts)
 #   api       — TypeScript API runtime (port 8000)
+#   auth      — Keycloak local avec realm Praedixa importe (port 8081)
 #
 # The webapp (Next.js) runs outside Docker via `pnpm dev:webapp`
 # because Node.js hot reload is faster natively.
 
 services:
+  auth:
+    build:
+      context: ..
+      dockerfile: infra/auth/Dockerfile.scaleway
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "8081:8080"
+    environment:
+      KC_CACHE: local
+      KC_HOSTNAME: http://localhost:8081
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+      KEYCLOAK_LOCAL_URL: http://127.0.0.1:8080
+      KEYCLOAK_REALM: praedixa
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME:-kcadmin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD:-}
+      SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL:-admin@praedixa.com}
+      SUPER_ADMIN_PASSWORD: ${SUPER_ADMIN_PASSWORD:-}
+      SUPER_ADMIN_REQUIRE_TOTP: ${SUPER_ADMIN_REQUIRE_TOTP:-false}
+      KEYCLOAK_SMTP_FROM: ${KEYCLOAK_SMTP_FROM:-}
+      KEYCLOAK_SMTP_REPLY_TO: ${KEYCLOAK_SMTP_REPLY_TO:-}
+      KEYCLOAK_SMTP_PASSWORD: ${KEYCLOAK_SMTP_PASSWORD:-}
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
@@ -46,4 +74,6 @@ services:
 
 volumes:
   pgdata:
+    driver: local
+  keycloak_data:
     driver: local

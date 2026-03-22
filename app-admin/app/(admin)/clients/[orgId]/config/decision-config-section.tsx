@@ -132,8 +132,12 @@ function useDecisionConfigSectionModel({
     formatDateTime,
     canManageConfig,
     actionLoading: actions.actionLoading,
-    onRollback: (version) => void operations.rollbackVersion(version),
-    onCancel: (version) => void operations.cancelScheduledVersion(version),
+    onRollback: (version) => {
+      operations.rollbackVersion(version).catch(() => undefined);
+    },
+    onCancel: (version) => {
+      operations.cancelScheduledVersion(version).catch(() => undefined);
+    },
   });
 
   return {
@@ -147,11 +151,14 @@ function useDecisionConfigSectionModel({
   };
 }
 
-function DecisionConfigPrimaryContent({
-  model,
-}: {
+type DecisionConfigPrimaryContentProps = {
   model: ReturnType<typeof useDecisionConfigSectionModel>;
-}) {
+};
+
+function DecisionConfigPrimaryContent(
+  props: Readonly<DecisionConfigPrimaryContentProps>,
+) {
+  const { model } = props;
   if (model.queries.resolved.loading) return <SkeletonCard />;
   if (model.queries.resolved.error) {
     return (
@@ -170,16 +177,43 @@ function DecisionConfigPrimaryContent({
       draft={model.draft}
       canManageConfig={model.canManageConfig}
       actionLoading={model.actionLoading}
-      onSchedule={() =>
-        void model.operations.scheduleVersionFromCurrentConfig()
-      }
-      onRecompute={() => void model.operations.recomputeScenario()}
+      onSchedule={() => {
+        model.operations
+          .scheduleVersionFromCurrentConfig()
+          .catch(() => undefined);
+      }}
+      onRecompute={() => {
+        model.operations.recomputeScenario().catch(() => undefined);
+      }}
     />
   );
 }
 
-export function DecisionConfigSection(props: DecisionConfigSectionProps) {
-  const model = useDecisionConfigSectionModel(props);
+export function DecisionConfigSection(
+  props: Readonly<DecisionConfigSectionProps>,
+) {
+  const {
+    orgId,
+    selectedSiteId,
+    canManageConfig,
+    actionLoading,
+    actionError,
+    actionSuccess,
+    setActionLoading,
+    setActionError,
+    setActionSuccess,
+  } = props;
+  const model = useDecisionConfigSectionModel({
+    orgId,
+    selectedSiteId,
+    canManageConfig,
+    actionLoading,
+    actionError,
+    actionSuccess,
+    setActionLoading,
+    setActionError,
+    setActionSuccess,
+  });
 
   return (
     <div className="space-y-6">

@@ -23,7 +23,7 @@ export function ProofBlockClient({ tabs, metrics }: ProofBlockClientProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const prefersReduced = useReducedMotion();
 
-  const stepColor = STEP_COLORS[activeIndex] ?? STEP_COLORS[0]!;
+  const stepColor = STEP_COLORS[activeIndex] ?? STEP_COLORS[0];
 
   return (
     <div className="rounded-2xl bg-surface-0 p-6 shadow-2 md:p-8">
@@ -60,7 +60,7 @@ export function ProofBlockClient({ tabs, metrics }: ProofBlockClientProps) {
             key={activeIndex}
             initial={prefersReduced ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={prefersReduced ? undefined : { opacity: 0, y: -8 }}
+            {...(prefersReduced ? {} : { exit: { opacity: 0, y: -8 } })}
             transition={{ duration: 0.2 }}
             className="text-[15px] leading-relaxed text-ink-700"
           >

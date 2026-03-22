@@ -17,3 +17,7 @@ Fichiers :
 ## Intégration
 
 Ce dossier est consommé par l'application `app-admin` et s'insère dans son flux runtime, build ou test.
+
+## Conventions locales
+
+- `[...path]/route.ts` garde maintenant la logique du proxy BFF decoupee en helpers (`serializeUnknownError`, `validateContentLength`, `readFallbackBody`, `readStreamBody`, `resolveProxyAccessContext`, `buildUpstreamInit`, `buildProxyResponse`) pour limiter la complexite Sonar sans changer le contrat HTTP.

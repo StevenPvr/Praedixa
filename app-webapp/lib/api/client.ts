@@ -54,17 +54,25 @@ async function request<T>(
   };
 
   if (token) {
-    headers.Authorization = `Bearer ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(buildUrl(normalizedPath), {
+  const requestInit: RequestInit = {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
-    signal: options?.signal,
-    credentials: useSameOriginProxy ? "same-origin" : undefined,
     cache: "no-store",
-  });
+  };
+  if (body !== undefined) {
+    requestInit.body = JSON.stringify(body);
+  }
+  if (options?.signal) {
+    requestInit.signal = options.signal;
+  }
+  if (useSameOriginProxy) {
+    requestInit.credentials = "same-origin";
+  }
+
+  const response = await fetch(buildUrl(normalizedPath), requestInit);
 
   if (!response.ok) {
     let errorData: ErrorResponse | null = null;

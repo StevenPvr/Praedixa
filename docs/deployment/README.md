@@ -22,4 +22,4 @@ Ce dossier documente l'installation et les déploiements d'infrastructure applic
 - Les scripts `scw-configure-*` doivent écrire les JSON runtime depuis l'environnement ou `stdin`, jamais via des flags CLI contenant les valeurs secrètes.
 - Les runbooks de release doivent considérer le preflight DNS strict et le smoke fail-close comme comportement nominal.
 - Avant un preflight ou une revue de déploiement, vérifier `node ./scripts/validate-runtime-secret-inventory.mjs` pour s'assurer que la matrice Markdown et le gate runtime décrivent bien les mêmes secrets.
-- Avant de considérer un rollback comme reproductible, vérifier aussi `docs/deployment/rollback-targets.json` et utiliser `./scripts/scw-rollback-plan.sh` au lieu d'assembler une commande `scw container update` à la main.
+- Avant de considérer un rollback comme reproductible, vérifier aussi `docs/deployment/rollback-targets.json` et utiliser `./scripts/scw/scw-rollback-plan.sh` au lieu d'assembler une commande `scw container update` à la main.

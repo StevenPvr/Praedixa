@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from typing import Any
 
 import httpx
+
+from app.integrations.connectors._shared import require_object, require_record_sequence
 
 
 class SalesforceApiClient:
@@ -46,34 +47,33 @@ class SalesforceApiClient:
         )
         response.raise_for_status()
         payload = response.json()
-        if not isinstance(payload, dict):
-            raise TypeError("Salesforce query response must be an object")
+        payload_object = require_object(payload, field="Salesforce query response")
 
-        records = _extract_records(payload)
-        next_records_url = payload.get("nextRecordsUrl")
+        records = _extract_records(payload_object)
+        next_records_url = payload_object.get("nextRecordsUrl")
         while isinstance(next_records_url, str) and next_records_url.strip():
             next_response = await self.client.get(next_records_url)
             next_response.raise_for_status()
             next_payload = next_response.json()
-            if not isinstance(next_payload, dict):
-                raise TypeError(
-                    "Salesforce paginated query response must be an object"
-                )
-            records.extend(_extract_records(next_payload))
-            next_records_url = next_payload.get("nextRecordsUrl")
+            next_payload_object = require_object(
+                next_payload,
+                field="Salesforce paginated query response",
+            )
+            records.extend(_extract_records(next_payload_object))
+            next_records_url = next_payload_object.get("nextRecordsUrl")
 
         return records
 
 
+def _normalize_salesforce_record(raw_record: object) -> dict[str, Any]:
+    normalized = dict(require_object(raw_record, field="Salesforce query record"))
+    normalized.pop("attributes", None)
+    return normalized
+
+
 def _extract_records(payload: dict[str, Any]) -> list[dict[str, Any]]:
-    raw_records = payload.get("records")
-    if not isinstance(raw_records, Sequence) or isinstance(raw_records, (str, bytes)):
-        raise TypeError("Salesforce query response records must be a list")
-    records: list[dict[str, Any]] = []
-    for raw_record in raw_records:
-        if not isinstance(raw_record, dict):
-            raise TypeError("Salesforce query record must be an object")
-        normalized = dict(raw_record)
-        normalized.pop("attributes", None)
-        records.append(normalized)
-    return records
+    raw_records = require_record_sequence(
+        payload.get("records"),
+        field="Salesforce query response records",
+    )
+    return [_normalize_salesforce_record(raw_record) for raw_record in raw_records]

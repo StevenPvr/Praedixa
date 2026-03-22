@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from app.integrations.connectors.blue_yonder.extractor import (
     pull_blue_yonder_connection,
@@ -70,7 +70,8 @@ def _should_pull_provider_events(connection: dict[str, Any]) -> bool:
     config = connection.get("config", {})
     if not isinstance(config, dict):
         return True
-    pull_enabled = config.get("pullEnabled")
+    typed_config = cast("dict[str, object]", config)
+    pull_enabled = typed_config.get("pullEnabled", None)
     return pull_enabled is not False
 
 

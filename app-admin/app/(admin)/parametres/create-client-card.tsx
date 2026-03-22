@@ -17,12 +17,12 @@ export const DEFAULT_CREATE_CLIENT_FORM_STATE: CreateClientFormState = {
   isTest: false,
 };
 
-type CreateClientCardProps = {
+type CreateClientCardProps = Readonly<{
   form: CreateClientFormState;
   disabled: boolean;
   onChange: (next: CreateClientFormState) => void;
   onCreate: () => void;
-};
+}>;
 
 export function CreateClientCard({
   form,

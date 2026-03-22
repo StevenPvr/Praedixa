@@ -9,7 +9,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from sqlalchemy import select
 
@@ -56,7 +56,7 @@ class _GoldCache:
     snapshot: GoldSnapshot
 
 
-_CACHE: _GoldCache | None = None
+_gold_cache: _GoldCache | None = None
 
 
 def _normalize_slug(value: str) -> str:
@@ -207,18 +207,18 @@ def get_gold_snapshot(path: Path | None = None) -> GoldSnapshot:
         return _load_csv_rows(target)
 
     stat = target.stat()
-    global _CACHE
+    global _gold_cache
     with _CACHE_LOCK:
         if (
-            _CACHE is not None
-            and _CACHE.mtime_ns == stat.st_mtime_ns
-            and _CACHE.size == stat.st_size
-            and _CACHE.snapshot.source_path == target
+            _gold_cache is not None
+            and _gold_cache.mtime_ns == stat.st_mtime_ns
+            and _gold_cache.size == stat.st_size
+            and _gold_cache.snapshot.source_path == target
         ):
-            return _CACHE.snapshot
+            return _gold_cache.snapshot
 
         snapshot = _load_csv_rows(target)
-        _CACHE = _GoldCache(
+        _gold_cache = _GoldCache(
             mtime_ns=stat.st_mtime_ns,
             size=stat.st_size,
             snapshot=snapshot,
@@ -238,6 +238,16 @@ def _result_one_or_none(result: Any) -> Any:
     return None
 
 
+def _result_scalar_one_or_none(result: Any) -> object | None:
+    if hasattr(result, "scalar_one_or_none"):
+        return cast("object | None", result.scalar_one_or_none())
+    row = _result_one_or_none(result)
+    if isinstance(row, tuple):
+        tuple_row = cast("tuple[object, ...]", row)
+        return tuple_row[0] if tuple_row else None
+    return cast("object | None", row)
+
+
 async def resolve_client_slug_for_org(
     session: AsyncSession,
     organization_id: uuid.UUID,
@@ -247,14 +257,12 @@ async def resolve_client_slug_for_org(
     if not available_client_slugs:
         return None
 
-    org_query = select(Organization.slug, Organization.name).where(
-        Organization.id == organization_id
-    )
-    row = _result_one_or_none(await session.execute(org_query))
-    if row is None:
+    org_query = select(Organization.slug).where(Organization.id == organization_id)
+    org_slug_value = _result_scalar_one_or_none(await session.execute(org_query))
+    if org_slug_value is None:
         return None
 
-    org_slug = str(row[0] or "") if isinstance(row, tuple) else str(row or "")
+    org_slug = str(org_slug_value or "")
 
     candidates = [org_slug, _normalize_slug(org_slug)]
     for candidate in candidates:
@@ -275,7 +283,7 @@ async def resolve_site_code_for_filter(
     normalized_allowed = {
         code.strip().upper()
         for code in (allowed_site_codes or set())
-        if isinstance(code, str) and code.strip()
+        if code.strip()
     }
     if not normalized_allowed:
         return None
@@ -297,12 +305,11 @@ async def resolve_site_code_for_filter(
         return None
 
     query = tenant.apply(select(Site.code).where(Site.id == site_uuid), Site)
-    result = _result_one_or_none(await session.execute(query))
-    site_code = result[0] if isinstance(result, tuple) else result
-    if not isinstance(site_code, str) or not site_code.strip():
+    resolved_site_code = _result_scalar_one_or_none(await session.execute(query))
+    if not isinstance(resolved_site_code, str) or not resolved_site_code.strip():
         return None
 
-    normalized_site_code = site_code.strip().upper()
+    normalized_site_code = resolved_site_code.strip().upper()
     if normalized_site_code in normalized_allowed:
         return normalized_site_code
     return None
@@ -1312,10 +1319,10 @@ def load_json_report(path: Path) -> dict[str, Any]:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return {}
-    return payload if isinstance(payload, dict) else {}
+    return cast("dict[str, Any]", payload) if isinstance(payload, dict) else {}
 
 
-def load_live_quality_reports() -> dict[str, Any]:
+def load_live_quality_reports() -> dict[str, dict[str, Any]]:
     return {
         "silver_quality": load_json_report(_SILVER_QUALITY_REPORT_PATH),
         "gold_feature_quality": load_json_report(_GOLD_QUALITY_REPORT_PATH),

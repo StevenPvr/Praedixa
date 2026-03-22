@@ -8,9 +8,6 @@ import {
   StatusBadge,
   type StatusBadgeProps,
 } from "@/components/ui/status-badge";
-import { useApiGet } from "@/hooks/use-api";
-import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
-import { CHAT_POLL_INTERVAL_MS } from "@/lib/chat-config";
 
 type ConversationStatus = "open" | "resolved" | "archived";
 
@@ -25,11 +22,13 @@ interface Conversation {
   updatedAt: string;
 }
 
-interface ConversationListProps {
-  orgId: string;
+type ConversationListProps = Readonly<{
+  conversations: readonly Conversation[] | null | undefined;
+  loading: boolean;
+  error: string | null;
   selectedId: string | null;
   onSelect: (id: string) => void;
-}
+}>;
 
 const STATUS_BADGE_MAP: Record<
   ConversationStatus,
@@ -48,16 +47,17 @@ const FILTER_TABS: { key: FilterTab; label: string }[] = [
   { key: "resolved", label: "Resolues" },
 ];
 
-const VALID_FILTERS: FilterTab[] = ["all", "open", "resolved"];
+const VALID_FILTERS = new Set<FilterTab>(["all", "open", "resolved"]);
 
 function parseFilter(value: string | null): FilterTab {
-  if (value && VALID_FILTERS.includes(value as FilterTab))
-    return value as FilterTab;
+  if (value && VALID_FILTERS.has(value as FilterTab)) return value as FilterTab;
   return "all";
 }
 
 export function ConversationList({
-  orgId,
+  conversations,
+  loading,
+  error,
   selectedId,
   onSelect,
 }: ConversationListProps) {
@@ -71,21 +71,26 @@ export function ConversationList({
       if (f === "all") params.delete("filter");
       else params.set("filter", f);
       const qs = params.toString();
-      router.replace(qs ? `?${qs}` : "?", { scroll: false });
+      const nextHref = qs ? `?` + qs : "?";
+      router.replace(nextHref, { scroll: false });
     },
     [router, searchParams],
   );
 
-  const { data, loading, error } = useApiGet<Conversation[]>(
-    ADMIN_ENDPOINTS.orgConversations(orgId),
-    { pollInterval: CHAT_POLL_INTERVAL_MS },
-  );
-
   const filtered = useMemo(() => {
-    if (!data) return [];
-    if (filter === "all") return data;
-    return data.filter((c) => c.status === filter);
-  }, [data, filter]);
+    if (conversations === null || conversations === undefined) return [];
+    if (filter === "all") return conversations;
+    return conversations.filter((c) => c.status === filter);
+  }, [conversations, filter]);
+  const isConversationDataMissing =
+    conversations === null || conversations === undefined;
+  const hasConversationData = isConversationDataMissing === false;
+  const showLoadingState = loading && isConversationDataMissing;
+  const showEmptyState =
+    loading === false &&
+    error === null &&
+    hasConversationData &&
+    filtered.length === 0;
 
   return (
     <div className="flex h-full flex-col">
@@ -109,7 +114,7 @@ export function ConversationList({
 
       {/* List */}
       <div className="flex-1 overflow-y-auto">
-        {loading && !data && (
+        {showLoadingState && (
           <p className="px-3 py-4 text-sm text-ink-placeholder">
             Chargement...
           </p>
@@ -117,7 +122,7 @@ export function ConversationList({
 
         {error && <p className="px-3 py-4 text-sm text-danger-600">{error}</p>}
 
-        {!loading && !error && data && filtered.length === 0 && (
+        {showEmptyState && (
           <div className="flex flex-col items-center gap-2 px-3 py-8 text-center">
             <MessageSquare className="h-8 w-8 text-ink-placeholder" />
             <p className="text-sm text-ink-placeholder">Aucune conversation</p>
@@ -127,24 +132,32 @@ export function ConversationList({
         {filtered.map((conv) => {
           const badge = STATUS_BADGE_MAP[conv.status];
           const isSelected = selectedId === conv.id;
+          const rowClassName = `w-full border-b border-border-subtle px-3 py-3 text-left transition-colors ${
+            isSelected
+              ? "border-l-2 border-l-primary-400 bg-primary-50/60"
+              : "hover:bg-surface-sunken"
+          }`;
+          const subjectClassName = `text-sm font-medium ${
+            isSelected ? "text-primary-800" : "text-ink"
+          }`;
+          const initiatedByIcon =
+            conv.initiatedBy === "client" ? (
+              <User className="h-3 w-3" />
+            ) : (
+              <Headphones className="h-3 w-3" />
+            );
+          const initiatedByLabel =
+            conv.initiatedBy === "client" ? "client" : "admin";
 
           return (
             <button
               key={conv.id}
               type="button"
               onClick={() => onSelect(conv.id)}
-              className={`w-full border-b border-border-subtle px-3 py-3 text-left transition-colors ${
-                isSelected
-                  ? "border-l-2 border-l-primary-400 bg-primary-50/60"
-                  : "hover:bg-surface-sunken"
-              }`}
+              className={rowClassName}
             >
               <div className="flex items-start justify-between gap-2">
-                <span
-                  className={`text-sm font-medium ${isSelected ? "text-primary-800" : "text-ink"}`}
-                >
-                  {conv.subject}
-                </span>
+                <span className={subjectClassName}>{conv.subject}</span>
                 <StatusBadge
                   variant={badge.variant}
                   label={badge.label}
@@ -153,14 +166,8 @@ export function ConversationList({
               </div>
 
               <div className="mt-1 flex items-center gap-2 text-xs text-ink-placeholder">
-                {conv.initiatedBy === "client" ? (
-                  <User className="h-3 w-3" />
-                ) : (
-                  <Headphones className="h-3 w-3" />
-                )}
-                <span>
-                  {conv.initiatedBy === "client" ? "client" : "admin"}
-                </span>
+                {initiatedByIcon}
+                <span>{initiatedByLabel}</span>
                 {conv.lastMessageAt && (
                   <>
                     <span aria-hidden="true">·</span>

@@ -13,8 +13,16 @@ Le detail de rendu et des mutations est maintenant decoupe par domaine:
 
 - `cost-params-section.tsx` et `proof-packs-section.tsx` pour les tableaux read-only;
 - `decision-config-section.tsx` + `decision-config-card.tsx` pour le moteur de recommandation et ses versions;
+- `decision-config-card-sections.tsx` porte maintenant le detail des blocs resume/controles pour garder `decision-config-card.tsx` sur un role de composition;
 - `integrations-section.tsx` + `integrations-section-*.tsx` pour les connecteurs, credentials, sync runs et evenements;
-- `config-operations.ts` pour les mutations partagees et les helpers de format.
+- `integrations-section-ops.tsx` garde les primitives de champs et les actions du panneau operations connecteur, sans repliquer la meme structure de formulaire entre selection, trigger et fenetres source;
+- `config-operations.ts` pour les mutations partagees, le runner d'etat commun (`loading/error/success`) et les helpers de format.
+- `async-data-table-block.tsx`, `config-readonly-notice.tsx`, `cost-params-section.tsx`, `proof-packs-section.tsx`, `decision-config-card*.tsx`, `integrations-section*.tsx` et les wrappers d'etat de `config/page.tsx` gardent maintenant des contrats de props explicitement immuables (`Readonly`) sur les composants du dossier.
+- `integrations-section-tables.tsx` calcule maintenant son contenu `loading/error/data` en statement dedie plutot qu'en ternaire imbrique, et `integrations-section-ops.tsx` encapsule le texte du label checkbox dans un `<span>` pour garder un JSX explicite et stable pour Sonar.
+- `decision-config-section.tsx` desctructure maintenant explicitement `orgId`, `selectedSiteId`, `canManageConfig` et les handlers de mutation au niveau du composant avant de construire son model, afin que le contrat de props reste lisible pour TypeScript et Sonar.
+- les composants internes de `decision-config-section.tsx` qui prennent un `model` derive d'un hook utilisent maintenant eux aussi un vrai type de props `Readonly<...>` au lieu d'une annotation inline basee sur `ReturnType`, pour eviter les faux positifs Sonar sur les props de composant.
+- `integrations-section-view.tsx` isole maintenant l'etat `credentials` derriere un alias de type dedie et rend le corps principal dans un conteneur `<div>` explicite, pour eviter que Sonar ne desynchronise son parsing TSX sur un generique multi-ligne puis remonte des faux positifs JSX.
+- `config/page.tsx` calcule maintenant le ton du bandeau d'action et l'eventuel `ConfigReadonlyNotice` dans des variables dediees avant le `return`, pour garder un JSX de page simple et stable pour les analyseurs statiques.
 
 ## Integrations
 

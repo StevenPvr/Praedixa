@@ -380,7 +380,9 @@ export const ADMIN_GLOBAL_NAV_ITEMS: readonly AdminGlobalNavItemDefinition[] =
       ],
       label: policy.navigation?.label ?? policy.title,
       requiredPermissions: [...policy.requiredPermissions],
-      shortcut: policy.navigation?.shortcut,
+      ...(policy.navigation?.shortcut
+        ? { shortcut: policy.navigation.shortcut }
+        : {}),
     }));
 
 export function resolveWorkspaceBasePath(pathname: string): string | null {

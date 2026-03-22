@@ -19,18 +19,31 @@ vi.mock("@/lib/auth/request-session", () => ({
 }));
 
 vi.mock("next/server", () => ({
-  NextResponse: {
-    json: (body: unknown, init?: { status?: number }) => ({
-      body,
-      status: init?.status ?? 200,
-      headers: {
-        set: vi.fn(),
-      },
-      cookies: {
+  NextResponse: class MockNextResponse {
+    body: unknown;
+    status: number;
+    headers: Headers;
+    cookies: {
+      delete: ReturnType<typeof vi.fn>;
+      set: ReturnType<typeof vi.fn>;
+    };
+
+    constructor(
+      body?: unknown,
+      init?: { status?: number; headers?: HeadersInit },
+    ) {
+      this.body = body;
+      this.status = init?.status ?? 200;
+      this.headers = new Headers(init?.headers);
+      this.cookies = {
         delete: vi.fn(),
         set: vi.fn(),
-      },
-    }),
+      };
+    }
+
+    static json(body: unknown, init?: { status?: number }) {
+      return new MockNextResponse(body, { status: init?.status ?? 200 });
+    }
   },
 }));
 
@@ -76,6 +89,7 @@ describe("GET /api/v1/[...path]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockResolveAuthAppOrigin.mockReturnValue("https://admin.praedixa.com");
+    vi.stubEnv("NEXT_PUBLIC_API_URL", "http://localhost:8000/");
   });
 
   it("rejects cross-site authenticated proxy requests before touching the session", async () => {
@@ -228,6 +242,46 @@ describe("GET /api/v1/[...path]", () => {
     });
   });
 
+  it("normalizes a trailing slash on NEXT_PUBLIC_API_URL before calling the upstream", async () => {
+    mockResolveRequestSession.mockResolvedValue({
+      ok: true,
+      session: {
+        role: "super_admin",
+        permissions: ["admin:console:access", "admin:messages:read"],
+      },
+      accessToken: "server-only-token",
+      refreshToken: "refresh-token",
+      cookieUpdate: null,
+    });
+    mockFetch.mockResolvedValueOnce(
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    const response = (await GET(
+      createRequest({
+        origin: "https://admin.praedixa.com",
+        fetchSite: "same-origin",
+        pathname: "/api/v1/admin/conversations/unread-count",
+      }),
+      {
+        params: Promise.resolve({
+          path: ["admin", "conversations", "unread-count"],
+        }),
+      },
+    )) as { status: number };
+
+    expect(response.status).toBe(200);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "http://localhost:8000/api/v1/admin/conversations/unread-count",
+      expect.objectContaining({
+        method: "GET",
+      }),
+    );
+  });
+
   it("rejects oversized proxy payloads with 413 before the upstream call", async () => {
     mockResolveRequestSession.mockResolvedValue({
       ok: true,
@@ -246,7 +300,7 @@ describe("GET /api/v1/[...path]", () => {
         origin: "https://admin.praedixa.com",
         fetchSite: "same-origin",
         pathname: "/api/v1/admin/onboarding",
-        contentLength: String(1024 * 1024 + 1),
+        contentLength: String(50 * 1024 * 1024 + 1),
         body: '{"name":"too-large"}',
       }),
       {

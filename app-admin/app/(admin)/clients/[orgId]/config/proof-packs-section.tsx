@@ -11,7 +11,8 @@ interface ProofPacksSectionProps {
   orgId: string;
 }
 
-export function ProofPacksSection({ orgId }: ProofPacksSectionProps) {
+export function ProofPacksSection(props: Readonly<ProofPacksSectionProps>) {
+  const { orgId } = props;
   const { data, loading, error, refetch } = useApiGet<ProofPack[]>(
     ADMIN_ENDPOINTS.orgProofPacks(orgId),
   );

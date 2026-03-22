@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 let mockSearchParams = new URLSearchParams();
 
 const originalLocation = window.location;
+const fetchMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => mockSearchParams,
@@ -16,6 +17,14 @@ import AuthLayout from "../../layout";
 describe("Admin LoginPage", () => {
   beforeEach(() => {
     mockSearchParams = new URLSearchParams();
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue({
+      ok: false,
+      json: vi.fn(),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    vi.unstubAllEnvs();
+    window.sessionStorage.clear();
     Object.defineProperty(window, "location", {
       configurable: true,
       writable: true,
@@ -28,6 +37,8 @@ describe("Admin LoginPage", () => {
       configurable: true,
       value: originalLocation,
     });
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
   });
 
   it("renders admin login header", () => {
@@ -77,12 +88,81 @@ describe("Admin LoginPage", () => {
   });
 
   it("renders explicit untrusted OIDC provider banner", () => {
-    mockSearchParams = new URLSearchParams("error=oidc_provider_untrusted");
+    mockSearchParams = new URLSearchParams(
+      `error=oidc_provider_untrusted&provider_retry_at=${Date.now()}`,
+    );
     render(<LoginPage />);
 
     expect(
       screen.getByText(/Le fournisseur OIDC est non fiable ou mal configure/),
     ).toBeInTheDocument();
+  });
+
+  it("auto-retries login once when the stale OIDC provider error is already recovered", async () => {
+    mockSearchParams = new URLSearchParams(
+      "error=oidc_provider_untrusted&next=/",
+    );
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: vi.fn().mockResolvedValue({ healthy: true }),
+    });
+
+    render(<LoginPage />);
+
+    expect(
+      screen.getByText(/Verification du fournisseur OIDC en cours/),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Le fournisseur OIDC est non fiable ou mal configure/),
+    ).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/auth/provider-status", {
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+      const redirected = new URL(window.location.href);
+      expect(redirected.pathname).toBe("/auth/login");
+      expect(redirected.searchParams.get("next")).toBe("/");
+      expect(redirected.searchParams.get("provider_retry_at")).toMatch(/^\d+$/);
+    });
+  });
+
+  it("suppresses auto-retry for a very recent provider retry marker", () => {
+    mockSearchParams = new URLSearchParams(
+      `error=oidc_provider_untrusted&next=/&provider_retry_at=${Date.now()}`,
+    );
+    render(<LoginPage />);
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(window.location.href).toBe("");
+  });
+
+  it("retries again once the provider retry marker is old enough", async () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_ORIGIN", "http://localhost:3002");
+    mockSearchParams = new URLSearchParams(
+      `error=oidc_provider_untrusted&next=/&provider_retry_at=${Date.now() - 20_000}`,
+    );
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      writable: true,
+      value: { href: "", origin: "http://127.0.0.1:3002" },
+    });
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: vi.fn().mockResolvedValue({ healthy: true }),
+    });
+
+    render(<LoginPage />);
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalled();
+      expect(window.location.href).toContain(
+        "http://localhost:3002/auth/login?next=%2F",
+      );
+    });
   });
 
   it("redirects to /auth/login with safe next path", async () => {
@@ -96,6 +176,27 @@ describe("Admin LoginPage", () => {
 
     expect(window.location.href).toBe(
       "https://admin.praedixa.com/auth/login?next=%2Fclients",
+    );
+  });
+
+  it("prefers NEXT_PUBLIC_APP_ORIGIN when the current tab uses a loopback alias", async () => {
+    const user = userEvent.setup();
+    vi.stubEnv("NEXT_PUBLIC_APP_ORIGIN", "http://localhost:3002");
+    mockSearchParams = new URLSearchParams("next=/");
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      writable: true,
+      value: { href: "", origin: "http://127.0.0.1:3002" },
+    });
+
+    render(<LoginPage />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Continuer vers la connexion" }),
+    );
+
+    expect(window.location.href).toBe(
+      "http://localhost:3002/auth/login?next=%2F",
     );
   });
 

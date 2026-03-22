@@ -12,7 +12,7 @@ import {
   hasExplicitAdminPagePolicy,
   resolveAccessibleAdminPath,
   resolveAdminApiPolicy,
-} from "../route-access";
+} from "../admin-route-policies";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 
 const authTestDir = dirname(fileURLToPath(import.meta.url));
@@ -50,7 +50,7 @@ function pageFileToRoutePattern(filePath: string): string {
   return `/${normalized.replace(/\/page\.tsx$/, "")}`;
 }
 
-describe("route access helpers", () => {
+describe("admin route policy helpers", () => {
   it("maps workspace sections to their required permissions", () => {
     expect(getRequiredPermissionsForPath("/clients/org-1/equipe")).toEqual([
       "admin:users:read",
@@ -249,6 +249,14 @@ describe("route access helpers", () => {
     expect(
       canAccessAdminApiPath(ADMIN_ENDPOINTS.organization("org-1"), "GET", [
         "admin:onboarding:read",
+      ]),
+    ).toBe(true);
+  });
+
+  it("allows messages-only profiles to load the shared org workspace header endpoint", () => {
+    expect(
+      canAccessAdminApiPath(ADMIN_ENDPOINTS.organization("org-1"), "GET", [
+        "admin:messages:read",
       ]),
     ).toBe(true);
   });

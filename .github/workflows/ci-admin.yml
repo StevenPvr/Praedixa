@@ -46,7 +46,7 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
-          ./scripts/ci-evaluate-scope.sh \
+          ./scripts/gates/ci-evaluate-scope.sh \
             --workflow admin \
             --event-name "$EVENT_NAME" \
             --base-sha "$BASE_SHA" \

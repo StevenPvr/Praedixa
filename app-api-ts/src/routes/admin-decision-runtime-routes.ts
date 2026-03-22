@@ -60,7 +60,7 @@ function parseBody<T>(
 }
 
 function organizationIdFrom(ctx: RouteContext): string {
-  return ctx.params.orgId ?? "";
+  return ctx.params["orgId"] ?? "";
 }
 
 function resolveDecisionMutationInput<T>(
@@ -150,7 +150,7 @@ async function listApprovalInbox(ctx: RouteContext) {
 
 async function decideApproval(ctx: RouteContext) {
   const input = resolveDecisionMutationInput(ctx, {
-    paramValue: ctx.params.approvalId,
+    paramValue: ctx.params["approvalId"],
     invalidParamCode: "INVALID_APPROVAL_ID",
     label: "Approval id",
     paramName: "approvalId",
@@ -168,7 +168,16 @@ async function decideApproval(ctx: RouteContext) {
         approvalId: input.entityId,
         actorUserId: input.actor.actorUserId,
         actorRole: input.actor.actorRole,
-        request: input.request,
+        request: {
+          outcome: input.request.outcome,
+          reasonCode: input.request.reasonCode,
+          ...(input.request.comment !== undefined
+            ? { comment: input.request.comment }
+            : {}),
+          ...(input.request.decidedAt !== undefined
+            ? { decidedAt: input.request.decidedAt }
+            : {}),
+        },
       }),
     successMessage: "Approval decision persisted",
     failureCode: "APPROVAL_DECISION_FAILED",
@@ -178,7 +187,7 @@ async function decideApproval(ctx: RouteContext) {
 
 async function getActionDispatchDetail(ctx: RouteContext) {
   const actionId = requireUuidParam(
-    ctx.params.actionId,
+    ctx.params["actionId"],
     ctx.requestId,
     "INVALID_ACTION_ID",
     "Action id",
@@ -206,7 +215,7 @@ async function getActionDispatchDetail(ctx: RouteContext) {
 
 async function decideActionDispatch(ctx: RouteContext) {
   const input = resolveDecisionMutationInput(ctx, {
-    paramValue: ctx.params.actionId,
+    paramValue: ctx.params["actionId"],
     invalidParamCode: "INVALID_ACTION_ID",
     label: "Action id",
     paramName: "actionId",
@@ -225,7 +234,28 @@ async function decideActionDispatch(ctx: RouteContext) {
         actorUserId: input.actor.actorUserId,
         actorRole: input.actor.actorRole,
         actorPermissions: input.actor.actorPermissions,
-        request: input.request,
+        request: {
+          outcome: input.request.outcome,
+          reasonCode: input.request.reasonCode,
+          ...(input.request.comment !== undefined
+            ? { comment: input.request.comment }
+            : {}),
+          ...(input.request.errorCode !== undefined
+            ? { errorCode: input.request.errorCode }
+            : {}),
+          ...(input.request.errorMessage !== undefined
+            ? { errorMessage: input.request.errorMessage }
+            : {}),
+          ...(input.request.occurredAt !== undefined
+            ? { occurredAt: input.request.occurredAt }
+            : {}),
+          ...(input.request.latencyMs !== undefined
+            ? { latencyMs: input.request.latencyMs }
+            : {}),
+          ...(input.request.targetReference !== undefined
+            ? { targetReference: input.request.targetReference }
+            : {}),
+        },
       }),
     successMessage: "Action dispatch decision persisted",
     failureCode: "ACTION_DISPATCH_DECISION_FAILED",
@@ -235,7 +265,7 @@ async function decideActionDispatch(ctx: RouteContext) {
 
 async function decideActionFallback(ctx: RouteContext) {
   const input = resolveDecisionMutationInput(ctx, {
-    paramValue: ctx.params.actionId,
+    paramValue: ctx.params["actionId"],
     invalidParamCode: "INVALID_ACTION_ID",
     label: "Action id",
     paramName: "actionId",
@@ -254,7 +284,32 @@ async function decideActionFallback(ctx: RouteContext) {
         actorUserId: input.actor.actorUserId,
         actorRole: input.actor.actorRole,
         actorPermissions: input.actor.actorPermissions,
-        request: input.request,
+        request:
+          input.request.operation === "prepare"
+            ? {
+                operation: "prepare",
+                channel: input.request.channel,
+                reasonCode: input.request.reasonCode,
+                ...(input.request.reference !== undefined
+                  ? { reference: input.request.reference }
+                  : {}),
+                ...(input.request.occurredAt !== undefined
+                  ? { occurredAt: input.request.occurredAt }
+                  : {}),
+                ...(input.request.comment !== undefined
+                  ? { comment: input.request.comment }
+                  : {}),
+              }
+            : {
+                operation: "execute",
+                reasonCode: input.request.reasonCode,
+                ...(input.request.occurredAt !== undefined
+                  ? { occurredAt: input.request.occurredAt }
+                  : {}),
+                ...(input.request.comment !== undefined
+                  ? { comment: input.request.comment }
+                  : {}),
+              },
       }),
     successMessage: "Action dispatch fallback persisted",
     failureCode: "ACTION_DISPATCH_FALLBACK_FAILED",
@@ -264,7 +319,7 @@ async function decideActionFallback(ctx: RouteContext) {
 
 async function getLedgerDetail(ctx: RouteContext) {
   const ledgerId = requireUuidParam(
-    ctx.params.ledgerId,
+    ctx.params["ledgerId"],
     ctx.requestId,
     "INVALID_LEDGER_ID",
     "Ledger id",
@@ -288,8 +343,9 @@ async function getLedgerDetail(ctx: RouteContext) {
         organizationId: organizationIdFrom(ctx),
         request: {
           ledgerId,
-          revision:
-            revision == null ? undefined : Number.parseInt(revision, 10),
+          ...(revision != null
+            ? { revision: Number.parseInt(revision, 10) }
+            : {}),
         },
       }),
       ctx.requestId,
@@ -306,7 +362,7 @@ async function getLedgerDetail(ctx: RouteContext) {
 
 async function decideLedger(ctx: RouteContext) {
   const input = resolveDecisionMutationInput(ctx, {
-    paramValue: ctx.params.ledgerId,
+    paramValue: ctx.params["ledgerId"],
     invalidParamCode: "INVALID_LEDGER_ID",
     label: "Ledger id",
     paramName: "ledgerId",
@@ -324,7 +380,42 @@ async function decideLedger(ctx: RouteContext) {
         ledgerId: input.entityId,
         actorUserId: input.actor.actorUserId,
         actorRole: input.actor.actorRole,
-        request: input.request,
+        request:
+          input.request.operation === "validate"
+            ? {
+                operation: "validate",
+                reasonCode: input.request.reasonCode,
+                validationStatus: input.request.validationStatus,
+                ...(input.request.comment !== undefined
+                  ? { comment: input.request.comment }
+                  : {}),
+                ...(input.request.occurredAt !== undefined
+                  ? { occurredAt: input.request.occurredAt }
+                  : {}),
+              }
+            : {
+                operation: input.request.operation,
+                reasonCode: input.request.reasonCode,
+                ...(input.request.comment !== undefined
+                  ? { comment: input.request.comment }
+                  : {}),
+                ...(input.request.occurredAt !== undefined
+                  ? { occurredAt: input.request.occurredAt }
+                  : {}),
+                actual: {
+                  ...(input.request.actual.recordedAt !== undefined
+                    ? { recordedAt: input.request.actual.recordedAt }
+                    : {}),
+                  values: input.request.actual.values,
+                },
+                roi: {
+                  ...(input.request.roi.currency !== undefined
+                    ? { currency: input.request.roi.currency }
+                    : {}),
+                  validationStatus: input.request.roi.validationStatus,
+                  components: input.request.roi.components,
+                },
+              },
       }),
     successMessage: "Ledger decision persisted",
     failureCode: "LEDGER_DECISION_FAILED",

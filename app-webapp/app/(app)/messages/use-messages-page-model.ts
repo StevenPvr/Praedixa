@@ -4,6 +4,10 @@ import { useCallback, useMemo, useState } from "react";
 import { useApiGet, useApiPost } from "@/hooks/use-api";
 import { useCurrentUser } from "@/lib/auth/client";
 import type { Conversation, ConversationMessage } from "@/lib/api/endpoints";
+import {
+  WEBAPP_RUNTIME_FEATURES,
+  unavailableFeatureMessage,
+} from "@/lib/runtime-features";
 
 interface CreateConversationBody {
   subject: string;
@@ -20,6 +24,7 @@ interface MessagesPageModel {
   conversationsLoading: boolean;
   creatingConversation: boolean;
   currentUserId: string | null;
+  messagingAvailable: boolean;
   messagesLoading: boolean;
   newConversationSubject: string;
   orderedMessages: ConversationMessage[];
@@ -76,6 +81,7 @@ function sortMessagesByCreatedAt(
 
 export function useMessagesPageModel(): MessagesPageModel {
   const currentUser = useCurrentUser();
+  const messagingAvailable = WEBAPP_RUNTIME_FEATURES.messagingWorkspace;
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null
   >(null);
@@ -87,9 +93,12 @@ export function useMessagesPageModel(): MessagesPageModel {
     loading: conversationsLoading,
     error: conversationsError,
     refetch: refetchConversations,
-  } = useApiGet<Conversation[]>("/api/v1/conversations", {
-    pollInterval: 5000,
-  });
+  } = useApiGet<Conversation[]>(
+    messagingAvailable ? "/api/v1/conversations" : null,
+    {
+      pollInterval: 5000,
+    },
+  );
 
   const conversations = useMemo(
     () => normalizeConversations(conversationsData),
@@ -107,7 +116,7 @@ export function useMessagesPageModel(): MessagesPageModel {
     error: messagesError,
     refetch: refetchMessages,
   } = useApiGet<ConversationMessage[]>(
-    buildMessagesUrl(selectedConversationId),
+    messagingAvailable ? buildMessagesUrl(selectedConversationId) : null,
     {
       pollInterval: 4000,
     },
@@ -135,7 +144,11 @@ export function useMessagesPageModel(): MessagesPageModel {
   );
 
   const trimmedSubject = newConversationSubject.trim();
+  const unavailableMessage = messagingAvailable
+    ? null
+    : unavailableFeatureMessage("La messagerie support");
   const combinedError =
+    unavailableMessage ??
     conversationsError ??
     messagesError ??
     createConversationError ??
@@ -195,6 +208,7 @@ export function useMessagesPageModel(): MessagesPageModel {
     conversationsLoading,
     creatingConversation,
     currentUserId: currentUser?.id ?? null,
+    messagingAvailable,
     handleCreateConversation,
     handleSendMessage,
     messagesLoading,

@@ -145,7 +145,9 @@ describe("EquipePage", () => {
     await user.click(screen.getByRole("button", { name: "Creer" }));
 
     await waitFor(() => expect(mutate).toHaveBeenCalled());
-    expect(mockToastSuccess).toHaveBeenCalledWith("Invitation envoyee");
+    expect(mockToastSuccess).toHaveBeenCalledWith(
+      "Invitation initialisee. Preuve provider en attente.",
+    );
   });
 
   it("shows error toast when invite fails", async () => {

@@ -25,3 +25,4 @@ Ce dossier est consommé par l'application `app-webapp` et s'insère dans son fl
 - Un echec de lecture ou d'ecriture des preferences ne doit jamais etre silencieux: le provider expose un etat `preferencesSyncState` et un message `preferencesSyncError`.
 - La locale de l'application vient de la preference serveur confirmee ou du `FALLBACK_LOCALE`, jamais d'un cache `localStorage` implicite.
 - Si la persistance est indisponible, `preferencesSyncState` passe a `unavailable` et le changement de langue echoue cote client au lieu de simuler une preference enregistree localement.
+- `WEBAPP_RUNTIME_FEATURES.userPreferencesPersistence` est maintenant active pour le runtime webapp principal; si cette persistance doit etre recoupee, il faut rerun les E2E `parametres` associes avant de pousser.

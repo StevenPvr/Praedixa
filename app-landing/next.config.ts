@@ -3,12 +3,12 @@ import bundleAnalyzer from "@next/bundle-analyzer";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 import { buildSecurityHeaders } from "./lib/security/headers";
 
-void initOpenNextCloudflareForDev();
+Promise.resolve(initOpenNextCloudflareForDev()).catch(() => undefined);
 
 const allowedDevOrigins = ["127.0.0.1", "localhost"];
 
 const withBundleAnalyzer = bundleAnalyzer({
-  enabled: process.env.ANALYZE === "true",
+  enabled: process.env["ANALYZE"] === "true",
 });
 
 const config: NextConfig = {

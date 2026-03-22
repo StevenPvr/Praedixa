@@ -21,13 +21,15 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import ENUM as PG_ENUM
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
-from alembic import op
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
 
 revision: str = "027"
 down_revision: str | None = "026"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
+NOW_SQL = "now()"
+OPERATIONAL_DECISIONS_ID_REF = "operational_decisions.id"
 _BYPASS_COND = " OR current_setting('app.bypass_rls', true) = 'true'"
 _TABLES_WITH_DIRECT_ORG = [
     "decision_approvals",
@@ -123,7 +125,7 @@ def upgrade() -> None:
         sa.Column(
             "recommendation_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("operational_decisions.id", ondelete="CASCADE"),
+            sa.ForeignKey(OPERATIONAL_DECISIONS_ID_REF, ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column("site_id", sa.String(50), nullable=True),
@@ -138,13 +140,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.UniqueConstraint("approval_id", name="uq_decision_approval_business_id"),
@@ -173,7 +175,7 @@ def upgrade() -> None:
         sa.Column(
             "recommendation_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("operational_decisions.id", ondelete="CASCADE"),
+            sa.ForeignKey(OPERATIONAL_DECISIONS_ID_REF, ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
@@ -195,13 +197,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.UniqueConstraint("action_id", name="uq_action_dispatch_business_id"),
@@ -236,7 +238,7 @@ def upgrade() -> None:
         sa.Column(
             "recommendation_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("operational_decisions.id", ondelete="CASCADE"),
+            sa.ForeignKey(OPERATIONAL_DECISIONS_ID_REF, ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
@@ -256,13 +258,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.UniqueConstraint(

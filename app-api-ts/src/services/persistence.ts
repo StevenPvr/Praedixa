@@ -27,7 +27,7 @@ export function isUuidString(
 }
 
 export function hasPersistentDatabase(): boolean {
-  return (process.env.DATABASE_URL?.trim().length ?? 0) > 0;
+  return (process.env["DATABASE_URL"]?.trim().length ?? 0) > 0;
 }
 
 export function canUsePersistentStore(
@@ -41,7 +41,7 @@ export function getPersistencePool(): Pool | null {
     return singletonPool;
   }
 
-  const databaseUrl = process.env.DATABASE_URL?.trim() ?? "";
+  const databaseUrl = process.env["DATABASE_URL"]?.trim() ?? "";
   if (!databaseUrl) {
     singletonPool = null;
     return singletonPool;

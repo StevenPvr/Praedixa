@@ -13,14 +13,14 @@ const ROW_HEIGHT = 36;
 interface DataTableBodyProps<T> {
   columns: DataTableColumn<T>[];
   data: T[];
-  selection?: DataTableSelection;
-  getRowKey?: (row: T, index: number) => string | number;
+  selection: DataTableSelection | undefined;
+  getRowKey: ((row: T, index: number) => string | number) | undefined;
   emptyMessage: string;
-  onRowClick?: (row: T, index: number) => void;
+  onRowClick: ((row: T, index: number) => void) | undefined;
   onSelectRow: (key: string | number) => void;
   totalCols: number;
-  virtualise?: boolean;
-  scrollRef?: React.RefObject<HTMLDivElement | null>;
+  virtualise: boolean | undefined;
+  scrollRef: React.RefObject<HTMLDivElement | null> | undefined;
 }
 
 const cellBaseClass = "whitespace-nowrap text-body-compact text-[var(--ink)]";

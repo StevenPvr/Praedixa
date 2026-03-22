@@ -223,6 +223,11 @@ export async function insertEvent(
     payloadJson?: Record<string, unknown>;
   },
 ): Promise<void> {
+  const persistedActorUserId = await resolvePersistedActorUserId(
+    client,
+    input.actorUserId,
+  );
+
   await client.query(
     `
     INSERT INTO onboarding_case_events (
@@ -247,12 +252,34 @@ export async function insertEvent(
     [
       randomUUID(),
       input.caseId,
-      input.actorUserId,
+      persistedActorUserId,
       input.eventType,
       input.message,
       JSON.stringify(input.payloadJson ?? {}),
     ],
   );
+}
+
+async function resolvePersistedActorUserId(
+  queryable: DbQueryable,
+  actorUserId: string | null,
+): Promise<string | null> {
+  if (!isUuidString(actorUserId)) {
+    return null;
+  }
+
+  const result = await queryable.query<{ id: string }>(
+    `
+    SELECT id::text
+    FROM users
+    WHERE id::text = $1 OR auth_user_id = $1
+    ORDER BY CASE WHEN id::text = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+    `,
+    [actorUserId],
+  );
+
+  return result.rows[0]?.id ?? null;
 }
 
 export async function listTaskRowsByCaseId(
@@ -283,6 +310,36 @@ export async function listTaskRowsByCaseId(
     [caseId],
   );
   return rows.rows;
+}
+
+export async function readTaskRowById(
+  queryable: DbQueryable,
+  taskId: string,
+): Promise<DbOnboardingTaskRow | null> {
+  const rows = await queryable.query<DbOnboardingTaskRow>(
+    `
+    SELECT
+      id::text,
+      case_id::text,
+      task_key,
+      title,
+      domain,
+      task_type,
+      status,
+      assignee_user_id::text,
+      sort_order,
+      due_at,
+      completed_at,
+      details_json,
+      created_at,
+      updated_at
+    FROM onboarding_case_tasks
+    WHERE id = $1::uuid
+    LIMIT 1
+    `,
+    [taskId],
+  );
+  return rows.rows[0] ?? null;
 }
 
 export async function listBlockerRowsByCaseId(
@@ -466,6 +523,115 @@ export async function updateCaseLifecycleState(
       input.phase ?? null,
       input.closedAt ?? null,
       JSON.stringify(input.metadataJsonPatch ?? {}),
+    ],
+  );
+}
+
+export async function insertOnboardingSourceRun(
+  client: PoolClient,
+  input: {
+    caseId: string;
+    taskId: string;
+    sourceKey: string;
+    sourceType: string;
+    action: string;
+    status: string;
+    message?: string | null;
+    fileName?: string | null;
+    fileSizeBytes?: number | null;
+    storedPath?: string | null;
+    statsJson?: Record<string, unknown>;
+    startedAt?: string | null;
+    completedAt?: string | null;
+  },
+): Promise<string> {
+  const runId = randomUUID();
+  await client.query(
+    `
+    INSERT INTO onboarding_source_runs (
+      id,
+      case_id,
+      task_id,
+      source_key,
+      source_type,
+      action,
+      status,
+      message,
+      file_name,
+      file_size_bytes,
+      stored_path,
+      stats_json,
+      started_at,
+      completed_at,
+      created_at,
+      updated_at
+    )
+    VALUES (
+      $1::uuid,
+      $2::uuid,
+      $3::uuid,
+      $4,
+      $5,
+      $6,
+      $7,
+      $8,
+      $9,
+      $10::bigint,
+      $11,
+      $12::jsonb,
+      $13::timestamptz,
+      $14::timestamptz,
+      NOW(),
+      NOW()
+    )
+    `,
+    [
+      runId,
+      input.caseId,
+      input.taskId,
+      input.sourceKey,
+      input.sourceType,
+      input.action,
+      input.status,
+      input.message ?? null,
+      input.fileName ?? null,
+      input.fileSizeBytes ?? null,
+      input.storedPath ?? null,
+      JSON.stringify(input.statsJson ?? {}),
+      input.startedAt ?? null,
+      input.completedAt ?? null,
+    ],
+  );
+  return runId;
+}
+
+export async function updateOnboardingSourceRun(
+  client: PoolClient,
+  input: {
+    runId: string;
+    status: string;
+    message?: string | null;
+    statsJson?: Record<string, unknown>;
+    completedAt?: string | null;
+  },
+): Promise<void> {
+  await client.query(
+    `
+    UPDATE onboarding_source_runs
+    SET
+      status = $2,
+      message = COALESCE($3, message),
+      stats_json = COALESCE($4::jsonb, stats_json),
+      completed_at = $5::timestamptz,
+      updated_at = NOW()
+    WHERE id = $1::uuid
+    `,
+    [
+      input.runId,
+      input.status,
+      input.message ?? null,
+      input.statsJson ? JSON.stringify(input.statsJson) : null,
+      input.completedAt ?? null,
     ],
   );
 }

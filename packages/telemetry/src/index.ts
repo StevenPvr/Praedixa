@@ -19,9 +19,6 @@ export {
   TRACEPARENT_HEADER,
   TRACESTATE_HEADER,
   mergeTelemetryCorrelation,
-  normalizeTelemetryCorrelationValue,
-  normalizeTelemetryRequestId,
-  normalizeTracestate,
 } from "./correlation.js";
 export type {
   TelemetryEventInput,

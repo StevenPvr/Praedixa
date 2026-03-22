@@ -68,7 +68,7 @@ function DataTablePaginationBarInner({
           ) : (
             <button
               key={pageNum}
-              onClick={() => pagination.onPageChange(pageNum as number)}
+              onClick={() => pagination.onPageChange(pageNum)}
               className={cn(
                 "min-w-[2rem] rounded-[var(--radius-sm,6px)] px-2 py-1 text-caption font-medium transition-colors duration-[var(--duration-fast,200ms)]",
                 pageNum === pagination.page

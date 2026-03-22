@@ -17,8 +17,8 @@ La landing est prete sur Scaleway en `staging` et `prod`; le cutover public de `
 - Namespaces existants: `landing-staging`, `landing-prod`, `webapp-staging`, `webapp-prod`, `admin-staging`, `admin-prod`, `api-staging`, `api-prod`, `auth-prod`.
 - `auth-prod` (Keycloak) est deployee et `ready`.
 - Containers `landing/webapp/admin/api` sont provisionnes mais restent en `error` tant qu'aucune image n'est deployee (normal).
-- Preflight staging/prod versionne: `./scripts/scw-preflight-deploy.sh staging|prod`, strict par defaut sur la delegation DNS.
-- Preflight global deploy readiness: `./scripts/scw-preflight-deploy.sh all` (sans deploy).
+- Preflight staging/prod versionne: `./scripts/scw/scw-preflight-deploy.sh staging|prod`, strict par defaut sur la delegation DNS.
+- Preflight global deploy readiness: `./scripts/scw/scw-preflight-deploy.sh all` (sans deploy).
 - Inventaire runtime secrets versionne: `node ./scripts/validate-runtime-secret-inventory.mjs`.
 
 ## Prerequis
@@ -35,27 +35,27 @@ Reference complementaire a garder a cote:
 
 ## Scripts de reference
 
-| Commande                                                        | Role                                                                                     |
-| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `pnpm run scw:bootstrap:frontends`                              | Cree namespaces/containers frontends + buckets frontends                                 |
-| `pnpm run scw:bootstrap:api`                                    | Cree namespaces/containers API                                                           |
-| `pnpm run scw:configure:landing:staging`                        | Injecte env vars/secrets landing staging                                                 |
-| `pnpm run scw:configure:landing:prod`                           | Injecte env vars/secrets landing prod                                                    |
-| `pnpm run scw:configure:webapp:staging`                         | Injecte env vars/secrets webapp staging                                                  |
-| `pnpm run scw:configure:webapp:prod`                            | Injecte env vars/secrets webapp prod                                                     |
-| `pnpm run scw:configure:admin:staging`                          | Injecte env vars/secrets admin staging                                                   |
-| `pnpm run scw:configure:admin:prod`                             | Injecte env vars/secrets admin prod                                                      |
-| `pnpm run scw:configure:api:staging`                            | Injecte env vars/secrets API staging                                                     |
-| `pnpm run scw:configure:api:prod`                               | Injecte env vars/secrets API prod                                                        |
-| `./scripts/scw-preflight-deploy.sh all`                         | Controle readiness globale staging+prod+landing (sans deploy)                            |
-| `./scripts/scw-preflight-deploy.sh prod`                        | Controle readiness prod+landing (sans deploy)                                            |
-| `./scripts/scw-preflight-deploy.sh staging`                     | Controle readiness infra + DNS staging (sans deploy)                                     |
-| `pnpm release:build -- --service <service> ...`                 | Build/push image immuable par digest                                                     |
-| `pnpm release:manifest:create -- ...`                           | Cree un manifest signe pour la release multi-service                                     |
-| `pnpm release:deploy -- --manifest ... --env <env>`             | Deploie depuis un manifest signe, avec fallback tag journalise si l'API refuse le digest |
-| `./scripts/scw-rollback-plan.sh --current-manifest ...`         | Selectionne et verifie le manifest precedent pour rollback                               |
-| `./scripts/scw-rollback-execute.sh --current-manifest ...`      | Redeploie le manifest precedent et peut enchainer le smoke                               |
-| `./scripts/scw-post-deploy-smoke.sh --env <env> --services ...` | Smoke CLI canonique post-deploy ou post-rollback                                         |
+| Commande                                                            | Role                                                                                     |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `pnpm run scw:bootstrap:frontends`                                  | Cree namespaces/containers frontends + buckets frontends                                 |
+| `pnpm run scw:bootstrap:api`                                        | Cree namespaces/containers API                                                           |
+| `pnpm run scw:configure:landing:staging`                            | Injecte env vars/secrets landing staging                                                 |
+| `pnpm run scw:configure:landing:prod`                               | Injecte env vars/secrets landing prod                                                    |
+| `pnpm run scw:configure:webapp:staging`                             | Injecte env vars/secrets webapp staging                                                  |
+| `pnpm run scw:configure:webapp:prod`                                | Injecte env vars/secrets webapp prod                                                     |
+| `pnpm run scw:configure:admin:staging`                              | Injecte env vars/secrets admin staging                                                   |
+| `pnpm run scw:configure:admin:prod`                                 | Injecte env vars/secrets admin prod                                                      |
+| `pnpm run scw:configure:api:staging`                                | Injecte env vars/secrets API staging                                                     |
+| `pnpm run scw:configure:api:prod`                                   | Injecte env vars/secrets API prod                                                        |
+| `./scripts/scw/scw-preflight-deploy.sh all`                         | Controle readiness globale staging+prod+landing (sans deploy)                            |
+| `./scripts/scw/scw-preflight-deploy.sh prod`                        | Controle readiness prod+landing (sans deploy)                                            |
+| `./scripts/scw/scw-preflight-deploy.sh staging`                     | Controle readiness infra + DNS staging (sans deploy)                                     |
+| `pnpm release:build -- --service <service> ...`                     | Build/push image immuable par digest                                                     |
+| `pnpm release:manifest:create -- ...`                               | Cree un manifest signe pour la release multi-service                                     |
+| `pnpm release:deploy -- --manifest ... --env <env>`                 | Deploie depuis un manifest signe, avec fallback tag journalise si l'API refuse le digest |
+| `./scripts/scw/scw-rollback-plan.sh --current-manifest ...`         | Selectionne et verifie le manifest precedent pour rollback                               |
+| `./scripts/scw/scw-rollback-execute.sh --current-manifest ...`      | Redeploie le manifest precedent et peut enchainer le smoke                               |
+| `./scripts/scw/scw-post-deploy-smoke.sh --env <env> --services ...` | Smoke CLI canonique post-deploy ou post-rollback                                         |
 
 Regle d'exploitation:
 
@@ -82,8 +82,8 @@ pnpm run scw:bootstrap:api
 
 ```bash
 node ./scripts/validate-runtime-secret-inventory.mjs
-./scripts/scw-preflight-deploy.sh all
-./scripts/scw-preflight-deploy.sh staging
+./scripts/scw/scw-preflight-deploy.sh all
+./scripts/scw/scw-preflight-deploy.sh staging
 ```
 
 4. Deployer quand valide via runner immuable:
@@ -104,10 +104,10 @@ pnpm release:manifest:create -- \
   --image "api=$(jq -r '.registry_image' /tmp/api.json)"
 
 pnpm release:deploy -- --manifest /tmp/release-manifest.json --env staging --services landing,webapp,admin,api
-./scripts/scw-post-deploy-smoke.sh --env staging --services api,webapp,admin
+./scripts/scw/scw-post-deploy-smoke.sh --env staging --services api,webapp,admin
 
 pnpm release:promote -- --manifest /tmp/release-manifest.json --to prod --services landing,webapp,admin,api
-./scripts/scw-post-deploy-smoke.sh --env prod --services api,webapp,admin,auth
+./scripts/scw/scw-post-deploy-smoke.sh --env prod --services api,webapp,admin,auth
 ```
 
 Note de build frontend:
@@ -119,6 +119,8 @@ Note de build frontend:
 - si aucun asset public n'est encore livre par le webapp, garder quand meme `app-webapp/public/` versionne (meme vide) pour que le `COPY` runtime reste deterministe dans l'image.
 
 ## One-pagers prospects proteges: bootstrap DNS sans zone grise
+
+Les sources prospect vivent sous `marketing/presentations-clients/` a la racine du repo; les commandes ci-dessous restent inchangées et s'appuient sur les scripts `scw:*` du monorepo.
 
 Les bootstrap prospects `centaurus` et `skolae` n'acceptent plus un chemin "semi-manuel" ou le container est provisionne mais le DNS resterait a finir plus tard.
 
@@ -244,6 +246,7 @@ Regle d'exploitation:
 
 Variables shell requises:
 
+- `PRIVATE_NETWORK_ID`
 - `KC_DB_URL_HOST`
 - `KC_DB_URL_PORT` (defaut pratique: `5432`)
 - `KC_DB_URL_DATABASE`
@@ -255,12 +258,16 @@ Variables optionnelles:
 
 - `AUTH_HOSTNAME` (defaut: `auth.praedixa.com`)
 - `KEYCLOAK_ADMIN_USERNAME` (defaut: `kcadmin`)
+- `SUPER_ADMIN_EMAIL` (defaut: `admin@praedixa.com`)
+- `SUPER_ADMIN_PASSWORD` (si fourni, reprovisionne aussi le compte bootstrap admin dans le realm live)
 
 Regle d'exploitation:
 
 - `KC_DB` est force a `postgres` par le script de configuration;
+- `PRIVATE_NETWORK_ID` est applique au container `auth-prod` dans le meme passage pour garantir l'acces prive a la base auth;
 - le secret bootstrap admin runtime est synchronise sous `/praedixa/prod/auth-prod/runtime` avant application au container;
 - `KC_DB_PASSWORD` est synchronise sur le meme path secret manager que `KC_BOOTSTRAP_ADMIN_PASSWORD`;
+- si `SUPER_ADMIN_PASSWORD` est fourni explicitement, le script reapplique aussi `keycloak-ensure-super-admin.sh` juste apres la reconciliation email/theme pour qu'un realm reimporte ne reste pas avec `0` utilisateur admin;
 - la generation des JSON temporaires ne passe plus aucune valeur secrete dans `argv`;
 - le smoke staging n'utilise plus `auth-prod` comme preuve implicite: il faut un `--auth-url` dedie pour valider un host auth staging.
 
@@ -290,7 +297,7 @@ Le mode par defaut est `strict`.
 Le preflight ne tolere ce mode qu'avec un override explicite:
 
 ```bash
-DNS_DELEGATION_MODE=transitional ./scripts/scw-preflight-deploy.sh staging
+DNS_DELEGATION_MODE=transitional ./scripts/scw/scw-preflight-deploy.sh staging
 ```
 
 ## Authentification OIDC (FR)
@@ -308,7 +315,7 @@ Script idempotent fourni:
 KEYCLOAK_ADMIN_PASSWORD='<mot-de-passe-admin-keycloak>' \
 SUPER_ADMIN_PASSWORD='<mot-de-passe-super-admin-a-recuperer-depuis-le-gestionnaire-de-secrets>' \
 SUPER_ADMIN_EMAIL='admin@praedixa.com' \
-./scripts/keycloak-ensure-super-admin.sh
+./scripts/keycloak/keycloak-ensure-super-admin.sh
 ```
 
 Notes:

@@ -34,8 +34,11 @@ vi.mock("@/hooks/use-toast", () => ({
 }));
 
 vi.mock("@/lib/auth/client", () => ({
-  useCurrentUser: () => ({
-    permissions: mockPermissions,
+  useCurrentUserState: () => ({
+    user: {
+      permissions: mockPermissions,
+    },
+    loading: false,
   }),
 }));
 
@@ -202,7 +205,7 @@ describe("ParametresPage create client flow", () => {
       }),
     );
     expect(mockToastSuccess).toHaveBeenCalledWith(
-      "Client test cree, invitation envoyee et ouverture de l'onboarding",
+      "Client test cree, invitation d'activation initialisee, preuve provider en attente, puis ouverture de l'onboarding",
     );
     expect(mockPush).toHaveBeenCalledWith(
       "/clients/22222222-2222-4222-8222-222222222222/onboarding",

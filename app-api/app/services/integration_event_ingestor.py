@@ -9,7 +9,8 @@ table/transform pipeline without introducing fuzzy mapping behavior.
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+from collections import defaultdict
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
@@ -37,6 +38,14 @@ class ConnectorPayloadLoader(Protocol):
 
     async def load_json(self, object_store_key: str) -> dict[str, Any]:
         """Return the JSON payload stored at ``object_store_key``."""
+        ...
+
+
+class ConnectorRawEventLike(Protocol):
+    """Minimal raw-event contract consumed by the connector ingestor."""
+
+    object_store_key: str
+    source_object: str | None
 
 
 @dataclass(frozen=True)
@@ -66,11 +75,13 @@ class ConnectorDatasetPlan:
 class ConnectorIngestionResult:
     """Result of inserting a batch of connector events into the dataset pipeline."""
 
-    dataset_id: UUID
-    dataset_name: str
+    dataset_id: UUID | None
+    dataset_name: str | None
     rows_prepared: int
     rows_inserted: int
-    batch_id: UUID
+    batch_id: UUID | None
+    dataset_ids: tuple[UUID, ...] = ()
+    dataset_names: tuple[str, ...] = ()
 
 
 class LocalConnectorPayloadLoader:
@@ -110,18 +121,31 @@ class LocalConnectorPayloadLoader:
 def extract_json_path(payload: dict[str, Any], dotted_path: str) -> Any:
     """Resolve dotted field paths (``account.id``) from connector payload objects."""
 
-    current: Any = payload
-    for segment in dotted_path.split("."):
-        if not isinstance(current, dict) or segment not in current:
+    current: object = payload
+    segments = dotted_path.split(".")
+    for index, segment in enumerate(segments):
+        if not isinstance(current, Mapping):
             return None
-        current = current[segment]
-    return current
+        current_mapping = cast("Mapping[str, Any]", current)
+        if segment not in current_mapping:
+            return None
+        next_value = current_mapping[segment]
+        if index == len(segments) - 1:
+            return next_value
+        current = next_value
+    return None
 
 
-def _require_object(value: Any, *, field: str) -> Mapping[str, Any]:
+def _require_object(value: Any, *, field: str) -> dict[str, Any]:
     if not isinstance(value, Mapping):
         raise TypeError(f"{field} must be an object")
-    return value
+    return dict(cast("Mapping[str, Any]", value))
+
+
+def _require_list(value: Any, *, field: str) -> list[Any]:
+    if not isinstance(value, list):
+        raise TypeError(f"{field} must be a list")
+    return list(cast("Sequence[Any]", value))
 
 
 def _require_non_empty_string(value: Any, *, field: str) -> str:
@@ -139,9 +163,8 @@ def _require_identifier(value: Any, *, field: str) -> str:
 def _parse_group_by(value: Any) -> list[str]:
     if value is None:
         return []
-    if not isinstance(value, list):
-        raise TypeError("fields_json.dataset.group_by must be a list")
-    group_by = [str(item).strip() for item in value if str(item).strip()]
+    group_values = _require_list(value, field="fields_json.dataset.group_by")
+    group_by = [str(item).strip() for item in group_values if str(item).strip()]
     return [
         validate_identifier(item, field="fields_json.dataset.group_by")
         for item in group_by
@@ -190,8 +213,8 @@ def parse_dataset_plan(fields_json: dict[str, Any]) -> ConnectorDatasetPlan:
         fields_json.get("dataset"),
         field="fields_json.dataset",
     )
-    fields = fields_json.get("fields")
-    if not isinstance(fields, list) or len(fields) == 0:
+    fields = _require_list(fields_json.get("fields"), field="fields_json.fields")
+    if len(fields) == 0:
         raise ValueError("fields_json.fields must contain at least one field mapping")
     if len(fields) > settings.MAX_COLUMNS_PER_TABLE:
         raise ValueError(
@@ -220,13 +243,13 @@ def parse_dataset_plan(fields_json: dict[str, Any]) -> ConnectorDatasetPlan:
         table_name=table_name,
         temporal_index=temporal_index,
         group_by=group_by,
-        pipeline_config=dict(pipeline_config),
+        pipeline_config=dict(cast("Mapping[str, Any]", pipeline_config)),
         fields=[_parse_field_mapping(field) for field in fields],
     )
 
 
 async def load_rows_from_raw_events(
-    raw_events: list[IntegrationRawEvent],
+    raw_events: list[ConnectorRawEventLike],
     payload_loader: ConnectorPayloadLoader,
     plan: ConnectorDatasetPlan,
 ) -> list[dict[str, Any]]:
@@ -259,6 +282,18 @@ async def get_or_create_dataset_for_plan(
     )
     existing = result.scalar_one_or_none()
     if existing is not None:
+        if existing.table_name != plan.table_name:
+            raise ValueError(
+                "Existing dataset table_name does not match connector mapping"
+            )
+        if existing.temporal_index != plan.temporal_index:
+            raise ValueError(
+                "Existing dataset temporal_index does not match connector mapping"
+            )
+        if list(existing.group_by) != list(plan.group_by):
+            raise ValueError(
+                "Existing dataset group_by does not match connector mapping"
+            )
         return cast("ClientDataset", existing)
 
     dataset, _ = await create_dataset(
@@ -282,11 +317,83 @@ async def get_or_create_dataset_for_plan(
     return dataset
 
 
+def _get_raw_event_source_object(raw_event: ConnectorRawEventLike) -> str | None:
+    value = getattr(raw_event, "source_object", None)
+    if value is None:
+        return None
+    normalized = str(value).strip()
+    return normalized or None
+
+
+def _resolve_fields_json_by_source_object(
+    config: dict[str, Any],
+    raw_events: list[ConnectorRawEventLike],
+) -> dict[str | None, dict[str, Any]]:
+    raw_dataset_mappings = config.get("datasetMappings")
+    if raw_dataset_mappings is not None:
+        mappings = _require_object(
+            raw_dataset_mappings,
+            field="connection.config.datasetMappings",
+        )
+
+        resolved: dict[str | None, dict[str, Any]] = {}
+        for raw_event in raw_events:
+            source_object = _get_raw_event_source_object(raw_event)
+            if source_object is None:
+                raise TypeError(
+                    "raw event sourceObject must be present when "
+                    "datasetMappings is configured"
+                )
+            fields_json = mappings.get(source_object)
+            if not isinstance(fields_json, dict):
+                raise TypeError(
+                    "connection.config.datasetMappings"
+                    f'["{source_object}"] must be configured'
+                )
+            resolved[source_object] = cast("dict[str, Any]", fields_json)
+        return resolved
+
+    fields_json = config.get("datasetMapping")
+    if not isinstance(fields_json, dict):
+        raise TypeError(
+            "connection.config.datasetMapping or datasetMappings must be configured"
+        )
+
+    configured_source_objects = config.get("sourceObjects")
+    if configured_source_objects is not None:
+        configured_source_objects = _require_list(
+            configured_source_objects,
+            field="connection.sourceObjects",
+        )
+        normalized_source_objects = {
+            str(item).strip() for item in configured_source_objects if str(item).strip()
+        }
+        if len(normalized_source_objects) > 1:
+            raise ValueError(
+                "connection.config.datasetMappings must be configured "
+                "for multi-source connections"
+            )
+
+    claimed_source_objects = {
+        source_object
+        for raw_event in raw_events
+        if (source_object := _get_raw_event_source_object(raw_event)) is not None
+    }
+    if len(claimed_source_objects) > 1:
+        raise ValueError(
+            "connection.config.datasetMappings must be configured when "
+            "a claimed batch spans multiple sourceObject values"
+        )
+
+    source_object = next(iter(claimed_source_objects), None)
+    return {source_object: cast("dict[str, Any]", fields_json)}
+
+
 async def ingest_raw_events_to_dataset(
     tenant: TenantFilter,
     session: AsyncSession,
     raw_events: list[IntegrationRawEvent],
-    fields_json: dict[str, Any],
+    config: dict[str, Any],
     payload_loader: ConnectorPayloadLoader,
 ) -> ConnectorIngestionResult | None:
     """Insert a batch of connector raw events into the dataset/raw-table pipeline."""
@@ -294,31 +401,67 @@ async def ingest_raw_events_to_dataset(
     if not raw_events:
         return None
 
-    plan = parse_dataset_plan(fields_json)
-    dataset = await get_or_create_dataset_for_plan(tenant, session, plan)
-    rows = await load_rows_from_raw_events(raw_events, payload_loader, plan)
-    insertion = await insert_raw_rows_in_session(
-        session,
-        dataset.schema_data,
-        dataset.table_name,
-        [
-            SimpleNamespace(
-                source_column=field.source_field,
-                target_column=field.target_column,
+    grouped_events: dict[str | None, list[ConnectorRawEventLike]] = defaultdict(list)
+    for raw_event in raw_events:
+        typed_raw_event = cast("ConnectorRawEventLike", raw_event)
+        grouped_events[_get_raw_event_source_object(typed_raw_event)].append(
+            typed_raw_event
+        )
+
+    fields_json_by_source = _resolve_fields_json_by_source_object(
+        config,
+        [raw_event for grouped in grouped_events.values() for raw_event in grouped],
+    )
+
+    rows_prepared = 0
+    rows_inserted = 0
+    batch_id: UUID | None = None
+    datasets_by_id: dict[UUID, ClientDataset] = {}
+    for source_object, source_raw_events in grouped_events.items():
+        fields_json = fields_json_by_source.get(source_object)
+        if fields_json is None:
+            source_label = source_object or "default"
+            raise ValueError(
+                "No dataset mapping was configured for connector "
+                f'sourceObject "{source_label}"'
             )
-            for field in plan.fields
-        ],
-        rows,
-    )
-    await run_incremental(
-        dataset.id,
-        session,
-        triggered_by="integration_connector",
-    )
+        plan = parse_dataset_plan(fields_json)
+        dataset = await get_or_create_dataset_for_plan(tenant, session, plan)
+        rows = await load_rows_from_raw_events(source_raw_events, payload_loader, plan)
+        insertion = await insert_raw_rows_in_session(
+            session,
+            dataset.schema_data,
+            dataset.table_name,
+            [
+                SimpleNamespace(
+                    source_column=field.source_field,
+                    target_column=field.target_column,
+                )
+                for field in plan.fields
+            ],
+            rows,
+        )
+        rows_prepared += len(rows)
+        rows_inserted += insertion.rows_inserted
+        batch_id = insertion.batch_id
+        datasets_by_id[dataset.id] = dataset
+
+    await session.flush()
+    for dataset_id in datasets_by_id:
+        await run_incremental(
+            dataset_id,
+            session,
+            triggered_by="integration_connector",
+        )
+
+    dataset_ids = tuple(datasets_by_id.keys())
+    dataset_names = tuple(dataset.name for dataset in datasets_by_id.values())
     return ConnectorIngestionResult(
-        dataset_id=dataset.id,
-        dataset_name=dataset.name,
-        rows_prepared=len(rows),
-        rows_inserted=insertion.rows_inserted,
-        batch_id=insertion.batch_id,
+        dataset_id=dataset_ids[0] if len(dataset_ids) == 1 else None,
+        dataset_name=dataset_names[0] if len(dataset_names) == 1 else None,
+        rows_prepared=rows_prepared,
+        rows_inserted=rows_inserted,
+        batch_id=batch_id,
+        dataset_ids=dataset_ids,
+        dataset_names=dataset_names,
     )

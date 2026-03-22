@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import type { MetadataRoute } from "next";
 import { locales, localizedSlugs } from "../lib/i18n/config";
 import {
@@ -13,9 +15,8 @@ import {
 import type { BlogPost } from "../lib/blog/types";
 
 const BASE_URL = "https://www.praedixa.com";
-const DEFAULT_LAST_MODIFIED = new Date().toISOString();
-const SITE_LAST_MODIFIED = new Date(
-  process.env.SEO_SITEMAP_LASTMOD ?? DEFAULT_LAST_MODIFIED,
+const SITEMAP_LAST_MODIFIED_FALLBACK = new Date(
+  process.env["SEO_SITEMAP_LASTMOD"] ?? "2026-03-20T00:00:00.000Z",
 );
 
 const CONTENT_KEYS = [
@@ -28,10 +29,110 @@ const CONTENT_KEYS = [
   "integrationData",
 ] as const;
 
+function collectFiles(candidatePath: string): string[] {
+  if (!fs.existsSync(candidatePath)) {
+    return [];
+  }
+
+  const stats = fs.statSync(candidatePath);
+  if (stats.isFile()) {
+    return [candidatePath];
+  }
+
+  return fs
+    .readdirSync(candidatePath)
+    .flatMap((entry) => collectFiles(path.join(candidatePath, entry)));
+}
+
+function resolveCandidatePath(candidate: string): string {
+  return path.isAbsolute(candidate)
+    ? candidate
+    : path.resolve(process.cwd(), candidate);
+}
+
+function resolveLatestTimestamp(candidates: string[]): Date {
+  let latestMtimeMs = 0;
+
+  for (const candidate of candidates) {
+    for (const filePath of collectFiles(resolveCandidatePath(candidate))) {
+      const stats = fs.statSync(filePath);
+      latestMtimeMs = Math.max(latestMtimeMs, stats.mtimeMs);
+    }
+  }
+
+  return latestMtimeMs > 0
+    ? new Date(latestMtimeMs)
+    : SITEMAP_LAST_MODIFIED_FALLBACK;
+}
+
+function resolveBlogPostLastModified(post: BlogPost): Date {
+  return resolveLatestTimestamp([
+    post.sourcePath,
+    "app-landing/components/blog/BlogPostPage.tsx",
+    "app-landing/app/[locale]/blog/[slug]/page.tsx",
+  ]);
+}
+
+const HOME_LAST_MODIFIED = resolveLatestTimestamp([
+  "app-landing/app/[locale]/page.tsx",
+  "app-landing/components/homepage",
+  "app-landing/lib/content/value-prop",
+]);
+const CONTACT_LAST_MODIFIED = resolveLatestTimestamp([
+  "app-landing/app/[locale]/contact",
+  "app-landing/components/pages/ContactPageClient.tsx",
+  "app-landing/components/pages/ContactPageForm.tsx",
+  "app-landing/components/pages/ContactPageAside.tsx",
+  "app-landing/components/pages/contact-page.copy.ts",
+]);
+const SERVICES_LAST_MODIFIED = resolveLatestTimestamp([
+  "app-landing/app/[locale]/services",
+  "app-landing/components/pages/ServicesPage.tsx",
+  "app-landing/lib/content/value-prop",
+]);
+const LEGAL_LAST_MODIFIED = resolveLatestTimestamp([
+  "app-landing/lib/content/legal.ts",
+  "app-landing/app/[locale]/mentions-legales",
+  "app-landing/app/[locale]/confidentialite",
+  "app-landing/app/[locale]/cgu",
+  "app-landing/app/[locale]/legal-notice",
+  "app-landing/app/[locale]/privacy-policy",
+  "app-landing/app/[locale]/terms",
+]);
+const KNOWLEDGE_LAST_MODIFIED = resolveLatestTimestamp([
+  "app-landing/components/pages/KnowledgePage.tsx",
+  "app-landing/lib/content/knowledge-pages.ts",
+  "app-landing/lib/content/knowledge-pages-shared.ts",
+  "app-landing/lib/content/knowledge-pages-fr-a.ts",
+  "app-landing/lib/content/knowledge-pages-en-a.ts",
+]);
+const BLOG_INDEX_LAST_MODIFIED = resolveLatestTimestamp([
+  "app-landing/components/blog",
+  "app-landing/app/[locale]/blog/page.tsx",
+  "marketing/content/blog",
+]);
+const SECTOR_PAGES_LAST_MODIFIED = resolveLatestTimestamp([
+  "app-landing/components/pages/SectorPage.tsx",
+  "app-landing/lib/content/sector-pages.ts",
+  "app-landing/lib/content/sector-pages-data",
+  "app-landing/app/[locale]/secteurs",
+  "app-landing/app/[locale]/industries",
+]);
+const SERP_RESOURCE_LAST_MODIFIED = resolveLatestTimestamp([
+  "app-landing/components/pages/SerpResourcePage.tsx",
+  "app-landing/app/[locale]/ressources/[slug]/page.tsx",
+  "app-landing/lib/content/serp-resources-fr.ts",
+  "app-landing/lib/content/serp-resources-fr.core.ts",
+  "app-landing/lib/content/serp-resources-fr.mid.ts",
+  "app-landing/lib/content/serp-resources-fr.tail.ts",
+  "app-landing/lib/content/serp-resources-fr.shared.ts",
+]);
+
 function localizedEntry(
   locale: (typeof locales)[number],
   frPath: string,
   enPath: string,
+  lastModified: Date,
   priority: number,
   changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"],
 ): MetadataRoute.Sitemap[number] {
@@ -39,7 +140,7 @@ function localizedEntry(
 
   return {
     url: `${BASE_URL}${currentPath}`,
-    lastModified: SITE_LAST_MODIFIED,
+    lastModified,
     changeFrequency,
     priority,
     alternates: {
@@ -59,8 +160,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   function buildBlogAlternates(post: BlogPost): Record<string, string> {
     const alternates = getBlogPostAlternateLocales(post);
-    const frPost = alternates.fr;
-    const enPost = alternates.en;
+    const frPost = alternates["fr"];
+    const enPost = alternates["en"];
     const fallbackPath = `${BASE_URL}${buildBlogPostPath(post.locale, post.slug)}`;
 
     const languages: Record<string, string> = {
@@ -74,20 +175,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }
 
     if (enPost) {
-      languages.en = `${BASE_URL}${buildBlogPostPath("en", enPost.slug)}`;
+      languages["en"] = `${BASE_URL}${buildBlogPostPath("en", enPost.slug)}`;
     }
 
     return languages;
   }
 
   for (const locale of locales) {
-    entries.push(localizedEntry(locale, "/fr", "/en", 1, "weekly"));
+    entries.push(
+      localizedEntry(locale, "/fr", "/en", HOME_LAST_MODIFIED, 1, "weekly"),
+    );
 
     entries.push(
       localizedEntry(
         locale,
         `/fr/${localizedSlugs.contact.fr}`,
         `/en/${localizedSlugs.contact.en}`,
+        CONTACT_LAST_MODIFIED,
         0.7,
         "weekly",
       ),
@@ -98,6 +202,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         locale,
         `/fr/${localizedSlugs.services.fr}`,
         `/en/${localizedSlugs.services.en}`,
+        SERVICES_LAST_MODIFIED,
         0.8,
         "weekly",
       ),
@@ -109,6 +214,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
           locale,
           `/fr/${localizedSlugs[key].fr}`,
           `/en/${localizedSlugs[key].en}`,
+          LEGAL_LAST_MODIFIED,
           0.3,
           "yearly",
         ),
@@ -121,6 +227,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
           locale,
           `/fr/${localizedSlugs[key].fr}`,
           `/en/${localizedSlugs[key].en}`,
+          KNOWLEDGE_LAST_MODIFIED,
           key === "resources" ||
             key.startsWith("pillar") ||
             key === "productMethod"
@@ -132,7 +239,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
         ),
       );
     }
-    entries.push(localizedEntry(locale, "/fr/blog", "/en/blog", 0.8, "weekly"));
+    entries.push(
+      localizedEntry(
+        locale,
+        "/fr/blog",
+        "/en/blog",
+        BLOG_INDEX_LAST_MODIFIED,
+        0.8,
+        "weekly",
+      ),
+    );
 
     for (const sector of listSectorPages(locale)) {
       entries.push(
@@ -140,6 +256,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
           locale,
           getSectorPagePath("fr", sector.id),
           getSectorPagePath("en", sector.id),
+          SECTOR_PAGES_LAST_MODIFIED,
           0.78,
           "weekly",
         ),
@@ -151,7 +268,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     const url = `${BASE_URL}/fr/ressources/${slug}`;
     entries.push({
       url,
-      lastModified: SITE_LAST_MODIFIED,
+      lastModified: SERP_RESOURCE_LAST_MODIFIED,
       changeFrequency: "weekly",
       priority: 0.8,
       alternates: {
@@ -167,7 +284,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     const path = buildBlogPostPath(post.locale, post.slug);
     entries.push({
       url: `${BASE_URL}${path}`,
-      lastModified: post.date,
+      lastModified: resolveBlogPostLastModified(post),
       changeFrequency: "monthly",
       priority: 0.7,
       alternates: {

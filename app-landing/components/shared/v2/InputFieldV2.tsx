@@ -71,9 +71,9 @@ function buildControlProps({
   return {
     id: inputId,
     name,
-    required,
+    ...(required !== undefined ? { required } : {}),
     value,
-    "aria-describedby": errorId,
+    ...(errorId !== undefined ? { "aria-describedby": errorId } : {}),
     "aria-invalid": hasError,
   } as const;
 }
@@ -97,7 +97,7 @@ function SelectControl(props: SharedControlProps & { options?: string[] }) {
       className={getControlClass(props.hasError, "h-14 appearance-none")}
     >
       <option value="" disabled />
-      {props.options?.map((option) => (
+      {(props.options ?? []).map((option) => (
         <option key={option} value={option}>
           {option}
         </option>
@@ -117,7 +117,12 @@ function InputFieldControl({
   }
 
   if (type === "select") {
-    return <SelectControl {...props} options={options} />;
+    return (
+      <SelectControl
+        {...props}
+        {...(options !== undefined ? { options } : {})}
+      />
+    );
   }
 
   return (
@@ -147,15 +152,19 @@ export function InputFieldV2({
 
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <InputFieldLabel inputId={inputId} label={label} required={required} />
+      <InputFieldLabel
+        inputId={inputId}
+        label={label}
+        {...(required !== undefined ? { required } : {})}
+      />
       <InputFieldControl
-        errorId={errorId}
         hasError={hasError}
         inputId={inputId}
         name={name}
         onChange={onChange}
-        options={options}
-        required={required}
+        {...(errorId !== undefined ? { errorId } : {})}
+        {...(options !== undefined ? { options } : {})}
+        {...(required !== undefined ? { required } : {})}
         type={type}
         value={value}
       />

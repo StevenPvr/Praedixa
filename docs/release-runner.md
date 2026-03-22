@@ -11,19 +11,19 @@ Ce repo contient maintenant un squelette de release immuable orienté runner Sca
 
 ## Scripts
 
-- `scripts/scw-release-build.sh`
+- `scripts/scw/scw-release-build.sh`
   - build/push une image pour un service donné
   - sort un JSON avec `service`, `digest`, `registry_image`, `commit_sha`
-- `scripts/scw-release-manifest-create.sh`
+- `scripts/scw/scw-release-manifest-create.sh`
   - agrège une ou plusieurs images `service=registry@sha256:...`
   - produit un manifest signé
 - `scripts/release-manifest-sign.sh`
   - signe un manifest avec une clé HMAC runner déjà provisionnée
 - `scripts/release-manifest-verify.sh`
   - vérifie la signature d’un manifest ainsi que le digest du gate report et des evidences référencées
-- `scripts/scw-release-deploy.sh`
+- `scripts/scw/scw-release-deploy.sh`
   - lit le manifest et met à jour les containers Scaleway par `registry-image`
-- `scripts/scw-release-promote.sh`
+- `scripts/scw/scw-release-promote.sh`
   - wrapper de promotion vers `staging` ou `prod`
 
 ## Flow minimal
@@ -31,7 +31,7 @@ Ce repo contient maintenant un squelette de release immuable orienté runner Sca
 1. Sur le runner, builder les images voulues:
 
 ```bash
-./scripts/scw-release-build.sh \
+./scripts/scw/scw-release-build.sh \
   --service api \
   --ref main \
   --tag rel-20260307-1 \
@@ -42,7 +42,7 @@ Ce repo contient maintenant un squelette de release immuable orienté runner Sca
 2. Créer le manifest signé:
 
 ```bash
-./scripts/scw-release-manifest-create.sh \
+./scripts/scw/scw-release-manifest-create.sh \
   --ref main \
   --gate-report .git/gate-reports/$(git rev-parse HEAD).json \
   --output /tmp/release-manifest.json \
@@ -53,34 +53,34 @@ Ce repo contient maintenant un squelette de release immuable orienté runner Sca
 
 ```bash
 ./scripts/release-manifest-verify.sh --manifest /tmp/release-manifest.json
-./scripts/scw-release-deploy.sh --manifest /tmp/release-manifest.json --env staging
+./scripts/scw/scw-release-deploy.sh --manifest /tmp/release-manifest.json --env staging
 ```
 
 4. Promouvoir prod depuis le même manifest:
 
 ```bash
-./scripts/scw-release-promote.sh --manifest /tmp/release-manifest.json --to prod
+./scripts/scw/scw-release-promote.sh --manifest /tmp/release-manifest.json --to prod
 ```
 
 ### Exemple landing uniquement
 
 ```bash
-./scripts/scw-release-build.sh \
+./scripts/scw/scw-release-build.sh \
   --service landing \
   --ref main \
   --tag rel-landing-20260308-1 \
   --registry-prefix rg.fr-par.scw.cloud/<namespace> \
   --output /tmp/landing-image.json
 
-./scripts/scw-release-manifest-create.sh \
+./scripts/scw/scw-release-manifest-create.sh \
   --ref main \
   --gate-report .git/gate-reports/$(git rev-parse HEAD).json \
   --output /tmp/landing-manifest.json \
   --image "landing=$(jq -r '.registry_image' /tmp/landing-image.json)"
 
 ./scripts/release-manifest-verify.sh --manifest /tmp/landing-manifest.json
-./scripts/scw-release-deploy.sh --manifest /tmp/landing-manifest.json --env staging
-./scripts/scw-release-deploy.sh --manifest /tmp/landing-manifest.json --env prod
+./scripts/scw/scw-release-deploy.sh --manifest /tmp/landing-manifest.json --env staging
+./scripts/scw/scw-release-deploy.sh --manifest /tmp/landing-manifest.json --env prod
 ```
 
 ## Notes

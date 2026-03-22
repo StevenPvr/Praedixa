@@ -114,7 +114,12 @@ function parseRespValue(
     return null;
   }
 
-  const prefix = String.fromCharCode(buffer[offset]);
+  const prefixByte = buffer[offset];
+  if (prefixByte === undefined) {
+    return null;
+  }
+
+  const prefix = String.fromCharCode(prefixByte);
   const lineEnd = findCrlf(buffer, offset + 1);
   if (lineEnd === -1) {
     return null;

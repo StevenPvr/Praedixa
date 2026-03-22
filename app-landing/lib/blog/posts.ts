@@ -130,12 +130,12 @@ function resolveOptionalSourceArray(
 
     const candidate = entry as Record<string, unknown>;
     const label = resolveRawString(
-      candidate.label,
+      candidate["label"],
       `${fieldName}[${index}].label`,
       sourcePath,
     );
     const url = resolveRawString(
-      candidate.url,
+      candidate["url"],
       `${fieldName}[${index}].url`,
       sourcePath,
     );
@@ -263,6 +263,32 @@ function parseFrontmatter(sourcePath: string, source: string): BlogPost {
     1,
     Math.round(readingTime(parsed.content).minutes),
   );
+  const translationKey = resolveOptionalString(
+    frontmatter.translationKey,
+    "translationKey",
+    sourcePath,
+  );
+  const canonical = resolveOptionalString(
+    frontmatter.canonical,
+    "canonical",
+    sourcePath,
+  );
+  const image = resolveOptionalString(frontmatter.image, "image", sourcePath);
+  const answerSummary = resolveOptionalString(
+    frontmatter.answerSummary,
+    "answerSummary",
+    sourcePath,
+  );
+  const keyPoints = resolveOptionalNonEmptyStringArray(
+    frontmatter.keyPoints,
+    "keyPoints",
+    sourcePath,
+  );
+  const sources = resolveOptionalSourceArray(
+    frontmatter.sources,
+    "sources",
+    sourcePath,
+  );
 
   return {
     slug: fileName,
@@ -276,21 +302,13 @@ function parseFrontmatter(sourcePath: string, source: string): BlogPost {
     date,
     dateIso: iso,
     rssVersion: rssVersion ?? 1,
-    translationKey: resolveOptionalString(
-      frontmatter.translationKey,
-      "translationKey",
-      sourcePath,
-    ),
+    ...(translationKey !== undefined ? { translationKey } : {}),
     tags: resolveStringArray(frontmatter.tags, "tags", sourcePath, {
       required: true,
     }),
     draft: resolveBoolean(frontmatter.draft, "draft", sourcePath),
-    canonical: resolveOptionalString(
-      frontmatter.canonical,
-      "canonical",
-      sourcePath,
-    ),
-    image: resolveOptionalString(frontmatter.image, "image", sourcePath),
+    ...(canonical !== undefined ? { canonical } : {}),
+    ...(image !== undefined ? { image } : {}),
     authors: resolveStringArray(frontmatter.authors, "authors", sourcePath, {
       required: false,
     }),
@@ -301,21 +319,9 @@ function parseFrontmatter(sourcePath: string, source: string): BlogPost {
         "disableAutoLinks",
         sourcePath,
       ) ?? false,
-    answerSummary: resolveOptionalString(
-      frontmatter.answerSummary,
-      "answerSummary",
-      sourcePath,
-    ),
-    keyPoints: resolveOptionalNonEmptyStringArray(
-      frontmatter.keyPoints,
-      "keyPoints",
-      sourcePath,
-    ),
-    sources: resolveOptionalSourceArray(
-      frontmatter.sources,
-      "sources",
-      sourcePath,
-    ),
+    ...(answerSummary !== undefined ? { answerSummary } : {}),
+    keyPoints,
+    sources,
     body: parsed.content,
     sourcePath,
   };
@@ -427,14 +433,16 @@ function resolveFirstValue(
 export function parseBlogListSearchParams(
   searchParams: Record<string, string | string[] | undefined>,
 ): BlogListSearchParams {
-  const rawTag = resolveFirstValue(searchParams.tag);
-  const rawPage = resolveFirstValue(searchParams.page);
+  const rawTag = resolveFirstValue(searchParams["tag"]);
+  const rawPage = resolveFirstValue(searchParams["page"]);
 
   const normalizedTag = rawTag?.trim().toLowerCase();
 
   return {
     page: parsePositiveInteger(rawPage),
-    tag: normalizedTag && normalizedTag.length > 0 ? normalizedTag : undefined,
+    ...(normalizedTag && normalizedTag.length > 0
+      ? { tag: normalizedTag }
+      : {}),
   };
 }
 
@@ -502,7 +510,9 @@ export function getPaginatedBlogPosts(
   options?: { includeDrafts?: boolean; pageSize?: number },
 ): PaginatedBlogPosts {
   const visiblePosts = getBlogPostsByLocale(locale, {
-    includeDrafts: options?.includeDrafts,
+    ...(options?.includeDrafts !== undefined
+      ? { includeDrafts: options.includeDrafts }
+      : {}),
   });
   const availableTags = Array.from(
     new Set(
@@ -524,7 +534,7 @@ export function getPaginatedBlogPosts(
     totalPosts,
     totalPages,
     currentPage,
-    selectedTag: search.tag,
+    ...(search.tag !== undefined ? { selectedTag: search.tag } : {}),
     availableTags,
   };
 }
@@ -534,7 +544,9 @@ export function getBlogSiblingPosts(
   options?: { includeDrafts?: boolean },
 ): BlogSiblingPosts {
   const posts = getBlogPostsByLocale(currentPost.locale, {
-    includeDrafts: options?.includeDrafts,
+    ...(options?.includeDrafts !== undefined
+      ? { includeDrafts: options.includeDrafts }
+      : {}),
   });
   const index = posts.findIndex((post) => post.slug === currentPost.slug);
 

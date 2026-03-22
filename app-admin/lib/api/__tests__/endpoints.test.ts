@@ -10,6 +10,9 @@ describe("ADMIN_ENDPOINTS", () => {
     expect(ADMIN_ENDPOINTS.errors).toBe("/api/v1/admin/monitoring/errors");
     expect(ADMIN_ENDPOINTS.organizations).toBe("/api/v1/admin/organizations");
     expect(ADMIN_ENDPOINTS.auditLog).toBe("/api/v1/admin/audit-log");
+    expect(ADMIN_ENDPOINTS.integrationsCatalog).toBe(
+      "/api/v1/admin/integrations/catalog",
+    );
     expect(ADMIN_ENDPOINTS.decisionContractTemplates).toBe(
       "/api/v1/admin/decision-contract-templates",
     );

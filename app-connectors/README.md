@@ -2,12 +2,19 @@
 
 Runtime TypeScript dedie au control plane des integrations Praedixa.
 
+Lire aussi:
+
+- `docs/cto/07-connecteurs-et-sync-runs.md`
+- `docs/cto/15-capabilities-et-securite-connecteurs.md`
+- `docs/cto/22-auth-modes-connecteurs-et-audit-integration.md`
+- `docs/architecture/adr/ADR-004-source-de-verite-runtime-integrations.md`
+
 ## Objectif
 
 - Exposer un catalogue de connecteurs et gerer les connexions par organisation.
 - Gerer l'onboarding OAuth/API key/session/service account des fournisseurs.
 - Delivrer des credentials d'ingestion push et stocker les evenements bruts.
-- Servir de pont securise entre `app-api-ts` (surface admin) et `app-api` (ingestion/traitement Python).
+- Servir de pont securise entre `app-api-ts` (pivot HTTP/admin) et `app-api` (data plane Python).
 
 ## Architecture rapide
 
@@ -47,10 +54,16 @@ Sync, audit, runs:
 - `POST /v1/organizations/:orgId/sync-runs/:runId/sync-state`
 - `POST /v1/organizations/:orgId/sync-runs/:runId/completed`
 - `POST /v1/organizations/:orgId/sync-runs/:runId/failed`
-- `GET /v1/runtime/organizations/:orgId/connections/:connectionId/access-context`
+- `POST /v1/runtime/organizations/:orgId/connections/:connectionId/access-context`
 - `POST /v1/runtime/organizations/:orgId/connections/:connectionId/provider-events`
 
 Le reste de la surface d'onboarding/integration vit aussi dans `src/routes.ts`: authorization start/complete, test, sync, ingest credentials, endpoints d'ingestion push et worker APIs.
+
+Regle de lecture:
+
+- `app-connectors` est la verite operable immediate du control plane integrations.
+- La source de verite durable cible reste `integration_*` cote modele Python / Alembic.
+- Les secrets scelles et payloads bruts restent dans des stockages specialises; ils ne doivent pas etre confondus avec les metadonnees relationnelles durables.
 
 ## Configuration runtime
 
@@ -80,6 +93,8 @@ Exemple `CONNECTORS_SERVICE_TOKENS`:
 ]
 ```
 
+Pour un token interne dedie au control plane admin/API qui doit pouvoir piloter toutes les organisations, utiliser explicitement le scope `allowedOrgs=["global:all-orgs"]` plutot qu'une enumeration impossible a maintenir manuellement.
+
 Notes de securite:
 
 - hors developpement, `DATABASE_URL`, `CONNECTORS_PUBLIC_BASE_URL`, `CONNECTORS_OBJECT_STORE_ROOT`, `CONNECTORS_ALLOWED_OUTBOUND_HOSTS` et `CONNECTORS_SECRET_SEALING_KEY` sont obligatoires; le runtime ne retombe plus sur des modes memoire/tmp implicites.
@@ -90,6 +105,7 @@ Notes de securite:
 - `CONNECTORS_PUBLIC_BASE_URL` doit rester une URL publique propre, sans credentials, query string ni fragment; les credentials d'ingestion ne peuvent plus retomber sur `127.0.0.1`.
 - les `CONNECTORS_SERVICE_TOKENS` doivent porter des `capabilities` explicites par token; un token scopes par organisation ne doit pas recevoir automatiquement tous les droits.
 - les endpoints internes de lifecycle `sync-runs` (`claim`, `execution-plan`, `completed`, `sync-state`, `failed`) doivent rester derriere la capability dediee `sync_runtime:write`; ne pas les exposer via la capability operateur generique `sync:write`.
+- `POST /v1/runtime/.../access-context` doit rester derriere `provider_runtime:write`; il ne doit plus etre exposable via une capability de lecture large.
 - les endpoints runtime qui mutent ou claiment les `raw_events` doivent rester derriere `raw_events_runtime:write`; la capability generique `raw_events:write` ne doit pas suffire pour piloter la file interne.
 - laissez `TRUST_PROXY=false` par defaut tant qu'un reverse proxy de confiance n'est pas explicitement devant le service.
 - quand `TRUST_PROXY=true`, `cf-connecting-ip` puis `x-forwarded-for` sont utilises pour l'IP cliente; sinon seul `remoteAddress` est accepte.
@@ -122,7 +138,9 @@ Notes de securite:
 
 - En developpement/test, sans `DATABASE_URL`, le service reste en mode memoire avec store local.
 - Hors developpement, `DATABASE_URL` est obligatoire et `PostgresBackedConnectorStore` devient le seul mode supporte.
+- En mode Postgres, `app-connectors` prend maintenant un advisory lock de runtime au demarrage: une seule instance active peut porter l'etat mutable du control plane a la fois, afin d'eviter tout split-brain sur ownership, leases et idempotence.
 - Les payloads bruts sont stockes a part via `payload-store.ts`; hors developpement, `CONNECTORS_OBJECT_STORE_ROOT` doit etre explicite.
+- `connector_runtime_snapshots` reste un mecanisme runtime transitoire et non la cible d'architecture durable pour les objets metier integrations.
 
 ## Flows importants
 
@@ -142,16 +160,31 @@ Push API client:
 1. emission de credentials d'ingestion
 2. remise de `ingestUrl` + `apiKey` + eventuel `signingSecret`
 3. push sur l'endpoint d'ingestion
-4. lecture ulterieure des raw events par le worker Python
+4. lecture ulterieure des `raw_events` par le worker Python
 
 Queue worker runtime:
 
-1. `triggerSync(...)` cree un run `queued`
+1. `triggerSync(...)` cree un `sync_run` `queued`
 2. un worker interne reclame les runs via `POST /v1/runtime/sync-runs/claim`
-3. le worker Python recupere un `execution plan` borne au run claimé et choisit le chemin `provider/raw events` ou `sftpPull`
-4. pour le chemin `provider/raw events`, le runtime expose `GET /v1/runtime/organizations/:orgId/connections/:connectionId/access-context` et `POST /v1/runtime/organizations/:orgId/connections/:connectionId/provider-events`
-5. pour `sftpPull`, le worker persiste un curseur `sourceObject` et peut archiver les fichiers importes
-6. le worker marque ensuite le run `completed` ou `failed/requeued`
+3. chaque `sync_run` claimé porte maintenant un `lockedBy` opaque emis par le runtime; ce lock token doit etre reutilise comme `lockToken` pour `execution-plan`, `sync-state`, `access-context`, `provider-events`, `completed` et `failed`
+4. le worker Python recupere un `execution plan` borne au `sync_run` claimé et choisit le chemin `provider/raw events` ou `sftpPull`
+5. pour le chemin `provider/raw events`, le runtime expose `POST /v1/runtime/organizations/:orgId/connections/:connectionId/access-context` et `POST /v1/runtime/organizations/:orgId/connections/:connectionId/provider-events`, tous deux lies au `sync_run` et a son `lockToken`
+6. pour `sftpPull`, le worker persiste un curseur `sourceObject` et peut archiver les fichiers importes
+7. le worker marque ensuite le `sync_run` `completed` ou `failed/requeued`
+
+Queue raw events:
+
+1. `POST .../raw-events/claim` reclame des evenements `pending`
+2. chaque evenement claimé porte maintenant un `claimedBy` opaque emis par le runtime
+3. ce claim token doit etre reutilise comme `claimToken` pour `POST .../processed` ou `POST .../failed`
+
+Garanties runtime a retenir:
+
+- un `sync_run` `running` dont le lease a expire redevient reclaimable par `POST /v1/runtime/sync-runs/claim`
+- les appels runtime qui lisent ou ecrivent un `sync_run` possede revalident et prolongent le lease actif avant de continuer
+- `ingestEvents` ne laisse plus de `sync_run` zombie si l'ecriture payload/raw-event echoue apres la creation du run
+- la deduplication des `raw_events` est maintenant decidee avant toute reecriture du blob payload correspondant
+- une session OAuth pendante est supprimee des qu'une autorisation OAuth est finalement completee par credentials manuels
 
 Perimetre actuel a retenir:
 

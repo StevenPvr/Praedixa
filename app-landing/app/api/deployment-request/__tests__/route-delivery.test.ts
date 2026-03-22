@@ -25,7 +25,7 @@ describe("POST /api/deployment-request delivery flow", () => {
 
     it("accepts a missing website field", async () => {
       const body = validBody();
-      delete (body as Record<string, unknown>).website;
+      delete (body as Record<string, unknown>)["website"];
       const res = await POST(makeRequest(body));
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ success: true });

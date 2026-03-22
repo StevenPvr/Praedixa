@@ -1,8 +1,8 @@
 """Full demo seed - complete tenant seeded from DB pipelines.
 
 Usage:
-    cd apps/api
-    uv run python -m scripts.seed_full_demo
+    cd app-api
+    uv run python -m scripts.seed_full_demo --org-id <uuid>
 
 This script is idempotent: it creates missing entities/datasets and only
 skips steps that would duplicate already-materialized downstream artifacts.
@@ -17,10 +17,11 @@ Pipeline (10 steps):
  9. Proof records (per site-month)
 10. Dashboard alerts + ForecastRun + DailyForecasts
 """
-# ruff: noqa: PLR2004, PLR0911, PLR0915, RUF046
+# ruff: noqa: PLR2004, PLR0911, RUF046
 
 from __future__ import annotations
 
+import argparse
 import asyncio
 import math
 import random
@@ -64,7 +65,6 @@ if TYPE_CHECKING:
 
     from app.models.department import Department
     from app.models.organization import Organization
-    from app.models.site import Site
 
 log = structlog.get_logger()
 
@@ -78,6 +78,12 @@ _OVERRIDE_REASONS = [
 _DECISION_PROBABILITY = 0.70
 _OVERRIDE_PROBABILITY = 0.80
 _WORK_HOURS_PER_FTE_DAY = 7.2
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Seed the full demo pipeline")
+    parser.add_argument("--org-id", required=True, help="Organization UUID")
+    return parser.parse_args()
 
 
 def _month_shift(current: date, offset: int) -> date:
@@ -221,126 +227,197 @@ def _percentile(values: list[float], p: float) -> float:
     return sorted_vals[lo] * (1.0 - ratio) + sorted_vals[hi] * ratio
 
 
+def _month_site_key(
+    row: dict[str, object],
+    *,
+    date_key: str,
+    site_key: str,
+) -> tuple[str, date] | None:
+    month = _as_date(row.get(date_key))
+    site = str(row.get(site_key) or "").strip()
+    if month is None or not site:
+        return None
+    return site, month.replace(day=1)
+
+
+def _accumulate_effectifs_rows(
+    rows: list[dict[str, object]],
+) -> dict[tuple[str, date], dict[str, float]]:
+    aggregates: dict[tuple[str, date], dict[str, float]] = {}
+    for row in rows:
+        key = _month_site_key(row, date_key="date_mois", site_key="site")
+        if key is None:
+            continue
+        agg = aggregates.setdefault(key, dict.fromkeys(("total", "interim"), 0.0))
+        agg["total"] += max(0.0, _as_float(row.get("effectif_total")))
+        agg["interim"] += max(0.0, _as_float(row.get("effectif_interim")))
+    return aggregates
+
+
+def _accumulate_absences_rows(
+    rows: list[dict[str, object]],
+) -> dict[tuple[str, date], dict[str, float]]:
+    aggregates: dict[tuple[str, date], dict[str, float]] = {}
+    for row in rows:
+        key = _month_site_key(row, date_key="date_mois", site_key="site")
+        if key is None:
+            continue
+        agg = aggregates.setdefault(key, {"abs_days": 0.0})
+        agg["abs_days"] += max(0.0, _as_float(row.get("absences_maladie")))
+        agg["abs_days"] += max(0.0, _as_float(row.get("absences_conges")))
+        agg["abs_days"] += max(0.0, _as_float(row.get("absences_rtt")))
+        agg["abs_days"] += max(0.0, _as_float(row.get("absences_autre")))
+    return aggregates
+
+
+def _accumulate_payroll_rows(
+    rows: list[dict[str, object]],
+) -> dict[tuple[str, date], dict[str, float]]:
+    aggregates: dict[tuple[str, date], dict[str, float]] = {}
+    for row in rows:
+        key = _month_site_key(row, date_key="date_mois", site_key="site")
+        if key is None:
+            continue
+        agg = aggregates.setdefault(
+            key,
+            dict.fromkeys(("cout_total", "heures_sup"), 0.0),
+        )
+        agg["cout_total"] += max(0.0, _as_float(row.get("cout_total")))
+        agg["heures_sup"] += max(0.0, _as_float(row.get("heures_sup")))
+    return aggregates
+
+
+def _build_canonical_shift_record(
+    *,
+    site: str,
+    day: date,
+    shift: str,
+    share: float,
+    effectif_total: float,
+    working_count: float,
+    abs_days: float,
+    monthly_cost: float,
+    monthly_hs: float,
+    interim_total: float,
+) -> dict[str, object] | None:
+    rng = random.Random(f"{site}|{day.isoformat()}|{shift}")  # noqa: S311
+
+    cap_plan_h = (
+        effectif_total
+        * _WORK_HOURS_PER_FTE_DAY
+        * share
+        * (0.98 + (0.06 if day.weekday() in (0, 1) else 0.0))
+        * (-0.03 if day.weekday() == 5 else 1.0)
+        * (0.94 + 0.10 * _month_seasonality(day.month))
+        / working_count
+    )
+    abs_h = (
+        abs_days
+        * _WORK_HOURS_PER_FTE_DAY
+        * share
+        / working_count
+        * (0.84 + 0.30 * rng.random())
+    )
+    hs_h = monthly_hs * share / working_count * (0.80 + 0.40 * rng.random())
+    interim_h = (
+        interim_total
+        * _WORK_HOURS_PER_FTE_DAY
+        * share
+        / working_count
+        * 0.55
+        * (0.82 + 0.36 * rng.random())
+    )
+    friction = cap_plan_h * (0.018 + 0.03 * rng.random())
+    realise_h = max(0.0, cap_plan_h - abs_h + hs_h + interim_h - friction)
+
+    demand = _demand_factor(day) * (0.92 + 0.16 * rng.random())
+    charge_units = max(1, int(round(realise_h * demand)))
+    cout_interne = (
+        monthly_cost * share / working_count if monthly_cost > 0 else realise_h * 27.0
+    )
+
+    if rng.random() < 0.012:
+        return None
+
+    return {
+        "site_id": site,
+        "date": day,
+        "shift": shift,
+        "competence": "Exploitation" if rng.random() < 0.72 else "Support",
+        "charge_units": _round_decimal(charge_units, 2),
+        "capacite_plan_h": _round_decimal(cap_plan_h, 2),
+        "realise_h": _round_decimal(realise_h, 2),
+        "abs_h": _round_decimal(max(0.0, abs_h), 2),
+        "hs_h": _round_decimal(max(0.0, hs_h), 2),
+        "interim_h": _round_decimal(max(0.0, interim_h), 2),
+        "cout_interne_est": _round_decimal(max(0.0, cout_interne), 2),
+    }
+
+
+def _build_canonical_records_for_site_month(
+    site: str,
+    month_start: date,
+    eff: dict[str, float],
+    absences: dict[tuple[str, date], dict[str, float]],
+    payroll: dict[tuple[str, date], dict[str, float]],
+) -> list[dict[str, object]]:
+    work_days = _iter_working_days(month_start)
+    if not work_days:
+        return []
+
+    effectif_total = eff["total"]
+    if effectif_total <= 0:
+        return []
+
+    working_count = float(len(work_days))
+    abs_days = absences.get((site, month_start), {}).get(
+        "abs_days", effectif_total * working_count * 0.04
+    )
+    payroll_metrics = payroll.get((site, month_start), {})
+    monthly_cost = payroll_metrics.get("cout_total", 0.0)
+    monthly_hs = payroll_metrics.get("heures_sup", 0.0)
+    interim_total = eff["interim"]
+
+    records: list[dict[str, object]] = []
+    for day in work_days:
+        for shift, share in (("am", 0.52), ("pm", 0.48)):
+            record = _build_canonical_shift_record(
+                site=site,
+                day=day,
+                shift=shift,
+                share=share,
+                effectif_total=effectif_total,
+                working_count=working_count,
+                abs_days=abs_days,
+                monthly_cost=monthly_cost,
+                monthly_hs=monthly_hs,
+                interim_total=interim_total,
+            )
+            if record is not None:
+                records.append(record)
+    return records
+
+
 def _build_canonical_records_from_rows(
     effectifs_rows: list[dict[str, object]],
     absences_rows: list[dict[str, object]],
     payroll_rows: list[dict[str, object]],
 ) -> list[dict[str, object]]:
-    effectifs: dict[tuple[str, date], dict[str, float]] = {}
-    absences: dict[tuple[str, date], dict[str, float]] = {}
-    payroll: dict[tuple[str, date], dict[str, float]] = {}
-
-    for row in effectifs_rows:
-        month = _as_date(row.get("date_mois"))
-        site = str(row.get("site") or "").strip()
-        if month is None or not site:
-            continue
-        key = (site, month.replace(day=1))
-        agg = effectifs.setdefault(key, {"total": 0.0, "interim": 0.0})
-        agg["total"] += max(0.0, _as_float(row.get("effectif_total")))
-        agg["interim"] += max(0.0, _as_float(row.get("effectif_interim")))
-
-    for row in absences_rows:
-        month = _as_date(row.get("date_mois"))
-        site = str(row.get("site") or "").strip()
-        if month is None or not site:
-            continue
-        key = (site, month.replace(day=1))
-        agg = absences.setdefault(key, {"abs_days": 0.0})
-        agg["abs_days"] += max(0.0, _as_float(row.get("absences_maladie")))
-        agg["abs_days"] += max(0.0, _as_float(row.get("absences_conges")))
-        agg["abs_days"] += max(0.0, _as_float(row.get("absences_rtt")))
-        agg["abs_days"] += max(0.0, _as_float(row.get("absences_autre")))
-
-    for row in payroll_rows:
-        month = _as_date(row.get("date_mois"))
-        site = str(row.get("site") or "").strip()
-        if month is None or not site:
-            continue
-        key = (site, month.replace(day=1))
-        agg = payroll.setdefault(key, {"cout_total": 0.0, "heures_sup": 0.0})
-        agg["cout_total"] += max(0.0, _as_float(row.get("cout_total")))
-        agg["heures_sup"] += max(0.0, _as_float(row.get("heures_sup")))
+    effectifs = _accumulate_effectifs_rows(effectifs_rows)
+    absences = _accumulate_absences_rows(absences_rows)
+    payroll = _accumulate_payroll_rows(payroll_rows)
 
     records: list[dict[str, object]] = []
     for (site, month_start), eff in sorted(effectifs.items()):
-        work_days = _iter_working_days(month_start)
-        if not work_days:
-            continue
-        effectif_total = eff["total"]
-        if effectif_total <= 0:
-            continue
-
-        working_count = float(len(work_days))
-        abs_days = absences.get((site, month_start), {}).get(
-            "abs_days", effectif_total * working_count * 0.04
+        records.extend(
+            _build_canonical_records_for_site_month(
+                site,
+                month_start,
+                eff,
+                absences,
+                payroll,
+            )
         )
-        payroll_metrics = payroll.get((site, month_start), {})
-        monthly_cost = payroll_metrics.get("cout_total", 0.0)
-        monthly_hs = payroll_metrics.get("heures_sup", 0.0)
-
-        for day in work_days:
-            day_factor = 0.98 + (0.06 if day.weekday() in (0, 1) else 0.0)
-            day_factor += -0.03 if day.weekday() == 5 else 0.0
-            day_factor *= 0.94 + 0.10 * _month_seasonality(day.month)
-
-            for shift, share in (("am", 0.52), ("pm", 0.48)):
-                rng = random.Random(f"{site}|{day.isoformat()}|{shift}")  # noqa: S311
-
-                cap_plan_h = (
-                    effectif_total
-                    * _WORK_HOURS_PER_FTE_DAY
-                    * share
-                    * day_factor
-                    / working_count
-                )
-                abs_h = (
-                    abs_days
-                    * _WORK_HOURS_PER_FTE_DAY
-                    * share
-                    / working_count
-                    * (0.84 + 0.30 * rng.random())
-                )
-                hs_h = monthly_hs * share / working_count * (0.80 + 0.40 * rng.random())
-                interim_h = (
-                    eff["interim"]
-                    * _WORK_HOURS_PER_FTE_DAY
-                    * share
-                    / working_count
-                    * 0.55
-                    * (0.82 + 0.36 * rng.random())
-                )
-                friction = cap_plan_h * (0.018 + 0.03 * rng.random())
-                realise_h = max(0.0, cap_plan_h - abs_h + hs_h + interim_h - friction)
-
-                demand = _demand_factor(day) * (0.92 + 0.16 * rng.random())
-                charge_units = max(1, int(round(realise_h * demand)))
-                cout_interne = (
-                    monthly_cost * share / working_count
-                    if monthly_cost > 0
-                    else realise_h * 27.0
-                )
-
-                if rng.random() < 0.012:
-                    continue
-
-                records.append(
-                    {
-                        "site_id": site,
-                        "date": day,
-                        "shift": shift,
-                        "competence": (
-                            "Exploitation" if rng.random() < 0.72 else "Support"
-                        ),
-                        "charge_units": _round_decimal(charge_units, 2),
-                        "capacite_plan_h": _round_decimal(cap_plan_h, 2),
-                        "realise_h": _round_decimal(realise_h, 2),
-                        "abs_h": _round_decimal(max(0.0, abs_h), 2),
-                        "hs_h": _round_decimal(max(0.0, hs_h), 2),
-                        "interim_h": _round_decimal(max(0.0, interim_h), 2),
-                        "cout_interne_est": _round_decimal(max(0.0, cout_interne), 2),
-                    }
-                )
     return records
 
 
@@ -610,9 +687,7 @@ async def _step8_decisions(session: AsyncSession, org: Organization) -> int:
 # ── Step 9: Proof Records ───────────────────────────────
 
 
-async def _step9_proof(
-    session: AsyncSession, org: Organization, sites: list[Site]
-) -> int:
+async def _step9_proof(session: AsyncSession, org: Organization) -> int:
     """Generate proof records for each site-month combination with decisions."""
     tenant = TenantFilter(organization_id=str(org.id))
 
@@ -863,8 +938,7 @@ async def _step10b_forecast_run(
 async def seed_all(
     session: AsyncSession,
     *,
-    target_org_id: uuid.UUID | None = None,
-    strict_step4: bool = False,
+    target_org_id: uuid.UUID,
     include_operational_demo_data: bool = True,
 ) -> None:
     """Seed the full demo pipeline.
@@ -878,13 +952,11 @@ async def seed_all(
     foundation = await provision_organization_foundation(
         session,
         organization_id=target_org_id,
-        strict_step4=strict_step4,
     )
     if foundation is None:
         return
 
     org = foundation.organization
-    sites = foundation.sites
     departments = foundation.departments
 
     if not include_operational_demo_data:
@@ -908,7 +980,7 @@ async def seed_all(
     await _step6_forecasts(session, org)
     await _step7_scenarios(session, org)
     await _step8_decisions(session, org)
-    await _step9_proof(session, org, sites)
+    await _step9_proof(session, org)
     await _step10a_dashboard_alerts(session, org)
     await _step10b_forecast_run(session, org, departments)
 
@@ -917,9 +989,11 @@ async def seed_all(
 
 async def main() -> None:
     """Entry point: create session and run the full seed pipeline."""
+    args = _parse_args()
+    target_org_id = uuid.UUID(args.org_id)
     async with async_session_factory() as session:
         try:
-            await seed_all(session)
+            await seed_all(session, target_org_id=target_org_id)
             await session.commit()
             log.info("seed_full_demo: committed successfully")
         except Exception:

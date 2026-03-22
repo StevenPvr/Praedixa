@@ -6,10 +6,14 @@ from datetime import date
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from openpyxl import Workbook
+
 from app.services.medallion_reprocessing import load_quarantine_records
 from scripts.medallion_pipeline import (
     DEFAULT_COLUMN_ALIASES,
     SourceFile,
+    discover_source_files,
+    parse_source_rows,
     run_selected_sources,
     stage_bronze,
 )
@@ -34,6 +38,17 @@ def _write_metadata(metadata_root: Path) -> None:
         encoding="utf-8",
     )
     (metadata_root / "site_locations.json").write_text("{}", encoding="utf-8")
+
+
+def _write_xlsx(path: Path, rows: list[dict[str, object]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    workbook = Workbook()
+    sheet = workbook.active
+    headers = list(rows[0].keys())
+    sheet.append(headers)
+    for row in rows:
+        sheet.append([row.get(header) for header in headers])
+    workbook.save(path)
 
 
 def test_stage_bronze_quarantines_invalid_payload_with_manifest(tmp_path: Path) -> None:
@@ -217,3 +232,58 @@ def test_run_selected_sources_rebuilds_outputs_for_explicit_sources(
     assert result["quarantined_files"] == 0
     assert (output_root / "gold" / "gold_site_day.csv").exists()
     assert (output_root / "reports" / "last_run_summary.json").exists()
+
+
+def test_discover_source_files_includes_tsv_and_xlsx(tmp_path: Path) -> None:
+    csv_path = tmp_path / "data" / "acme" / "ops" / "workforce_daily.csv"
+    tsv_path = tmp_path / "data" / "acme" / "ops" / "labor_cost_daily.tsv"
+    xlsx_path = tmp_path / "data" / "acme" / "ops" / "planning_shifts.xlsx"
+
+    _write_csv(csv_path, [{"date": "2026-03-02", "site_code": "PAR"}])
+    tsv_path.parent.mkdir(parents=True, exist_ok=True)
+    tsv_path.write_text("date\tsite_code\n2026-03-02\tPAR\n", encoding="utf-8")
+    _write_xlsx(
+        xlsx_path,
+        [{"date": "2026-03-02", "site_code": "PAR", "required_fte": 10}],
+    )
+
+    discovered = discover_source_files(tmp_path / "data")
+
+    discovered_paths = {entry.path.name for entry in discovered}
+    assert discovered_paths == {
+        "workforce_daily.csv",
+        "labor_cost_daily.tsv",
+        "planning_shifts.xlsx",
+    }
+
+
+def test_parse_source_rows_supports_xlsx(tmp_path: Path) -> None:
+    xlsx_path = tmp_path / "data" / "acme" / "ops" / "planning_shifts.xlsx"
+    _write_xlsx(
+        xlsx_path,
+        [
+            {
+                "date": "2026-03-02",
+                "site_code": "PAR",
+                "required_fte": 10,
+            }
+        ],
+    )
+
+    rows, columns = parse_source_rows(
+        SourceFile(
+            client_slug="acme",
+            domain="ops",
+            dataset="planning_shifts",
+            path=xlsx_path,
+        )
+    )
+
+    assert columns == ["date", "site_code", "required_fte"]
+    assert rows == [
+        {
+            "date": "2026-03-02",
+            "site_code": "PAR",
+            "required_fte": 10,
+        }
+    ]

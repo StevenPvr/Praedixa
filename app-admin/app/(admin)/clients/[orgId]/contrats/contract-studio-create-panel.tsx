@@ -1,21 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import type {
-  DecisionContractStudioCreateRequest,
-  DecisionContractStudioDetailResponse,
-  DecisionContractTemplateListResponse,
-} from "@praedixa/shared-types/api";
+import type { DecisionContractTemplateListResponse } from "@praedixa/shared-types/api";
 import { Button, Card, CardContent } from "@praedixa/ui";
 
-import { useApiPost } from "@/hooks/use-api";
-import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 import { ReadOnlyStateCard } from "../read-only-detail";
 import {
   buildContractSlug,
-  nextSelectionFromResult,
   type ContractStudioSelection,
 } from "./contract-studio-shared";
+import { useContractStudioCreateController } from "./contract-studio-create-controller";
 
 interface ContractStudioCreatePanelProps {
   orgId: string;
@@ -24,113 +17,41 @@ interface ContractStudioCreatePanelProps {
   onCreated: (selection: ContractStudioSelection) => void;
 }
 
-interface CreateDraftInput {
-  selectedTemplate:
-    | DecisionContractTemplateListResponse["items"][number]
-    | null;
-  name: string;
-  contractId: string;
-  reason: string;
-}
+type ContractStudioCreateController = ReturnType<
+  typeof useContractStudioCreateController
+>;
 
-function useCreateTemplateState(
-  activeTemplates: DecisionContractTemplateListResponse["items"],
-  orgId: string,
-) {
-  const [selectedTemplateId, setSelectedTemplateId] = useState(
-    activeTemplates[0]?.templateId ?? "",
-  );
-  const [name, setName] = useState(activeTemplates[0]?.name ?? "");
-  const [contractId, setContractId] = useState(
-    buildContractSlug(activeTemplates[0]?.templateId ?? ""),
-  );
-  const [reason, setReason] = useState("bootstrap_contract_line");
-  const [localError, setLocalError] = useState<string | null>(null);
-  const mutation = useApiPost<
-    DecisionContractStudioCreateRequest,
-    DecisionContractStudioDetailResponse
-  >(ADMIN_ENDPOINTS.orgDecisionContracts(orgId));
-  const selectedTemplate = useMemo(
-    () =>
-      activeTemplates.find((item) => item.templateId === selectedTemplateId) ??
-      null,
-    [activeTemplates, selectedTemplateId],
-  );
-
-  useEffect(() => {
-    if (!selectedTemplate) {
-      return;
-    }
-    setName((current) =>
-      current.length > 0 ? current : selectedTemplate.name,
-    );
-    setContractId((current) =>
-      current.length > 0
-        ? current
-        : buildContractSlug(selectedTemplate.templateId),
-    );
-  }, [selectedTemplate]);
-
-  return {
-    contractId,
-    localError,
-    mutation,
-    name,
-    reason,
-    selectedTemplate,
-    selectedTemplateId,
-    setContractId,
-    setLocalError,
-    setName,
-    setReason,
-    setSelectedTemplateId,
-  };
-}
-
-function buildCreateDraftRequest({
-  selectedTemplate,
-  name,
-  contractId,
-  reason,
-}: CreateDraftInput):
-  | { error: string }
-  | { request: DecisionContractStudioCreateRequest } {
-  const trimmedName = name.trim();
-  const trimmedContractId = contractId.trim();
-  const trimmedReason = reason.trim();
-
-  if (!selectedTemplate) {
-    return { error: "Aucun template actif n'est disponible." };
-  }
-  if (trimmedName.length === 0 || trimmedContractId.length === 0) {
-    return { error: "Le nom et le contractId sont requis." };
-  }
-  if (trimmedReason.length === 0) {
-    return { error: "Un motif de creation est requis." };
-  }
-
-  return {
-    request: {
-      templateId: selectedTemplate.templateId,
-      templateVersion: selectedTemplate.templateVersion,
-      contractId: trimmedContractId,
-      name: trimmedName,
-      description: selectedTemplate.description,
-      reason: trimmedReason,
-      tags: selectedTemplate.tags,
-    } satisfies DecisionContractStudioCreateRequest,
-  };
-}
-
-function ContractStudioTextField({
-  label,
-  value,
-  onChange,
-}: {
+type ContractStudioTextFieldProps = {
   label: string;
   value: string;
   onChange: (value: string) => void;
-}) {
+};
+
+type ContractStudioTemplateFieldProps = {
+  activeTemplates: DecisionContractTemplateListResponse["items"];
+  selectedTemplateId: string;
+  onTemplateChange: (templateId: string) => void;
+};
+
+type ContractStudioCreateFieldsProps = {
+  activeTemplates: DecisionContractTemplateListResponse["items"];
+  state: ContractStudioCreateController["state"];
+};
+
+type ContractStudioCreateStatusProps = {
+  error: string | null;
+};
+
+type ContractStudioCreateFormProps = {
+  activeTemplates: DecisionContractTemplateListResponse["items"];
+  state: ContractStudioCreateController["state"];
+  onSubmit: () => Promise<void>;
+};
+
+function ContractStudioTextField(
+  props: Readonly<ContractStudioTextFieldProps>,
+) {
+  const { label, value, onChange } = props;
   return (
     <label className="block space-y-2 text-sm text-ink-tertiary">
       <span>{label}</span>
@@ -143,15 +64,10 @@ function ContractStudioTextField({
   );
 }
 
-function ContractStudioTemplateField({
-  activeTemplates,
-  selectedTemplateId,
-  onTemplateChange,
-}: {
-  activeTemplates: DecisionContractTemplateListResponse["items"];
-  selectedTemplateId: string;
-  onTemplateChange: (templateId: string) => void;
-}) {
+function ContractStudioTemplateField(
+  props: Readonly<ContractStudioTemplateFieldProps>,
+) {
+  const { activeTemplates, selectedTemplateId, onTemplateChange } = props;
   return (
     <label className="block space-y-2 text-sm text-ink-tertiary">
       <span>Template</span>
@@ -184,15 +100,12 @@ function ContractStudioCreateHeader() {
   );
 }
 
-function ContractStudioCreateFields({
-  activeTemplates,
-  state,
-}: {
-  activeTemplates: DecisionContractTemplateListResponse["items"];
-  state: ReturnType<typeof useCreateTemplateState>;
-}) {
+function ContractStudioCreateFields(
+  props: Readonly<ContractStudioCreateFieldsProps>,
+) {
+  const { activeTemplates, state } = props;
   return (
-    <>
+    <div className="space-y-4">
       <ContractStudioTemplateField
         activeTemplates={activeTemplates}
         selectedTemplateId={state.selectedTemplateId}
@@ -222,23 +135,25 @@ function ContractStudioCreateFields({
         value={state.reason}
         onChange={state.setReason}
       />
-    </>
+    </div>
   );
 }
 
-function ContractStudioCreateStatus({ error }: { error: string | null }) {
+function ContractStudioCreateStatus(
+  props: Readonly<ContractStudioCreateStatusProps>,
+) {
+  const { error } = props;
   return error ? <p className="text-sm text-danger-text">{error}</p> : null;
 }
 
-function ContractStudioCreateForm({
-  activeTemplates,
-  state,
-  onSubmit,
-}: {
-  activeTemplates: DecisionContractTemplateListResponse["items"];
-  state: ReturnType<typeof useCreateTemplateState>;
-  onSubmit: () => Promise<void>;
-}) {
+function ContractStudioCreateForm(
+  props: Readonly<ContractStudioCreateFormProps>,
+) {
+  const { activeTemplates, state, onSubmit } = props;
+  async function handleSubmit() {
+    await onSubmit();
+  }
+
   return (
     <Card className="rounded-2xl shadow-soft">
       <CardContent className="space-y-4 p-5">
@@ -250,10 +165,7 @@ function ContractStudioCreateForm({
         <ContractStudioCreateStatus
           error={state.localError ?? state.mutation.error}
         />
-        <Button
-          loading={state.mutation.loading}
-          onClick={() => void onSubmit()}
-        >
+        <Button loading={state.mutation.loading} onClick={handleSubmit}>
           Creer le draft
         </Button>
       </CardContent>
@@ -261,45 +173,10 @@ function ContractStudioCreateForm({
   );
 }
 
-function useContractStudioCreateController(
-  templates: DecisionContractTemplateListResponse,
-  orgId: string,
-  onCreated: (selection: ContractStudioSelection) => void,
+export function ContractStudioCreatePanel(
+  props: Readonly<ContractStudioCreatePanelProps>,
 ) {
-  const activeTemplates = useMemo(
-    () => templates.items.filter((item) => item.status === "active"),
-    [templates.items],
-  );
-  const state = useCreateTemplateState(activeTemplates, orgId);
-
-  async function submitCreate() {
-    const result = buildCreateDraftRequest({
-      selectedTemplate: state.selectedTemplate,
-      name: state.name,
-      contractId: state.contractId,
-      reason: state.reason,
-    });
-    if ("error" in result) {
-      state.setLocalError(result.error);
-      return;
-    }
-    state.setLocalError(null);
-    const response = await state.mutation.mutate(result.request);
-    const selection = nextSelectionFromResult(response);
-    if (selection) {
-      onCreated(selection);
-    }
-  }
-
-  return { activeTemplates, state, submitCreate };
-}
-
-export function ContractStudioCreatePanel({
-  orgId,
-  templates,
-  canMutate,
-  onCreated,
-}: ContractStudioCreatePanelProps) {
+  const { orgId, templates, canMutate, onCreated } = props;
   const { activeTemplates, state, submitCreate } =
     useContractStudioCreateController(templates, orgId, onCreated);
 

@@ -12,10 +12,8 @@ interface CostParamsSectionProps {
   selectedSiteId: string | null;
 }
 
-export function CostParamsSection({
-  orgId,
-  selectedSiteId,
-}: CostParamsSectionProps) {
+export function CostParamsSection(props: Readonly<CostParamsSectionProps>) {
+  const { orgId, selectedSiteId } = props;
   const costUrl = selectedSiteId
     ? `${ADMIN_ENDPOINTS.orgCostParams(orgId)}?site_id=${encodeURIComponent(selectedSiteId)}`
     : ADMIN_ENDPOINTS.orgCostParams(orgId);

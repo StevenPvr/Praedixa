@@ -1,4 +1,8 @@
 import type { NextRequest, NextResponse } from "next/server";
+import {
+  getTrustedOidcEndpoints as getSharedTrustedOidcEndpoints,
+  type TrustedOidcEndpoints as SharedTrustedOidcEndpoints,
+} from "@praedixa/shared-types/oidc-discovery";
 import { resolveAdminPermissions } from "@/lib/auth/permissions";
 
 const ROLE_PRIORITY = [
@@ -65,11 +69,7 @@ interface OidcEnv {
   sessionSecret: string;
 }
 
-interface TrustedOidcEndpoints {
-  authorizationEndpoint: string;
-  tokenEndpoint: string;
-  revocationEndpoint: string | null;
-}
+export type TrustedOidcEndpoints = SharedTrustedOidcEndpoints;
 
 type JwtPayload = Record<string, unknown>;
 
@@ -83,32 +83,32 @@ function isSafeObjectKey(key: string): boolean {
   return key.length > 0 && !FORBIDDEN_OBJECT_KEYS.has(key);
 }
 
-function getOwnValue(
-  payload: Record<string, unknown>,
-  key: string,
-): unknown | undefined {
+function getOwnValue(payload: Record<string, unknown>, key: string): unknown {
   if (!isSafeObjectKey(key)) return undefined;
-  if (!Object.prototype.hasOwnProperty.call(payload, key)) return undefined;
+  if (!Object.hasOwn(payload, key)) return undefined;
   return payload[key];
 }
 
 function base64UrlEncode(input: Uint8Array): string {
   let binary = "";
   input.forEach((byte) => {
-    binary += String.fromCharCode(byte);
+    binary += String.fromCodePoint(byte);
   });
   const base64 = btoa(binary);
-  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  return base64
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replaceAll(/=+$/g, "");
 }
 
 function base64UrlDecode(input: string): string {
-  const normalized = input.replace(/-/g, "+").replace(/_/g, "/");
+  const normalized = input.replaceAll("-", "+").replaceAll("_", "/");
   const padding =
     normalized.length % 4 === 0 ? "" : "=".repeat(4 - (normalized.length % 4));
   const binary = atob(`${normalized}${padding}`);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i += 1) {
-    bytes[i] = binary.charCodeAt(i);
+    bytes[i] = binary.codePointAt(i) ?? 0;
   }
   return new TextDecoder().decode(bytes);
 }
@@ -156,8 +156,12 @@ function normalizeRole(rawRole: string): KnownRole | null {
 export function decodeJwtPayload(token: string): JwtPayload | null {
   const segments = token.split(".");
   if (segments.length !== 3) return null;
+  const payloadSegment = segments[1];
+  if (typeof payloadSegment !== "string" || payloadSegment.length === 0) {
+    return null;
+  }
   try {
-    return parseJsonObject(base64UrlDecode(segments[1]));
+    return parseJsonObject(base64UrlDecode(payloadSegment));
   } catch {
     return null;
   }
@@ -165,13 +169,13 @@ export function decodeJwtPayload(token: string): JwtPayload | null {
 
 export function getTokenExp(token: string): number | null {
   const payload = decodeJwtPayload(token);
-  const exp = payload?.exp;
+  const exp = payload?.["exp"];
   return typeof exp === "number" ? exp : null;
 }
 
 function getTokenNotBefore(token: string): number | null {
   const payload = decodeJwtPayload(token);
-  const nbf = payload?.nbf;
+  const nbf = payload?.["nbf"];
   return typeof nbf === "number" ? nbf : null;
 }
 
@@ -184,7 +188,7 @@ function tokenIncludesAudience(
   }
 
   if (Array.isArray(value)) {
-    return value.some((entry) => entry === expectedAudience);
+    return value.includes(expectedAudience);
   }
 
   return false;
@@ -227,12 +231,12 @@ export function isAccessTokenCompatible(
   input: { issuerUrl: string; clientId: string },
 ): boolean {
   const payload = decodeJwtPayload(token);
-  if (!payload) {
+  if (payload === null) {
     return false;
   }
 
   const issuer = getString(payload, "iss");
-  if (!issuer) {
+  if (issuer === null) {
     return false;
   }
 
@@ -263,7 +267,7 @@ export function isAccessTokenCompatible(
 
 export function isTokenExpired(token: string, minTtlSeconds = 0): boolean {
   const exp = getTokenExp(token);
-  if (!exp) return true;
+  if (exp === null) return true;
   const now = Math.floor(Date.now() / 1000);
   return exp - now <= minTtlSeconds;
 }
@@ -272,17 +276,16 @@ export function userFromAccessToken(
   token: string,
   _clientId: string,
 ): OidcUser | null {
-  void _clientId;
   const payload = decodeJwtPayload(token);
-  if (!payload) return null;
+  if (payload === null) return null;
 
   const sub = getString(payload, "sub");
   const email = getString(payload, "email");
   const rawRole = getString(payload, "role");
-  if (!sub || !email || !rawRole) return null;
+  if (sub === null || email === null || rawRole === null) return null;
 
   const role = normalizeRole(rawRole);
-  if (!role) return null;
+  if (role === null) return null;
 
   return {
     id: sub,
@@ -299,7 +302,7 @@ export function userFromAccessToken(
 }
 
 function getRequiredAdminAmrValues(): string[] {
-  const parsed = (process.env.AUTH_ADMIN_REQUIRED_AMR?.trim() ?? "")
+  const parsed = (process.env["AUTH_ADMIN_REQUIRED_AMR"]?.trim() ?? "")
     .split(",")
     .map((entry) => entry.trim().toLowerCase())
     .filter((entry) => entry.length > 0);
@@ -323,7 +326,7 @@ export function hasRequiredAdminMfa(token: string): boolean {
   }
 
   const payload = decodeJwtPayload(token);
-  if (!payload) {
+  if (payload === null) {
     return false;
   }
 
@@ -336,11 +339,11 @@ export function hasRequiredAdminMfa(token: string): boolean {
 }
 
 export function getOidcEnv(): OidcEnv {
-  const issuerUrl = process.env.AUTH_OIDC_ISSUER_URL?.trim() ?? "";
-  const clientId = process.env.AUTH_OIDC_CLIENT_ID?.trim() ?? "";
-  const clientSecret = process.env.AUTH_OIDC_CLIENT_SECRET?.trim() ?? "";
-  const scope = process.env.AUTH_OIDC_SCOPE?.trim() || DEFAULT_SCOPE;
-  const sessionSecret = process.env.AUTH_SESSION_SECRET?.trim() ?? "";
+  const issuerUrl = process.env["AUTH_OIDC_ISSUER_URL"]?.trim() ?? "";
+  const clientId = process.env["AUTH_OIDC_CLIENT_ID"]?.trim() ?? "";
+  const clientSecret = process.env["AUTH_OIDC_CLIENT_SECRET"]?.trim() ?? "";
+  const scope = process.env["AUTH_OIDC_SCOPE"]?.trim() || DEFAULT_SCOPE;
+  const sessionSecret = process.env["AUTH_SESSION_SECRET"]?.trim() ?? "";
 
   if (!issuerUrl || !clientId || !sessionSecret) {
     throw new Error(
@@ -362,8 +365,8 @@ export function getOidcEnv(): OidcEnv {
 
 function getConfiguredAuthAppOrigin(): string | null {
   const configuredOrigin =
-    process.env.AUTH_APP_ORIGIN?.trim() ??
-    process.env.NEXT_PUBLIC_APP_ORIGIN?.trim() ??
+    process.env["AUTH_APP_ORIGIN"]?.trim() ??
+    process.env["NEXT_PUBLIC_APP_ORIGIN"]?.trim() ??
     "";
 
   return configuredOrigin ? normalizeHttpOrigin(configuredOrigin) : null;
@@ -381,7 +384,7 @@ function normalizeHttpOrigin(origin: string): string | null {
   }
 }
 
-export function resolveAuthAppOrigin(request: NextRequest): string {
+export function resolveAuthAppOrigin(_request: NextRequest): string {
   const normalizedConfiguredOrigin = getConfiguredAuthAppOrigin();
   if (normalizedConfiguredOrigin) {
     return normalizedConfiguredOrigin;
@@ -389,11 +392,6 @@ export function resolveAuthAppOrigin(request: NextRequest): string {
 
   if (process.env.NODE_ENV !== "production") {
     return DEFAULT_DEV_AUTH_ORIGIN;
-  }
-
-  const normalizedRequestOrigin = normalizeHttpOrigin(request.nextUrl.origin);
-  if (normalizedRequestOrigin?.startsWith("https://")) {
-    return normalizedRequestOrigin;
   }
 
   throw new Error(
@@ -422,123 +420,7 @@ function normalizeUrlForComparison(value: string): string {
   return value.replace(/\/$/, "");
 }
 
-function parseHttpsUrl(value: string, label: string): URL {
-  let parsed: URL;
-  try {
-    parsed = new URL(value);
-  } catch {
-    throw new Error(`Invalid OIDC ${label}`);
-  }
-
-  if (parsed.protocol !== "https:") {
-    throw new Error(`OIDC ${label} must use HTTPS`);
-  }
-
-  return parsed;
-}
-
-function readDiscoveryString(
-  doc: Record<string, unknown>,
-  key: string,
-): string {
-  const value = doc[key];
-  if (typeof value !== "string" || value.length === 0) {
-    throw new Error(`OIDC discovery missing ${key}`);
-  }
-  return value;
-}
-
-function readOptionalDiscoveryString(
-  doc: Record<string, unknown>,
-  key: string,
-): string | null {
-  const value = doc[key];
-  return typeof value === "string" && value.length > 0 ? value : null;
-}
-
-async function fetchOidcDiscovery(
-  issuerUrl: string,
-): Promise<Record<string, unknown>> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-  try {
-    const response = await fetch(
-      `${issuerUrl}/.well-known/openid-configuration`,
-      {
-        cache: "no-store",
-        headers: { Accept: "application/json" },
-        signal: controller.signal,
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error("OIDC discovery request failed");
-    }
-
-    const parsed = (await response.json()) as unknown;
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-      throw new Error("Invalid OIDC discovery payload");
-    }
-
-    return parsed as Record<string, unknown>;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
-export async function getTrustedOidcEndpoints(
-  issuerUrl: string,
-): Promise<TrustedOidcEndpoints> {
-  const configuredIssuer = parseHttpsUrl(issuerUrl, "issuer URL");
-  const normalizedConfiguredIssuer = normalizeUrlForComparison(
-    configuredIssuer.toString(),
-  );
-
-  const discovery = await fetchOidcDiscovery(normalizedConfiguredIssuer);
-  const discoveredIssuer = parseHttpsUrl(
-    readDiscoveryString(discovery, "issuer"),
-    "discovery issuer",
-  );
-  const normalizedDiscoveredIssuer = normalizeUrlForComparison(
-    discoveredIssuer.toString(),
-  );
-
-  if (normalizedConfiguredIssuer !== normalizedDiscoveredIssuer) {
-    throw new Error("OIDC issuer mismatch between config and discovery");
-  }
-
-  const authorizationEndpoint = parseHttpsUrl(
-    readDiscoveryString(discovery, "authorization_endpoint"),
-    "authorization endpoint",
-  );
-  const tokenEndpoint = parseHttpsUrl(
-    readDiscoveryString(discovery, "token_endpoint"),
-    "token endpoint",
-  );
-  const revocationEndpointValue = readOptionalDiscoveryString(
-    discovery,
-    "revocation_endpoint",
-  );
-  const revocationEndpoint = revocationEndpointValue
-    ? parseHttpsUrl(revocationEndpointValue, "revocation endpoint")
-    : null;
-
-  if (
-    authorizationEndpoint.origin !== configuredIssuer.origin ||
-    tokenEndpoint.origin !== configuredIssuer.origin ||
-    (revocationEndpoint != null &&
-      revocationEndpoint.origin !== configuredIssuer.origin)
-  ) {
-    throw new Error("OIDC endpoints must share issuer origin");
-  }
-
-  return {
-    authorizationEndpoint: authorizationEndpoint.toString(),
-    tokenEndpoint: tokenEndpoint.toString(),
-    revocationEndpoint: revocationEndpoint?.toString() ?? null,
-  };
-}
+export const getTrustedOidcEndpoints = getSharedTrustedOidcEndpoints;
 
 export function sanitizeNextPath(
   next: string | null | undefined,
@@ -587,7 +469,7 @@ function constantTimeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let result = 0;
   for (let i = 0; i < a.length; i += 1) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    result |= (a.codePointAt(i) ?? 0) ^ (b.codePointAt(i) ?? 0);
   }
   return result === 0;
 }
@@ -716,7 +598,14 @@ export async function verifySession(
   secret: string,
 ): Promise<AuthSessionData | null> {
   const [payload, signature] = token.split(".");
-  if (!payload || !signature) return null;
+  if (
+    typeof payload !== "string" ||
+    payload.length === 0 ||
+    typeof signature !== "string" ||
+    signature.length === 0
+  ) {
+    return null;
+  }
 
   const expected = await hmacSign(payload, secret);
   if (!constantTimeEqual(signature, expected)) {
@@ -731,38 +620,32 @@ export async function verifySession(
   }
 
   const parsed = parseJsonObject(decodedPayload);
-  if (!parsed) return null;
+  if (parsed === null) return null;
 
   const sub = getString(parsed, "sub");
   const email = getString(parsed, "email");
   const rawRole = getString(parsed, "role");
   const permissions = getStringList(getOwnValue(parsed, "permissions"));
-  const accessTokenExp = parsed.accessTokenExp;
-  const issuedAt = parsed.issuedAt;
-  const sessionExpiresAt = parsed.sessionExpiresAt;
+  const accessTokenExp = parsed["accessTokenExp"];
+  const issuedAt = parsed["issuedAt"];
+  const sessionExpiresAt = parsed["sessionExpiresAt"];
   const accessTokenHash = getString(parsed, "accessTokenHash");
-  const rawRefreshTokenHash = getOwnValue(parsed, "refreshTokenHash");
-  const refreshTokenHash =
-    typeof rawRefreshTokenHash === "string" && rawRefreshTokenHash.length > 0
-      ? rawRefreshTokenHash
-      : rawRefreshTokenHash === null
-        ? null
-        : null;
+  const refreshTokenHash = getString(parsed, "refreshTokenHash");
 
   if (
-    !sub ||
-    !email ||
-    !rawRole ||
+    sub === null ||
+    email === null ||
+    rawRole === null ||
     typeof accessTokenExp !== "number" ||
     typeof issuedAt !== "number" ||
     typeof sessionExpiresAt !== "number" ||
-    !accessTokenHash
+    accessTokenHash === null
   ) {
     return null;
   }
 
   const normalizedRole = normalizeRole(rawRole);
-  if (!normalizedRole) {
+  if (normalizedRole === null) {
     return null;
   }
 

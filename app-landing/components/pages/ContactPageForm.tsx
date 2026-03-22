@@ -83,7 +83,9 @@ export function ContactPageForm({
           id="contact-companyName"
           label={`${copy.company} *`}
           value={form.companyName}
-          error={fieldErrors.companyName}
+          {...(fieldErrors.companyName
+            ? { error: fieldErrors.companyName }
+            : {})}
           autoComplete="organization"
           maxLength={100}
           onChange={(value) => update("companyName", value)}
@@ -94,7 +96,7 @@ export function ContactPageForm({
             id="contact-role"
             label={`${copy.role} *`}
             value={form.role}
-            error={fieldErrors.role}
+            {...(fieldErrors.role ? { error: fieldErrors.role } : {})}
             autoComplete="organization-title"
             maxLength={80}
             onChange={(value) => update("role", value)}
@@ -104,7 +106,7 @@ export function ContactPageForm({
             type="email"
             label={`${copy.email} *`}
             value={form.email}
-            error={fieldErrors.email}
+            {...(fieldErrors.email ? { error: fieldErrors.email } : {})}
             autoComplete="email"
             maxLength={254}
             placeholder={isFr ? "vous@entreprise.com" : "you@company.com"}
@@ -119,7 +121,7 @@ export function ContactPageForm({
             value={form.siteCount}
             options={SITE_COUNTS}
             placeholder={selectPlaceholder}
-            error={fieldErrors.siteCount}
+            {...(fieldErrors.siteCount ? { error: fieldErrors.siteCount } : {})}
             onChange={(value) => update("siteCount", value)}
           />
           <ContactSelectField
@@ -128,7 +130,7 @@ export function ContactPageForm({
             value={form.sector}
             options={sectorOptions}
             placeholder={selectPlaceholder}
-            error={fieldErrors.sector}
+            {...(fieldErrors.sector ? { error: fieldErrors.sector } : {})}
             onChange={(value) => update("sector", value)}
           />
         </div>
@@ -140,7 +142,7 @@ export function ContactPageForm({
             value={form.timeline}
             options={timelineOptions}
             placeholder={selectPlaceholder}
-            error={fieldErrors.timeline}
+            {...(fieldErrors.timeline ? { error: fieldErrors.timeline } : {})}
             onChange={(value) => update("timeline", value)}
           />
           <ContactTextField
@@ -199,7 +201,9 @@ export function ContactPageForm({
           captcha={captcha}
           captchaLoading={captchaLoading}
           copy={copy}
-          error={fieldErrors.captchaAnswer}
+          {...(fieldErrors.captchaAnswer
+            ? { error: fieldErrors.captchaAnswer }
+            : {})}
           value={form.captchaAnswer}
           onChange={(value) => update("captchaAnswer", value)}
           onRetry={loadCaptchaChallenge}
@@ -385,7 +389,9 @@ function CaptchaUnavailableState({
       <p className="text-sm text-neutral-500">{copy.challengeUnavailable}</p>
       <button
         type="button"
-        onClick={() => void onRetry()}
+        onClick={() => {
+          onRetry().catch(() => undefined);
+        }}
         className="inline-flex rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-ink"
       >
         {copy.challengeRetry}
@@ -457,8 +463,8 @@ function ContactCaptchaField({
       ) : captcha ? (
         <CaptchaPrompt
           captcha={captcha}
-          error={error}
-          errorId={errorId}
+          {...(error !== undefined ? { error } : {})}
+          {...(errorId !== undefined ? { errorId } : {})}
           inputId={inputId}
           onChange={onChange}
           value={value}

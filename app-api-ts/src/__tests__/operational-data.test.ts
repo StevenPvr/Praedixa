@@ -168,6 +168,23 @@ describe("operational data persistence helpers", () => {
     expect(values).toEqual([ORGANIZATION_ID]);
   });
 
+  it("fails closed for proof records when a restricted caller has no accessible sites", async () => {
+    mockedQueryRows.mockResolvedValueOnce([] as never);
+
+    await listPersistentProofRecords({
+      organizationId: ORGANIZATION_ID,
+      scope: {
+        orgWide: false,
+        accessibleSiteIds: [],
+        requestedSiteId: null,
+      },
+    });
+
+    const [sql, values] = mockedQueryRows.mock.calls[0] ?? [];
+    expect(sql).toContain("AND FALSE");
+    expect(values).toEqual([ORGANIZATION_ID]);
+  });
+
   it("scopes forecast runs by accessible site ids when live reads are not org-wide", async () => {
     mockedQueryRows.mockResolvedValueOnce([
       {
@@ -250,6 +267,24 @@ describe("operational data persistence helpers", () => {
       status: "running",
       horizonDays: 14,
     });
+  });
+
+  it("fails closed for forecast runs when a restricted caller has no accessible sites", async () => {
+    mockedQueryRows.mockResolvedValueOnce([] as never);
+
+    await listPersistentForecastRuns({
+      organizationId: ORGANIZATION_ID,
+      scope: {
+        orgWide: false,
+        accessibleSiteIds: [],
+        requestedSiteId: null,
+      },
+      status: "running",
+    });
+
+    const [sql, values] = mockedQueryRows.mock.calls[0] ?? [];
+    expect(sql).toContain("AND FALSE");
+    expect(values).toEqual([ORGANIZATION_ID, "running"]);
   });
 
   it("summarizes proof packs deterministically", () => {

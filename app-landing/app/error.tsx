@@ -1,15 +1,12 @@
 "use client";
 
 export default function Error({
-  error,
+  error: _error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  // Re-enable Sentry here when monitoring is restored.
-  void error;
-
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 py-20 text-center">
       <span className="text-5xl font-bold tracking-tight text-neutral-300">

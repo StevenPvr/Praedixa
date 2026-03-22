@@ -44,7 +44,7 @@ export function getOptionLabel(optionType: string): string {
 }
 
 export function sortAlertsBySeverity(alerts: CoverageAlert[]): CoverageAlert[] {
-  return [...alerts].toSorted((a, b) => {
+  return [...alerts].sort((a, b) => {
     const diff =
       (SEVERITY_ORDER[a.severity] ?? 4) - (SEVERITY_ORDER[b.severity] ?? 4);
     return diff !== 0 ? diff : b.gapH - a.gapH;

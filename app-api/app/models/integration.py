@@ -25,6 +25,7 @@ from app.models.base import Base, TenantMixin, sa_enum
 
 
 class IntegrationVendor(str, enum.Enum):
+    CUSTOM_DATA = "custom_data"
     SALESFORCE = "salesforce"
     UKG = "ukg"
     TOAST = "toast"

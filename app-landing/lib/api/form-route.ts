@@ -182,7 +182,7 @@ export function hasFilledHoneypot(body: unknown): boolean {
     return false;
   }
 
-  const rawWebsite = (body as Record<string, unknown>).website;
+  const rawWebsite = (body as Record<string, unknown>)["website"];
   return typeof rawWebsite === "string" && rawWebsite.trim() !== "";
 }
 

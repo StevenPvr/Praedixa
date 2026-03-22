@@ -30,7 +30,7 @@ function createNoStoreJsonResponse(
 }
 
 export async function POST(request: NextRequest) {
-  if (!isTrustedLogoutRequest(request)) {
+  if (isTrustedLogoutRequest(request) === false) {
     return createNoStoreJsonResponse({ error: "csrf_failed" }, 403);
   }
 

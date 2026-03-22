@@ -4,7 +4,7 @@ Helpers shell partages par plusieurs scripts.
 
 ## Fichier present
 
-- `local-env.sh` recharge certaines variables locales sensibles depuis les fichiers `.env.local` standards du repo ou, pour l'API TS en dev, depuis `app-api/.env`, sans les exposer dans les arguments CLI. Il couvre notamment `DATABASE_URL`, `KEYCLOAK_ADMIN_PASSWORD` / `KC_BOOTSTRAP_ADMIN_PASSWORD`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_REPLY_TO_EMAIL` et, si besoin, `KEYCLOAK_ADMIN_USERNAME` avec repli explicite `kcadmin`.
+- `local-env.sh` recharge certaines variables locales sensibles depuis les fichiers `.env.local` standards du repo ou, pour l'API TS en dev, depuis `app-api/.env`, sans les exposer dans les arguments CLI. Il couvre notamment `DATABASE_URL`, `AUTH_ISSUER_URL` / `AUTH_JWKS_URL` / `AUTH_AUDIENCE` et `RESEND_WEBHOOK_SECRET` pour le runtime API local, `KEYCLOAK_ADMIN_PASSWORD` / `KC_BOOTSTRAP_ADMIN_PASSWORD`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_REPLY_TO_EMAIL`, le runtime SMTP Keycloak local derive de ces variables, et, si besoin, `KEYCLOAK_ADMIN_USERNAME` avec repli explicite `kcadmin`.
 - `pnpm.sh` detecte un binaire `pnpm` utilisable et prepare un wrapper si necessaire.
 - `process-tree.sh` termine un arbre de process complet, verifie aussi l'ecoute TCP d'un port local, et attend l'extinction d'un PID avec timeout borne, en traitant les zombies comme des processus deja sortis pour eviter les hooks pendus sur des wrappers shell ou `pnpm`.
 - `json-env.sh` serialise une liste de variables d'environnement vers un JSON temporaire sans exposer leurs valeurs dans les arguments CLI.

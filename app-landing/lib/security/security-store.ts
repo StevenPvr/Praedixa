@@ -142,7 +142,7 @@ class MemorySecurityStore implements SecurityStore {
 const memorySecurityStore = new MemorySecurityStore();
 
 function canUseMemoryFallback(): boolean {
-  return process.env.NODE_ENV !== "production";
+  return process.env["NODE_ENV"] !== "production";
 }
 
 function resolveClientIdentifier(

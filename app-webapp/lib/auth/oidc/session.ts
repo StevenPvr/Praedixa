@@ -189,9 +189,9 @@ export async function verifySession(
   const sub = getString(parsed, "sub");
   const email = getString(parsed, "email");
   const role = getString(parsed, "role");
-  const accessTokenExp = parsed.accessTokenExp;
-  const issuedAt = parsed.issuedAt;
-  const sessionExpiresAt = parsed.sessionExpiresAt;
+  const accessTokenExp = parsed["accessTokenExp"];
+  const issuedAt = parsed["issuedAt"];
+  const sessionExpiresAt = parsed["sessionExpiresAt"];
   const accessTokenHash = getString(parsed, "accessTokenHash");
   const refreshTokenHash = parseRefreshTokenHash(parsed);
 

@@ -339,7 +339,7 @@ function getConfigUrl(
 function normalizeApiKeyCredentials(
   credentials: CredentialInput,
 ): CredentialInput {
-  const apiKey = asTrimmedString(credentials.apiKey);
+  const apiKey = asTrimmedString(credentials["apiKey"]);
   if (apiKey == null || apiKey.length < 8) {
     throw new Error("apiKey is required");
   }
@@ -349,9 +349,9 @@ function normalizeApiKeyCredentials(
 function normalizeSessionCredentials(
   credentials: CredentialInput,
 ): CredentialInput {
-  const database = asTrimmedString(credentials.database);
-  const username = asTrimmedString(credentials.username);
-  const password = asTrimmedString(credentials.password);
+  const database = asTrimmedString(credentials["database"]);
+  const username = asTrimmedString(credentials["username"]);
+  const password = asTrimmedString(credentials["password"]);
 
   if (database == null || username == null || password == null) {
     throw new Error(
@@ -369,12 +369,12 @@ function normalizeSessionCredentials(
 function normalizeServiceAccountCredentials(
   credentials: CredentialInput,
 ): CredentialInput {
-  const clientId = asTrimmedString(credentials.clientId);
-  const clientSecret = asTrimmedString(credentials.clientSecret);
-  const clientEmail = asTrimmedString(credentials.clientEmail);
-  const privateKey = asTrimmedString(credentials.privateKey);
-  const username = asTrimmedString(credentials.username);
-  const password = asTrimmedString(credentials.password);
+  const clientId = asTrimmedString(credentials["clientId"]);
+  const clientSecret = asTrimmedString(credentials["clientSecret"]);
+  const clientEmail = asTrimmedString(credentials["clientEmail"]);
+  const privateKey = asTrimmedString(credentials["privateKey"]);
+  const username = asTrimmedString(credentials["username"]);
+  const password = asTrimmedString(credentials["password"]);
 
   if (clientId != null && clientSecret != null) {
     return { clientId, clientSecret };
@@ -402,15 +402,15 @@ function normalizeServiceAccountCredentials(
 function normalizeSftpCredentials(
   credentials: CredentialInput,
 ): CredentialInput {
-  const host = asTrimmedString(credentials.host);
-  const username = asTrimmedString(credentials.username);
-  const password = asTrimmedString(credentials.password);
-  const privateKey = asTrimmedString(credentials.privateKey);
+  const host = asTrimmedString(credentials["host"]);
+  const username = asTrimmedString(credentials["username"]);
+  const password = asTrimmedString(credentials["password"]);
+  const privateKey = asTrimmedString(credentials["privateKey"]);
   const port =
-    typeof credentials.port === "number"
-      ? credentials.port
-      : typeof credentials.port === "string"
-        ? Number(credentials.port)
+    typeof credentials["port"] === "number"
+      ? credentials["port"]
+      : typeof credentials["port"] === "string"
+        ? Number(credentials["port"])
         : 22;
 
   if (password != null) {
@@ -590,13 +590,54 @@ export class ConnectorService {
         connectionId,
         "connectors.raw_events.claimed",
         {
-          workerId: normalizedWorkerId,
+          workerId: context.actorService ?? normalizedWorkerId,
           claimedCount: events.length,
         },
         context,
       );
     }
     return events;
+  }
+
+  claimRawEventsWithOpaqueClaims(
+    organizationId: string,
+    connectionId: string,
+    limit: number,
+    context: AuditContext,
+  ): IngestRawEvent[] {
+    this.getConnectionOrThrow(organizationId, connectionId);
+    const safeLimit = Math.min(Math.max(limit, 1), 200);
+    const events = this.store.claimRawEvents(
+      organizationId,
+      connectionId,
+      context.actorService ?? "runtime",
+      safeLimit,
+      () => this.store.issueClaimToken(),
+    );
+    if (events.length > 0) {
+      this.recordAuditEvent(
+        organizationId,
+        connectionId,
+        "connectors.raw_events.claimed",
+        {
+          claimedCount: events.length,
+        },
+        context,
+      );
+    }
+    return events;
+  }
+
+  private assertRawEventClaimOwnership(
+    event: IngestRawEvent,
+    claimToken: string,
+  ): void {
+    if (event.processingStatus !== "processing") {
+      throw new Error("Raw event is not currently claimed for processing");
+    }
+    if (event.claimedBy == null || event.claimedBy !== claimToken) {
+      throw new Error("Raw event is not claimed by this token");
+    }
   }
 
   markRawEventProcessed(
@@ -607,6 +648,15 @@ export class ConnectorService {
     context: AuditContext,
   ): IngestRawEvent {
     const normalizedWorkerId = workerId.trim();
+    const existing = this.store.getRawEvent(
+      organizationId,
+      connectionId,
+      rawEventId,
+    );
+    if (existing == null) {
+      throw new Error("Raw event not found");
+    }
+    this.assertRawEventClaimOwnership(existing, normalizedWorkerId);
     const event = this.store.updateRawEvent(
       organizationId,
       connectionId,
@@ -628,7 +678,7 @@ export class ConnectorService {
       "connectors.raw_event.processed",
       {
         rawEventId,
-        workerId: normalizedWorkerId,
+        workerId: context.actorService ?? normalizedWorkerId,
       },
       context,
     );
@@ -649,6 +699,15 @@ export class ConnectorService {
       throw new Error("errorMessage must be at least 3 characters");
     }
     const normalizedWorkerId = workerId.trim();
+    const existing = this.store.getRawEvent(
+      organizationId,
+      connectionId,
+      rawEventId,
+    );
+    if (existing == null) {
+      throw new Error("Raw event not found");
+    }
+    this.assertRawEventClaimOwnership(existing, normalizedWorkerId);
     const event = this.store.updateRawEvent(
       organizationId,
       connectionId,
@@ -670,7 +729,7 @@ export class ConnectorService {
       "connectors.raw_event.failed",
       {
         rawEventId,
-        workerId: normalizedWorkerId,
+        workerId: context.actorService ?? normalizedWorkerId,
       },
       context,
     );
@@ -726,7 +785,64 @@ export class ConnectorService {
         "connectors.sync.claimed",
         {
           runId: run.id,
-          workerId,
+          workerId: context.actorService ?? workerId,
+          attempts: run.attempts,
+          leaseExpiresAt: run.leaseExpiresAt,
+          triggerType: run.triggerType,
+        },
+        context,
+      );
+    }
+    return claimedRuns;
+  }
+
+  claimSyncRunsWithOpaqueLocks(
+    organizationIds: readonly string[],
+    input: {
+      limit?: number;
+      leaseSeconds?: number;
+    },
+    context: AuditContext,
+  ): SyncRun[] {
+    const allowedOrganizations = Array.from(
+      new Set(
+        organizationIds
+          .map((organizationId) => organizationId.trim())
+          .filter((organizationId) => organizationId.length > 0),
+      ),
+    );
+    if (allowedOrganizations.length === 0) {
+      return [];
+    }
+
+    const limit = normalizePositiveInteger(input.limit ?? 25, {
+      min: 1,
+      max: 200,
+      field: "limit",
+    });
+    const leaseSeconds = normalizePositiveInteger(
+      input.leaseSeconds ?? _DEFAULT_SYNC_LEASE_SECONDS,
+      {
+        min: _MIN_SYNC_LEASE_SECONDS,
+        max: _MAX_SYNC_LEASE_SECONDS,
+        field: "leaseSeconds",
+      },
+    );
+
+    const claimedRuns = this.store.claimSyncRuns(
+      allowedOrganizations,
+      context.actorService ?? "runtime",
+      limit,
+      leaseSeconds,
+      () => this.store.issueClaimToken(),
+    );
+    for (const run of claimedRuns) {
+      this.recordAuditEvent(
+        run.organizationId,
+        run.connectionId,
+        "connectors.sync.claimed",
+        {
+          runId: run.id,
           attempts: run.attempts,
           leaseExpiresAt: run.leaseExpiresAt,
           triggerType: run.triggerType,
@@ -743,12 +859,13 @@ export class ConnectorService {
     input: GetSyncRunExecutionPlanInput,
     context: AuditContext,
   ): SyncRunExecutionPlan {
-    const run = this.getSyncRunOrThrow(organizationId, runId);
+    let run = this.getSyncRunOrThrow(organizationId, runId);
     const workerId = input.workerId.trim();
     if (workerId.length < 3) {
       throw new Error("workerId must be at least 3 characters");
     }
     this.assertSyncRunOwnedByWorker(run, workerId);
+    run = this.refreshOwnedSyncRunLease(organizationId, run);
 
     const connection = this.getConnectionOrThrow(
       organizationId,
@@ -764,7 +881,7 @@ export class ConnectorService {
       "connectors.sync.execution_plan.read",
       {
         runId,
-        workerId,
+        workerId: context.actorService ?? workerId,
         authMode: connection.authMode,
         syncStateCount: syncStates.length,
       },
@@ -785,12 +902,13 @@ export class ConnectorService {
     input: UpsertSyncStateInput,
     context: AuditContext,
   ): ConnectionSyncState {
-    const run = this.getSyncRunOrThrow(organizationId, runId);
+    let run = this.getSyncRunOrThrow(organizationId, runId);
     const workerId = input.workerId.trim();
     if (workerId.length < 3) {
       throw new Error("workerId must be at least 3 characters");
     }
     this.assertSyncRunOwnedByWorker(run, workerId);
+    run = this.refreshOwnedSyncRunLease(organizationId, run);
 
     const connection = this.getConnectionOrThrow(
       organizationId,
@@ -814,7 +932,7 @@ export class ConnectorService {
       {
         watermarkText: asTrimmedString(input.watermarkText) ?? null,
         watermarkAt: parseIsoDate(input.watermarkAt ?? null),
-        cursorJson,
+        ...(cursorJson !== undefined ? { cursorJson } : {}),
         lastRunId: run.id,
         updatedByWorker: workerId,
       },
@@ -826,7 +944,7 @@ export class ConnectorService {
       "connectors.sync.state.updated",
       {
         runId,
-        workerId,
+        workerId: context.actorService ?? workerId,
         sourceObject,
         watermarkAt: state.watermarkAt,
       },
@@ -885,7 +1003,7 @@ export class ConnectorService {
       "connectors.sync.completed",
       {
         runId,
-        workerId,
+        workerId: context.actorService ?? workerId,
         recordsFetched,
         recordsWritten,
       },
@@ -952,7 +1070,7 @@ export class ConnectorService {
       willRetry ? "connectors.sync.retry_scheduled" : "connectors.sync.failed",
       {
         runId,
-        workerId,
+        workerId: context.actorService ?? workerId,
         retryDelaySeconds,
         attempts: updated.attempts,
         maxAttempts: updated.maxAttempts,
@@ -1000,9 +1118,40 @@ export class ConnectorService {
     if (run.status !== "running") {
       throw new Error("Sync run is not currently running");
     }
+    if (
+      run.leaseExpiresAt != null &&
+      Date.parse(run.leaseExpiresAt) <= Date.now()
+    ) {
+      throw new Error("Sync run lease expired");
+    }
     if (run.lockedBy == null || run.lockedBy !== workerId) {
       throw new Error("Sync run is not locked by this worker");
     }
+  }
+
+  private refreshOwnedSyncRunLease(
+    organizationId: string,
+    run: SyncRun,
+  ): SyncRun {
+    if (run.leaseExpiresAt == null) {
+      return run;
+    }
+
+    const currentLeaseMs = Date.parse(run.leaseExpiresAt);
+    const nextLeaseMs = Math.max(
+      currentLeaseMs,
+      Date.now() + _DEFAULT_SYNC_LEASE_SECONDS * 1000,
+    );
+    if (!Number.isFinite(currentLeaseMs) || nextLeaseMs <= currentLeaseMs) {
+      return run;
+    }
+
+    return (
+      this.store.updateSyncRun(organizationId, run.id, {
+        status: run.status,
+        leaseExpiresAt: new Date(nextLeaseMs).toISOString(),
+      }) ?? run
+    );
   }
 
   private computeRetryDelaySeconds(attempts: number): number {
@@ -1098,6 +1247,20 @@ export class ConnectorService {
     catalogItem: ConnectorCatalogItem,
     sourceObjects: string[] | undefined,
   ): string[] {
+    if (catalogItem.vendor === "custom_data") {
+      const normalizedCustomSourceObjects = Array.from(
+        new Set(
+          (sourceObjects ?? catalogItem.sourceObjects)
+            .map((entry) => entry.trim())
+            .filter((entry) => entry.length > 0),
+        ),
+      );
+      if (normalizedCustomSourceObjects.length === 0) {
+        throw new Error("sourceObjects must contain at least one object");
+      }
+      return normalizedCustomSourceObjects;
+    }
+
     if (sourceObjects == null || sourceObjects.length === 0) {
       return [...catalogItem.sourceObjects];
     }
@@ -1261,8 +1424,12 @@ export class ConnectorService {
       nodeEnv: this.nodeEnv,
       allowedHosts: policy.allowedHosts,
       allowlistLabel: policy.allowlistLabel,
-      reservedHosts: policy.reservedHosts,
-      reservedLabel: policy.reservedLabel,
+      ...(policy.reservedHosts !== undefined
+        ? { reservedHosts: policy.reservedHosts }
+        : {}),
+      ...(policy.reservedLabel !== undefined
+        ? { reservedLabel: policy.reservedLabel }
+        : {}),
     });
   }
 
@@ -1348,6 +1515,9 @@ export class ConnectorService {
   }
 
   private hasProbeTarget(connection: ConnectorConnection): boolean {
+    if (connection.vendor === "custom_data") {
+      return true;
+    }
     return (
       asTrimmedString(connection.baseUrl) != null ||
       getConfigUrl(connection.config, "testEndpoint") != null
@@ -1546,8 +1716,8 @@ export class ConnectorService {
     const client = payload as OAuthClientSecretPayload;
     const scopes = connection.oauthScopes ?? [];
     const audience =
-      asTrimmedString(connection.config.oauthAudience) ??
-      asTrimmedString(connection.config.audience);
+      asTrimmedString(connection.config["oauthAudience"]) ??
+      asTrimmedString(connection.config["audience"]);
     const token = await exchangeClientCredentials(
       validatedTokenEndpoint,
       client,
@@ -1586,13 +1756,15 @@ export class ConnectorService {
   ): Record<string, string> | null {
     const additionalHeaders = {
       ...(normalizeHeaderMap(
-        connection.config.providerHeaders,
+        connection.config["providerHeaders"],
         "config.providerHeaders",
       ) ?? {}),
     };
 
     if (connection.vendor === "ukg") {
-      const globalTenantId = asTrimmedString(connection.config.globalTenantId);
+      const globalTenantId = asTrimmedString(
+        connection.config["globalTenantId"],
+      );
       if (globalTenantId == null) {
         throw new Error(
           "UKG provider runtime access requires config.globalTenantId",
@@ -1603,7 +1775,7 @@ export class ConnectorService {
 
     if (connection.vendor === "toast") {
       const restaurantExternalId = asTrimmedString(
-        connection.config.toastRestaurantExternalId,
+        connection.config["toastRestaurantExternalId"],
       );
       if (restaurantExternalId == null) {
         throw new Error(
@@ -1633,18 +1805,18 @@ export class ConnectorService {
       const { payload } =
         this.getLatestSecretPayload<CredentialInput>(connection);
       const credentialFields: Record<string, string> = {};
-      const clientId = asTrimmedString(payload.clientId);
-      const clientSecret = asTrimmedString(payload.clientSecret);
-      const clientEmail = asTrimmedString(payload.clientEmail);
-      const privateKey = asTrimmedString(payload.privateKey);
+      const clientId = asTrimmedString(payload["clientId"]);
+      const clientSecret = asTrimmedString(payload["clientSecret"]);
+      const clientEmail = asTrimmedString(payload["clientEmail"]);
+      const privateKey = asTrimmedString(payload["privateKey"]);
 
       if (clientId != null && clientSecret != null) {
-        credentialFields.clientId = clientId;
-        credentialFields.clientSecret = clientSecret;
+        credentialFields["clientId"] = clientId;
+        credentialFields["clientSecret"] = clientSecret;
       }
       if (clientEmail != null && privateKey != null) {
-        credentialFields.clientEmail = clientEmail;
-        credentialFields.privateKey = privateKey;
+        credentialFields["clientEmail"] = clientEmail;
+        credentialFields["privateKey"] = privateKey;
       }
 
       return Object.keys(credentialFields).length > 0 ? credentialFields : null;
@@ -1706,7 +1878,7 @@ export class ConnectorService {
   }> {
     const warnings: string[] = [];
     const probeUrl = asTrimmedString(
-      connection.config.testEndpoint ?? connection.baseUrl,
+      connection.config["testEndpoint"] ?? connection.baseUrl,
     );
     const started = Date.now();
 
@@ -1726,7 +1898,7 @@ export class ConnectorService {
           latencyMs: Date.now() - started,
         };
       }
-      headers.authorization = `Bearer ${token.accessToken}`;
+      headers["authorization"] = `Bearer ${token.accessToken}`;
       const response = await fetch(
         this.validateOutboundUrl(
           probeUrl,
@@ -1760,8 +1932,10 @@ export class ConnectorService {
         };
       }
       const headerName =
-        asTrimmedString(connection.config.authHeaderName) ?? "x-api-key";
-      const headerPrefix = asTrimmedString(connection.config.authHeaderPrefix);
+        asTrimmedString(connection.config["authHeaderName"]) ?? "x-api-key";
+      const headerPrefix = asTrimmedString(
+        connection.config["authHeaderPrefix"],
+      );
       headers[headerName] =
         headerPrefix != null
           ? `${headerPrefix} ${payload.apiKey}`
@@ -2099,6 +2273,16 @@ export class ConnectorService {
         payloadSha256(
           `${event.sourceObject}|${event.sourceRecordId}|${event.sourceUpdatedAt ?? ""}|${payloadHash}`,
         );
+      if (
+        this.store.findRawEventByEventId(
+          connection.organizationId,
+          connection.id,
+          eventId,
+        ) != null
+      ) {
+        duplicates += 1;
+        continue;
+      }
       const payloadObject = await payloadStore.putJson(
         connection.organizationId,
         connection.id,
@@ -2208,56 +2392,71 @@ export class ConnectorService {
         return true;
       }),
     };
-    const { acceptedEvents, duplicates, receivedAt } =
-      await this.persistRawEvents(connection, filteredInput, {
-        credentialId: credential.id,
-        idempotencyKey,
-      });
+    try {
+      const { acceptedEvents, duplicates, receivedAt } =
+        await this.persistRawEvents(connection, filteredInput, {
+          credentialId: credential.id,
+          idempotencyKey,
+        });
 
-    this.store.updateIngestCredential(
-      organizationId,
-      connectionId,
-      credential.id,
-      {
-        lastUsedAt: receivedAt,
-      },
-    );
-    this.store.updateConnection(organizationId, connectionId, {
-      status: "active",
-      lastSuccessfulSyncAt: receivedAt,
-    });
-    this.store.updateSyncRun(organizationId, dispatch.run.id, {
-      status: "success",
-      recordsFetched: input.events.length,
-      recordsWritten: acceptedEvents.length,
-      startedAt,
-      endedAt: receivedAt,
-    });
-    this.recordAuditEvent(
-      organizationId,
-      connectionId,
-      "connectors.ingest.accepted",
-      {
-        credentialId: credential.id,
-        keyId: credential.keyId,
+      this.store.updateIngestCredential(
+        organizationId,
+        connectionId,
+        credential.id,
+        {
+          lastUsedAt: receivedAt,
+        },
+      );
+      this.store.updateConnection(organizationId, connectionId, {
+        status: "active",
+        lastSuccessfulSyncAt: receivedAt,
+      });
+      this.store.updateSyncRun(organizationId, dispatch.run.id, {
+        status: "success",
+        recordsFetched: input.events.length,
+        recordsWritten: acceptedEvents.length,
+        startedAt,
+        endedAt: receivedAt,
+      });
+      this.recordAuditEvent(
+        organizationId,
+        connectionId,
+        "connectors.ingest.accepted",
+        {
+          credentialId: credential.id,
+          keyId: credential.keyId,
+          accepted: acceptedEvents.length,
+          duplicates,
+          schemaVersion: input.schemaVersion,
+        },
+        {
+          actorService: `ingest:${credential.keyId}`,
+          actorUserId: null,
+          requestId: null,
+        },
+      );
+
+      return {
         accepted: acceptedEvents.length,
         duplicates,
-        schemaVersion: input.schemaVersion,
-      },
-      {
-        actorService: `ingest:${credential.keyId}`,
-        actorUserId: null,
-        requestId: null,
-      },
-    );
-
-    return {
-      accepted: acceptedEvents.length,
-      duplicates,
-      runId: dispatch.run.id,
-      receivedAt,
-      events: acceptedEvents,
-    };
+        runId: dispatch.run.id,
+        receivedAt,
+        events: acceptedEvents,
+      };
+    } catch (error) {
+      const failedAt = new Date().toISOString();
+      this.store.updateSyncRun(organizationId, dispatch.run.id, {
+        status: "failed",
+        errorClass: error instanceof Error ? error.name : "Error",
+        errorMessage:
+          error instanceof Error
+            ? error.message.slice(0, 400)
+            : "Unhandled ingestion failure",
+        endedAt: failedAt,
+        availableAt: failedAt,
+      });
+      throw error;
+    }
   }
 
   async getProviderRuntimeAccessContext(
@@ -2274,6 +2473,11 @@ export class ConnectorService {
         "Connection baseUrl is required for provider runtime access",
       );
     }
+    const validatedBaseUrl = this.validateOutboundUrl(
+      baseUrl,
+      "baseUrl",
+      connection.runtimeEnvironment,
+    );
 
     if (connection.authMode === "oauth2") {
       const token = await this.ensureOAuthAccessToken(connection);
@@ -2285,7 +2489,7 @@ export class ConnectorService {
         vendor: connection.vendor,
         authMode: connection.authMode,
         runtimeEnvironment: connection.runtimeEnvironment,
-        baseUrl,
+        baseUrl: validatedBaseUrl,
         sourceObjects: [...connection.sourceObjects],
         authorization: {
           headerName: "authorization",
@@ -2302,8 +2506,10 @@ export class ConnectorService {
         connection,
       );
       const headerName =
-        asTrimmedString(connection.config.authHeaderName) ?? "x-api-key";
-      const headerPrefix = asTrimmedString(connection.config.authHeaderPrefix);
+        asTrimmedString(connection.config["authHeaderName"]) ?? "x-api-key";
+      const headerPrefix = asTrimmedString(
+        connection.config["authHeaderPrefix"],
+      );
       const additionalHeaders =
         this.getProviderRuntimeAdditionalHeaders(connection);
       return {
@@ -2312,7 +2518,7 @@ export class ConnectorService {
         vendor: connection.vendor,
         authMode: connection.authMode,
         runtimeEnvironment: connection.runtimeEnvironment,
-        baseUrl,
+        baseUrl: validatedBaseUrl,
         sourceObjects: [...connection.sourceObjects],
         authorization: {
           headerName,
@@ -2336,7 +2542,7 @@ export class ConnectorService {
         vendor: connection.vendor,
         authMode: connection.authMode,
         runtimeEnvironment: connection.runtimeEnvironment,
-        baseUrl,
+        baseUrl: validatedBaseUrl,
         sourceObjects: [...connection.sourceObjects],
         authorization: {
           headerName: "",
@@ -2357,7 +2563,7 @@ export class ConnectorService {
         vendor: connection.vendor,
         authMode: connection.authMode,
         runtimeEnvironment: connection.runtimeEnvironment,
-        baseUrl,
+        baseUrl: validatedBaseUrl,
         sourceObjects: [...connection.sourceObjects],
         authorization: {
           headerName: "",
@@ -2371,6 +2577,30 @@ export class ConnectorService {
 
     throw new Error(
       `Provider runtime access is not supported for auth mode "${connection.authMode}"`,
+    );
+  }
+
+  async getProviderRuntimeAccessContextForRun(
+    organizationId: string,
+    connectionId: string,
+    input: {
+      syncRunId: string;
+      lockToken: string;
+    },
+  ): Promise<ProviderRuntimeAccessContext> {
+    let run = this.getSyncRunOrThrow(organizationId, input.syncRunId);
+    const lockToken = input.lockToken.trim();
+    if (lockToken.length < 16) {
+      throw new Error("lockToken must be at least 16 characters");
+    }
+    if (run.connectionId !== connectionId) {
+      throw new Error("Sync run does not belong to this connection");
+    }
+    this.assertSyncRunOwnedByWorker(run, lockToken);
+    run = this.refreshOwnedSyncRunLease(organizationId, run);
+    return await this.getProviderRuntimeAccessContext(
+      organizationId,
+      run.connectionId,
     );
   }
 
@@ -2388,7 +2618,7 @@ export class ConnectorService {
       throw new Error("At least one provider event is required");
     }
 
-    const run = this.getSyncRunOrThrow(organizationId, input.syncRunId);
+    let run = this.getSyncRunOrThrow(organizationId, input.syncRunId);
     if (run.connectionId !== connectionId) {
       throw new Error("Sync run does not belong to this connection");
     }
@@ -2397,6 +2627,7 @@ export class ConnectorService {
       throw new Error("workerId must be at least 3 characters");
     }
     this.assertSyncRunOwnedByWorker(run, workerId);
+    run = this.refreshOwnedSyncRunLease(organizationId, run);
 
     const { acceptedEvents, duplicates, receivedAt } =
       await this.persistRawEvents(
@@ -2417,7 +2648,7 @@ export class ConnectorService {
       "connectors.provider_events.accepted",
       {
         runId: run.id,
-        workerId,
+        workerId: context.actorService ?? workerId,
         accepted: acceptedEvents.length,
         duplicates,
         schemaVersion: input.schemaVersion,
@@ -2826,6 +3057,7 @@ export class ConnectorService {
         grantType: "client_credentials",
       },
     );
+    this.store.deleteAuthorizationSession(connection.id);
     this.store.updateConnection(connection.organizationId, connection.id, {
       authorizationState: "authorized",
     });
@@ -2984,16 +3216,17 @@ export class ConnectorService {
 
 export async function createDefaultConnectorService(): Promise<ConnectorService> {
   const runtimeEnv =
-    process.env.NODE_ENV === "test"
+    process.env["NODE_ENV"] === "test"
       ? {
           ...process.env,
           NODE_ENV: "development",
           DATABASE_URL: "",
           CORS_ORIGINS: "",
           CONNECTORS_PUBLIC_BASE_URL:
-            process.env.CONNECTORS_PUBLIC_BASE_URL ?? "http://127.0.0.1:8100",
+            process.env["CONNECTORS_PUBLIC_BASE_URL"] ??
+            "http://127.0.0.1:8100",
           CONNECTORS_SERVICE_TOKENS:
-            process.env.CONNECTORS_SERVICE_TOKENS ??
+            process.env["CONNECTORS_SERVICE_TOKENS"] ??
             JSON.stringify([
               {
                 name: "test-runtime",

@@ -106,11 +106,16 @@ export function ScopingCallRequestPanel({
   );
 
   if (status === "success") {
-    return <ScopingCallSuccessState className={className} copy={copy} />;
+    return (
+      <ScopingCallSuccessState
+        {...(className !== undefined ? { className } : {})}
+        copy={copy}
+      />
+    );
   }
 
   return (
-    <div className={className}>
+    <div {...(className !== undefined ? { className } : {})}>
       <ScopingCallForm
         copy={copy}
         errorMsg={errorMsg}

@@ -1,5 +1,7 @@
 """Data/ML engine configuration via environment variables."""
 
+# pyright: reportConstantRedefinition=false
+
 from pydantic import model_validator
 from pydantic_settings import BaseSettings
 

@@ -124,7 +124,10 @@ Before adding non-standard React DOM props, verify they are supported by typed H
 Before wiring ARIA ids inside a motion-heavy Next.js client component, derive them from stable locale/data keys instead of generated ids so hydration cannot drift between server and client.
 For Safari/WebKit media bugs, validate real playback state in WebKit before assuming DOM autoplay attributes are sufficient.
 Before mounting an admin page against a route that is still stubbed or a local optional runtime that is not configured, gate the fetch up front and render an explicit fail-close notice instead of auto-spamming guaranteed `503` or `500` requests in the browser console.
+Before reopening onboarding or workspace fetches onto the client integrations runtime, reuse the same local feature gate and dependency bootstrap as `/config`; do not let onboarding spam `/integrations/connections` in development when `app-connectors` is still disabled or unstarted.
 Before reopening one admin data surface after industrializing its backend route, split the workspace feature gates by endpoint so only the newly persistent panel comes back and sibling stub panels stay fail-close.
+Before expanding an admin operator screen, separate launcher, selector, and execution zones visually; if those concerns share the same weight on screen, the UI will feel broken even when the workflow logic is correct.
+Before designing an onboarding surface for operators, choose the interaction paradigm from the real job to be done: if users must progress step by step, ship a guided multi-screen wizard rather than a dense all-in-one cockpit.
 When mocking `next/image` in tests, strip Next-only props like `fill` and `priority` before rendering a native `img`.
 For third-party wordmark logos, use a visually verified official asset at the actual display size instead of assuming the SVG variant will stay legible in the UI.
 If a brand asset has already been visually approved, do not swap it for a recolored or reconstructed variant without rechecking the exact rendered wordmark.
@@ -142,15 +145,23 @@ Before shipping a cookie-authenticated JSON route in Next.js, reject browser req
 Before trusting a cookie-authenticated JSON request as same-origin, let any explicit `Sec-Fetch-Site=cross-site` or `Sec-Fetch-Site=same-site` veto the request even if the `Origin` header looks correct.
 Before relying on admin navigation or tab visibility for authorization, enforce the same route-level permission check server-side for direct URL access.
 Before deriving OIDC redirect URLs or cookie-origin checks in a Next auth app, prefer the configured public origin (`AUTH_APP_ORIGIN` or `NEXT_PUBLIC_APP_ORIGIN`) over `request.nextUrl.origin` in production.
+Before calling an OIDC provider "untrusted" in local development, verify whether the trust gate is rejecting `http://localhost` itself; local Keycloak on loopback may be valid even though production must stay HTTPS-only.
+Before changing OIDC discovery or trust policy for both `app-admin` and `app-webapp`, keep that runtime logic in one shared helper instead of parallel app-local copies, or issuer and revocation rules will drift silently.
+Before leaving an auth error banner driven only by a `?error=` query on a login page, verify whether the provider has already recovered and auto-reconcile once so users do not get stuck on a stale failure screen.
+Before adding a login auto-retry guard in the browser, do not persist it as a sticky `sessionStorage` boolean across refreshes; use an expiring marker so server restarts and stale tabs can recover.
 Before relying on admin route permissions in the UI, enforce the same pathname permission check in middleware or server code before rendering the page.
 Before a workspace page auto-fetches auxiliary admin endpoints like `/users` or shared org metadata, verify the current route permission set authorizes those endpoints too, or gate and degrade the fetch instead of emitting guaranteed `403` requests.
 Before defaulting a signed-in admin to `/` or sending a CTA to another guarded admin page, resolve a permission-allowed landing path first instead of assuming the dashboard or settings page is reachable for every admin session.
 Never store a live password or API secret in repo docs; document the secret manager path and rotation procedure instead.
 Before exposing mock or fixture API data, fail closed outside explicit `DEMO_MODE` instead of silently serving demo responses.
+Before adding a new unauthenticated or provider-driven API route, assign it an explicit exposure policy and cover that exact template in `app-api-ts/src/__tests__/server.test.ts`, or the runtime can reject the route even though the handler exists.
 Before applying auth page middleware in a Next admin app, exempt `/api/*` routes so JSON handlers keep control of auth failures and response shape.
 Before relying on Keycloak user-attribute token mappers, declare those attributes in the realm user profile contract so Keycloak persists them.
 Before trusting a Keycloak convergence or provisioning script, make it reconcile the full canonical token contract (`role`, `organization_id`, `site_id`, and admin `permissions`) instead of only one mapper or realm role, or strict Next auth callbacks will drift from the live realm.
 Before treating Keycloak required actions or app-side `amr` checks as sufficient admin MFA proof, version and verify the bound browser flow policy too.
+Before declaring a Keycloak invitation flow operational, verify the realm itself registers and enables `UPDATE_PASSWORD`; a user-level `requiredActions` flag alone does not guarantee the mail link will open a password form.
+Before treating the local Keycloak Docker stack as restart-safe with `KC_DB=dev-file`, force `KC_CACHE=local` in `infra/docker-compose.yml`; the default clustered cache can stall OIDC discovery on stale single-node restarts.
+Before declaring `auth-prod` durable after a realm restore, verify it is really wired to `KC_DB=postgres` and that at least one bootstrap `super_admin` exists in the live realm; an imported realm with `0` users is not operational.
 When seeding a demo tenant, align the Keycloak demo user email and JWT subject with the seeded `users.auth_user_id` record before debugging tenant data access.
 When a seeded demo tenant uses a fixed UUID, keep every duplicated UUID validator compatible with that seeded format.
 Before creating or mutating a client account from admin lifecycle code, provision or resync the real IdP identity first and require `site_id` for `manager` / `hr_manager`; never persist a placeholder `pending-*` `auth_user_id` on a production path.
@@ -171,6 +182,7 @@ Before declaring a test-client deletion flow complete, purge the provisioned IdP
 Before declaring a test-client deletion flow complete, purge not only the linked `auth_user_id` identities but also any IdP users still discoverable by the tenant emails and canonical `organization_id` attribute, or tenant recreation can still fail on a stale email conflict.
 Before treating a Keycloak `POST /users` `409` as an email-conflict cleanup case, verify whether the collision is on `email`, `username`, or a legacy user without canonical attributes, and cover that exact shape in tests before claiming the recreation path is fixed.
 Before putting a deletable entity behind an append-only audit trail, do not keep a live `ON DELETE SET NULL` foreign key from the audit table to that entity; keep a historical identifier instead so tenant deletion cannot be blocked by audit immutability.
+Before collapsing an OIDC discovery failure into a generic browser error, preserve the upstream HTTP status and error payload in server logs so realm loss or issuer drift stays diagnosable.
 
 ### Tooling, Shell, Hooks, and Monorepo Hygiene
 
@@ -179,11 +191,17 @@ Before relying on commit message conventions in a repo, declare and install a re
 Before pointing monorepo SAST tools at repo root, exclude nested repositories and generated report folders so scans stay limited to in-scope source code.
 Before enforcing strict complexity grades on a legacy service, version an explicit baseline and block regressions; a permanently failing gate is not a real guardrail.
 Before relying on Keycloak `--import-realm` in a container image, copy realm exports under a `*-realm.json` filename in `/opt/keycloak/data/import/`, or the startup import can be skipped silently.
+Before treating an auth container redeploy as durable, verify its live runtime args still include the required Keycloak import flags (`--import-realm` for `auth-prod`); a corrected image `CMD` alone is not enough if the container keeps older args.
 Before making a default local `dev:*` entrypoint run in background, keep an attached-terminal command as the default and move logfile/PID behavior behind an explicit `:bg` script.
 Before trusting a local `dev:*:status` script or a proxy `502`, verify the target port is actually listening; a surviving `pnpm` or `tsx` PID alone is not evidence that the HTTP server is up.
+Before declaring local create-client invitations operational, make `dev:auth` auto-load the same `RESEND_*` / `KEYCLOAK_SMTP_*` secret inputs as the ops Keycloak email reconciliation path; a healthy OIDC discovery endpoint alone does not prove `execute-actions-email` can send mail.
 Before documenting bootstrap or admin credentials, use placeholders plus the secret-manager path, never a realistic example password.
 Before serializing runtime config or secrets from shell into JSON, never pass secret values through CLI flags such as `jq --arg`; write them from process environment or `stdin` so they never appear in `argv`.
+Before a shell ops script relies on env-driven JSON mutation through `python`, `jq`, or similar subprocesses, explicitly `export` every required variable first; local shell assignments alone will silently disappear from the generated payload.
+Before sending a multiline shell bootstrap through a container `args` array, verify the deployment API preserves it as one argument; newline-split args can silently turn a startup script into a no-op or a stuck rollout.
 Before parallelizing Keycloak admin CLI (`kcadm`) calls, give each workflow its own `--config` file; the shared default `~/.keycloak/kcadm.config` is not concurrency-safe.
+Before consuming a new runtime secret in code, wire it in the same change through local env loaders, runtime secret inventory, deploy/configure scripts, and preflight checks so the deployed service cannot drift from the repo contract.
+Before defaulting a repo-owned Keycloak contract path from a script under `scripts/keycloak`, resolve it from `REPO_ROOT`, not from `SCRIPT_DIR/../infra`, or the helper will silently point at `scripts/infra/...`.
 Before aggregating Vitest projects in the monorepo root, do not mix broad top-level `include` globs with project-specific `include` patterns, or tests can leak across aliases and hang the runner.
 Before chaining a new Alembic migration, copy the real previous `revision` value from the migration header; never infer `down_revision` from the filename.
 Before finalizing a named Alembic migration, keep the `revision` identifier short enough for the `alembic_version.version_num` column; overly long human-readable ids can make `upgrade head` fail after the DDL already ran.
@@ -192,6 +210,7 @@ After replacing a homepage interaction pattern, update or remove the matching E2
 Before asking for a manual re-export of a local ops secret, check the repo's standard `.env.local` files and teach the helper script to auto-load them when that keeps the secret local-only and out of git.
 Before starting `app-api-ts` from repo-level dev scripts, auto-load `DATABASE_URL` from the local API env sources (`app-api-ts/.env.local`, `app-api/.env.local`, `app-api/.env`, `.env.local`) instead of assuming the shell already exported it.
 Before relying on local admin lifecycle or invitation flows against `app-api-ts`, auto-load the Keycloak admin runtime credentials (`KEYCLOAK_ADMIN_USERNAME`, `KEYCLOAK_ADMIN_PASSWORD`) in the same repo-level `dev:api` path, or the API will boot without the identity provisioning capability it needs.
+Before declaring local admin auth fixed, verify `app-api-ts` resolves `AUTH_ISSUER_URL` and `AUTH_JWKS_URL` from the same local Keycloak issuer as `app-admin`; a stale live shell export or `app-api/.env` can turn a successful callback into `reauth=1`.
 Before trusting a shell `jq` role-priority selector in Keycloak tooling, replay it against a user whose expected role is not the first priority entry, or the helper can silently promote every account to the top role.
 Before forcing a client-side reauth redirect after a 401, navigate to the explicit `/login?reauth=1...` URL before awaiting logout side effects, or middleware races can silently drop the reauth query.
 Before wiring E2E OIDC defaults into Next auth apps, keep `AUTH_SESSION_SECRET` compliant with the same 32+ character validation as production, or server routes will reject the test session before cookie checks run.

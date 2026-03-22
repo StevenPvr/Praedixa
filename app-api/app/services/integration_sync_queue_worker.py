@@ -25,8 +25,8 @@ from app.services.integration_runtime_worker import (
     ConnectorsRuntimeClient,
     RuntimeClaimedSyncRun,
     RuntimeSyncRunResult,
-    _classify_sync_run_failure,
-    _compute_sync_retry_delay_seconds,
+    classify_sync_run_failure,
+    compute_sync_retry_delay_seconds,
     process_claimed_sync_run,
 )
 
@@ -98,9 +98,9 @@ async def _fail_preflight_run(
         error_class = "validation"
         retryable = False
     else:
-        error_class, retryable = _classify_sync_run_failure(exc)
+        error_class, retryable = classify_sync_run_failure(exc)
     retry_delay_seconds = (
-        _compute_sync_retry_delay_seconds(claimed_run.attempts)
+        compute_sync_retry_delay_seconds(claimed_run.attempts)
         if retryable
         else None
     )
@@ -205,6 +205,9 @@ async def drain_sync_queue_once(
                 trigger_type=claimed_run.trigger_type,
                 attempts=claimed_run.attempts,
                 max_attempts=claimed_run.max_attempts,
+                source_window_start=claimed_run.source_window_start,
+                source_window_end=claimed_run.source_window_end,
+                force_full_sync=claimed_run.force_full_sync,
             )
             async with session_factory() as session:
                 await _bind_session_tenant_context(session, normalized_org_id)

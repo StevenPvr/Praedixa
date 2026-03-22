@@ -5,6 +5,7 @@ import {
   doesSessionMatchAccessToken,
   doesSessionMatchRefreshToken,
   getAccessTokenClaimsIssue,
+  getTrustedOidcEndpoints,
   getOidcEnv,
   getApiAccessTokenCompatibilityReason,
   sanitizeNextPath,
@@ -190,6 +191,60 @@ describe("webapp OIDC helpers", () => {
     vi.stubEnv("AUTH_SESSION_SECRET", "change-me-long-random-session-secret");
 
     expect(() => getOidcEnv()).toThrow(/AUTH_SESSION_SECRET/);
+  });
+
+  it("surfaces discovery status and payload details when the issuer rejects discovery", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ error: "Realm does not exist" }), {
+          status: 404,
+          statusText: "Not Found",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }),
+      ),
+    );
+
+    await expect(
+      getTrustedOidcEndpoints("https://auth.praedixa.com/realms/praedixa"),
+    ).rejects.toThrow(
+      /OIDC discovery request failed \(404 Not Found: Realm does not exist\)/,
+    );
+  });
+
+  it("accepts localhost http discovery origins outside production", async () => {
+    process.env.NODE_ENV = "test";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            issuer: "http://localhost:8081/realms/praedixa",
+            authorization_endpoint:
+              "http://localhost:8081/realms/praedixa/protocol/openid-connect/auth",
+            token_endpoint:
+              "http://localhost:8081/realms/praedixa/protocol/openid-connect/token",
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        ),
+      ),
+    );
+
+    await expect(
+      getTrustedOidcEndpoints("http://localhost:8081/realms/praedixa"),
+    ).resolves.toMatchObject({
+      authorizationEndpoint:
+        "http://localhost:8081/realms/praedixa/protocol/openid-connect/auth",
+      tokenEndpoint:
+        "http://localhost:8081/realms/praedixa/protocol/openid-connect/token",
+    });
   });
 
   it("binds the signed session to the current access and refresh tokens", async () => {

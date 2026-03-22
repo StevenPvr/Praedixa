@@ -112,49 +112,6 @@ export interface DecisionSummary {
   confidenceScore: number;
 }
 
-/** Replacement recommendation */
-export interface ReplacementRecommendation {
-  /** Absent employee */
-  absentEmployeeId: UUID;
-  absentEmployeeName: string;
-  /** Absence period */
-  absencePeriod: DateRange;
-  /** Absence type */
-  absenceType: string;
-  /** Recommended replacements (ranked) */
-  recommendations: ReplacementCandidate[];
-  /** Estimated daily cost without replacement */
-  dailyCostWithoutReplacement: number;
-  /** Risk level if no replacement */
-  riskWithoutReplacement: "low" | "medium" | "high" | "critical";
-}
-
-/** Replacement candidate */
-export interface ReplacementCandidate {
-  /** Employee ID */
-  employeeId: UUID;
-  /** Employee name */
-  employeeName: string;
-  /** Match score (0-100) */
-  matchScore: number;
-  /** Skills match */
-  skillsMatch: string[];
-  /** Skills gap */
-  skillsGap: string[];
-  /** Availability during period */
-  availability: "full" | "partial" | "none";
-  /** Available days */
-  availableDays?: number;
-  /** Estimated cost */
-  estimatedCost: number;
-  /** Pros */
-  pros: string[];
-  /** Cons */
-  cons: string[];
-  /** Is internal or external */
-  isInternal: boolean;
-}
-
 /** Cost impact analysis */
 export interface CostImpactAnalysis {
   period: DateRange;
@@ -180,28 +137,6 @@ export interface CostImpactAnalysis {
     previousPeriodCost: number;
     percentageChange: number;
   };
-}
-
-/** Action plan */
-export interface ActionPlan {
-  id: UUID;
-  organizationId: UUID;
-  name: string;
-  description: string;
-  period: DateRange;
-  status: "draft" | "active" | "completed" | "archived";
-  /** Decisions included in this plan */
-  decisions: DecisionSummary[];
-  /** Total estimated cost */
-  totalEstimatedCost: number;
-  /** Total estimated savings */
-  totalEstimatedSavings: number;
-  /** Created by */
-  createdBy: UUID;
-  /** Approved by */
-  approvedBy?: UUID;
-  /** Approval date */
-  approvedAt?: ISODateTimeString;
 }
 
 /** Arbitrage option from the scoring engine */

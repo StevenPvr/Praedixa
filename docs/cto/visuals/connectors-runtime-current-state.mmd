@@ -1,0 +1,23 @@
+flowchart LR
+    admin["app-admin / app-api-ts"]
+    connectors["app-connectors"]
+    snapshot[("connector_runtime_snapshots")]
+    secrets[("connector_secret_records")]
+    payload["payload store / object store"]
+    worker["app-api worker Python"]
+    target[("integration_* cible relationnelle")]
+    medallion["datasets / medallion / gold"]
+
+    admin -->|configure, test, trigger sync| connectors
+    connectors --> snapshot
+    connectors --> secrets
+    connectors --> payload
+    worker -->|claim sync run| connectors
+    worker -->|execution plan| connectors
+    worker -->|provider events| connectors
+    worker -->|read payloads| payload
+    worker --> target
+    target --> medallion
+
+    classDef warning fill:#fff4cc,stroke:#b7791f,color:#5b3a00;
+    class snapshot,secrets warning

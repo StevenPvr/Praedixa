@@ -69,7 +69,7 @@ def _build_sftp_execution_plan() -> RuntimeSyncRunExecutionPlan:
 
 
 @pytest.mark.asyncio
-async def test_drain_connector_connection_marks_claimed_events_processed(
+async def test_drain_connector_connection_defers_claim_ack_until_sync_commit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     runtime_client = cast(
@@ -160,12 +160,12 @@ async def test_drain_connector_connection_marks_claimed_events_processed(
         "worker-bronze",
         limit=25,
     )
-    runtime_client.mark_raw_event_processed.assert_awaited_once()
+    runtime_client.mark_raw_event_processed.assert_not_awaited()
     runtime_client.mark_raw_event_failed.assert_not_awaited()
 
 
 @pytest.mark.asyncio
-async def test_drain_connector_connection_marks_claimed_events_failed_on_error(
+async def test_drain_connector_connection_surfaces_failures_without_raw_event_ack(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     runtime_client = cast(
@@ -228,10 +228,7 @@ async def test_drain_connector_connection_marks_claimed_events_failed_on_error(
             limit=25,
         )
 
-    runtime_client.mark_raw_event_failed.assert_awaited_once()
-    failure_call = runtime_client.mark_raw_event_failed.await_args
-    assert failure_call is not None
-    assert failure_call.args[-1] == "invalid_mapping_or_payload"
+    runtime_client.mark_raw_event_failed.assert_not_awaited()
     runtime_client.mark_raw_event_processed.assert_not_awaited()
 
 
@@ -556,6 +553,211 @@ async def test_process_claimed_sync_run_marks_completed_after_success(
         records_written=3,
     )
     runtime_client.mark_sync_run_failed.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_process_claimed_sync_run_marks_raw_events_processed_only_after_commit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    commit_completed = False
+    drain_calls = 0
+
+    async def commit_side_effect() -> None:
+        nonlocal commit_completed
+        commit_completed = True
+
+    async def mark_processed_side_effect(
+        organization_id: str,
+        connection_id: str,
+        raw_event_id: str,
+        worker_id: str,
+    ) -> None:
+        assert commit_completed is True
+        assert organization_id == "11111111-1111-1111-1111-111111111111"
+        assert connection_id == "conn-queue-processed"
+        assert raw_event_id == "raw-processed-1"
+        assert worker_id == "queue-worker-processed"
+
+    runtime_client = cast(
+        "Any",
+        SimpleNamespace(
+            get_sync_run_execution_plan=AsyncMock(
+                return_value=RuntimeSyncRunExecutionPlan(
+                    run_id="sync-run-processed",
+                    organization_id="11111111-1111-1111-1111-111111111111",
+                    connection_id="conn-queue-processed",
+                    vendor="salesforce",
+                    auth_mode="api_key",
+                    config={},
+                    source_objects=("Accounts",),
+                    credentials={"apiKey": "provider-key"},
+                    sync_states=(),
+                )
+            ),
+            get_connection=AsyncMock(
+                return_value={
+                    "vendor": "salesforce",
+                    "config": {"pullEnabled": False},
+                }
+            ),
+            mark_raw_event_processed=AsyncMock(side_effect=mark_processed_side_effect),
+            mark_raw_event_failed=AsyncMock(),
+            mark_sync_run_completed=AsyncMock(),
+            mark_sync_run_failed=AsyncMock(),
+        ),
+    )
+    runtime_client.with_telemetry_context = lambda telemetry_context: runtime_client
+    session = AsyncMock()
+    session.commit.side_effect = commit_side_effect
+    claimed_run = RuntimeClaimedSyncRun(
+        id="sync-run-processed",
+        organization_id="11111111-1111-1111-1111-111111111111",
+        connection_id="conn-queue-processed",
+        trigger_type="manual",
+        attempts=1,
+        max_attempts=8,
+    )
+
+    async def fake_drain(*args: object, **kwargs: object) -> RuntimeDrainResult:
+        nonlocal drain_calls
+        drain_calls += 1
+        if drain_calls > 1:
+            return RuntimeDrainResult(
+                claimed=0,
+                processed=0,
+                failed=0,
+                dataset_name="salesforce_accounts",
+            )
+        return RuntimeDrainResult(
+            claimed=1,
+            processed=1,
+            failed=0,
+            dataset_name="salesforce_accounts",
+            claimed_events=(
+                RuntimeClaimedRawEvent(
+                    id="raw-processed-1",
+                    object_store_key="org-1/conn-processed/evt-1.json",
+                ),
+            ),
+        )
+
+    monkeypatch.setattr(
+        "app.services.integration_runtime_worker.drain_connector_connection",
+        fake_drain,
+    )
+
+    result = await process_claimed_sync_run(
+        TenantFilter("11111111-1111-1111-1111-111111111111"),
+        session,
+        runtime_client,
+        claimed_run,
+        worker_id="queue-worker-processed",
+        request_id="req-processed-1",
+        run_id="batch-processed-1",
+        trace_id="trace-processed-1",
+    )
+
+    assert result.status == "success"
+    session.commit.assert_awaited_once()
+    runtime_client.mark_raw_event_processed.assert_awaited_once()
+    runtime_client.mark_raw_event_failed.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_process_claimed_sync_run_marks_raw_events_failed_after_rollback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    rollback_completed = False
+
+    async def rollback_side_effect() -> None:
+        nonlocal rollback_completed
+        rollback_completed = True
+
+    async def mark_failed_side_effect(
+        organization_id: str,
+        connection_id: str,
+        raw_event_id: str,
+        worker_id: str,
+        error_message: str,
+    ) -> None:
+        assert rollback_completed is True
+        assert organization_id == "11111111-1111-1111-1111-111111111111"
+        assert connection_id == "conn-queue-failed"
+        assert raw_event_id == "raw-failed-1"
+        assert worker_id == "queue-worker-failed"
+        assert error_message == "invalid_mapping_or_payload"
+
+    runtime_client = cast(
+        "Any",
+        SimpleNamespace(
+            get_sync_run_execution_plan=AsyncMock(
+                return_value=RuntimeSyncRunExecutionPlan(
+                    run_id="sync-run-failed",
+                    organization_id="11111111-1111-1111-1111-111111111111",
+                    connection_id="conn-queue-failed",
+                    vendor="salesforce",
+                    auth_mode="api_key",
+                    config={},
+                    source_objects=("Accounts",),
+                    credentials={"apiKey": "provider-key"},
+                    sync_states=(),
+                )
+            ),
+            get_connection=AsyncMock(
+                return_value={
+                    "vendor": "salesforce",
+                    "config": {"pullEnabled": False},
+                }
+            ),
+            mark_raw_event_processed=AsyncMock(),
+            mark_raw_event_failed=AsyncMock(side_effect=mark_failed_side_effect),
+            mark_sync_run_completed=AsyncMock(),
+            mark_sync_run_failed=AsyncMock(),
+        ),
+    )
+    runtime_client.with_telemetry_context = lambda telemetry_context: runtime_client
+    session = AsyncMock()
+    session.rollback.side_effect = rollback_side_effect
+    claimed_run = RuntimeClaimedSyncRun(
+        id="sync-run-failed",
+        organization_id="11111111-1111-1111-1111-111111111111",
+        connection_id="conn-queue-failed",
+        trigger_type="manual",
+        attempts=1,
+        max_attempts=8,
+    )
+
+    async def failing_drain(*args: object, **kwargs: object) -> RuntimeDrainResult:
+        error = ValueError("mapping exploded")
+        error._claimed_raw_events = (  # type: ignore[attr-defined]
+            RuntimeClaimedRawEvent(
+                id="raw-failed-1",
+                object_store_key="org-1/conn-failed/evt-1.json",
+            ),
+        )
+        raise error
+
+    monkeypatch.setattr(
+        "app.services.integration_runtime_worker.drain_connector_connection",
+        failing_drain,
+    )
+
+    result = await process_claimed_sync_run(
+        TenantFilter("11111111-1111-1111-1111-111111111111"),
+        session,
+        runtime_client,
+        claimed_run,
+        worker_id="queue-worker-failed",
+        request_id="req-failed-1",
+        run_id="batch-failed-1",
+        trace_id="trace-failed-1",
+    )
+
+    assert result.status == "failed"
+    session.commit.assert_not_awaited()
+    session.rollback.assert_awaited_once()
+    runtime_client.mark_raw_event_failed.assert_awaited_once()
+    runtime_client.mark_raw_event_processed.assert_not_awaited()
 
 
 @pytest.mark.asyncio

@@ -156,7 +156,7 @@ describe("postgres-backed connector store", () => {
     const snapshotPayload = JSON.parse(
       String(snapshotWrite?.[1]?.[1] ?? "{}"),
     ) as Record<string, unknown>;
-    expect(snapshotPayload.secrets).toBeUndefined();
+    expect(snapshotPayload["secrets"]).toBeUndefined();
 
     await store.close();
   });

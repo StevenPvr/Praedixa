@@ -23,6 +23,10 @@
     "./domain": {
       "types": "./dist/domain.d.ts",
       "import": "./dist/domain.js"
+    },
+    "./oidc-discovery": {
+      "types": "./dist/oidc-discovery.d.ts",
+      "import": "./dist/oidc-discovery.js"
     }
   },
   "scripts": {

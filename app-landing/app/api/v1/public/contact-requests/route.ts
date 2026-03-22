@@ -67,25 +67,28 @@ function hasValidIngestPayload(payload: Record<string, unknown>): boolean {
   }
 
   if (
-    !isValidStringField(payload.locale, { required: true, maxLength: 8 }) ||
-    !isValidStringField(payload.requestType, {
+    !isValidStringField(payload["locale"], { required: true, maxLength: 8 }) ||
+    !isValidStringField(payload["requestType"], {
       required: true,
       maxLength: 40,
     }) ||
-    !isValidStringField(payload.companyName, {
+    !isValidStringField(payload["companyName"], {
       required: true,
       maxLength: 100,
     }) ||
-    !isValidStringField(payload.email, { required: true, maxLength: 254 }) ||
-    !isValidStringField(payload.subject, {
+    !isValidStringField(payload["email"], {
+      required: true,
+      maxLength: 254,
+    }) ||
+    !isValidStringField(payload["subject"], {
       required: true,
       maxLength: 120,
     }) ||
-    !isValidStringField(payload.message, {
+    !isValidStringField(payload["message"], {
       required: true,
       maxLength: 800,
     }) ||
-    !isValidStringField(payload.sourceIp, {
+    !isValidStringField(payload["sourceIp"], {
       required: true,
       maxLength: 128,
     })
@@ -93,26 +96,26 @@ function hasValidIngestPayload(payload: Record<string, unknown>): boolean {
     return false;
   }
 
-  if (!isSemanticallyValidEmailAddress(String(payload.email))) {
+  if (!isSemanticallyValidEmailAddress(String(payload["email"]))) {
     return false;
   }
 
   if (
-    !isValidStringField(payload.firstName, { maxLength: 80 }) ||
-    !isValidStringField(payload.lastName, { maxLength: 80 }) ||
-    !isValidStringField(payload.role, { maxLength: 80 }) ||
-    !isValidStringField(payload.phone, { maxLength: 30 })
+    !isValidStringField(payload["firstName"], { maxLength: 80 }) ||
+    !isValidStringField(payload["lastName"], { maxLength: 80 }) ||
+    !isValidStringField(payload["role"], { maxLength: 80 }) ||
+    !isValidStringField(payload["phone"], { maxLength: 30 })
   ) {
     return false;
   }
 
-  if (payload.consent !== true) {
+  if (payload["consent"] !== true) {
     return false;
   }
 
   if (
-    payload.metadataJson !== undefined &&
-    !hasSafeMetadataShape(payload.metadataJson)
+    payload["metadataJson"] !== undefined &&
+    !hasSafeMetadataShape(payload["metadataJson"])
   ) {
     return false;
   }
@@ -138,7 +141,7 @@ function hasValidIngestToken(
 
 export async function POST(request: Request) {
   const responseHeaders = { "Cache-Control": "no-store" };
-  const expectedToken = process.env.CONTACT_API_INGEST_TOKEN;
+  const expectedToken = process.env["CONTACT_API_INGEST_TOKEN"];
   if (!expectedToken?.trim()) {
     return NextResponse.json(
       { error: "Contact ingest unavailable." },

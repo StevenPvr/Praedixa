@@ -1,0 +1,23 @@
+sequenceDiagram
+    autonumber
+    actor User as Utilisateur
+    participant Browser as Navigateur
+    participant BFF as BFF Next (webapp/admin)
+    participant Keycloak as Keycloak
+    participant ApiTs as app-api-ts
+    participant Pg as PostgreSQL
+
+    Browser->>BFF: GET/POST /api/v1/*
+    BFF->>BFF: verifier Origin / Sec-Fetch-Site
+    BFF->>BFF: resoudre session serveur
+    alt session absente ou expiree
+        BFF->>Keycloak: refresh / verif OIDC
+        Keycloak-->>BFF: token / echec auth
+    end
+    BFF->>ApiTs: requete upstream avec Authorization Bearer
+    BFF->>ApiTs: X-Request-ID + traceparent + tracestate
+    ApiTs->>ApiTs: verifier JWT / role / permissions
+    ApiTs->>Pg: lecture ou ecriture SQL
+    Pg-->>ApiTs: rows / ack
+    ApiTs-->>BFF: JSON normalise
+    BFF-->>Browser: reponse same-origin no-store

@@ -22,7 +22,14 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
-from alembic import op
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
+
+NOW_SQL = "now()"
+JSONB_EMPTY_OBJECT = "'{}'::jsonb"
+JSONB_EMPTY_ARRAY = "'[]'::jsonb"
+SET_NULL = "SET NULL"
+USERS_ID_REF = "users.id"
+ONBOARDING_CASES_ID_REF = "onboarding_cases.id"
 
 revision: str = "028"
 down_revision: str | None = "027"
@@ -114,17 +121,27 @@ def upgrade() -> None:
         sa.Column(
             "owner_user_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            sa.ForeignKey(USERS_ID_REF, ondelete=SET_NULL),
             nullable=True,
         ),
         sa.Column(
             "sponsor_user_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            sa.ForeignKey(USERS_ID_REF, ondelete=SET_NULL),
             nullable=True,
         ),
-        sa.Column("status", sa.String(length=32), nullable=False, server_default="draft"),
-        sa.Column("phase", sa.String(length=40), nullable=False, server_default="intake"),
+        sa.Column(
+            "status",
+            sa.String(length=32),
+            nullable=False,
+            server_default="draft",
+        ),
+        sa.Column(
+            "phase",
+            sa.String(length=40),
+            nullable=False,
+            server_default="intake",
+        ),
         sa.Column("activation_mode", sa.String(length=16), nullable=False),
         sa.Column("environment_target", sa.String(length=16), nullable=False),
         sa.Column("data_residency_region", sa.String(length=32), nullable=False),
@@ -141,19 +158,19 @@ def upgrade() -> None:
             "subscription_modules",
             JSONB(),
             nullable=False,
-            server_default=sa.text("'[]'::jsonb"),
+            server_default=sa.text(JSONB_EMPTY_ARRAY),
         ),
         sa.Column(
             "selected_packs",
             JSONB(),
             nullable=False,
-            server_default=sa.text("'[]'::jsonb"),
+            server_default=sa.text(JSONB_EMPTY_ARRAY),
         ),
         sa.Column(
             "source_modes",
             JSONB(),
             nullable=False,
-            server_default=sa.text("'[]'::jsonb"),
+            server_default=sa.text(JSONB_EMPTY_ARRAY),
         ),
         sa.Column(
             "last_readiness_status",
@@ -171,7 +188,7 @@ def upgrade() -> None:
             "started_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column("target_go_live_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("closed_at", sa.DateTime(timezone=True), nullable=True),
@@ -179,19 +196,19 @@ def upgrade() -> None:
             "metadata_json",
             JSONB(),
             nullable=False,
-            server_default=sa.text("'{}'::jsonb"),
+            server_default=sa.text(JSONB_EMPTY_OBJECT),
         ),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.CheckConstraint(
             "status IN ("
@@ -243,18 +260,23 @@ def upgrade() -> None:
         sa.Column(
             "case_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("onboarding_cases.id", ondelete="CASCADE"),
+            sa.ForeignKey(ONBOARDING_CASES_ID_REF, ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column("task_key", sa.String(length=80), nullable=False),
         sa.Column("title", sa.String(length=160), nullable=False),
         sa.Column("domain", sa.String(length=24), nullable=False),
         sa.Column("task_type", sa.String(length=80), nullable=False),
-        sa.Column("status", sa.String(length=24), nullable=False, server_default="todo"),
+        sa.Column(
+            "status",
+            sa.String(length=24),
+            nullable=False,
+            server_default="todo",
+        ),
         sa.Column(
             "assignee_user_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            sa.ForeignKey(USERS_ID_REF, ondelete=SET_NULL),
             nullable=True,
         ),
         sa.Column("sort_order", sa.Integer(), nullable=False, server_default="0"),
@@ -264,19 +286,19 @@ def upgrade() -> None:
             "details_json",
             JSONB(),
             nullable=False,
-            server_default=sa.text("'{}'::jsonb"),
+            server_default=sa.text(JSONB_EMPTY_OBJECT),
         ),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.CheckConstraint(
             "domain IN ('scope','access','sources','mapping','product','activation')",
@@ -304,25 +326,30 @@ def upgrade() -> None:
         sa.Column(
             "case_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("onboarding_cases.id", ondelete="CASCADE"),
+            sa.ForeignKey(ONBOARDING_CASES_ID_REF, ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column("blocker_key", sa.String(length=80), nullable=False),
         sa.Column("title", sa.String(length=160), nullable=False),
         sa.Column("domain", sa.String(length=24), nullable=False),
         sa.Column("severity", sa.String(length=16), nullable=False),
-        sa.Column("status", sa.String(length=16), nullable=False, server_default="open"),
+        sa.Column(
+            "status",
+            sa.String(length=16),
+            nullable=False,
+            server_default="open",
+        ),
         sa.Column(
             "details_json",
             JSONB(),
             nullable=False,
-            server_default=sa.text("'{}'::jsonb"),
+            server_default=sa.text(JSONB_EMPTY_OBJECT),
         ),
         sa.Column(
             "opened_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column("resolved_at", sa.DateTime(timezone=True), nullable=True),
         sa.CheckConstraint(
@@ -355,13 +382,13 @@ def upgrade() -> None:
         sa.Column(
             "case_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("onboarding_cases.id", ondelete="CASCADE"),
+            sa.ForeignKey(ONBOARDING_CASES_ID_REF, ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
             "actor_user_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            sa.ForeignKey(USERS_ID_REF, ondelete=SET_NULL),
             nullable=True,
         ),
         sa.Column("event_type", sa.String(length=80), nullable=False),
@@ -370,13 +397,13 @@ def upgrade() -> None:
             "payload_json",
             JSONB(),
             nullable=False,
-            server_default=sa.text("'{}'::jsonb"),
+            server_default=sa.text(JSONB_EMPTY_OBJECT),
         ),
         sa.Column(
             "occurred_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
     )
     op.create_index(

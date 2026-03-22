@@ -118,6 +118,9 @@ function deriveAdminOrigin(authOrigin: string): string | null {
 
   const labels = parsed.hostname.split(".");
   const subdomain = labels[0];
+  if (!subdomain) {
+    return null;
+  }
 
   if (subdomain === "app") {
     labels[0] = "admin";

@@ -7,6 +7,7 @@ const mockUseApiGet = vi.fn();
 const mockUseApiGetPaginated = vi.fn();
 const mockUseApiPost = vi.fn();
 const mockApiPost = vi.fn();
+const mockApiPostFormData = vi.fn();
 const mockGetValidAccessToken = vi.fn();
 const mockUseCurrentUserState = vi.fn();
 const mockToastSuccess = vi.fn();
@@ -28,6 +29,7 @@ vi.mock("@/hooks/use-toast", () => ({
 
 vi.mock("@/lib/api/client", () => ({
   apiPost: (...args: unknown[]) => mockApiPost(...args),
+  apiPostFormData: (...args: unknown[]) => mockApiPostFormData(...args),
   ApiError: class ApiError extends Error {
     constructor(message: string) {
       super(message);
@@ -191,10 +193,21 @@ const users = [
   },
 ];
 
+const integrationConnections = [
+  {
+    id: "conn-1",
+    displayName: "Bella Vista Push",
+    vendor: "custom_data",
+  },
+];
+
 describe("OnboardingPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockApiPost.mockResolvedValue({ data: caseBundle });
+    mockApiPostFormData.mockResolvedValue({
+      data: { activation: null, bundle: caseBundle },
+    });
     mockGetValidAccessToken.mockResolvedValue("token");
     mockUseCurrentUserState.mockReturnValue({
       user: {
@@ -204,6 +217,7 @@ describe("OnboardingPage", () => {
         permissions: [
           "admin:onboarding:read",
           "admin:onboarding:write",
+          "admin:integrations:read",
           "admin:users:read",
           "admin:users:write",
         ],
@@ -239,6 +253,15 @@ describe("OnboardingPage", () => {
         };
       }
 
+      if (url?.includes("/integrations/connections")) {
+        return {
+          data: integrationConnections,
+          loading: false,
+          error: null,
+          refetch: vi.fn(),
+        };
+      }
+
       if (url?.includes(`/onboarding/cases/${caseSummary.id}`)) {
         return {
           data: caseBundle,
@@ -268,11 +291,11 @@ describe("OnboardingPage", () => {
   it("renders the selected onboarding workspace", () => {
     render(<OnboardingPage />);
 
-    expect(screen.getByText("Onboarding BPM")).toBeInTheDocument();
+    expect(screen.getByText("Onboarding client")).toBeInTheDocument();
     expect(
-      screen.getByText("Workspace du case selectionne"),
+      screen.getByRole("heading", { name: "Sources" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Activer les connecteurs API")).toBeInTheDocument();
+    expect(screen.getByText("Activer les sources API")).toBeInTheDocument();
     expect(
       screen.getByText(
         "Aucune source critique n'a encore passe le cycle probe + sync",
@@ -299,7 +322,12 @@ describe("OnboardingPage", () => {
     });
 
     render(<OnboardingPage />);
-    await user.click(screen.getByRole("button", { name: "Creer le case" }));
+    await user.click(
+      screen.getByRole("button", {
+        name: /Etape 1 Dossier/i,
+      }),
+    );
+    await user.click(screen.getByRole("button", { name: "Creer le dossier" }));
 
     await waitFor(() =>
       expect(mutate).toHaveBeenCalledWith(
@@ -330,6 +358,125 @@ describe("OnboardingPage", () => {
       ),
     );
     expect(mockToastSuccess).toHaveBeenCalledWith("Tache onboarding completee");
+  });
+
+  it("activates an API source from the onboarding workspace", async () => {
+    const user = userEvent.setup();
+
+    render(<OnboardingPage />);
+    await user.selectOptions(screen.getByLabelText("Connexion API"), "conn-1");
+    await user.click(
+      screen.getByRole("button", { name: "Tester et lancer la premiere sync" }),
+    );
+
+    await waitFor(() =>
+      expect(mockApiPost).toHaveBeenCalledWith(
+        expect.stringContaining("/tasks/task-1/api-sources/activate"),
+        { connectionId: "conn-1" },
+        expect.any(Function),
+      ),
+    );
+    expect(mockToastSuccess).toHaveBeenCalledWith(
+      "Source API activee et premier cycle lance",
+    );
+  });
+
+  it("uploads a CSV source from the onboarding workspace", async () => {
+    const user = userEvent.setup();
+    const fileBundle = {
+      ...caseBundle,
+      tasks: [
+        {
+          ...caseBundle.tasks[0],
+          id: "task-file-1",
+          taskKey: "configure-file-sources",
+          title: "Configurer les imports fichiers",
+        },
+      ],
+    };
+
+    mockUseApiGet.mockImplementation((url: string | null) => {
+      if (url?.includes("/users")) {
+        return {
+          data: users,
+          loading: false,
+          error: null,
+          refetch: vi.fn(),
+        };
+      }
+
+      if (url?.includes("/integrations/connections")) {
+        return {
+          data: integrationConnections,
+          loading: false,
+          error: null,
+          refetch: vi.fn(),
+        };
+      }
+
+      if (url?.includes(`/onboarding/cases/${caseSummary.id}`)) {
+        return {
+          data: fileBundle,
+          loading: false,
+          error: null,
+          refetch: vi.fn(),
+        };
+      }
+
+      return {
+        data: null,
+        loading: false,
+        error: null,
+        refetch: vi.fn(),
+      };
+    });
+
+    render(<OnboardingPage />);
+
+    await user.type(
+      screen.getByLabelText("Libelle de la source"),
+      "Planning Mars",
+    );
+    await user.type(screen.getByLabelText("Domaine"), "planning");
+    await user.type(
+      screen.getByLabelText("Cle du jeu de donnees"),
+      "planning_shifts",
+    );
+    await user.type(
+      screen.getByLabelText("Profil d'import"),
+      "restaurant_shifts",
+    );
+
+    const file = new File(
+      ["employee_id;shift_start\n1;2026-03-22T09:00:00Z"],
+      "planning.csv",
+      {
+        type: "text/csv",
+      },
+    );
+
+    await user.upload(
+      screen.getByLabelText("Selectionner un CSV, TSV ou XLSX source"),
+      file,
+    );
+
+    await waitFor(() =>
+      expect(mockApiPostFormData).toHaveBeenCalledWith(
+        expect.stringContaining("/tasks/task-file-1/file-sources/upload"),
+        expect.any(FormData),
+        expect.any(Function),
+      ),
+    );
+
+    const formData = mockApiPostFormData.mock.calls[0]?.[1] as FormData;
+    expect(formData.get("label")).toBe("Planning Mars");
+    expect(formData.get("domain")).toBe("planning");
+    expect(formData.get("datasetKey")).toBe("planning_shifts");
+    expect(formData.get("importProfile")).toBe("restaurant_shifts");
+    expect(formData.get("file")).toBe(file);
+    expect(mockToastSuccess).toHaveBeenCalledWith(
+      "Fichier source charge et pipeline bronze declenche",
+    );
   });
 
   it("sends secure onboarding invitations without exposing a password", async () => {
@@ -425,7 +572,7 @@ describe("OnboardingPage", () => {
     );
 
     expect(mockToastSuccess).toHaveBeenCalledWith(
-      "Invitations securisees envoyees",
+      "Invitations securisees initialisees",
     );
   });
 
@@ -470,6 +617,7 @@ describe("OnboardingPage", () => {
   });
 
   it("does not fetch org users when the profile lacks admin:users permissions", async () => {
+    const user = userEvent.setup();
     mockUseCurrentUserState.mockReturnValue({
       user: {
         id: "admin-1",
@@ -483,6 +631,12 @@ describe("OnboardingPage", () => {
     });
 
     render(<OnboardingPage />);
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /Etape 1 Dossier/i,
+      }),
+    );
 
     await waitFor(() =>
       expect(

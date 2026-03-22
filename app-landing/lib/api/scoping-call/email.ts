@@ -9,9 +9,9 @@ export async function sendScopingCallEmails(
   data: ScopingCallPayload,
   ip: string,
 ): Promise<void> {
-  const fromEmail = process.env.RESEND_FROM_EMAIL || DEFAULT_FROM_EMAIL;
+  const fromEmail = process.env["RESEND_FROM_EMAIL"] || DEFAULT_FROM_EMAIL;
   const replyToEmail =
-    process.env.RESEND_REPLY_TO_EMAIL || siteConfig.contact.email;
+    process.env["RESEND_REPLY_TO_EMAIL"] || siteConfig.contact.email;
   const confirmSubject =
     data.locale === "en"
       ? "Scoping call request received - Praedixa"

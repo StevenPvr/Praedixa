@@ -41,6 +41,8 @@ export function route(
     requiredPermissions?: readonly string[];
     permissionMode?: RoutePermissionMode;
     rateLimit?: RouteRateLimit;
+    bodyParsing?: "json" | "binary";
+    maxBodyBytes?: number | null;
   },
 ): RouteDefinition {
   return {
@@ -51,6 +53,8 @@ export function route(
     requiredPermissions: options?.requiredPermissions ?? null,
     permissionMode: options?.permissionMode ?? "all",
     rateLimit: options?.rateLimit ?? null,
+    bodyParsing: options?.bodyParsing ?? "json",
+    maxBodyBytes: options?.maxBodyBytes ?? null,
     handler,
   };
 }
@@ -66,6 +70,8 @@ export function compileRoutes(routes: RouteDefinition[]): CompiledRoute[] {
       requiredPermissions: entry.requiredPermissions,
       permissionMode: entry.permissionMode,
       rateLimit: entry.rateLimit,
+      bodyParsing: entry.bodyParsing,
+      maxBodyBytes: entry.maxBodyBytes,
       handler: entry.handler,
       regex: compiled.regex,
       paramNames: compiled.paramNames,

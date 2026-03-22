@@ -18,15 +18,19 @@ interface BlogIndexPageProps {
   result: PaginatedBlogPosts;
 }
 
+function buildSearch(page: number, tag?: string): BlogListSearchParams {
+  return {
+    page,
+    ...(tag !== undefined ? { tag } : {}),
+  };
+}
+
 function buildPaginationHref(
   locale: Locale,
   search: BlogListSearchParams,
   page: number,
 ): string {
-  return buildBlogIndexPath(locale, {
-    page,
-    tag: search.tag,
-  });
+  return buildBlogIndexPath(locale, buildSearch(page, search.tag));
 }
 
 function buildBlogSummary(locale: Locale, selectedTag?: string): string {
@@ -53,10 +57,10 @@ export function BlogIndexPage({ locale, search, result }: BlogIndexPageProps) {
       : "Operational analysis, Ops/Finance decision-making, and impact proof.";
 
   const selectedTag = result.selectedTag;
-  const currentPath = buildBlogIndexPath(locale, {
-    page: search.page,
-    tag: search.tag,
-  });
+  const currentPath = buildBlogIndexPath(
+    locale,
+    buildSearch(search.page, search.tag),
+  );
   const summary = buildBlogSummary(locale, selectedTag);
   const breadcrumbItems = [
     { label: locale === "fr" ? "Accueil" : "Home", href: `/${locale}` },

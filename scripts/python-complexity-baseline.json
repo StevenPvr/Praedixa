@@ -605,16 +605,6 @@
     },
     {
       "type": "block",
-      "target": "app-api/app/services/decisions.py list_decisions",
-      "rank": "C"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/decisions.py review_decision",
-      "rank": "B"
-    },
-    {
-      "type": "block",
       "target": "app-api/app/services/file_parser.py _coerce_value",
       "rank": "B"
     },
@@ -1151,11 +1141,6 @@
     {
       "type": "module",
       "target": "app-api/app/services/column_mapper.py",
-      "rank": "B"
-    },
-    {
-      "type": "module",
-      "target": "app-api/app/services/decisions.py",
       "rank": "B"
     },
     {

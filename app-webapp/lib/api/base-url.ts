@@ -13,10 +13,10 @@ function isLoopbackHostname(hostname: string): boolean {
 export function resolveApiBaseUrl(
   options: ResolveApiBaseUrlOptions = {},
 ): string {
-  const configuredBaseUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+  const configuredBaseUrl = process.env["NEXT_PUBLIC_API_URL"]?.trim();
 
   if (!configuredBaseUrl) {
-    if (options.allowTestFallback && process.env.NODE_ENV === "test") {
+    if (options.allowTestFallback && process.env["NODE_ENV"] === "test") {
       return TEST_BASE_URL;
     }
 
@@ -41,7 +41,7 @@ export function resolveApiBaseUrl(
   }
 
   if (parsedUrl.protocol === "http:") {
-    if (process.env.NODE_ENV === "production") {
+    if (process.env["NODE_ENV"] === "production") {
       throw new Error(
         `NEXT_PUBLIC_API_URL must use https in production, received "${configuredBaseUrl}".`,
       );

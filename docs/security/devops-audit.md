@@ -16,7 +16,7 @@ Current model:
 - blocking gate command: `pnpm gate:exhaustive`
 - signed report verification: `pnpm gate:verify`
 - push enforcement: `pnpm gate:prepush`
-- hooks managed by `./scripts/install-prek.sh`
+- hooks managed by `./scripts/dev/install-prek.sh`
 
 The generic GitHub verification workflows (`ci.yml`, `audit.yml`) are no longer the source of authority. Remaining GitHub workflows are scoped helpers, not the canonical merge/release gate.
 
@@ -34,11 +34,11 @@ The generic GitHub verification workflows (`ci.yml`, `audit.yml`) are no longer 
 ### Verification and hooks
 
 - `.pre-commit-config.yaml`
-- `scripts/gate-exhaustive-local.sh`
-- `scripts/verify-gate-report.sh`
-- `scripts/gate-report-sign.sh`
+- `scripts/gates/gate-exhaustive-local.sh`
+- `scripts/gates/verify-gate-report.sh`
+- `scripts/gates/gate-report-sign.sh`
 - `scripts/gate.config.yaml`
-- `scripts/install-prek.sh`
+- `scripts/dev/install-prek.sh`
 
 ### Build/runtime and infra
 
@@ -48,7 +48,7 @@ The generic GitHub verification workflows (`ci.yml`, `audit.yml`) are no longer 
 - `app-landing/Dockerfile.scaleway`
 - `app-webapp/Dockerfile.scaleway`
 - `app-admin/Dockerfile.scaleway`
-- `scripts/scw-*.sh`
+- `scripts/scw/scw-*.sh`
 
 ### Supply chain and dependency controls
 
@@ -64,13 +64,13 @@ The generic GitHub verification workflows (`ci.yml`, `audit.yml`) are no longer 
 
 ### Hook chain and non-bypassability
 
-| Control                             | Status | Notes                                                              |
-| ----------------------------------- | ------ | ------------------------------------------------------------------ |
-| `pre-commit` runs exhaustive gate   | OK     | `./scripts/gate-exhaustive-local.sh --mode pre-commit`             |
-| `pre-push` verifies signed report   | OK     | `./scripts/verify-gate-report.sh --mode pre-push --run-if-missing` |
-| HEAD-bound signed evidence required | OK     | report tied to commit SHA                                          |
-| stale/missing report blocks push    | OK     | enforced in `pre-push`                                             |
-| dry-run reports rejected            | OK     | guardrail in verifier                                              |
+| Control                             | Status | Notes                                                                    |
+| ----------------------------------- | ------ | ------------------------------------------------------------------------ |
+| `pre-commit` runs exhaustive gate   | OK     | `./scripts/gates/gate-exhaustive-local.sh --mode pre-commit`             |
+| `pre-push` verifies signed report   | OK     | `./scripts/gates/verify-gate-report.sh --mode pre-push --run-if-missing` |
+| HEAD-bound signed evidence required | OK     | report tied to commit SHA                                                |
+| stale/missing report blocks push    | OK     | enforced in `pre-push`                                                   |
+| dry-run reports rejected            | OK     | guardrail in verifier                                                    |
 
 ### Tooling coverage
 
@@ -177,5 +177,5 @@ Recommended operational controls:
 - `docs/runbooks/local-gate-exhaustive.md`
 - `docs/runbooks/mvp-go-live-readiness.md`
 - `scripts/gate.config.yaml`
-- `scripts/gate-exhaustive-local.sh`
-- `scripts/verify-gate-report.sh`
+- `scripts/gates/gate-exhaustive-local.sh`
+- `scripts/gates/verify-gate-report.sh`

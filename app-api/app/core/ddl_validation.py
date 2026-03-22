@@ -173,12 +173,6 @@ def validate_identifier(value: str, *, field: str = "identifier") -> str:
     Returns the validated identifier string (unchanged — already lowercase).
     Raises DDLValidationError on any violation.
     """
-    if not isinstance(value, str):
-        raise DDLValidationError(
-            f"Identifier must be a string, got {type(value).__name__}",
-            field=field,
-        )
-
     if not IDENTIFIER_REGEX.fullmatch(value):
         raise DDLValidationError(
             "Identifier must start with a lowercase letter and contain "
@@ -208,12 +202,6 @@ def validate_client_slug(value: str) -> str:
     Client slugs have stricter rules: 3-35 chars, no reserved prefixes.
     The slug is used to form schema names like '{slug}_raw' and '{slug}_transformed'.
     """
-    if not isinstance(value, str):
-        raise DDLValidationError(
-            "Client slug must be a string",
-            field="slug",
-        )
-
     if not SLUG_REGEX.fullmatch(value):
         raise DDLValidationError(
             "Client slug must be 3-35 lowercase chars, start with a letter, "
@@ -243,12 +231,6 @@ def validate_schema_name(value: str) -> str:
     Allows reserved suffixes (_raw, _transformed) that would normally
     be blocked by the identifier validator's reserved prefix check.
     """
-    if not isinstance(value, str):
-        raise DDLValidationError(
-            "Schema name must be a string",
-            field="schema_name",
-        )
-
     if not IDENTIFIER_REGEX.fullmatch(value):
         raise DDLValidationError(
             "Schema name must start with a lowercase letter and contain "
@@ -280,12 +262,6 @@ def validate_column_type(value: str) -> str:
     Returns the canonical PG type string from the allowlist.
     Raises DDLValidationError for unknown types.
     """
-    if not isinstance(value, str):
-        raise DDLValidationError(
-            "Column type must be a string",
-            field="column_type",
-        )
-
     normalized = value.strip().lower().replace(" ", "_")
     pg_type = ALLOWED_COLUMN_TYPES.get(normalized)
     if pg_type is None:

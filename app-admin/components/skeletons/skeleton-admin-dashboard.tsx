@@ -2,18 +2,28 @@
 
 import { Skeleton, SkeletonCard, SkeletonChart } from "@praedixa/ui";
 
+const KPI_CARD_KEYS = ["overview", "teams", "quality", "usage"] as const;
+const ERROR_RATE_KEYS = ["error-a", "error-b", "error-c", "error-d"] as const;
+const ACTIVITY_ROW_KEYS = [
+  "activity-a",
+  "activity-b",
+  "activity-c",
+  "activity-d",
+  "activity-e",
+] as const;
+
 export function SkeletonAdminDashboard() {
   return (
-    <div
+    <output
       className="space-y-6"
       aria-busy="true"
-      role="status"
       aria-label="Chargement du tableau de bord"
+      role="status"
     >
       {/* KPI row — 4 stat cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <SkeletonCard key={`kpi-${i}`} />
+        {KPI_CARD_KEYS.map((key) => (
+          <SkeletonCard key={key} />
         ))}
       </div>
 
@@ -26,8 +36,8 @@ export function SkeletonAdminDashboard() {
         <div className="rounded-card border border-border bg-card p-5 shadow-card">
           <Skeleton className="mb-4 h-5 w-32" />
           <div className="space-y-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={`err-${i}`} className="flex items-center gap-3">
+            {ERROR_RATE_KEYS.map((key) => (
+              <div key={key} className="flex items-center gap-3">
                 <Skeleton className="h-8 w-8 rounded-full" />
                 <div className="flex-1 space-y-1.5">
                   <Skeleton className="h-3.5 w-24" />
@@ -44,9 +54,9 @@ export function SkeletonAdminDashboard() {
       <div className="rounded-card border border-border bg-card p-5 shadow-card">
         <Skeleton className="mb-4 h-5 w-40" />
         <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {ACTIVITY_ROW_KEYS.map((key) => (
             <div
-              key={`activity-${i}`}
+              key={key}
               className="flex items-center gap-4 border-b border-border-subtle py-3 last:border-0"
             >
               <Skeleton className="h-8 w-8 rounded-full" />
@@ -58,6 +68,6 @@ export function SkeletonAdminDashboard() {
           ))}
         </div>
       </div>
-    </div>
+    </output>
   );
 }

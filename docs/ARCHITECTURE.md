@@ -1,8 +1,10 @@
 # Architecture de Praedixa
 
-Praedixa est une plateforme SaaS multi-tenant de **capacity planning** pour sites logistiques. Elle predit les absences et la charge de travail, genere des alertes de couverture, et propose des scenarios de remediation optimises.
+Praedixa est une plateforme SaaS multi-tenant de **DecisionOps multi-sites**. Le socle du repo sert a federer les donnees operationnelles, produire des read-models fiables, calculer des recommandations actionnables, tracer leur execution et prouver le ROI. La verticale produit peut evoluer, mais les frontieres runtime, la source de verite des donnees et la gouvernance technique restent communes.
 
 ## Vue systeme
+
+Cette page decrit les **runtimes actifs** et leurs frontieres de confiance. Pour la hierarchie des sources de verite et la distinction entre documentation durable et cadrage, lire aussi `docs/cto/README.md` et `docs/cto/20-hierarchie-documentaire-et-normativite.md`.
 
 ```mermaid
 graph TB
@@ -59,7 +61,7 @@ graph TB
 
 ## Flux requete
 
-Voici le chemin complet d'une requete authentifiee, du navigateur jusqu'a la base de donnees.
+Voici le chemin complet d'une requete authentifiee, du navigateur jusqu'au runtime TypeScript puis au schema PostgreSQL durable.
 
 ```
 Browser
@@ -79,7 +81,8 @@ TypeScript API (app-api-ts)
   |  2. JWT parsing + role enforcement (routes admin vs client)
   |  3. Route handler (contract OpenAPI public)
   |  4. PostgreSQL access (tenant/site scoping)
-  |  5. Data/ML orchestration calls vers app-api Python (jobs batch)
+  |  5. Appels vers app-connectors si le flux touche au control plane des integrations
+  |  6. Appels vers app-api Python si le flux touche au data plane / jobs batch
   |
   v
 PostgreSQL 16
@@ -208,22 +211,26 @@ pnpm --filter @praedixa/shared-types build  # 1. Types partages
 
 **Pourquoi build avant typecheck** : `pnpm typecheck` (alias `tsc --build`) resout les imports depuis les artefacts compiles des packages. Sans build prealable, TypeScript ne trouve pas les declarations de `@praedixa/ui` et `@praedixa/shared-types`.
 
+**Profil de strictesse TS** : la base racine impose maintenant `strict`, `strictNullChecks`, `noUncheckedIndexedAccess`, `noImplicitReturns`, `noImplicitOverride`, `useUnknownInCatchVariables`, `noFallthroughCasesInSwitch` et `noEmitOnError`. Les apps Next (`app-landing`, `app-webapp`, `app-admin`) sont alignees sur cette base commune, et ESLint est type-aware sur les fichiers source pour bloquer notamment les promesses flottantes, les `switch` non exhaustifs et les assertions de type inutiles.
+
+**Palier de strictesse repo-wide** : `tsconfig.base.json` active maintenant `exactOptionalPropertyTypes` et `noPropertyAccessFromIndexSignature` pour tout le monorepo. Les packages `shared-types`, `ui`, `api-hooks` et `telemetry` gardent ces flags affiches localement, mais le niveau attendu vaut desormais aussi pour `app-admin`, `app-webapp`, `app-api-ts`, `app-connectors` et les autres runtimes TypeScript.
+
 ## Patterns service layer
 
-L'API applicative TS suit un pattern **Route table -> Handler -> Service -> DB** :
+Le pivot HTTP `app-api-ts` suit un pattern **Route table -> Handler -> Service metier -> read-model / mutation persistante** :
 
 - Route table centralisee (`app-api-ts/src/routes.ts`)
 - Verification JWT + role guard au niveau transport (`app-api-ts/src/server.ts`, `app-api-ts/src/auth.ts`)
 - Reponses normalisees (`success`, `paginated`, `failure`)
 - Contrat public versionne dans `contracts/openapi/public.yaml`
 
-Le moteur Python reste dedie aux workflows Data/ML :
+Le runtime Python `app-api` reste dedie au data plane et aux workflows Data/ML :
 
 - pipeline medallion (`app-api/scripts/medallion_pipeline.py`)
 - orchestration (`app-api/scripts/medallion_orchestrator.py`)
 - inference jobs (`app-api/scripts/run_inference_job.py`)
 
-Le plan d'automation agentique interne vit maintenant dans un runtime TypeScript dedie :
+Le runtime TypeScript d'automation interne vit separement du produit user-facing :
 
 - service Symphony (`app-symphony/`)
 - contrat repo-owned `WORKFLOW.md`
@@ -233,14 +240,14 @@ Le plan d'automation agentique interne vit maintenant dans un runtime TypeScript
 
 ### `@praedixa/shared-types`
 
-Contient les **types TypeScript du domaine** partages entre webapp et admin :
+Contient les **types TypeScript du domaine** partages entre les runtimes TypeScript :
 
 - Types metier : `Organization`, `Site`, `Department`, `User`, `Employee`
 - Enums : `UserRole`, `OrganizationStatus`, `SubscriptionPlan`, etc.
 - Types d'API : `ApiResponse<T>`, `PaginatedResponse<T>`, `ErrorResponse`
 - Schemas de formulaire : `CreateOrganization`, `UpdateUser`, etc.
 
-**Regle** : tout type utilise par plus d'un frontend vit ici. Les types specifiques a un seul frontend restent locaux.
+**Regle** : tout type partage entre plusieurs apps ou runtimes TypeScript vit ici. Les types strictement locaux restent dans leur runtime.
 
 ### `@praedixa/ui`
 
@@ -266,7 +273,7 @@ Contient les **composants React partages** entre les 3 apps :
 
 Le gate qualite/securite est local, bloquant, et versionne dans le repo:
 
-1. `pre-commit` execute `scripts/gate-exhaustive-local.sh`
+1. `pre-commit` execute `scripts/gates/gate-exhaustive-local.sh`
 2. `pre-push` verifie un rapport signe lie au `HEAD`
 3. si le rapport est absent/stale/invalide, le push est bloque
 4. le gate couvre securite, architecture, qualite, tests, e2e, perf, a11y et schema markup

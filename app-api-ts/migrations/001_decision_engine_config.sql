@@ -1,6 +1,6 @@
 -- Decision config versioning + audit
 
-CREATE TABLE IF NOT EXISTS decision_engine_config_versions (
+CREATE TABLE decision_engine_config_versions (
   id TEXT PRIMARY KEY,
   organization_id TEXT NOT NULL,
   site_id TEXT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS decision_engine_config_versions (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_decision_config_versions_scope
+CREATE INDEX idx_decision_config_versions_scope
   ON decision_engine_config_versions (
     organization_id,
     site_id,
@@ -22,14 +22,14 @@ CREATE INDEX IF NOT EXISTS idx_decision_config_versions_scope
     effective_at
   );
 
-CREATE INDEX IF NOT EXISTS idx_decision_config_versions_recent
+CREATE INDEX idx_decision_config_versions_recent
   ON decision_engine_config_versions (
     organization_id,
     site_id,
     created_at DESC
   );
 
-CREATE TABLE IF NOT EXISTS decision_engine_config_audit (
+CREATE TABLE decision_engine_config_audit (
   id TEXT PRIMARY KEY,
   organization_id TEXT NOT NULL,
   site_id TEXT NULL,
@@ -39,11 +39,11 @@ CREATE TABLE IF NOT EXISTS decision_engine_config_audit (
   target_version_id TEXT NULL,
   before_payload JSONB NULL,
   after_payload JSONB NULL,
-  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  metadata JSONB NOT NULL DEFAULT CAST('{}' AS JSONB),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_decision_config_audit_scope
+CREATE INDEX idx_decision_config_audit_scope
   ON decision_engine_config_audit (
     organization_id,
     site_id,

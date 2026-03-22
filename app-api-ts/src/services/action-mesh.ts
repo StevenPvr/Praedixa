@@ -196,7 +196,7 @@ function appendAttemptInternal(
     ...record,
     status: attempt.status,
     attempts: [...record.attempts, attempt],
-    fallback: nextFallback,
+    ...(nextFallback !== undefined ? { fallback: nextFallback } : {}),
     updatedAt: attempt.dispatchedAt,
   };
 }
@@ -224,7 +224,7 @@ export function createActionDispatchRecord(
     ...input,
     status: input.dispatchMode === "dry_run" ? "dry_run" : "pending",
     attempts: [],
-    fallback: input.fallback,
+    ...(input.fallback !== undefined ? { fallback: input.fallback } : {}),
   };
 }
 
@@ -298,13 +298,17 @@ export function appendActionDispatchRetry(
   if (!shouldRetryActionDispatch(record, retryErrorCode)) {
     throw new Error("Retry policy does not allow another dispatch attempt.");
   }
+  const retryErrorMessage =
+    input.errorMessage ?? getLastAttempt(record)?.errorMessage;
 
   return appendAttemptInternal(record, {
     attemptNumber: getNextAttemptNumber(record),
     status: "retried",
     dispatchedAt: input.retriedAt,
-    errorCode: retryErrorCode,
-    errorMessage: input.errorMessage ?? getLastAttempt(record)?.errorMessage,
+    ...(retryErrorCode !== undefined ? { errorCode: retryErrorCode } : {}),
+    ...(retryErrorMessage !== undefined
+      ? { errorMessage: retryErrorMessage }
+      : {}),
   });
 }
 
@@ -338,7 +342,7 @@ export function activateHumanFallback(
       status: "prepared",
       channel: input.channel,
       preparedAt: input.preparedAt,
-      reference: input.reference,
+      ...(input.reference !== undefined ? { reference: input.reference } : {}),
       activatedBy: input.activatedBy,
       activationReason: input.activationReason,
       humanRequired: true,

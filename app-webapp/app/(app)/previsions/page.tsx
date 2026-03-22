@@ -1,12 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import type { CoverageAlert } from "@praedixa/shared-types";
-import { useApiGet } from "@/hooks/use-api";
-import { useDecisionConfig } from "@/hooks/use-decision-config";
-import { useLatestForecasts } from "@/hooks/use-latest-forecasts";
-import { useSiteScope } from "@/lib/site-scope";
+import { usePrevisionsPageModel } from "./use-previsions-page-model";
 
 function formatPercent(value: number): string {
   const normalized = value <= 1 ? value * 100 : value;
@@ -14,95 +9,23 @@ function formatPercent(value: number): string {
 }
 
 export default function PrevisionsPage() {
-  const { selectedSiteId, appendSiteParam } = useSiteScope();
   const {
-    config: decisionConfig,
-    loading: configLoading,
-    error: configError,
-    refetch: refetchDecisionConfig,
-  } = useDecisionConfig(selectedSiteId);
-
-  const availableHorizons = useMemo(
-    () =>
-      [...(decisionConfig?.payload?.horizons ?? [])]
-        .filter((horizon) => horizon.active)
-        .sort((left, right) => left.rank - right.rank),
-    [decisionConfig],
-  );
-
-  const defaultHorizonId = useMemo(() => {
-    if (decisionConfig?.selectedHorizon?.id) {
-      return decisionConfig.selectedHorizon.id;
-    }
-    return (
-      availableHorizons.find((horizon) => horizon.isDefault)?.id ??
-      availableHorizons[0]?.id ??
-      null
-    );
-  }, [availableHorizons, decisionConfig]);
-
-  const [selectedHorizonId, setSelectedHorizonId] = useState<string | null>(
-    null,
-  );
-
-  useEffect(() => {
-    if (!defaultHorizonId) return;
-    setSelectedHorizonId((current) => {
-      if (
-        current &&
-        availableHorizons.some((horizon) => horizon.id === current)
-      ) {
-        return current;
-      }
-      return defaultHorizonId;
-    });
-  }, [availableHorizons, defaultHorizonId]);
-
-  const selectedHorizon = useMemo(
-    () =>
-      availableHorizons.find((horizon) => horizon.id === selectedHorizonId) ??
-      null,
-    [availableHorizons, selectedHorizonId],
-  );
-
-  const {
-    dailyData,
-    loading: forecastLoading,
-    error: forecastError,
-    refetchDaily,
-  } = useLatestForecasts("human", selectedSiteId, selectedHorizonId);
-
-  const alertsUrl = useMemo(
-    () =>
-      appendSiteParam(
-        selectedHorizonId
-          ? `/api/v1/live/coverage-alerts?status=open&page_size=200&horizon_id=${encodeURIComponent(
-              selectedHorizonId,
-            )}`
-          : "/api/v1/live/coverage-alerts?status=open&page_size=200",
-      ),
-    [appendSiteParam, selectedHorizonId],
-  );
-
-  const {
-    data: alerts,
-    loading: alertsLoading,
-    error: alertsError,
-    refetch: refetchAlerts,
-  } = useApiGet<CoverageAlert[]>(alertsUrl);
-
-  const orderedForecast = useMemo(
-    () =>
-      [...(dailyData ?? [])]
-        .sort((a, b) => a.forecastDate.localeCompare(b.forecastDate))
-        .slice(0, selectedHorizon?.days ?? (dailyData ?? []).length),
-    [dailyData, selectedHorizon?.days],
-  );
-
-  const topAlerts = (alerts ?? []).slice(0, 5);
-  const criticalCount = (alerts ?? []).filter(
-    (item) => item.severity === "critical",
-  ).length;
+    selectedHorizonId,
+    setSelectedHorizonId,
+    selectedHorizon,
+    availableHorizons,
+    orderedForecast,
+    topAlerts,
+    criticalCount,
+    alerts,
+    alertsLoading,
+    alertsError,
+    forecastLoading,
+    forecastError,
+    configLoading,
+    configError,
+    retryAll,
+  } = usePrevisionsPageModel();
 
   return (
     <div className="min-h-full space-y-8">
@@ -123,15 +46,7 @@ export default function PrevisionsPage() {
       {(forecastError || alertsError || configError) && (
         <div className="rounded-xl border border-warning-light bg-warning-light/20 px-4 py-3 text-sm text-warning-text">
           {forecastError ?? alertsError ?? configError}
-          <button
-            type="button"
-            onClick={() => {
-              refetchDecisionConfig();
-              refetchDaily();
-              refetchAlerts();
-            }}
-            className="ml-3 underline"
-          >
+          <button type="button" onClick={retryAll} className="ml-3 underline">
             Reessayer
           </button>
         </div>

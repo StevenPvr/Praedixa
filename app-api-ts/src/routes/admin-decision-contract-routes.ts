@@ -63,7 +63,7 @@ async function persistDraftMutation(
   const service = getDecisionContractRuntimeService();
   return "contract" in data
     ? service.saveDraft({
-        organizationId: ctx.params.orgId ?? "",
+        organizationId: ctx.params["orgId"] ?? "",
         actor: {
           userId: actorUserId,
           decidedAt: now,
@@ -72,18 +72,48 @@ async function persistDraftMutation(
         request: data,
       })
     : service.createDraftFromTemplate({
-        organizationId: ctx.params.orgId ?? "",
-        workspaceId: data.workspaceId,
-        actor: {
-          userId: actorUserId,
-          decidedAt: now,
-          reason: data.reason,
-          notes: data.notes,
-        },
-        request: {
-          ...data,
-          scopeOverrides: normalizeDecisionScopeOverrides(data.scopeOverrides),
-        },
+        ...(function () {
+          const createRequest: DecisionContractStudioCreateRequest = data;
+          const scopeOverrides = normalizeDecisionScopeOverrides(
+            createRequest.scopeOverrides,
+          );
+          return {
+            organizationId: ctx.params["orgId"] ?? "",
+            actor: {
+              userId: actorUserId,
+              decidedAt: now,
+              reason: createRequest.reason,
+              ...(createRequest.notes !== undefined
+                ? { notes: createRequest.notes }
+                : {}),
+            },
+            request: {
+              templateId: createRequest.templateId,
+              ...(createRequest.templateVersion !== undefined
+                ? { templateVersion: createRequest.templateVersion }
+                : {}),
+              contractId: createRequest.contractId,
+              ...(createRequest.pack !== undefined
+                ? { pack: createRequest.pack }
+                : {}),
+              ...(createRequest.workspaceId !== undefined
+                ? { workspaceId: createRequest.workspaceId }
+                : {}),
+              name: createRequest.name,
+              ...(createRequest.description !== undefined
+                ? { description: createRequest.description }
+                : {}),
+              reason: createRequest.reason,
+              ...(createRequest.notes !== undefined
+                ? { notes: createRequest.notes }
+                : {}),
+              ...(createRequest.tags !== undefined
+                ? { tags: createRequest.tags }
+                : {}),
+              ...(scopeOverrides !== undefined ? { scopeOverrides } : {}),
+            },
+          };
+        })(),
       });
 }
 
@@ -100,7 +130,7 @@ function requireActorUserId(ctx: RouteContext): string | RouteResult {
 }
 
 function requireContractId(ctx: RouteContext): string | RouteResult {
-  const contractId = normalizeOptionalText(ctx.params.contractId) ?? "";
+  const contractId = normalizeOptionalText(ctx.params["contractId"]) ?? "";
   return contractId.length > 0
     ? contractId
     : failure(
@@ -123,7 +153,7 @@ function parseContractSelection(
     return {
       contractId,
       contractVersion: parsePositiveInteger(
-        ctx.params.contractVersion,
+        ctx.params["contractVersion"],
         "contractVersion",
       ),
     };
@@ -178,8 +208,20 @@ async function listDecisionContracts(ctx: RouteContext) {
   try {
     return success(
       await getDecisionContractRuntimeService().listContracts({
-        organizationId: ctx.params.orgId ?? "",
-        ...parsed.data,
+        organizationId: ctx.params["orgId"] ?? "",
+        ...(parsed.data.workspaceId !== undefined
+          ? { workspaceId: parsed.data.workspaceId }
+          : {}),
+        ...(parsed.data.pack !== undefined ? { pack: parsed.data.pack } : {}),
+        ...(parsed.data.statuses !== undefined
+          ? { statuses: parsed.data.statuses }
+          : {}),
+        ...(parsed.data.search !== undefined
+          ? { search: parsed.data.search }
+          : {}),
+        ...(parsed.data.includeArchived !== undefined
+          ? { includeArchived: parsed.data.includeArchived }
+          : {}),
       }),
       ctx.requestId,
     );
@@ -204,14 +246,18 @@ async function getDecisionContractDetail(ctx: RouteContext) {
       ctx.query.get("compareToVersion") ?? ctx.query.get("compare_to_version");
     return success(
       await getDecisionContractRuntimeService().getContractDetail(
-        ctx.params.orgId ?? "",
+        ctx.params["orgId"] ?? "",
         {
           contractId: contractSelection.contractId,
           contractVersion: contractSelection.contractVersion,
-          compareToVersion:
-            compareToRaw == null
-              ? undefined
-              : parsePositiveInteger(compareToRaw, "compareToVersion"),
+          ...(compareToRaw != null
+            ? {
+                compareToVersion: parsePositiveInteger(
+                  compareToRaw,
+                  "compareToVersion",
+                ),
+              }
+            : {}),
         },
       ),
       ctx.requestId,
@@ -243,7 +289,61 @@ async function saveDecisionContractDraft(ctx: RouteContext) {
   }
 
   try {
-    const result = await persistDraftMutation(ctx, actorUserId, parsed);
+    const normalizedScopeOverrides =
+      "contract" in parsed || parsed.scopeOverrides === undefined
+        ? undefined
+        : normalizeDecisionScopeOverrides({
+            ...(parsed.scopeOverrides.entityType !== undefined
+              ? { entityType: parsed.scopeOverrides.entityType }
+              : {}),
+            ...(parsed.scopeOverrides.selector?.mode !== undefined
+              ? {
+                  selector: {
+                    mode: parsed.scopeOverrides.selector.mode,
+                    ...(parsed.scopeOverrides.selector.ids !== undefined
+                      ? { ids: parsed.scopeOverrides.selector.ids }
+                      : {}),
+                    ...(parsed.scopeOverrides.selector.query !== undefined
+                      ? { query: parsed.scopeOverrides.selector.query }
+                      : {}),
+                  },
+                }
+              : {}),
+            ...(parsed.scopeOverrides.horizonId !== undefined
+              ? { horizonId: parsed.scopeOverrides.horizonId }
+              : {}),
+            ...(parsed.scopeOverrides.dimensions !== undefined
+              ? { dimensions: parsed.scopeOverrides.dimensions }
+              : {}),
+          });
+    const normalizedDraft =
+      "contract" in parsed
+        ? parsed
+        : {
+            templateId: parsed.templateId,
+            ...(parsed.templateVersion !== undefined
+              ? { templateVersion: parsed.templateVersion }
+              : {}),
+            contractId: parsed.contractId,
+            name: parsed.name,
+            ...(parsed.description !== undefined
+              ? { description: parsed.description }
+              : {}),
+            reason: parsed.reason,
+            ...(parsed.notes !== undefined ? { notes: parsed.notes } : {}),
+            ...(parsed.workspaceId !== undefined
+              ? { workspaceId: parsed.workspaceId }
+              : {}),
+            ...(normalizedScopeOverrides !== undefined
+              ? { scopeOverrides: normalizedScopeOverrides }
+              : {}),
+            ...(parsed.tags !== undefined ? { tags: parsed.tags } : {}),
+          };
+    const result = await persistDraftMutation(
+      ctx,
+      actorUserId,
+      normalizedDraft,
+    );
     return success(result, ctx.requestId, "DecisionContract draft saved", 201);
   } catch (error) {
     return decisionContractRuntimeFailure(
@@ -279,16 +379,24 @@ async function transitionDecisionContract(ctx: RouteContext) {
   try {
     return success(
       await getDecisionContractRuntimeService().transitionContract({
-        organizationId: ctx.params.orgId ?? "",
+        organizationId: ctx.params["orgId"] ?? "",
         contractId: contractSelection.contractId,
         contractVersion: contractSelection.contractVersion,
         actor: {
           userId: actorUserId,
           decidedAt: new Date().toISOString(),
           reason: parsed.data.reason,
-          notes: parsed.data.notes,
+          ...(parsed.data.notes !== undefined
+            ? { notes: parsed.data.notes }
+            : {}),
         },
-        request: parsed.data,
+        request: {
+          transition: parsed.data.transition,
+          reason: parsed.data.reason,
+          ...(parsed.data.notes !== undefined
+            ? { notes: parsed.data.notes }
+            : {}),
+        },
       }),
       ctx.requestId,
     );
@@ -311,7 +419,7 @@ async function listRollbackCandidates(ctx: RouteContext) {
   try {
     return success(
       await getDecisionContractRuntimeService().listRollbackCandidates(
-        ctx.params.orgId ?? "",
+        ctx.params["orgId"] ?? "",
         contractSelection.contractId,
         contractSelection.contractVersion,
       ),
@@ -351,16 +459,27 @@ async function forkDecisionContract(ctx: RouteContext) {
   try {
     return success(
       await getDecisionContractRuntimeService().forkDraft({
-        organizationId: ctx.params.orgId ?? "",
+        organizationId: ctx.params["orgId"] ?? "",
         contractId: contractSelection.contractId,
         contractVersion: contractSelection.contractVersion,
         actor: {
           userId: actorUserId,
           decidedAt: new Date().toISOString(),
           reason: parsed.data.reason,
-          notes: parsed.data.notes,
+          ...(parsed.data.notes !== undefined
+            ? { notes: parsed.data.notes }
+            : {}),
         },
-        request: parsed.data,
+        request: {
+          name: parsed.data.name,
+          reason: parsed.data.reason,
+          ...(parsed.data.description !== undefined
+            ? { description: parsed.data.description }
+            : {}),
+          ...(parsed.data.notes !== undefined
+            ? { notes: parsed.data.notes }
+            : {}),
+        },
       }),
       ctx.requestId,
       "DecisionContract fork created",
@@ -400,16 +519,28 @@ async function rollbackDecisionContract(ctx: RouteContext) {
   try {
     return success(
       await getDecisionContractRuntimeService().rollbackDraft({
-        organizationId: ctx.params.orgId ?? "",
+        organizationId: ctx.params["orgId"] ?? "",
         contractId: contractSelection.contractId,
         contractVersion: contractSelection.contractVersion,
         actor: {
           userId: actorUserId,
           decidedAt: new Date().toISOString(),
           reason: parsed.data.reason,
-          notes: parsed.data.notes,
+          ...(parsed.data.notes !== undefined
+            ? { notes: parsed.data.notes }
+            : {}),
         },
-        request: parsed.data,
+        request: {
+          targetVersion: parsed.data.targetVersion,
+          reason: parsed.data.reason,
+          ...(parsed.data.name !== undefined ? { name: parsed.data.name } : {}),
+          ...(parsed.data.description !== undefined
+            ? { description: parsed.data.description }
+            : {}),
+          ...(parsed.data.notes !== undefined
+            ? { notes: parsed.data.notes }
+            : {}),
+        },
       }),
       ctx.requestId,
       "DecisionContract rollback draft created",

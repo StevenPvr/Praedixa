@@ -59,6 +59,13 @@ def _from_iso_date(raw: Any) -> date | None:
         return None
 
 
+def _job_scope_json(job: ModelInferenceJob) -> dict[str, Any]:
+    scope_json = getattr(job, "scope_json", {})
+    if not isinstance(scope_json, dict):
+        return {}
+    return cast("dict[str, Any]", scope_json)
+
+
 def _map_model_type(model_family: str) -> ForecastModelType:
     token = model_family.strip().lower()
     if "xgboost" in token:
@@ -188,6 +195,7 @@ async def run_inference_job(
 
     try:
         org_id = uuid.UUID(tenant.organization_id)
+        scope_json = _job_scope_json(job)
 
         model: ModelRegistry
         if job.model_registry_id is not None:
@@ -197,7 +205,7 @@ async def run_inference_job(
                 model_id=job.model_registry_id,
             )
         else:
-            model_family = job.scope_json.get("model_family")
+            model_family = scope_json.get("model_family")
             active_model = await get_active_model(
                 session,
                 tenant,
@@ -256,12 +264,12 @@ async def run_inference_job(
                 status_code=404,
             )
 
-        scope_site = job.scope_json.get("site_code")
+        scope_site = scope_json.get("site_code")
         site_code: str | None = (
             scope_site if isinstance(scope_site, str) and scope_site else None
         )
-        date_from = _from_iso_date(job.scope_json.get("date_from"))
-        date_to = _from_iso_date(job.scope_json.get("date_to"))
+        date_from = _from_iso_date(scope_json.get("date_from"))
+        date_to = _from_iso_date(scope_json.get("date_to"))
 
         rows = filter_rows(
             snapshot.rows,
@@ -277,7 +285,7 @@ async def run_inference_job(
                 status_code=404,
             )
 
-        horizon_days = int(job.scope_json.get("horizon_days") or 14)
+        horizon_days = int(scope_json.get("horizon_days") or 14)
 
         forecast_rows = [
             *build_daily_forecasts(

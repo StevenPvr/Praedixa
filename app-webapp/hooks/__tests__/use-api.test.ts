@@ -461,7 +461,7 @@ describe("useApiGet", () => {
     expect(result.current.loading).toBe(true);
   });
 
-  it("polling should be silent on 401 (no redirect, no error)", async () => {
+  it("polling should purge stale data and redirect on 401", async () => {
     mockApiGet.mockResolvedValue(successResponse({ id: 1, name: "A" }));
 
     const { result, unmount } = renderHook(() =>
@@ -478,10 +478,43 @@ describe("useApiGet", () => {
       expect(mockApiGet.mock.calls.length).toBeGreaterThanOrEqual(2);
     });
 
-    expect(mockClearAuthSession).not.toHaveBeenCalled();
-    expect(mockReplace).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockClearAuthSession).toHaveBeenCalled();
+      expect(mockReplace).toHaveBeenCalledWith(
+        "/login?reauth=1&reason=api_unauthorized",
+      );
+    });
+    expect(result.current.data).toBeNull();
     expect(result.current.error).toBeNull();
     expect(result.current.loading).toBe(false);
+
+    unmount();
+  });
+
+  it("polling should trigger reauth only once after the first 401", async () => {
+    mockApiGet.mockResolvedValue(successResponse({ id: 1, name: "A" }));
+
+    const { unmount } = renderHook(() =>
+      useApiGet<TestItem>("/api/v1/items", { pollInterval: 20 }),
+    );
+
+    await waitFor(() => {
+      expect(mockApiGet).toHaveBeenCalled();
+    });
+
+    mockApiGet.mockRejectedValue(new ApiError("Unauthorized", 401));
+
+    await waitFor(() => {
+      expect(mockClearAuthSession).toHaveBeenCalledTimes(1);
+      expect(mockReplace).toHaveBeenCalledTimes(1);
+    });
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    });
+
+    expect(mockClearAuthSession).toHaveBeenCalledTimes(1);
+    expect(mockReplace).toHaveBeenCalledTimes(1);
 
     unmount();
   });
@@ -640,6 +673,40 @@ describe("useApiGetPaginated", () => {
         "/login?reauth=1&reason=api_unauthorized",
       );
     });
+  });
+
+  it("polling should purge stale paginated data and redirect on 401", async () => {
+    mockApiGetPaginated.mockResolvedValue(
+      paginatedResponse([{ id: 1, name: "A" }], defaultPagination),
+    );
+
+    const { result, unmount } = renderHook(() =>
+      useApiGetPaginated<TestItem>("/api/v1/items", 1, 10, {
+        pollInterval: 20,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.data).toEqual([{ id: 1, name: "A" }]);
+    });
+
+    mockApiGetPaginated.mockRejectedValue(new ApiError("Unauthorized", 401));
+
+    await waitFor(() => {
+      expect(mockClearAuthSession).toHaveBeenCalled();
+      expect(mockReplace).toHaveBeenCalledWith(
+        "/login?reauth=1&reason=api_unauthorized",
+      );
+    });
+
+    expect(result.current.data).toEqual([]);
+    expect(result.current.total).toBe(0);
+    expect(result.current.pagination).toBeNull();
+    expect(result.current.error).toBeNull();
+    expect(result.current.loading).toBe(false);
+
+    unmount();
   });
 
   it("should refetch when refetch is called", async () => {
@@ -1002,7 +1069,7 @@ describe("useApiPost", () => {
     );
 
     act(() => {
-      void result.current.mutate({ name: "test" });
+      result.current.mutate({ name: "test" }).catch(() => undefined);
     });
 
     unmount();
@@ -1135,7 +1202,7 @@ describe("useApiPatch", () => {
     );
 
     act(() => {
-      void result.current.mutate({ name: "test" });
+      result.current.mutate({ name: "test" }).catch(() => undefined);
     });
 
     unmount();

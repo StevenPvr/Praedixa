@@ -7,6 +7,21 @@ const productionCamundaDisabled = {
 } as const;
 
 describe("loadConfig", () => {
+  it("defaults development auth to the local Keycloak issuer", () => {
+    expect(
+      loadConfig({
+        NODE_ENV: "development",
+      }),
+    ).toMatchObject({
+      jwt: {
+        issuerUrl: "http://localhost:8081/realms/praedixa",
+        audience: "praedixa-api",
+        jwksUrl:
+          "http://localhost:8081/realms/praedixa/protocol/openid-connect/certs",
+      },
+    });
+  });
+
   it("accepts a hardened production configuration", () => {
     expect(
       loadConfig({

@@ -1,22 +1,22 @@
 "use client";
 
-import { useState } from "react";
 import type {
   DecisionContractStudioDetailResponse,
-  DecisionContractStudioForkDraftResponse,
   DecisionContractStudioRollbackCandidateResponse,
-  DecisionContractStudioRollbackRequest,
   DecisionContractStudioTransitionRequest,
 } from "@praedixa/shared-types/api";
 import { Button, Card, CardContent } from "@praedixa/ui";
 
-import { useApiPost } from "@/hooks/use-api";
-import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 import { ReadOnlyStateCard } from "../read-only-detail";
+import { type ContractStudioSelection } from "./contract-studio-shared";
 import {
-  nextSelectionFromResult,
-  type ContractStudioSelection,
-} from "./contract-studio-shared";
+  useContractStudioMutationController,
+  type ContractStudioTransitionAction,
+} from "./contract-studio-mutation-controller";
+
+type ContractStudioMutationController = ReturnType<
+  typeof useContractStudioMutationController
+>;
 
 interface ContractStudioMutationPanelProps {
   orgId: string;
@@ -31,10 +31,10 @@ interface ContractStudioMutationCardProps {
   reason: string;
   setReason: (value: string) => void;
   localError: string | null;
-  transitionMutation: ReturnType<typeof useTransitionMutation>;
-  forkMutation: ReturnType<typeof useForkMutation>;
-  rollbackMutation: ReturnType<typeof useRollbackMutation>;
-  transitionActions: ReturnType<typeof transitionActionsForStatus>;
+  transitionMutation: ContractStudioMutationController["transitionMutation"];
+  forkMutation: ContractStudioMutationController["forkMutation"];
+  rollbackMutation: ContractStudioMutationController["rollbackMutation"];
+  transitionActions: ContractStudioTransitionAction[];
   rollbackButtons: DecisionContractStudioRollbackCandidateResponse["candidates"];
   onSubmitTransition: (
     transition: DecisionContractStudioTransitionRequest["transition"],
@@ -43,216 +43,61 @@ interface ContractStudioMutationCardProps {
   onSubmitRollback: (targetVersion: number) => void;
 }
 
-function transitionActionsForStatus(status: string) {
-  if (status === "draft") {
-    return [
-      {
-        transition: "submit_for_testing" as const,
-        label: "Envoyer en testing",
-      },
-      { transition: "archive" as const, label: "Archiver" },
-    ];
-  }
-  if (status === "testing") {
-    return [
-      { transition: "approve" as const, label: "Approuver" },
-      { transition: "archive" as const, label: "Archiver" },
-    ];
-  }
-  if (status === "approved") {
-    return [
-      { transition: "publish" as const, label: "Publier" },
-      { transition: "archive" as const, label: "Archiver" },
-    ];
-  }
-  if (status === "published") {
-    return [{ transition: "archive" as const, label: "Archiver" }];
-  }
-  if (status === "archived") {
-    return [
-      { transition: "reopen_draft" as const, label: "Reouvrir en draft" },
-    ];
-  }
-  return [];
-}
-
-function requireMutationReason(
-  reason: string,
-  setLocalError: (value: string | null) => void,
-  message: string,
-) {
-  const trimmedReason = reason.trim();
-  if (trimmedReason.length === 0) {
-    setLocalError(message);
-    return null;
-  }
-  setLocalError(null);
-  return trimmedReason;
-}
-
-function resolveMutationSelection(
-  response:
-    | DecisionContractStudioDetailResponse
-    | DecisionContractStudioForkDraftResponse
-    | null,
-  onSelectionChange: (selection: ContractStudioSelection) => void,
-) {
-  const selection = nextSelectionFromResult(response);
-  if (selection) {
-    onSelectionChange(selection);
-  }
-}
-
-function useTransitionMutation(
-  orgId: string,
-  detail: DecisionContractStudioDetailResponse,
-) {
-  return useApiPost<
-    DecisionContractStudioTransitionRequest,
-    DecisionContractStudioDetailResponse
-  >(
-    ADMIN_ENDPOINTS.orgDecisionContractTransition(
-      orgId,
-      detail.contract.contractId,
-      detail.contract.contractVersion,
-    ),
-  );
-}
-
-function useForkMutation(
-  orgId: string,
-  detail: DecisionContractStudioDetailResponse,
-) {
-  return useApiPost<
-    { reason: string; notes?: string; name?: string; description?: string },
-    DecisionContractStudioForkDraftResponse
-  >(
-    ADMIN_ENDPOINTS.orgDecisionContractFork(
-      orgId,
-      detail.contract.contractId,
-      detail.contract.contractVersion,
-    ),
-  );
-}
-
-function useRollbackMutation(
-  orgId: string,
-  detail: DecisionContractStudioDetailResponse,
-) {
-  return useApiPost<
-    DecisionContractStudioRollbackRequest,
-    DecisionContractStudioForkDraftResponse
-  >(
-    ADMIN_ENDPOINTS.orgDecisionContractRollback(
-      orgId,
-      detail.contract.contractId,
-      detail.contract.contractVersion,
-    ),
-  );
-}
-
-function useTransitionSubmission(
-  reason: string,
-  setLocalError: (value: string | null) => void,
-  transitionMutation: ReturnType<typeof useTransitionMutation>,
-  onSelectionChange: (selection: ContractStudioSelection) => void,
-) {
-  async function submitTransition(
-    transition: DecisionContractStudioTransitionRequest["transition"],
-  ) {
-    const trimmedReason = requireMutationReason(
-      reason,
-      setLocalError,
-      "Un motif est requis pour toute mutation de contrat.",
-    );
-    if (!trimmedReason) {
-      return;
-    }
-    const response = await transitionMutation.mutate({
-      transition,
-      reason: trimmedReason,
-    });
-    resolveMutationSelection(response, onSelectionChange);
-  }
-
-  return submitTransition;
-}
-
-function useForkSubmission(
-  reason: string,
-  detail: DecisionContractStudioDetailResponse,
-  setLocalError: (value: string | null) => void,
-  forkMutation: ReturnType<typeof useForkMutation>,
-  onSelectionChange: (selection: ContractStudioSelection) => void,
-) {
-  async function submitFork() {
-    const trimmedReason = requireMutationReason(
-      reason,
-      setLocalError,
-      "Un motif est requis pour creer un fork.",
-    );
-    if (!trimmedReason) {
-      return;
-    }
-    const response = await forkMutation.mutate({
-      reason: trimmedReason,
-      name: `${detail.contract.name} draft`,
-    });
-    resolveMutationSelection(response, onSelectionChange);
-  }
-
-  return submitFork;
-}
-
-function useRollbackSubmission(
-  reason: string,
-  detail: DecisionContractStudioDetailResponse,
-  setLocalError: (value: string | null) => void,
-  rollbackMutation: ReturnType<typeof useRollbackMutation>,
-  onSelectionChange: (selection: ContractStudioSelection) => void,
-) {
-  async function submitRollback(targetVersion: number) {
-    const trimmedReason = requireMutationReason(
-      reason,
-      setLocalError,
-      "Un motif est requis pour lancer un rollback.",
-    );
-    if (!trimmedReason) {
-      return;
-    }
-    const response = await rollbackMutation.mutate({
-      targetVersion,
-      reason: trimmedReason,
-      name: `${detail.contract.name} rollback`,
-    });
-    resolveMutationSelection(response, onSelectionChange);
-  }
-
-  return submitRollback;
-}
-
-function ContractStudioMutationError({
-  localError,
-  transitionError,
-  forkError,
-  rollbackError,
-}: {
+type ContractStudioMutationErrorProps = {
   localError: string | null;
   transitionError: string | null;
   forkError: string | null;
   rollbackError: string | null;
-}) {
+};
+
+type ContractStudioReasonFieldProps = {
+  reason: string;
+  onChange: (value: string) => void;
+};
+
+type ContractStudioTransitionActionsProps = {
+  transitionActions: ContractStudioTransitionAction[];
+  transitionLoading: boolean;
+  forkLoading: boolean;
+  isPublished: boolean;
+  onSubmitTransition: (
+    transition: DecisionContractStudioTransitionRequest["transition"],
+  ) => void;
+  onSubmitFork: () => void;
+};
+
+type ContractStudioRollbackActionsProps = {
+  candidates: DecisionContractStudioRollbackCandidateResponse["candidates"];
+  loading: boolean;
+  onSubmitRollback: (targetVersion: number) => void;
+};
+
+type ContractStudioMutationActionsBlockProps = Pick<
+  ContractStudioMutationCardProps,
+  | "detail"
+  | "localError"
+  | "transitionMutation"
+  | "forkMutation"
+  | "rollbackMutation"
+  | "transitionActions"
+  | "rollbackButtons"
+  | "onSubmitTransition"
+  | "onSubmitFork"
+  | "onSubmitRollback"
+>;
+
+function ContractStudioMutationError(
+  props: Readonly<ContractStudioMutationErrorProps>,
+) {
+  const { localError, transitionError, forkError, rollbackError } = props;
   const error = localError ?? transitionError ?? forkError ?? rollbackError;
   return error ? <p className="text-sm text-danger-text">{error}</p> : null;
 }
 
-function ContractStudioReasonField({
-  reason,
-  onChange,
-}: {
-  reason: string;
-  onChange: (value: string) => void;
-}) {
+function ContractStudioReasonField(
+  props: Readonly<ContractStudioReasonFieldProps>,
+) {
+  const { reason, onChange } = props;
   return (
     <label className="block space-y-2 text-sm text-ink-tertiary">
       <span>Motif commun</span>
@@ -265,23 +110,17 @@ function ContractStudioReasonField({
   );
 }
 
-function ContractStudioTransitionActions({
-  transitionActions,
-  transitionLoading,
-  forkLoading,
-  isPublished,
-  onSubmitTransition,
-  onSubmitFork,
-}: {
-  transitionActions: ReturnType<typeof transitionActionsForStatus>;
-  transitionLoading: boolean;
-  forkLoading: boolean;
-  isPublished: boolean;
-  onSubmitTransition: (
-    transition: DecisionContractStudioTransitionRequest["transition"],
-  ) => void;
-  onSubmitFork: () => void;
-}) {
+function ContractStudioTransitionActions(
+  props: Readonly<ContractStudioTransitionActionsProps>,
+) {
+  const {
+    transitionActions,
+    transitionLoading,
+    forkLoading,
+    isPublished,
+    onSubmitTransition,
+    onSubmitFork,
+  } = props;
   return (
     <div className="flex flex-wrap gap-3">
       {transitionActions.map((action) => (
@@ -308,15 +147,10 @@ function ContractStudioTransitionActions({
   );
 }
 
-function ContractStudioRollbackActions({
-  candidates,
-  loading,
-  onSubmitRollback,
-}: {
-  candidates: DecisionContractStudioRollbackCandidateResponse["candidates"];
-  loading: boolean;
-  onSubmitRollback: (targetVersion: number) => void;
-}) {
+function ContractStudioRollbackActions(
+  props: Readonly<ContractStudioRollbackActionsProps>,
+) {
+  const { candidates, loading, onSubmitRollback } = props;
   if (candidates.length === 0) {
     return null;
   }
@@ -357,22 +191,10 @@ function ContractStudioMutationIntro() {
 }
 
 function ContractStudioMutationActionsBlock(
-  props: Pick<
-    ContractStudioMutationCardProps,
-    | "detail"
-    | "localError"
-    | "transitionMutation"
-    | "forkMutation"
-    | "rollbackMutation"
-    | "transitionActions"
-    | "rollbackButtons"
-    | "onSubmitTransition"
-    | "onSubmitFork"
-    | "onSubmitRollback"
-  >,
+  props: Readonly<ContractStudioMutationActionsBlockProps>,
 ) {
   return (
-    <>
+    <div className="space-y-4">
       <ContractStudioMutationError
         localError={props.localError}
         transitionError={props.transitionMutation.error}
@@ -392,11 +214,13 @@ function ContractStudioMutationActionsBlock(
         loading={props.rollbackMutation.loading}
         onSubmitRollback={props.onSubmitRollback}
       />
-    </>
+    </div>
   );
 }
 
-function ContractStudioMutationCard(props: ContractStudioMutationCardProps) {
+function ContractStudioMutationCard(
+  props: Readonly<ContractStudioMutationCardProps>,
+) {
   return (
     <Card className="rounded-2xl shadow-soft">
       <CardContent className="space-y-4 p-5">
@@ -411,62 +235,11 @@ function ContractStudioMutationCard(props: ContractStudioMutationCardProps) {
   );
 }
 
-function useContractStudioMutationController({
-  orgId,
-  detail,
-  rollbackCandidates,
-  onSelectionChange,
-}: Omit<ContractStudioMutationPanelProps, "canMutate">) {
-  const transitionMutation = useTransitionMutation(orgId, detail);
-  const forkMutation = useForkMutation(orgId, detail);
-  const rollbackMutation = useRollbackMutation(orgId, detail);
-  const [reason, setReason] = useState("governance_update");
-  const [localError, setLocalError] = useState<string | null>(null);
-  const transitionActions = transitionActionsForStatus(detail.contract.status);
-  const rollbackButtons = rollbackCandidates?.candidates ?? [];
-  const submitTransition = useTransitionSubmission(
-    reason,
-    setLocalError,
-    transitionMutation,
-    onSelectionChange,
-  );
-  const submitFork = useForkSubmission(
-    reason,
-    detail,
-    setLocalError,
-    forkMutation,
-    onSelectionChange,
-  );
-  const submitRollback = useRollbackSubmission(
-    reason,
-    detail,
-    setLocalError,
-    rollbackMutation,
-    onSelectionChange,
-  );
-
-  return {
-    forkMutation,
-    localError,
-    reason,
-    rollbackButtons,
-    rollbackMutation,
-    setReason,
-    submitFork,
-    submitRollback,
-    submitTransition,
-    transitionActions,
-    transitionMutation,
-  };
-}
-
-export function ContractStudioMutationPanel({
-  orgId,
-  detail,
-  rollbackCandidates,
-  canMutate,
-  onSelectionChange,
-}: ContractStudioMutationPanelProps) {
+export function ContractStudioMutationPanel(
+  props: Readonly<ContractStudioMutationPanelProps>,
+) {
+  const { orgId, detail, rollbackCandidates, canMutate, onSelectionChange } =
+    props;
   const controller = useContractStudioMutationController({
     orgId,
     detail,
@@ -494,13 +267,9 @@ export function ContractStudioMutationPanel({
       rollbackMutation={controller.rollbackMutation}
       transitionActions={controller.transitionActions}
       rollbackButtons={controller.rollbackButtons}
-      onSubmitTransition={(transition) =>
-        void controller.submitTransition(transition)
-      }
-      onSubmitFork={() => void controller.submitFork()}
-      onSubmitRollback={(targetVersion) =>
-        void controller.submitRollback(targetVersion)
-      }
+      onSubmitTransition={controller.submitTransition}
+      onSubmitFork={controller.submitFork}
+      onSubmitRollback={controller.submitRollback}
     />
   );
 }

@@ -17,7 +17,7 @@ Le smoke ne remplace pas les synthetics, l'observabilite 15 min ni les E2E compl
 Script canonique:
 
 ```bash
-./scripts/scw-post-deploy-smoke.sh --env <staging|prod> [--services <comma-separated>] [--landing-url <url>] [--auth-url <url>] [--connectors-url <url>]
+./scripts/scw/scw-post-deploy-smoke.sh --env <staging|prod> [--services <comma-separated>] [--landing-url <url>] [--auth-url <url>] [--connectors-url <url>]
 ```
 
 Par defaut, le script smoke:
@@ -83,7 +83,7 @@ Si un nouveau service public apparait ou si le scope d'un service smoke change, 
 Staging baseline:
 
 ```bash
-./scripts/scw-post-deploy-smoke.sh \
+./scripts/scw/scw-post-deploy-smoke.sh \
   --env staging \
   --services api,webapp,admin \
   --auth-url https://<staging-auth-explicite>
@@ -92,7 +92,7 @@ Staging baseline:
 Staging avec landing versionnee sur une URL explicite:
 
 ```bash
-./scripts/scw-post-deploy-smoke.sh \
+./scripts/scw/scw-post-deploy-smoke.sh \
   --env staging \
   --services landing,api,webapp,admin \
   --landing-url https://<landing-staging-explicite>
@@ -101,7 +101,7 @@ Staging avec landing versionnee sur une URL explicite:
 Staging avec auth dediee et explicite:
 
 ```bash
-./scripts/scw-post-deploy-smoke.sh \
+./scripts/scw/scw-post-deploy-smoke.sh \
   --env staging \
   --services webapp,admin,auth \
   --auth-url https://<staging-auth-explicite>
@@ -110,7 +110,7 @@ Staging avec auth dediee et explicite:
 Staging avec connectors dedies et explicites:
 
 ```bash
-./scripts/scw-post-deploy-smoke.sh \
+./scripts/scw/scw-post-deploy-smoke.sh \
   --env staging \
   --services connectors \
   --connectors-url https://<staging-connectors-explicite>
@@ -119,19 +119,19 @@ Staging avec connectors dedies et explicites:
 Prod baseline:
 
 ```bash
-./scripts/scw-post-deploy-smoke.sh --env prod --services api,webapp,admin,auth
+./scripts/scw/scw-post-deploy-smoke.sh --env prod --services api,webapp,admin,auth
 ```
 
 Prod avec landing:
 
 ```bash
-./scripts/scw-post-deploy-smoke.sh --env prod --services landing,api,webapp,admin,auth
+./scripts/scw/scw-post-deploy-smoke.sh --env prod --services landing,api,webapp,admin,auth
 ```
 
 Prod avec connectors:
 
 ```bash
-./scripts/scw-post-deploy-smoke.sh --env prod --services connectors
+./scripts/scw/scw-post-deploy-smoke.sh --env prod --services connectors
 ```
 
 ## Quand le lancer
@@ -162,7 +162,7 @@ Prod avec connectors:
 
 Conserver dans le dossier release ou le ticket de change:
 
-- sortie de `./scripts/scw-post-deploy-smoke.sh`
+- sortie de `./scripts/scw/scw-post-deploy-smoke.sh`
 - sortie de `pnpm test:e2e:smoke` si execute
 - heure de debut et de fin du smoke
 - environnement et services testes
@@ -175,10 +175,10 @@ Conserver dans le dossier release ou le ticket de change:
 Exemple:
 
 ```bash
-mkdir -p .release/$TAG
-./scripts/scw-post-deploy-smoke.sh --env staging --services api,webapp,admin \
+mkdir -p .meta/.release/$TAG
+./scripts/scw/scw-post-deploy-smoke.sh --env staging --services api,webapp,admin \
   --auth-url https://<staging-auth-explicite> \
-  | tee ".release/$TAG/smoke-staging.log"
+  | tee ".meta/.release/$TAG/smoke-staging.log"
 ```
 
 ## Lien avec les autres runbooks

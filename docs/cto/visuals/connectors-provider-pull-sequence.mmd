@@ -1,0 +1,22 @@
+sequenceDiagram
+    participant Admin as app-admin / app-api-ts
+    participant Connectors as app-connectors
+    participant Worker as app-api worker
+    participant Vendor as API fournisseur
+    participant Store as payload store
+    participant DB as Postgres / integration_*
+
+    Admin->>Connectors: create connection + test + triggerSync()
+    Connectors-->>Admin: run queued
+    Worker->>Connectors: POST /v1/runtime/sync-runs/claim
+    Connectors-->>Worker: claimed run
+    Worker->>Connectors: POST /execution-plan
+    Connectors-->>Worker: connection + credentials + syncState
+    Worker->>Connectors: GET /access-context
+    Connectors-->>Worker: provider runtime context
+    Worker->>Vendor: fetch source objects
+    Vendor-->>Worker: records
+    Worker->>Connectors: POST /provider-events
+    Connectors->>Store: persist payloads bruts
+    Connectors-->>Worker: raw event summaries
+    Worker->>DB: ingest raw events / update sync state / complete run

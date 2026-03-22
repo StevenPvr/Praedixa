@@ -2,7 +2,13 @@
 
 ## Role
 
-Ce dossier concentre les acces SQL et les transformations de donnees consommees par `routes.ts`.
+Ce dossier concentre les services metier du pivot HTTP `app-api-ts`: acces SQL, mutations persistantes et read-models consommes par `routes.ts`.
+
+Lire aussi:
+
+- `docs/cto/11-surfaces-http-et-statut.md` pour le statut des surfaces `live` / `persistant` / `fail-close`.
+- `docs/cto/12-ui-endpoint-service-table-type.md` pour la matrice UI -> endpoint -> service -> table -> type.
+- `docs/cto/19-table-writers-readers-matrix.md` pour la lecture table -> writer -> reader -> consommateur.
 
 ## Fichiers
 
@@ -13,7 +19,7 @@ Ce dossier concentre les acces SQL et les transformations de donnees consommees 
   - garde-fous `DATABASE_URL` et validation UUID
 
 - `operational-data.ts`
-  - lecture des alertes de couverture, canonical, dashboards live, forecasts, proof packs, onboarding
+  - lecture des alertes de couverture, `canonical_records`, dashboards live, forecasts, proof packs, onboarding
   - mapping des enregistrements persistants vers les DTO utilises par les routes live et admin
 
 - `gold-explorer.ts`
@@ -33,7 +39,13 @@ Ce dossier concentre les acces SQL et les transformations de donnees consommees 
   - persistance org-scoped des `DecisionContract`
   - Contract Studio runtime pour liste/detail/historique, creation de draft, transitions, fork et rollback
   - audit dedie des mutations de contrat et archivage automatique des versions publiees supplantees
+  - les actions d'audit sont maintenant centralisees sur des literals runtime stables pour eviter un nouveau drift entre service, migration SQL et surfaces admin
   - les rollback drafts reouvrent maintenant un vrai draft propre: validation remise a `pending`, audit de publication nettoye, et `rollbackFromVersion` pointe explicitement vers la version courante remplacee
+
+- `decision-contract-runtime-store.ts`
+  - schema SQL source de verite du Contract Studio (`decision_contract_versions`, `decision_contract_audit`)
+  - reconciliation non destructive des anciennes colonnes/runtime drifts au boot (`contract_json -> payload`, `audit_id -> id`, `event_type -> action`)
+  - l'audit persiste maintenant `action` et `reason` en clair, sans enum SQL fragile qui diverge des transitions runtime
 
 - `decision-compatibility.ts`
   - evaluation de compatibilite `DecisionContract <-> DecisionGraph`
@@ -41,7 +53,7 @@ Ce dossier concentre les acces SQL et les transformations de donnees consommees 
 
 - `admin-monitoring.ts`
   - KPIs plateforme
-  - tendances, erreurs, ROI, couverture canonicale, adoption decisions
+  - tendances, erreurs, ROI, couverture canonique, adoption decisions
   - surface de monitoring pour le backoffice
   - le miroir org admin doit rester cale sur le schema persistant reel: les effectifs proviennent de `users`, pas d'une table legacy `employees`
 
@@ -59,6 +71,7 @@ Ce dossier concentre les acces SQL et les transformations de donnees consommees 
   - alimente aussi les demandes de contact admin avec listing pagine/filtre et mutation persistante de statut
   - alimente aussi le journal admin avec listing persistant `admin_audit_log`, pagination et filtre `action`
   - le lifecycle `invite/change_role/deactivate/reactivate` synchronise maintenant aussi Keycloak pour garder `users.auth_user_id`, `role`, `organization_id`, `site_id` et l'etat `enabled` coherents
+  - chaque invitation client cree maintenant aussi une tentative persistante de preuve de delivery (`identity_invitation_delivery_attempts`) pour distinguer l'initialisation Keycloak du vrai feedback provider
   - les ecritures d'audit/historique ne supposent plus que l'acteur admin OIDC existe dans `users.id`: le service resout d'abord un user row local eventuel via `id` ou `auth_user_id`, puis persiste sinon l'acteur auth opaque dans les colonnes de fallback du schema
 
 - `admin-onboarding.ts`
@@ -69,10 +82,12 @@ Ce dossier concentre les acces SQL et les transformations de donnees consommees 
 
 - `admin-onboarding-support.ts`
   - taxonomie de statuts/domaines, validation des payloads operateurs, mapping DTO et seed initial des taches/blockers
-  - l'etape `access-model` n'accepte plus une simple case cochee: elle exige maintenant une evidence d'invitations securisees reelles (`inviteRecipients` envoyes via Keycloak `execute-actions-email`)
+  - l'etape `access-model` n'accepte plus une simple case cochee: elle exige maintenant une evidence d'invitations securisees initialisees cote identite (`inviteRecipients` acceptes par Keycloak `execute-actions-email`)
+  - les recipients d'acces peuvent maintenant aussi embarquer une `deliveryProof` provider-side (`pending`, `provider_accepted`, `delivery_delayed`, `delivered`, `bounced`, `complained`, `failed`) pour ne plus sur-promettre la livraison reelle
 
 - `admin-onboarding-store.ts`
   - primitives transactionnelles onboarding, garde-fous RLS, inserts seed et lecture detaillee d'un case
+  - les events onboarding ne supposent plus qu'un `userId` JWT en UUID existe vraiment dans `users.id`; la FK `actor_user_id` n'est renseignee que si un user local resolvable existe, et l'identifiant auth opaque reste dans `payload_json`
 
 - `admin-onboarding-camunda.ts`
   - runtime singleton Camunda 8 pour deployer `client-onboarding-v1`, demarrer les process, lire les user tasks et completer/cancel les workflows
@@ -84,6 +99,7 @@ Ce dossier concentre les acces SQL et les transformations de donnees consommees 
 - `admin-onboarding-runtime.ts`
   - synchronisation de projection `Camunda -> onboarding_case_tasks/blockers/case`
   - lecture bundle complete, sauvegarde de brouillon et completion de tache actionable cote Praedixa
+  - enrichit maintenant les `inviteRecipients` du workspace avec la derniere preuve provider persistante, en overlay live sur le brouillon onboarding
   - preservation des etats terminaux `cancelled/completed` et projection des statuts `ready/active` sur les nouvelles etapes activation/hypercare
 
 - `camunda-rest.ts`
@@ -92,13 +108,19 @@ Ce dossier concentre les acces SQL et les transformations de donnees consommees 
 
 - `keycloak-admin-identity.ts`
   - client REST sortant strict vers Keycloak admin API
-  - creation des comptes client depuis le backoffice, sync des attributs canoniques et du realm role, envoi de l'email `UPDATE_PASSWORD`
+  - creation des comptes client depuis le backoffice, sync des attributs canoniques et du realm role, puis declenchement de l'email `UPDATE_PASSWORD`
   - si le realm Keycloak n'a pas de sender email configure (`smtpServer.from`), remonte maintenant un fail-close explicite `IDENTITY_EMAIL_NOT_CONFIGURED` au lieu du message SMTP brut `Invalid sender address 'null'`
   - caracterise maintenant les conflits `POST /users` en distinguant `email`, `username` et login ambigu, et expose des helpers de recherche exacte pour les cleanups admin
   - compensation explicite par suppression du user Keycloak si la persistence DB echoue apres le provisioning IAM
+  - un `204` sur `execute-actions-email` prouve seulement que Keycloak a accepte l'initialisation de l'invitation, pas que l'email a ete effectivement livre en boite de reception
+
+- `invitation-delivery-proof.ts`
+  - persistance des tentatives d'invitation Keycloak et des evenements provider Resend signes
+  - verification `Svix` sur le raw body (`svix-id`, `svix-timestamp`, `svix-signature`)
+  - stockage idempotent des events, matching fail-close sur l'invitation Keycloak attendue, et exposition d'une preuve lisible cote admin/onboarding
 
 - `decisionops-runtime.ts`
-  - persistance read-model pour `Approval`, `ActionDispatch` et `LedgerEntry`
+  - persistance de read-models pour `Approval`, `ActionDispatch` et `LedgerEntry`
   - initialisation transactionnelle du triplet approval/action/ledger a la creation d'une `operational_decision`
   - lectures admin read-only pour inbox d'approbation, detail de dispatch et detail de ledger
   - s'appuie sur des helpers freres pour les builders et les insertions SQL afin de garder le service principal sous les guardrails
@@ -113,7 +135,7 @@ Ce dossier concentre les acces SQL et les transformations de donnees consommees 
   - mutation persistante des decisions de lifecycle sur `ActionDispatch`
   - progression du runtime `dispatched/acknowledged/failed/retried/canceled`
   - preparation et execution explicites du fallback humain persistant
-  - enforcement backend des permissions de write-back par contrat et par destination
+  - enforcement serveur des permissions de write-back par contrat et par destination
   - resynchronisation du ledger le plus recent lie a la recommendation
 
 - `decisionops-runtime-ledger.ts`
@@ -128,6 +150,12 @@ Ce dossier concentre les acces SQL et les transformations de donnees consommees 
 3. Le service interroge Postgres ou transforme les lignes brutes.
 4. Le handler repond via `success()` ou `failure()`.
 
+Regle pratique:
+
+- `app-api-ts` est le pivot HTTP et la frontiere de mutation/read-model des apps user-facing.
+- `app-connectors` est un runtime voisin de control plane integrations, pas un simple module de ce dossier.
+- `app-api` reste le data plane Python pour les pipelines batch et ML.
+
 ## Dependances fortes
 
 - `DATABASE_URL` pour toute persistance.
@@ -136,6 +164,7 @@ Ce dossier concentre les acces SQL et les transformations de donnees consommees 
 - `app-connectors` pour les appels admin integrations, hors de ce dossier.
 - `KEYCLOAK_ADMIN_USERNAME` + `KEYCLOAK_ADMIN_PASSWORD` pour les mutations admin de lifecycle utilisateur qui doivent provisionner l'identite reelle.
 - Un realm Keycloak avec `smtpServer.from` configure si les invitations `execute-actions-email` doivent etre operables.
+- `RESEND_WEBHOOK_SECRET` si l'on veut prouver la livraison provider-side au lieu de s'arreter au simple `204` Keycloak.
 
 ## Quand modifier quoi
 
@@ -149,6 +178,6 @@ Ce dossier concentre les acces SQL et les transformations de donnees consommees 
 - Ajouter un garde-fou d'idempotence ou un invariant DB sur `action_dispatches` : `decisionops-runtime.ts` + `migrations/`.
 - Ajouter une mutation finance-grade sur le ledger persistant : `decisionops-runtime-ledger.ts`.
 - Ajouter une mutation persistante de gouvernance `DecisionContract` : `decision-contract-runtime.ts`.
-- Exposer un nouveau calcul admin pur autour du contrat ou du graphe : `decision-contract-templates.ts`, `decision-compatibility.ts` ou `decision-graph-explorer.ts`.
+- Exposer un nouveau calcul admin pur autour du contrat ou du graphe : `decision-contract-templates.ts` ou `decision-compatibility.ts`.
 - Modifier le moteur de configuration de decision : `decision-config.ts` + migration SQL si schema touche.
 - Modifier les garde-fous DB : `persistence.ts`.

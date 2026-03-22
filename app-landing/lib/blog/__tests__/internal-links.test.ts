@@ -58,7 +58,7 @@ describe("rehype internal links", () => {
 
     const anchors = collectAnchors(tree);
     expect(anchors).toHaveLength(1);
-    expect(anchors[0]?.properties?.href).toBe("/en/services");
+    expect(anchors[0]?.properties?.["href"]).toBe("/en/services");
   });
 
   it("does not inject links in headings, code blocks, or existing anchors", () => {
@@ -109,7 +109,7 @@ describe("rehype internal links", () => {
 
     const anchors = collectAnchors(tree);
     expect(anchors).toHaveLength(1);
-    expect(anchors[0]?.properties?.href).toBe("/en/deployment");
+    expect(anchors[0]?.properties?.["href"]).toBe("/en/deployment");
   });
 
   it("never targets retired or redirecting internal URLs", () => {

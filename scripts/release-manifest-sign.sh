@@ -54,8 +54,22 @@ cleanup() {
 }
 trap cleanup EXIT
 
-jq --arg signature "$SIGNATURE" '. + { signature: $signature }' \
-  "$UNSIGNED_PATH" >"$TMP_OUTPUT"
+SIGNATURE="$SIGNATURE" python3 - "$UNSIGNED_PATH" "$TMP_OUTPUT" <<'PY'
+import json
+import os
+import sys
+
+unsigned_path, output_path = sys.argv[1:3]
+
+with open(unsigned_path, "r", encoding="utf-8") as handle:
+    payload = json.load(handle)
+
+payload["signature"] = os.environ["SIGNATURE"]
+
+with open(output_path, "w", encoding="utf-8") as handle:
+    json.dump(payload, handle, ensure_ascii=False, indent=2)
+    handle.write("\n")
+PY
 
 mv "$TMP_OUTPUT" "$OUTPUT_PATH"
 chmod 600 "$OUTPUT_PATH"

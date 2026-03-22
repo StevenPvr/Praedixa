@@ -258,7 +258,9 @@ function buildDecisionSummary(
     actorUserId: record.decision.actorUserId,
     actorRole: record.decision.actorRole,
     reasonCode: record.decision.reasonCode,
-    comment: record.decision.comment,
+    ...(record.decision.comment !== undefined
+      ? { comment: record.decision.comment }
+      : {}),
     decidedAt: record.decision.decidedAt,
     actor: {
       actorType: "user",
@@ -422,19 +424,24 @@ export function buildApprovalInboxItem(
   const urgent = overdue || PRIORITY_RANK[priority] >= PRIORITY_RANK.high;
   const unread = record.status === "requested" && record.history.length === 0;
   const requiresJustification = requiresApprovalJustification(record);
+  const decision = buildDecisionSummary(record);
 
   const item: ApprovalInboxItem = {
     approvalId: record.approvalId,
     contractId: record.contractId,
     contractVersion: record.contractVersion,
     recommendationId: record.recommendationId,
-    scenarioRunId: record.scenarioRunId,
+    ...(record.scenarioRunId !== undefined
+      ? { scenarioRunId: record.scenarioRunId }
+      : {}),
     status: record.status,
     priority,
     approverRole: record.rule.approverRole,
     stepOrder: record.rule.stepOrder,
     requestedAt: record.requestedAt,
-    deadlineAt: record.deadlineAt,
+    ...(record.deadlineAt !== undefined
+      ? { deadlineAt: record.deadlineAt }
+      : {}),
     ageHours: toAgeHours(record.requestedAt, now),
     isOverdue: overdue,
     isUrgent: urgent,
@@ -443,7 +450,7 @@ export function buildApprovalInboxItem(
     requestedBy: buildActorSummary(record.requestedBy),
     scope: buildScopeSummary(record),
     policy: buildPolicySummary(record),
-    decision: buildDecisionSummary(record),
+    ...(decision !== undefined ? { decision } : {}),
     statusBadge: STATUS_BADGES[record.status],
     priorityBadge: PRIORITY_BADGES[priority],
     riskBadge: buildRiskBadge(record),

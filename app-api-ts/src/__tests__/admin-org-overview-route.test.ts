@@ -49,8 +49,11 @@ function makeAdminContext(path: string): RouteContext {
     },
     clientIp: "127.0.0.1",
     userAgent: "vitest",
+    headers: {},
     params: { orgId: TARGET_ORG_ID },
     body: null,
+    rawBody: null,
+    rawBodyBytes: null,
     user: {
       userId: "admin-test",
       email: "admin@praedixa.com",

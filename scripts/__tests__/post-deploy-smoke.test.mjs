@@ -10,6 +10,7 @@ const repoRoot = process.cwd();
 const smokeScriptPath = path.join(
   repoRoot,
   "scripts",
+  "scw",
   "scw-post-deploy-smoke.sh",
 );
 
@@ -121,6 +122,26 @@ function createResponse() {
   }
 
   if ((parsed.hostname === "app.praedixa.com" || parsed.hostname === "admin.praedixa.com") && parsed.pathname === "/auth/session") {
+    const expectedCookieName = isAdmin ? "prx_admin_sess" : "prx_web_sess";
+    const cookieHeader = requestHeaders.cookie ?? "";
+    const hasExpectedCookie = cookieHeader.includes(expectedCookieName + "=");
+    if (origin === appOrigin && fetchSite === "same-origin" && hasExpectedCookie) {
+      return {
+        status: 200,
+        effectiveUrl: url,
+        headers: { "cache-control": ["no-store"], "content-type": ["application/json"] },
+        body: JSON.stringify({
+          user: {
+            id: isAdmin ? "admin-user-1" : "webapp-user-1",
+            email: isAdmin ? "admin@praedixa.com" : "ops@praedixa.com",
+            role: isAdmin ? "org_admin" : "manager",
+            organizationId: "11111111-1111-1111-1111-111111111111",
+            siteId: isAdmin ? null : "site-1",
+            permissions: isAdmin ? ["admin:org:read"] : undefined,
+          },
+        }),
+      };
+    }
     if (origin === appOrigin && fetchSite === "same-origin") {
       return {
         status: 401,
@@ -182,24 +203,54 @@ function runSmoke(args, options = {}) {
   });
 }
 
+function writeCookieFile(root, fileName, cookieName) {
+  const cookiePath = path.join(root, fileName);
+  writeFileSync(cookiePath, `${cookieName}=session-token`);
+  return cookiePath;
+}
+
 test("post-deploy smoke validates prod webapp/admin login redirect and session/origin checks", () => {
   const mockRoot = createMockCurlBin();
 
   try {
-    const result = runSmoke(["--env", "prod", "--services", "webapp,admin"], {
-      env: {
-        PATH: `${path.join(mockRoot, "bin")}:${process.env.PATH}`,
+    const webappCookiePath = writeCookieFile(
+      mockRoot,
+      "webapp.cookie",
+      "prx_web_sess",
+    );
+    const adminCookiePath = writeCookieFile(
+      mockRoot,
+      "admin.cookie",
+      "prx_admin_sess",
+    );
+    const result = runSmoke(
+      [
+        "--env",
+        "prod",
+        "--services",
+        "webapp,admin",
+        "--webapp-session-cookie-file",
+        webappCookiePath,
+        "--admin-session-cookie-file",
+        adminCookiePath,
+      ],
+      {
+        env: {
+          PATH: `${path.join(mockRoot, "bin")}:${process.env.PATH}`,
+        },
       },
-    });
+    );
 
     assert.equal(result.status, 0, result.stderr || result.stdout);
     assert.match(result.stdout, /GET webapp \/auth\/login/);
-    assert.match(result.stdout, /GET webapp \/auth\/session same-origin/);
+    assert.match(result.stdout, /GET webapp \/auth\/session authenticated/);
+    assert.match(result.stdout, /GET webapp \/auth\/session unauthenticated/);
     assert.match(result.stdout, /GET webapp \/auth\/session cross-origin/);
     assert.match(result.stdout, /GET admin \/auth\/login/);
-    assert.match(result.stdout, /GET admin \/auth\/session same-origin/);
+    assert.match(result.stdout, /GET admin \/auth\/session authenticated/);
+    assert.match(result.stdout, /GET admin \/auth\/session unauthenticated/);
     assert.match(result.stdout, /GET admin \/auth\/session cross-origin/);
-    assert.match(result.stdout, /Results: 8 passed, 0 failed/);
+    assert.match(result.stdout, /Results: 10 passed, 0 failed/);
   } finally {
     rmSync(mockRoot, { recursive: true, force: true });
   }
@@ -219,16 +270,31 @@ test("post-deploy smoke rejects a frontend login redirect that leaves the expect
   const mockRoot = createMockCurlBin();
 
   try {
-    const result = runSmoke(["--env", "prod", "--services", "webapp"], {
-      env: {
-        PATH: `${path.join(mockRoot, "bin")}:${process.env.PATH}`,
-        MOCK_SCW_SMOKE_SCENARIO: "bad-login-host",
+    const webappCookiePath = writeCookieFile(
+      mockRoot,
+      "webapp.cookie",
+      "prx_web_sess",
+    );
+    const result = runSmoke(
+      [
+        "--env",
+        "prod",
+        "--services",
+        "webapp",
+        "--webapp-session-cookie-file",
+        webappCookiePath,
+      ],
+      {
+        env: {
+          PATH: `${path.join(mockRoot, "bin")}:${process.env.PATH}`,
+          MOCK_SCW_SMOKE_SCENARIO: "bad-login-host",
+        },
       },
-    });
+    );
 
     assert.equal(result.status, 1, result.stderr || result.stdout);
     assert.match(result.stdout, /GET webapp \/auth\/login/);
-    assert.match(result.stdout, /Results: 3 passed, 1 failed/);
+    assert.match(result.stdout, /Results: 4 passed, 1 failed/);
   } finally {
     rmSync(mockRoot, { recursive: true, force: true });
   }

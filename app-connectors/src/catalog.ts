@@ -13,6 +13,20 @@ const SFTP_HINTS = ["host", "username", "privateKey"] as const;
 
 export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
   {
+    vendor: "custom_data",
+    label: "Praedixa Custom Data Source",
+    domain: "custom",
+    authModes: ["api_key"],
+    sourceObjects: ["dataset"],
+    recommendedSyncMinutes: 30,
+    medallionTargets: ["bronze", "silver", "gold"],
+    onboardingModes: ["push_api"],
+    requiredConfigFields: ["datasetMappings"],
+    credentialFieldHints: {
+      api_key: API_KEY_HINTS,
+    },
+  },
+  {
     vendor: "salesforce",
     label: "Salesforce CRM",
     domain: "crm",

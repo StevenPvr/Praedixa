@@ -1,7 +1,7 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
-COPY scripts/install-prek.sh ./scripts/install-prek.sh
+COPY scripts/dev/install-prek.sh ./scripts/dev/install-prek.sh
 COPY app-api-ts/package.json ./app-api-ts/package.json
 COPY packages/shared-types/package.json ./packages/shared-types/package.json
 COPY packages/telemetry/package.json ./packages/telemetry/package.json

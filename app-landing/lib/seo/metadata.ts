@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { locales } from "../i18n/config";
 import type { Locale } from "../i18n/config";
+import {
+  PRAEDIXA_SOCIAL_IMAGE_HEIGHT,
+  PRAEDIXA_SOCIAL_IMAGE_URL,
+  PRAEDIXA_SOCIAL_IMAGE_WIDTH,
+} from "./entity";
 
 const BASE_URL = "https://www.praedixa.com";
 
@@ -66,9 +71,9 @@ export function buildLocaleMetadata({
       type: "website",
       images: [
         {
-          url: "/og-image.png",
-          width: 1200,
-          height: 630,
+          url: PRAEDIXA_SOCIAL_IMAGE_URL,
+          width: PRAEDIXA_SOCIAL_IMAGE_WIDTH,
+          height: PRAEDIXA_SOCIAL_IMAGE_HEIGHT,
           alt: ogTitle ?? title,
         },
       ],
@@ -77,7 +82,7 @@ export function buildLocaleMetadata({
       card: "summary_large_image",
       title,
       description,
-      images: ["/og-image.png"],
+      images: [PRAEDIXA_SOCIAL_IMAGE_URL],
     },
   };
 }

@@ -12,7 +12,8 @@ export class AuthRateLimitRequirementError extends Error {
 
 export function isWeakLocalRateLimitModeAllowed(): boolean {
   return (
-    process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test"
+    process.env["NODE_ENV"] === "development" ||
+    process.env["NODE_ENV"] === "test"
   );
 }
 
@@ -35,13 +36,13 @@ export function buildClosedRateLimitResult(
 }
 
 export function requireRateLimitKeySalt(): string {
-  const explicitSalt = process.env.AUTH_RATE_LIMIT_KEY_SALT?.trim();
+  const explicitSalt = process.env["AUTH_RATE_LIMIT_KEY_SALT"]?.trim();
   if (explicitSalt) {
     return explicitSalt;
   }
 
   if (isWeakLocalRateLimitModeAllowed()) {
-    return process.env.AUTH_SESSION_SECRET?.trim() || "prx-rate-limit-dev";
+    return process.env["AUTH_SESSION_SECRET"]?.trim() || "prx-rate-limit-dev";
   }
 
   throw new AuthRateLimitRequirementError(
@@ -51,8 +52,8 @@ export function requireRateLimitKeySalt(): string {
 
 export function getConfiguredRedisUrl(): string | null {
   const rawUrl =
-    process.env.AUTH_RATE_LIMIT_REDIS_URL?.trim() ??
-    process.env.RATE_LIMIT_STORAGE_URI?.trim() ??
+    process.env["AUTH_RATE_LIMIT_REDIS_URL"]?.trim() ??
+    process.env["RATE_LIMIT_STORAGE_URI"]?.trim() ??
     "";
 
   if (rawUrl) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { isDirectAdminApiMode } from "@/lib/api/client";
 
 interface GetValidAccessTokenOptions {
   minTtlSeconds?: number;
@@ -15,6 +16,8 @@ interface SessionResponse {
     organizationId: string | null;
     siteId: string | null;
   };
+  accessToken?: string;
+  accessTokenExpiresAt: number;
 }
 
 interface CurrentUser {
@@ -31,34 +34,88 @@ interface CurrentUserState {
   loading: boolean;
 }
 
+interface CachedSession {
+  accessToken: string | null;
+  accessTokenExpiresAt: number | null;
+  user: CurrentUser;
+}
+
+interface FetchSessionOptions {
+  includeAccessToken?: boolean;
+}
+
 const DEFAULT_MIN_TTL_SECONDS = 60;
-const inFlightByMinTtl = new Map<number, Promise<SessionResponse | null>>();
-let cachedSession: SessionResponse | null = null;
+const inFlightRequests = new Map<string, Promise<CachedSession | null>>();
+let cachedSession: CachedSession | null = null;
 
 function clampMinTtl(value: number): number {
   if (!Number.isFinite(value)) return DEFAULT_MIN_TTL_SECONDS;
   return Math.max(0, Math.min(3600, Math.floor(value)));
 }
 
-function cacheSession(payload: SessionResponse): void {
+function cacheSession(payload: CachedSession): void {
   cachedSession = payload;
 }
 
 function clearSessionCache(): void {
   cachedSession = null;
-  inFlightByMinTtl.clear();
+  inFlightRequests.clear();
 }
 
-function getCachedSession(minTtlSeconds: number): SessionResponse | null {
-  void minTtlSeconds;
+function hasRequiredTtl(
+  accessTokenExpiresAt: number | null,
+  minTtlSeconds: number,
+): boolean {
+  if (accessTokenExpiresAt == null) {
+    return false;
+  }
+
+  const nowEpochSeconds = Math.floor(Date.now() / 1000);
+  return accessTokenExpiresAt - nowEpochSeconds > minTtlSeconds;
+}
+
+function getCachedSession(input: {
+  minTtlSeconds: number;
+  requireAccessToken: boolean;
+}): CachedSession | null {
+  if (!cachedSession) {
+    return null;
+  }
+
+  if (
+    !hasRequiredTtl(cachedSession.accessTokenExpiresAt, input.minTtlSeconds)
+  ) {
+    return null;
+  }
+
+  if (input.requireAccessToken && !cachedSession.accessToken) {
+    return null;
+  }
+
   return cachedSession;
+}
+
+function getInFlightKey(input: {
+  minTtlSeconds: number;
+  includeAccessToken: boolean;
+}): string {
+  return `${input.minTtlSeconds}:${input.includeAccessToken ? "token" : "user"}`;
 }
 
 async function fetchSession(
   minTtlSeconds: number,
-): Promise<SessionResponse | null> {
+  options: FetchSessionOptions = {},
+): Promise<CachedSession | null> {
+  const includeAccessToken = options.includeAccessToken ?? false;
+  const searchParams = new URLSearchParams({
+    min_ttl: `${minTtlSeconds}`,
+  });
+  if (includeAccessToken) {
+    searchParams.set("include_access_token", "1");
+  }
+
   try {
-    const response = await fetch(`/auth/session?min_ttl=${minTtlSeconds}`, {
+    const response = await fetch(`/auth/session?${searchParams.toString()}`, {
       method: "GET",
       credentials: "include",
       cache: "no-store",
@@ -76,7 +133,20 @@ async function fetchSession(
       clearSessionCache();
       return null;
     }
-    const normalizedPayload: SessionResponse = {
+    const accessTokenExpiresAt =
+      Number.isFinite(payload.accessTokenExpiresAt) &&
+      payload.accessTokenExpiresAt > 0
+        ? Math.floor(payload.accessTokenExpiresAt)
+        : null;
+
+    const normalizedPayload: CachedSession = {
+      accessToken:
+        accessTokenExpiresAt != null &&
+        typeof payload.accessToken === "string" &&
+        payload.accessToken.length > 0
+          ? payload.accessToken
+          : null,
+      accessTokenExpiresAt,
       user: {
         ...payload.user,
         permissions: Array.isArray(payload.user.permissions)
@@ -97,30 +167,40 @@ async function fetchSession(
 export async function getValidAccessToken(
   options: GetValidAccessTokenOptions = {},
 ): Promise<string | null> {
+  const requireAccessToken = isDirectAdminApiMode();
   const minTtlSeconds = clampMinTtl(
     options.minTtlSeconds ?? DEFAULT_MIN_TTL_SECONDS,
   );
 
-  const cached = getCachedSession(minTtlSeconds);
+  const cached = getCachedSession({
+    minTtlSeconds,
+    requireAccessToken,
+  });
   if (cached) {
-    return null;
+    return requireAccessToken ? cached.accessToken : null;
   }
 
-  const existingInFlight = inFlightByMinTtl.get(minTtlSeconds);
+  const inFlightKey = getInFlightKey({
+    minTtlSeconds,
+    includeAccessToken: requireAccessToken,
+  });
+  const existingInFlight = inFlightRequests.get(inFlightKey);
   if (existingInFlight) {
-    await existingInFlight;
-    return null;
+    const session = await existingInFlight;
+    return requireAccessToken ? (session?.accessToken ?? null) : null;
   }
 
-  const inFlight = fetchSession(minTtlSeconds);
-  inFlightByMinTtl.set(minTtlSeconds, inFlight);
+  const inFlight = fetchSession(minTtlSeconds, {
+    includeAccessToken: requireAccessToken,
+  });
+  inFlightRequests.set(inFlightKey, inFlight);
 
   try {
-    await inFlight;
-    return null;
+    const session = await inFlight;
+    return requireAccessToken ? (session?.accessToken ?? null) : null;
   } finally {
-    if (inFlightByMinTtl.get(minTtlSeconds) === inFlight) {
-      inFlightByMinTtl.delete(minTtlSeconds);
+    if (inFlightRequests.get(inFlightKey) === inFlight) {
+      inFlightRequests.delete(inFlightKey);
     }
   }
 }
@@ -149,13 +229,41 @@ export function useCurrentUserState(): CurrentUserState {
   });
 
   useEffect(() => {
-    fetchSession(DEFAULT_MIN_TTL_SECONDS).then((session) => {
-      if (!session) {
-        setState({ user: null, loading: false });
-        return;
-      }
-      setState({ user: session.user, loading: false });
+    const cached = getCachedSession({
+      minTtlSeconds: DEFAULT_MIN_TTL_SECONDS,
+      requireAccessToken: false,
     });
+    if (cached) {
+      setState({ user: cached.user, loading: false });
+      return;
+    }
+
+    const inFlightKey = getInFlightKey({
+      minTtlSeconds: DEFAULT_MIN_TTL_SECONDS,
+      includeAccessToken: false,
+    });
+    const inFlight =
+      inFlightRequests.get(inFlightKey) ??
+      fetchSession(DEFAULT_MIN_TTL_SECONDS, { includeAccessToken: false });
+
+    if (!inFlightRequests.has(inFlightKey)) {
+      inFlightRequests.set(inFlightKey, inFlight);
+    }
+
+    inFlight
+      .then((session) => {
+        if (!session) {
+          setState({ user: null, loading: false });
+          return;
+        }
+        setState({ user: session.user, loading: false });
+      })
+      .finally(() => {
+        if (inFlightRequests.get(inFlightKey) === inFlight) {
+          inFlightRequests.delete(inFlightKey);
+        }
+      })
+      .catch(() => undefined);
   }, []);
 
   return state;

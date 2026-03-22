@@ -282,14 +282,17 @@ async def verify_model_integrity(model: ModelRegistry) -> bool:
     org_id = model.organization_id
     provider = get_key_provider(settings)
     try:
+        raw_model = cast("Any", model)
+        features_schema_json = cast("dict[str, Any]", raw_model.features_schema_json)
+        metrics_json = cast("dict[str, Any]", raw_model.metrics_json)
         digest_payload = _canonical_payload(
             model_family=model.model_family,
             version=model.version,
             artifact_uri=model.artifact_uri,
             sha256=model.sha256,
             onnx_opset=model.onnx_opset,
-            features_schema_json=model.features_schema_json,
-            metrics_json=model.metrics_json,
+            features_schema_json=features_schema_json,
+            metrics_json=metrics_json,
         )
         expected = await _get_hmac_digest(
             provider=provider,

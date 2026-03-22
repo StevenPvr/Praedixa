@@ -4,6 +4,7 @@ import {
   apiGet,
   apiGetPaginated,
   apiPost,
+  apiPostFormData,
   apiPatch,
   apiDelete,
 } from "../client";
@@ -338,6 +339,31 @@ describe("apiPost", () => {
 
     expect(result.data.created).toBe(true);
     expect(mockFetch.mock.calls[0][1].headers["Authorization"]).toBeUndefined();
+  });
+});
+
+describe("apiPostFormData", () => {
+  beforeEach(() => {
+    mockFetch.mockReset();
+  });
+
+  it("should call fetch with POST method and send FormData body", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({ success: true, data: { uploaded: true }, timestamp: "t" }),
+    );
+    const formData = new FormData();
+    formData.set("label", "Bella Vista");
+
+    await apiPostFormData("/upload", formData, withToken);
+
+    const [url, opts] = mockFetch.mock.calls[0];
+    expect(url).toBe("/upload");
+    expect(opts.method).toBe("POST");
+    expect(opts.body).toBe(formData);
+    expect(opts.headers["Content-Type"]).toBeUndefined();
+    expect(opts.headers["X-Request-ID"]).toBe(
+      "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    );
   });
 });
 

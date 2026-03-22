@@ -13,7 +13,7 @@ import socket
 import stat
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any, Protocol, cast
+from typing import TYPE_CHECKING, Any, NoReturn, Protocol, cast
 from uuid import UUID
 
 import paramiko  # type: ignore[import-untyped]
@@ -157,6 +157,11 @@ class SftpExecutionClient(Protocol):
     ) -> str: ...
 
 
+class _ParamikoPrivateKeyLoader(Protocol):
+    @classmethod
+    def from_private_key(cls, file_obj: io.StringIO) -> paramiko.PKey: ...
+
+
 @dataclass
 class _ParamikoSession:
     transport: paramiko.Transport
@@ -198,6 +203,8 @@ class ParamikoSftpExecutionClient:
             if not transport.is_authenticated():
                 _raise_value_error("SFTP public-key authentication failed")
             sftp = paramiko.SFTPClient.from_transport(transport)
+            if sftp is None:
+                _raise_value_error("SFTP session could not open an SFTP channel")
             return _ParamikoSession(transport=transport, sftp=sftp)
         except Exception:
             transport.close()
@@ -225,9 +232,9 @@ class ParamikoSftpExecutionClient:
                     SftpRemoteFile(
                         path=file_path,
                         name=item.filename,
-                        size_bytes=int(item.st_size),
+                        size_bytes=_normalize_sftp_stat_int(item.st_size),
                         modified_at=datetime.fromtimestamp(
-                            int(item.st_mtime),
+                            _normalize_sftp_stat_int(item.st_mtime),
                             tz=UTC,
                         ),
                     )
@@ -289,11 +296,11 @@ def uses_sftp_file_pull(plan: RuntimeSyncRunExecutionPlan) -> bool:
     return plan.auth_mode == "sftp" and isinstance(plan.config.get("sftpPull"), dict)
 
 
-def _raise_value_error(message: str) -> None:
+def _raise_value_error(message: str) -> NoReturn:
     raise ValueError(message)
 
 
-def _raise_type_error(message: str) -> None:
+def _raise_type_error(message: str) -> NoReturn:
     raise TypeError(message)
 
 
@@ -421,13 +428,24 @@ def _host_key_sha256(key: paramiko.PKey) -> str:
     return f"SHA256:{base64.b64encode(digest).decode('ascii').rstrip('=')}"
 
 
+def _normalize_sftp_stat_int(value: int | None) -> int:
+    return 0 if value is None else int(value)
+
+
+def _private_key_loaders() -> tuple[type[_ParamikoPrivateKeyLoader], ...]:
+    loaders: list[type[_ParamikoPrivateKeyLoader]] = [
+        cast("type[_ParamikoPrivateKeyLoader]", paramiko.RSAKey),
+        cast("type[_ParamikoPrivateKeyLoader]", paramiko.Ed25519Key),
+        cast("type[_ParamikoPrivateKeyLoader]", paramiko.ECDSAKey),
+    ]
+    dss_key = getattr(paramiko, "DSSKey", None)
+    if dss_key is not None:
+        loaders.append(cast("type[_ParamikoPrivateKeyLoader]", dss_key))
+    return tuple(loaders)
+
+
 def _load_private_key(private_key: str) -> paramiko.PKey:
-    for key_cls in (
-        paramiko.RSAKey,
-        paramiko.Ed25519Key,
-        paramiko.ECDSAKey,
-        paramiko.DSSKey,
-    ):
+    for key_cls in _private_key_loaders():
         try:
             return key_cls.from_private_key(io.StringIO(private_key))
         except paramiko.SSHException:
@@ -469,9 +487,9 @@ def _normalize_processed_files(
     if not isinstance(raw_files, dict):
         return {}
     normalized: dict[str, dict[str, Any]] = {}
-    for path, payload in raw_files.items():
+    for path, payload in cast("dict[object, object]", raw_files).items():
         if isinstance(path, str) and isinstance(payload, dict):
-            normalized[path] = dict(payload)
+            normalized[path] = dict(cast("dict[str, Any]", payload))
     return normalized
 
 

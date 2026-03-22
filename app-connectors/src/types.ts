@@ -101,6 +101,7 @@ export interface CompiledRoute {
 }
 
 export type ConnectorVendor =
+  | "custom_data"
   | "salesforce"
   | "ukg"
   | "toast"
@@ -116,6 +117,7 @@ export type ConnectorVendor =
   | "ncr_aloha";
 
 export type ConnectorDomain =
+  | "custom"
   | "crm"
   | "wfm"
   | "pos"

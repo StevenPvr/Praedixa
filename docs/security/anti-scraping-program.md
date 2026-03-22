@@ -19,7 +19,7 @@ Rendre l'extraction utile economiquement absurde sur les surfaces publiques et r
 
 - `LANDING_ASSET_SIGNING_SECRET` est requis sur le landing deploye pour signer les URLs d'assets teaser.
 - L'inventaire canonique reste `docs/deployment/runtime-secrets-inventory.json`.
-- Le script de sync est `scripts/scw-configure-landing-env.sh`.
+- Le script de sync est `scripts/scw/scw-configure-landing-env.sh`.
 
 ## Limites connues
 

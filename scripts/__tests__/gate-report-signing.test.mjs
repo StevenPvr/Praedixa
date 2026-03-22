@@ -7,10 +7,16 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 
 const repoRoot = process.cwd();
-const signScriptPath = path.join(repoRoot, "scripts", "gate-report-sign.sh");
+const signScriptPath = path.join(
+  repoRoot,
+  "scripts",
+  "gates",
+  "gate-report-sign.sh",
+);
 const verifyScriptPath = path.join(
   repoRoot,
   "scripts",
+  "gates",
   "verify-gate-report.sh",
 );
 

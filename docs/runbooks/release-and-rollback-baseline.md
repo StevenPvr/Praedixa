@@ -34,8 +34,8 @@ Checklist avant build:
 - [ ] `pnpm gate:exhaustive`
 - [ ] `pnpm gate:verify`
 - [ ] `./scripts/run-supply-chain-audit.sh`
-- [ ] `./scripts/scw-preflight-deploy.sh staging`
-- [ ] `./scripts/scw-preflight-deploy.sh prod` avant promotion prod
+- [ ] `./scripts/scw/scw-preflight-deploy.sh staging`
+- [ ] `./scripts/scw/scw-preflight-deploy.sh prod` avant promotion prod
 - [ ] cle de signature presente: `~/.praedixa/release-manifest.key`
 - [ ] dernier manifest sain connu et verifie
 - [ ] liste des services touches figee
@@ -51,8 +51,8 @@ REF=<git-ref>
 SHA="$(git rev-parse "$REF")"
 TAG=<release-tag>
 REGISTRY=<registry-prefix>
-OUT=".release/$TAG"
-ROLLBACK_MANIFEST_DIR=".release/manifests"
+OUT=".meta/.release/$TAG"
+ROLLBACK_MANIFEST_DIR=".meta/.release/manifests"
 SERVICES=<comma-separated-services>
 GATE_REPORT=".git/gate-reports/${SHA}.json"
 SUPPLY_CHAIN_EVIDENCE=".git/gate-reports/artifacts/supply-chain-evidence.json"
@@ -111,7 +111,7 @@ pnpm release:deploy -- \
 Smoke minimal staging:
 
 ```bash
-./scripts/scw-post-deploy-smoke.sh --env staging --services api,webapp,admin
+./scripts/scw/scw-post-deploy-smoke.sh --env staging --services api,webapp,admin
 pnpm test:e2e:smoke
 ```
 
@@ -148,7 +148,7 @@ Le preflight DNS est strict par defaut. `DNS_DELEGATION_MODE=transitional` reste
 
 Avant promo:
 
-- rerun `./scripts/scw-preflight-deploy.sh prod`
+- rerun `./scripts/scw/scw-preflight-deploy.sh prod`
 - relire le manifest cible
 - confirmer le manifest precedent a utiliser en rollback
 
@@ -165,7 +165,7 @@ Ajouter `--services "$SERVICES"` seulement si le manifest cible versionne explic
 Smoke minimal prod:
 
 ```bash
-./scripts/scw-post-deploy-smoke.sh --env prod --services api,webapp,admin,auth
+./scripts/scw/scw-post-deploy-smoke.sh --env prod --services api,webapp,admin,auth
 pnpm test:e2e:smoke
 ```
 
@@ -190,15 +190,15 @@ Commandes:
 
 ```bash
 CURRENT_MANIFEST="$OUT/manifest.json"
-ROLLBACK_MANIFEST_DIR=".release/manifests"
+ROLLBACK_MANIFEST_DIR=".meta/.release/manifests"
 
-./scripts/scw-rollback-plan.sh \
+./scripts/scw/scw-rollback-plan.sh \
   --current-manifest "$CURRENT_MANIFEST" \
   --manifest-dir "$ROLLBACK_MANIFEST_DIR" \
   --env prod \
   --services "$SERVICES"
 
-./scripts/scw-rollback-execute.sh \
+./scripts/scw/scw-rollback-execute.sh \
   --current-manifest "$CURRENT_MANIFEST" \
   --manifest-dir "$ROLLBACK_MANIFEST_DIR" \
   --env prod \

@@ -243,7 +243,7 @@ async def change_org_status(
     """
     org = await get_organization(session, org_id)
 
-    current_status = org.status if isinstance(org.status, str) else org.status.value
+    current_status = org.status.value
     allowed = _STATUS_TRANSITIONS.get(current_status, set())
     if new_status.value not in allowed:
         raise ConflictError(
@@ -289,7 +289,7 @@ async def get_org_hierarchy(
     for dept in departments:
         departments_by_site.setdefault(dept.site_id, []).append(dept)
 
-    hierarchy = []
+    hierarchy: list[dict[str, Any]] = []
     for site in sites:
         dept_nodes = [
             {

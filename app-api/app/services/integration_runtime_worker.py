@@ -5,7 +5,7 @@ from __future__ import annotations
 import ipaddress
 import time
 import urllib.parse
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, cast
 
@@ -48,6 +48,7 @@ class RuntimeClaimedRawEvent:
 
     id: str
     object_store_key: str
+    source_object: str | None = None
 
 
 @dataclass(frozen=True)
@@ -58,6 +59,10 @@ class RuntimeDrainResult:
     processed: int
     failed: int
     dataset_name: str | None = None
+    claimed_events: tuple[RuntimeClaimedRawEvent, ...] = field(
+        default=(),
+        compare=False,
+    )
 
 
 @dataclass(frozen=True)
@@ -194,29 +199,25 @@ class ConnectorsRuntimeClient:
                 "leaseSeconds": lease_seconds,
             },
         )
-        if not isinstance(data, list):
-            raise TypeError("claimed sync runs payload must be a list")
+        items = _require_list(data, field="claimed sync runs payload")
         runs: list[RuntimeClaimedSyncRun] = []
-        for item in data:
-            if not isinstance(item, dict):
-                raise TypeError("each claimed sync run must be an object")
+        for item in items:
+            item_object = _require_object(item, field="each claimed sync run")
             runs.append(
                 RuntimeClaimedSyncRun(
-                    id=str(item["id"]),
-                    organization_id=str(item["organizationId"]),
-                    connection_id=str(item["connectionId"]),
-                    trigger_type=str(item["triggerType"]),
-                    source_window_start=cast(
-                        "str | None",
-                        item.get("sourceWindowStart"),
+                    id=str(item_object["id"]),
+                    organization_id=str(item_object["organizationId"]),
+                    connection_id=str(item_object["connectionId"]),
+                    trigger_type=str(item_object["triggerType"]),
+                    source_window_start=_optional_string(
+                        item_object.get("sourceWindowStart")
                     ),
-                    source_window_end=cast(
-                        "str | None",
-                        item.get("sourceWindowEnd"),
+                    source_window_end=_optional_string(
+                        item_object.get("sourceWindowEnd")
                     ),
-                    force_full_sync=bool(item.get("forceFullSync", False)),
-                    attempts=int(item["attempts"]),
-                    max_attempts=int(item["maxAttempts"]),
+                    force_full_sync=bool(item_object.get("forceFullSync", False)),
+                    attempts=int(item_object["attempts"]),
+                    max_attempts=int(item_object["maxAttempts"]),
                 )
             )
         return runs
@@ -232,62 +233,49 @@ class ConnectorsRuntimeClient:
             f"/v1/organizations/{organization_id}/sync-runs/{run_id}/execution-plan",
             json_body={"workerId": worker_id},
         )
-        if not isinstance(data, dict):
-            raise TypeError("sync run execution plan payload must be an object")
-        run_payload = data.get("run")
-        connection_payload = data.get("connection")
-        credentials_payload = data.get("credentials")
-        sync_states_payload = data.get("syncStates")
-        if not isinstance(run_payload, dict):
-            raise TypeError("sync run execution plan.run must be an object")
-        if not isinstance(connection_payload, dict):
-            raise TypeError("sync run execution plan.connection must be an object")
-        if not isinstance(credentials_payload, dict):
-            raise TypeError("sync run execution plan.credentials must be an object")
-        if not isinstance(sync_states_payload, list):
-            raise TypeError("sync run execution plan.syncStates must be a list")
+        data_object = _require_object(data, field="sync run execution plan payload")
+        run_payload = _require_object(
+            data_object.get("run"),
+            field="sync run execution plan.run",
+        )
+        connection_payload = _require_object(
+            data_object.get("connection"),
+            field="sync run execution plan.connection",
+        )
+        credentials_payload = _require_object(
+            data_object.get("credentials"),
+            field="sync run execution plan.credentials",
+        )
+        sync_states_payload = _require_list(
+            data_object.get("syncStates"),
+            field="sync run execution plan.syncStates",
+        )
 
-        config = connection_payload.get("config", {})
-        if not isinstance(config, dict):
-            raise TypeError(
-                "sync run execution plan.connection.config must be an object"
-            )
-        source_objects = connection_payload.get("sourceObjects", [])
-        if not isinstance(source_objects, list):
-            raise TypeError(
-                "sync run execution plan.connection.sourceObjects must be a list"
-            )
+        config = _require_object(
+            connection_payload.get("config", {}),
+            field="sync run execution plan.connection.config",
+        )
+        source_objects = _require_list(
+            connection_payload.get("sourceObjects", []),
+            field="sync run execution plan.connection.sourceObjects",
+        )
 
         sync_states: list[RuntimeConnectionSyncState] = []
         for item in sync_states_payload:
-            if not isinstance(item, dict):
-                raise TypeError("each sync state must be an object")
-            cursor_json = item.get("cursorJson", {})
-            if not isinstance(cursor_json, dict):
-                raise TypeError("sync state cursorJson must be an object")
+            item_object = _require_object(item, field="each sync state")
+            cursor_json = _require_object(
+                item_object.get("cursorJson", {}),
+                field="sync state cursorJson",
+            )
             sync_states.append(
                 RuntimeConnectionSyncState(
-                    source_object=str(item["sourceObject"]),
-                    watermark_text=(
-                        str(item["watermarkText"])
-                        if item.get("watermarkText") is not None
-                        else None
-                    ),
-                    watermark_at=(
-                        str(item["watermarkAt"])
-                        if item.get("watermarkAt") is not None
-                        else None
-                    ),
-                    cursor_json=cast("dict[str, Any]", cursor_json),
-                    last_run_id=(
-                        str(item["lastRunId"])
-                        if item.get("lastRunId") is not None
-                        else None
-                    ),
-                    updated_by_worker=(
-                        str(item["updatedByWorker"])
-                        if item.get("updatedByWorker") is not None
-                        else None
+                    source_object=str(item_object["sourceObject"]),
+                    watermark_text=_optional_string(item_object.get("watermarkText")),
+                    watermark_at=_optional_string(item_object.get("watermarkAt")),
+                    cursor_json=cursor_json,
+                    last_run_id=_optional_string(item_object.get("lastRunId")),
+                    updated_by_worker=_optional_string(
+                        item_object.get("updatedByWorker")
                     ),
                 )
             )
@@ -298,9 +286,9 @@ class ConnectorsRuntimeClient:
             connection_id=str(connection_payload["id"]),
             vendor=str(connection_payload["vendor"]),
             auth_mode=str(connection_payload["authMode"]),
-            config=cast("dict[str, Any]", config),
-            source_objects=tuple(str(item) for item in source_objects),
-            credentials=cast("dict[str, Any]", credentials_payload),
+            config=config,
+            source_objects=_string_tuple(source_objects),
+            credentials=credentials_payload,
             sync_states=tuple(sync_states),
         )
 
@@ -313,28 +301,30 @@ class ConnectorsRuntimeClient:
             "GET",
             f"/v1/runtime/organizations/{organization_id}/connections/{connection_id}/access-context",
         )
-        if not isinstance(data, dict):
-            raise TypeError("provider access context payload must be an object")
-        authorization = data.get("authorization")
-        if not isinstance(authorization, dict):
-            raise TypeError("provider access authorization payload must be an object")
-        raw_source_objects = data.get("sourceObjects")
-        if not isinstance(raw_source_objects, list):
-            raise TypeError("provider access sourceObjects must be a list")
+        data_object = _require_object(data, field="provider access context payload")
+        authorization = _require_object(
+            data_object.get("authorization"),
+            field="provider access authorization payload",
+        )
+        raw_source_objects = _require_list(
+            data_object.get("sourceObjects"),
+            field="provider access sourceObjects",
+        )
         raw_scopes = authorization.get("scopes")
         if raw_scopes is None:
             scopes: tuple[str, ...] = ()
         elif isinstance(raw_scopes, list):
-            scopes = tuple(str(scope) for scope in raw_scopes)
+            scopes = _string_tuple(
+                _require_list(raw_scopes, field="provider access scopes")
+            )
         else:
             raise TypeError("provider access scopes must be a list or null")
         raw_additional_headers = authorization.get("additionalHeaders")
         if raw_additional_headers is None:
             additional_headers: tuple[tuple[str, str], ...] = ()
         elif isinstance(raw_additional_headers, dict):
-            additional_headers = tuple(
-                (str(name), str(value))
-                for name, value in raw_additional_headers.items()
+            additional_headers = _string_pairs(
+                cast("dict[str, Any]", raw_additional_headers)
             )
         else:
             raise TypeError(
@@ -344,21 +334,21 @@ class ConnectorsRuntimeClient:
         if raw_credential_fields is None:
             credential_fields: tuple[tuple[str, str], ...] = ()
         elif isinstance(raw_credential_fields, dict):
-            credential_fields = tuple(
-                (str(name), str(value)) for name, value in raw_credential_fields.items()
+            credential_fields = _string_pairs(
+                cast("dict[str, Any]", raw_credential_fields)
             )
         else:
             raise TypeError(
                 "provider access credentialFields must be an object or null"
             )
         return RuntimeProviderAccessContext(
-            organization_id=str(data["organizationId"]),
-            connection_id=str(data["connectionId"]),
-            vendor=str(data["vendor"]),
-            auth_mode=str(data["authMode"]),
-            runtime_environment=str(data["runtimeEnvironment"]),
-            base_url=str(data["baseUrl"]),
-            source_objects=tuple(str(item) for item in raw_source_objects),
+            organization_id=str(data_object["organizationId"]),
+            connection_id=str(data_object["connectionId"]),
+            vendor=str(data_object["vendor"]),
+            auth_mode=str(data_object["authMode"]),
+            runtime_environment=str(data_object["runtimeEnvironment"]),
+            base_url=str(data_object["baseUrl"]),
+            source_objects=_string_tuple(raw_source_objects),
             header_name=str(authorization["headerName"]),
             header_value=str(authorization["headerValue"]),
             scopes=scopes,
@@ -379,16 +369,15 @@ class ConnectorsRuntimeClient:
             f"/v1/organizations/{organization_id}/connections/{connection_id}/raw-events/claim",
             json_body={"workerId": worker_id, "limit": limit},
         )
-        if not isinstance(data, list):
-            raise TypeError("claimed raw events payload must be a list")
+        items = _require_list(data, field="claimed raw events payload")
         events: list[RuntimeClaimedRawEvent] = []
-        for item in data:
-            if not isinstance(item, dict):
-                raise TypeError("each claimed raw event must be an object")
+        for item in items:
+            item_object = _require_object(item, field="each claimed raw event")
             events.append(
                 RuntimeClaimedRawEvent(
-                    id=str(item["id"]),
-                    object_store_key=str(item["objectStoreKey"]),
+                    id=str(item_object["id"]),
+                    object_store_key=str(item_object["objectStoreKey"]),
+                    source_object=_optional_string(item_object.get("sourceObject")),
                 )
             )
         return events
@@ -537,8 +526,37 @@ def _parse_allowed_hosts(raw_value: str) -> tuple[str, ...]:
     return tuple(host.strip().lower() for host in raw_value.split(",") if host.strip())
 
 
+def _require_object(value: Any, *, field: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise TypeError(f"{field} must be an object")
+    return cast("dict[str, Any]", value)
+
+
+def _require_list(value: Any, *, field: str) -> list[object]:
+    if not isinstance(value, list):
+        raise TypeError(f"{field} must be a list")
+    return cast("list[object]", value)
+
+
+def _optional_string(value: Any) -> str | None:
+    if value is None:
+        return None
+    return str(value)
+
+
+def _string_tuple(values: list[object]) -> tuple[str, ...]:
+    return tuple(str(item) for item in values)
+
+
+def _string_pairs(raw_mapping: dict[str, Any]) -> tuple[tuple[str, str], ...]:
+    return tuple((str(name), str(value)) for name, value in raw_mapping.items())
+
+
 def _is_success_payload(payload: Any) -> bool:
-    return isinstance(payload, dict) and payload.get("success") is True
+    if not isinstance(payload, dict):
+        return False
+    payload_object = cast("dict[str, Any]", payload)
+    return payload_object.get("success") is True
 
 
 def _is_local_runtime_host(host: str, host_ip: IPAddress | None) -> bool:
@@ -617,7 +635,7 @@ def _sanitize_runtime_error(exc: Exception) -> str:
     return _RUNTIME_ERROR_GENERIC
 
 
-def _classify_sync_run_failure(exc: Exception) -> tuple[str, bool]:
+def classify_sync_run_failure(exc: Exception) -> tuple[str, bool]:
     if isinstance(exc, (ValueError, TypeError)):
         return ("mapping", False)
     if isinstance(exc, httpx.HTTPStatusError):
@@ -633,7 +651,7 @@ def _classify_sync_run_failure(exc: Exception) -> tuple[str, bool]:
     return ("system", False)
 
 
-def _compute_sync_retry_delay_seconds(attempts: int) -> int:
+def compute_sync_retry_delay_seconds(attempts: int) -> int:
     safe_attempts = max(1, attempts)
     return int(min(_MAX_SYNC_RETRY_DELAY_SECONDS, 30 * (2 ** (safe_attempts - 1))))
 
@@ -719,12 +737,7 @@ async def drain_connector_connection(
     connection = await bound_runtime_client.get_connection(
         organization_id, connection_id
     )
-    config = connection.get("config", {})
-    if not isinstance(config, dict):
-        raise TypeError("connection config must be an object")
-    fields_json = config.get("datasetMapping")
-    if not isinstance(fields_json, dict):
-        raise TypeError("connection.config.datasetMapping must be configured")
+    config = _require_object(connection.get("config", {}), field="connection config")
 
     claimed = await bound_runtime_client.claim_raw_events(
         organization_id,
@@ -757,6 +770,7 @@ async def drain_connector_connection(
             "Any",
             SimpleNamespace(
                 object_store_key=event.object_store_key,
+                source_object=event.source_object,
             ),
         )
         for event in claimed
@@ -775,16 +789,9 @@ async def drain_connector_connection(
             tenant,
             session,
             raw_events,
-            fields_json,
+            config,
             payload_loader,
         )
-        for event in claimed:
-            await bound_runtime_client.mark_raw_event_processed(
-                organization_id,
-                connection_id,
-                event.id,
-                worker_id,
-            )
         duration_ms = _duration_ms(started_at)
         dataset_name = ingestion.dataset_name if ingestion is not None else None
         telemetry.info(
@@ -804,6 +811,7 @@ async def drain_connector_connection(
             processed=len(claimed),
             failed=0,
             dataset_name=dataset_name,
+            claimed_events=tuple(claimed),
         )
     except Exception as exc:
         sanitized_error = _sanitize_runtime_error(exc)
@@ -818,14 +826,7 @@ async def drain_connector_connection(
             error_code=sanitized_error,
             duration_ms=_duration_ms(started_at),
         )
-        for event in claimed:
-            await bound_runtime_client.mark_raw_event_failed(
-                organization_id,
-                connection_id,
-                event.id,
-                worker_id,
-                sanitized_error,
-            )
+        exc.__dict__["_claimed_raw_events"] = tuple(claimed)
         raise
 
 
@@ -952,6 +953,8 @@ async def process_claimed_sync_run(
         runtime_client,
         telemetry_context,
     )
+    claimed_raw_events: list[RuntimeClaimedRawEvent] = []
+    committed = False
 
     try:
         execution_plan = await bound_runtime_client.get_sync_run_execution_plan(
@@ -998,12 +1001,21 @@ async def process_claimed_sync_run(
             total_claimed += drain_result.claimed
             total_processed += drain_result.processed
             total_failed += drain_result.failed
+            claimed_raw_events.extend(drain_result.claimed_events)
             if drain_result.dataset_name is not None:
                 dataset_name = drain_result.dataset_name
             if drain_result.claimed == 0:
                 break
 
         await session.commit()
+        committed = True
+        for raw_event in claimed_raw_events:
+            await bound_runtime_client.mark_raw_event_processed(
+                claimed_run.organization_id,
+                claimed_run.connection_id,
+                raw_event.id,
+                worker_id,
+            )
         await bound_runtime_client.mark_sync_run_completed(
             claimed_run.organization_id,
             claimed_run.id,
@@ -1037,13 +1049,33 @@ async def process_claimed_sync_run(
         )
     except Exception as exc:
         await session.rollback()
-        error_class, retryable = _classify_sync_run_failure(exc)
+        root_exc = exc
+        drain_claimed_events = cast(
+            "tuple[RuntimeClaimedRawEvent, ...]",
+            getattr(exc, "_claimed_raw_events", ()),
+        )
+        claimed_raw_events_to_fail = [*claimed_raw_events, *drain_claimed_events]
+        if not committed:
+            sanitized_error = _sanitize_runtime_error(root_exc)
+            seen_event_ids: set[str] = set()
+            for raw_event in claimed_raw_events_to_fail:
+                if raw_event.id in seen_event_ids:
+                    continue
+                seen_event_ids.add(raw_event.id)
+                await bound_runtime_client.mark_raw_event_failed(
+                    claimed_run.organization_id,
+                    claimed_run.connection_id,
+                    raw_event.id,
+                    worker_id,
+                    sanitized_error,
+                )
+        error_class, retryable = classify_sync_run_failure(root_exc)
         retry_delay_seconds = (
-            _compute_sync_retry_delay_seconds(claimed_run.attempts)
+            compute_sync_retry_delay_seconds(claimed_run.attempts)
             if retryable
             else None
         )
-        error_message = str(exc)[:400] or _sanitize_runtime_error(exc)
+        error_message = str(root_exc)[:400] or _sanitize_runtime_error(root_exc)
         await bound_runtime_client.mark_sync_run_failed(
             claimed_run.organization_id,
             claimed_run.id,
@@ -1059,7 +1091,7 @@ async def process_claimed_sync_run(
             status="failed",
             connection_id=claimed_run.connection_id,
             worker_id=worker_id,
-            error_code=_sanitize_runtime_error(exc),
+            error_code=_sanitize_runtime_error(root_exc),
             sync_error_class=error_class,
             retryable=retryable,
             retry_delay_seconds=retry_delay_seconds,

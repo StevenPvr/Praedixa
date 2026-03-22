@@ -103,8 +103,8 @@ export const enContentA: Record<
       {
         title: "Start here",
         paragraphs: [
-          "Begin with Product and method, How it works, Integration and data, and Historical proof.",
-          "The path is intentionally short: fewer pages, more clarity.",
+          "Begin with Product and method, How it works, Integration and data, and Historical proof to frame the promise, the method, and the proof path.",
+          "This page now acts as a real hub: it connects pillar pages, industry pages, blog content, and SEO resources once search intent becomes more specific.",
         ],
       },
       {
@@ -123,8 +123,8 @@ export const enContentA: Record<
       {
         title: "Where deeper detail now lives",
         paragraphs: [
-          "Detailed vertical content now lives in the dedicated industry pages, the blog, SEO resources, and live sales conversations, not in a forest of near-duplicate pages.",
-          "The site keeps only the pages that genuinely help visitors understand the offer and move forward.",
+          "Detailed vertical content now lives in the dedicated industry pages, the blog, SEO resources, and live sales conversations, not in a forest of near-duplicate pages with weak internal links.",
+          "The site keeps only the pages that genuinely help visitors understand the offer, compare options, and move forward.",
         ],
       },
     ],

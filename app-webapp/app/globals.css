@@ -1,6 +1,79 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "@praedixa/ui/tailwind-theme.css";
+
+@source "../app";
+@source "../components";
+@source "../hooks";
+@source "../lib";
+@source "../../packages/ui/src";
+
+@theme inline {
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --color-paper: var(--warm-bg-elevated);
+  --color-stone: var(--warm-bg-muted);
+
+  --color-sidebar: var(--sidebar-bg);
+  --color-sidebar-hover: var(--sidebar-bg-hover);
+  --color-sidebar-active: var(--sidebar-bg-active);
+  --color-sidebar-text: var(--sidebar-text);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent: var(--sidebar-accent);
+}
+
+@utility w-sidebar {
+  width: var(--sidebar-width);
+}
+
+@utility h-topbar {
+  height: var(--topbar-height);
+}
+
+@utility max-w-page {
+  max-width: var(--page-max-width);
+}
+
+@utility shadow-soft {
+  box-shadow: var(--shadow-raised);
+}
+
+@utility shadow-diffusion {
+  box-shadow: var(--shadow-diffusion);
+}
+
+@utility shadow-elevated {
+  box-shadow: var(--shadow-floating);
+}
+
+@utility shadow-command {
+  box-shadow: var(--shadow-modal);
+}
+
+@utility shadow-float {
+  box-shadow: var(--shadow-floating);
+}
+
+@utility bg-gradient-brand {
+  background-image: linear-gradient(135deg, var(--brand) 0%, var(--brand-300) 100%);
+}
+
+@utility bg-gradient-accent {
+  background-image: linear-gradient(135deg, var(--accent) 0%, var(--accent-300) 100%);
+}
+
+@utility bg-gradient-page {
+  background-image: linear-gradient(180deg, var(--page-bg) 0%, var(--page-bg-strong) 100%);
+}
+
+@utility bg-gradient-card {
+  background-image: var(--gradient-card);
+}
+
+@utility bg-gradient-glass {
+  background-image: var(--gradient-glass);
+}
 
 @layer base {
   :root {

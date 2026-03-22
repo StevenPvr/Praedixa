@@ -50,7 +50,7 @@ function normalizeIp(value: string | null): string | null {
 }
 
 function shouldTrustProxyIpHeaders(): boolean {
-  return process.env.LANDING_TRUST_PROXY_IP_HEADERS === "1";
+  return process.env["LANDING_TRUST_PROXY_IP_HEADERS"] === "1";
 }
 
 function resolveForwardedForIp(value: string | null): string | null {

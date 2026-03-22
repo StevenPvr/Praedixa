@@ -6,6 +6,7 @@ import type {
 import type { PoolClient } from "pg";
 
 import {
+  readAccessInviteRecipientsFromPayload,
   normalizeOnboardingTaskPayload,
   computeCaseProjectionSnapshot,
   mapBlockerRow,
@@ -16,6 +17,10 @@ import {
   type DbOnboardingTaskRow,
 } from "./admin-onboarding-support.js";
 import { getOnboardingCamundaRuntime } from "./admin-onboarding-camunda.js";
+import {
+  attachDeliveryProofToInviteRecipients,
+  getInvitationDeliveryProofService,
+} from "./invitation-delivery-proof.js";
 import { PersistenceError, isUuidString } from "./persistence.js";
 import {
   insertEvent,
@@ -77,9 +82,9 @@ function resolveBlockerStatus(
   tasks: readonly OnboardingCaseTask[],
 ): { status: "open" | "resolved"; resolvedAt: string | null } {
   const resolveOnTaskKeys = Array.isArray(
-    blocker.details_json?.resolveOnTaskKeys,
+    blocker.details_json?.["resolveOnTaskKeys"],
   )
-    ? blocker.details_json.resolveOnTaskKeys.filter(
+    ? blocker.details_json["resolveOnTaskKeys"].filter(
         (value): value is string => typeof value === "string",
       )
     : [];
@@ -137,7 +142,9 @@ export async function synchronizeOnboardingCaseProjection(
         ...existingDetails,
         workflowElementId: row.task_key,
         workflowTaskKey:
-          workflowTask?.userTaskKey ?? existingDetails.workflowTaskKey ?? null,
+          workflowTask?.userTaskKey ??
+          existingDetails["workflowTaskKey"] ??
+          null,
         workflowState: workflowTask?.state ?? null,
         workflowAssignee: workflowTask?.assignee ?? null,
         workflowCandidateGroups: workflowTask?.candidateGroups ?? [],
@@ -187,12 +194,46 @@ export async function readOnboardingCaseBundle(
 ): Promise<OnboardingCaseBundle> {
   const caseDetail = await readCaseById(client, caseId);
   const taskRows = await listTaskRowsByCaseId(client, caseId);
+  const proofService = getInvitationDeliveryProofService();
+  const inviteRecipients = taskRows.flatMap((row) =>
+    readAccessInviteRecipientsFromPayload(asDetailsJson(row.details_json)),
+  );
+  const proofByUserId = await proofService.listLatestProofsByUserIds(
+    client,
+    inviteRecipients
+      .map((recipient) => recipient.invitedUserId)
+      .filter((value): value is string => typeof value === "string"),
+  );
+  const proofByEmail = await proofService.listLatestProofsByEmails(
+    client,
+    caseDetail.organizationId,
+    inviteRecipients.map((recipient) => recipient.email),
+  );
   const blockerRows = await listBlockerRowsByCaseId(client, caseId);
   const eventRows = await listEventRowsByCaseId(client, caseId);
+  const enrichedTaskRows = taskRows.map((row) => {
+    const details = asDetailsJson(row.details_json);
+    const recipients = readAccessInviteRecipientsFromPayload(details);
+    if (recipients.length === 0) {
+      return row;
+    }
+
+    return {
+      ...row,
+      details_json: {
+        ...details,
+        inviteRecipients: attachDeliveryProofToInviteRecipients(
+          recipients,
+          proofByUserId,
+          proofByEmail,
+        ),
+      },
+    };
+  });
 
   return {
     case: caseDetail,
-    tasks: toTasks(taskRows),
+    tasks: toTasks(enrichedTaskRows),
     blockers: toBlockers(blockerRows),
     events: eventRows.map((row) => mapEventRow(row)),
   };
@@ -226,7 +267,7 @@ export async function completeOnboardingCaseTask(
     );
   }
 
-  const workflowTaskKey = task.detailsJson.workflowTaskKey;
+  const workflowTaskKey = task.detailsJson["workflowTaskKey"];
   if (
     typeof workflowTaskKey !== "string" ||
     workflowTaskKey.trim().length === 0

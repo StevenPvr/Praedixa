@@ -34,7 +34,7 @@ SENSITIVE_PATH_PATTERNS = (
     "app-landing/lib/security/**",
     "app-webapp/lib/security/**",
     "app-admin/lib/security/**",
-    "scripts/gate-*.sh",
+    "scripts/gates/gate-*.sh",
     "scripts/security-*.yaml",
 )
 

@@ -51,7 +51,7 @@ function linearRegression(values: number[]): {
   const n = values.length;
   /* c8 ignore next 1 -- decomposeForecast short-circuits empty arrays */
   if (n === 0) return { slope: 0, intercept: 0 };
-  if (n === 1) return { slope: 0, intercept: values[0] };
+  if (n === 1) return { slope: 0, intercept: values[0] ?? 0 };
 
   let sumX = 0;
   let sumY = 0;
@@ -59,9 +59,10 @@ function linearRegression(values: number[]): {
   let sumX2 = 0;
 
   for (let i = 0; i < n; i++) {
+    const value = values[i] ?? 0;
     sumX += i;
-    sumY += values[i];
-    sumXY += i * values[i];
+    sumY += value;
+    sumXY += i * value;
     sumX2 += i * i;
   }
 
@@ -96,32 +97,45 @@ export function decomposeForecast(
   const dayCounts: number[] = Array(7).fill(0);
 
   for (let i = 0; i < data.length; i++) {
-    const detrended = demands[i] - trendValues[i];
-    daySums[dayIndices[i]] += detrended;
-    dayCounts[dayIndices[i]] += 1;
+    const dayIndex = dayIndices[i];
+    if (dayIndex === undefined) {
+      continue;
+    }
+
+    const detrended = (demands[i] ?? 0) - (trendValues[i] ?? 0);
+    daySums[dayIndex] = (daySums[dayIndex] ?? 0) + detrended;
+    dayCounts[dayIndex] = (dayCounts[dayIndex] ?? 0) + 1;
   }
 
   const seasonalValues: number[] = Array(7).fill(0);
   for (let d = 0; d < 7; d++) {
-    seasonalValues[d] = dayCounts[d] > 0 ? daySums[d] / dayCounts[d] : 0;
+    const dayCount = dayCounts[d] ?? 0;
+    const daySum = daySums[d] ?? 0;
+    seasonalValues[d] = dayCount > 0 ? daySum / dayCount : 0;
   }
 
   return {
     trend: data.map((d, i) => ({
       date: d.forecastDate,
-      value: Math.round(trendValues[i] * 100) / 100,
+      value: Math.round((trendValues[i] ?? 0) * 100) / 100,
     })),
     seasonality: DAY_LABELS.map((label, i) => ({
       day: label,
-      value: Math.round(seasonalValues[i] * 100) / 100,
+      value: Math.round((seasonalValues[i] ?? 0) * 100) / 100,
     })),
-    residuals: data.map((d, i) => ({
-      date: d.forecastDate,
-      value:
-        Math.round(
-          (demands[i] - trendValues[i] - seasonalValues[dayIndices[i]]) * 100,
-        ) / 100,
-    })),
+    residuals: data.map((d, i) => {
+      const dayIndex = dayIndices[i];
+      const seasonalValue =
+        dayIndex === undefined ? 0 : (seasonalValues[dayIndex] ?? 0);
+
+      return {
+        date: d.forecastDate,
+        value:
+          Math.round(
+            ((demands[i] ?? 0) - (trendValues[i] ?? 0) - seasonalValue) * 100,
+          ) / 100,
+      };
+    }),
     confidence: data.map((d) => ({
       date: d.forecastDate,
       lower: d.confidenceLower,
@@ -162,7 +176,7 @@ export function extractFeatureImportance(
   if (total === 0) return [];
 
   return Array.from(counts.entries())
-    .toSorted((a, b) => b[1] - a[1])
+    .sort((left, right) => right[1] - left[1])
     .map(([driver, count]) => ({
       label: friendlyLabel(driver),
       value: Math.round((count / total) * 100 * 100) / 100,

@@ -62,7 +62,13 @@ function input(
   required = true,
   aggregation?: DecisionContractInputRef["aggregation"],
 ): DecisionContractInputRef {
-  return { key, entity, attribute, required, aggregation };
+  return {
+    key,
+    entity,
+    attribute,
+    required,
+    ...(aggregation !== undefined ? { aggregation } : {}),
+  };
 }
 
 function variable(
@@ -91,7 +97,12 @@ function approval(
   minStepOrder: number,
   thresholdKey?: string,
 ): DecisionApprovalRequirement {
-  return { ruleId, approverRole, minStepOrder, thresholdKey };
+  return {
+    ruleId,
+    approverRole,
+    minStepOrder,
+    ...(thresholdKey !== undefined ? { thresholdKey } : {}),
+  };
 }
 
 function action(
@@ -99,7 +110,11 @@ function action(
   destinationType: string,
   templateId?: string,
 ): DecisionAllowedAction {
-  return { actionType, destinationType, templateId };
+  return {
+    actionType,
+    destinationType,
+    ...(templateId !== undefined ? { templateId } : {}),
+  };
 }
 
 function component(
@@ -147,8 +162,9 @@ function eligibility(
     requiredSignals: [...requiredSignals],
     requiredActions: [...requiredActions],
     requiredPolicyHooks: [...requiredPolicyHooks],
-    requiredCapabilities:
-      requiredCapabilities == null ? undefined : [...requiredCapabilities],
+    ...(requiredCapabilities != null
+      ? { requiredCapabilities: [...requiredCapabilities] }
+      : {}),
   };
 }
 
@@ -678,7 +694,9 @@ function buildSummary(
     templateVersion: template.templateVersion,
     pack: template.pack,
     name: template.name,
-    description: template.description,
+    ...(template.description !== undefined
+      ? { description: template.description }
+      : {}),
     status: template.status,
     graphId: template.graphRef.graphId,
     graphVersion: template.graphRef.graphVersion,
@@ -692,7 +710,7 @@ function buildSummary(
     approvalRoles: uniqueSortedStrings(
       template.sections.approvals.map((item) => item.approverRole),
     ),
-    tags: template.tags == null ? undefined : [...template.tags].sort(),
+    ...(template.tags != null ? { tags: [...template.tags].sort() } : {}),
   };
 }
 
@@ -775,16 +793,19 @@ function mergeScope(
         ? cloneValue(base.selector)
         : {
             ...overrides.selector,
-            ids:
-              overrides.selector.ids == null
-                ? undefined
-                : [...overrides.selector.ids],
+            ...(overrides.selector.ids != null
+              ? { ids: [...overrides.selector.ids] }
+              : {}),
           },
     horizonId: overrides.horizonId ?? base.horizonId,
-    dimensions:
-      base.dimensions == null && overrides.dimensions == null
-        ? undefined
-        : { ...(base.dimensions ?? {}), ...(overrides.dimensions ?? {}) },
+    ...(base.dimensions == null && overrides.dimensions == null
+      ? {}
+      : {
+          dimensions: {
+            ...(base.dimensions ?? {}),
+            ...(overrides.dimensions ?? {}),
+          },
+        }),
   };
 }
 
@@ -864,9 +885,13 @@ export function selectDecisionContractTemplate(
   return cloneValue(
     findTemplate({
       templateId: request.templateId,
-      templateVersion: request.templateVersion,
-      pack: request.pack,
-      includeDeprecated: request.includeDeprecated,
+      ...(request.templateVersion !== undefined
+        ? { templateVersion: request.templateVersion }
+        : {}),
+      ...(request.pack !== undefined ? { pack: request.pack } : {}),
+      ...(request.includeDeprecated !== undefined
+        ? { includeDeprecated: request.includeDeprecated }
+        : {}),
     }),
   );
 }
@@ -877,9 +902,13 @@ export function materializeDecisionContractTemplate(
   assertActor(request.actor);
   const template = findTemplate({
     templateId: request.templateId,
-    templateVersion: request.templateVersion,
-    pack: request.pack,
-    includeDeprecated: request.includeDeprecated,
+    ...(request.templateVersion !== undefined
+      ? { templateVersion: request.templateVersion }
+      : {}),
+    ...(request.pack !== undefined ? { pack: request.pack } : {}),
+    ...(request.includeDeprecated !== undefined
+      ? { includeDeprecated: request.includeDeprecated }
+      : {}),
   });
 
   const contract: DecisionContract = {
@@ -888,7 +917,9 @@ export function materializeDecisionContractTemplate(
     contractId: request.contractId,
     contractVersion: 1,
     name: request.name,
-    description: request.description ?? template.description,
+    ...((request.description ?? template.description) !== undefined
+      ? { description: request.description ?? template.description }
+      : {}),
     pack: template.pack,
     status: "draft",
     templateRef: {
@@ -908,12 +939,11 @@ export function materializeDecisionContractTemplate(
     roiFormula: cloneValue(template.sections.roiFormula),
     explanationTemplate: cloneValue(template.sections.explanationTemplate),
     validation: { status: "pending", checkedAt: null, issues: [] },
-    tags:
-      request.tags == null
-        ? template.tags == null
-          ? undefined
-          : [...template.tags]
-        : [...request.tags],
+    ...(request.tags == null
+      ? template.tags == null
+        ? {}
+        : { tags: [...template.tags] }
+      : { tags: [...request.tags] }),
     audit: buildDraftAudit(request.actor),
   };
 
@@ -927,9 +957,13 @@ export function instantiateDecisionContractTemplate(
   const contract = materializeDecisionContractTemplate(request);
   const template = findTemplate({
     templateId: request.templateId,
-    templateVersion: request.templateVersion,
-    pack: request.pack,
-    includeDeprecated: request.includeDeprecated,
+    ...(request.templateVersion !== undefined
+      ? { templateVersion: request.templateVersion }
+      : {}),
+    ...(request.pack !== undefined ? { pack: request.pack } : {}),
+    ...(request.includeDeprecated !== undefined
+      ? { includeDeprecated: request.includeDeprecated }
+      : {}),
   });
 
   return { template: buildSummary(template), contract };

@@ -103,7 +103,7 @@ export function focusFirstContactError(errors: FieldErrors): void {
 
     const node = document.getElementById(CONTACT_FIELD_IDS[key]);
     if (node && "focus" in node) {
-      (node as HTMLElement).focus();
+      node.focus();
     }
     return;
   }

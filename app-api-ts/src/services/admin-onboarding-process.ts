@@ -126,6 +126,9 @@ export function mapCamundaTaskStateToStatus(
   state: string | null | undefined,
 ): OnboardingTaskStatus {
   switch (state) {
+    case null:
+    case undefined:
+      return "todo";
     case "COMPLETED":
       return "done";
     case "CANCELED":

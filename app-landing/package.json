@@ -18,8 +18,8 @@
     "cf:build": "opennextjs-cloudflare build",
     "preview": "pnpm cf:build && opennextjs-cloudflare preview",
     "deploy": "pnpm resend:check && pnpm cf:build && opennextjs-cloudflare deploy",
-    "deploy:scw:prod": "cd .. && ./scripts/scw-deploy-landing.sh prod",
-    "deploy:scw:staging": "cd .. && ./scripts/scw-deploy-landing.sh staging",
+    "deploy:scw:prod": "cd .. && ./scripts/scw/scw-deploy-landing.sh prod",
+    "deploy:scw:staging": "cd .. && ./scripts/scw/scw-deploy-landing.sh staging",
     "dev:webpack": "next dev --webpack",
     "blog:audit-links": "node ./scripts/audit-blog-links.mjs",
     "test": "vitest run --config vitest.config.ts"
@@ -43,15 +43,15 @@
     "tailwind-merge": "^2.2.0"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
     "@next/bundle-analyzer": "^15.5.11",
     "@opennextjs/cloudflare": "^1.17.1",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
     "sharp": "^0.34.5",
-    "tailwindcss": "3.4.19",
+    "tailwindcss": "^4.2.2",
     "typescript": "^5.7.3",
     "wrangler": "^4.65.0"
   }

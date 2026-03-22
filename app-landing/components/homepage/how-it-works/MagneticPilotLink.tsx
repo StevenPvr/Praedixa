@@ -53,17 +53,17 @@ export function MagneticPilotLink({
   return (
     <motion.div
       className="will-change-transform"
-      style={
-        reducedMotion
-          ? undefined
-          : {
+      {...(reducedMotion
+        ? {}
+        : {
+            style: {
               x: smoothX,
               y: smoothY,
               rotateX,
               rotateY,
               transformPerspective: 900,
-            }
-      }
+            },
+          })}
     >
       <Link
         href={href}

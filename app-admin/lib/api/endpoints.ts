@@ -58,6 +58,7 @@ export const ADMIN_ENDPOINTS = {
 
   // Audit
   auditLog: `${V1}/audit-log`,
+  integrationsCatalog: `${V1}/integrations/catalog`,
   decisionContractTemplates: `${V1}/decision-contract-templates`,
   decisionContractTemplatePreview: `${V1}/decision-contract-templates/instantiate-preview`,
   decisionCompatibilityEvaluate: `${V1}/decision-compatibility/evaluate`,
@@ -79,6 +80,18 @@ export const ADMIN_ENDPOINTS = {
     `${V1}/organizations/${encodeURIComponent(orgId)}/onboarding/cases/${encodeURIComponent(caseId)}/tasks/${encodeURIComponent(taskId)}/save`,
   orgOnboardingTaskComplete: (orgId: string, caseId: string, taskId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/onboarding/cases/${encodeURIComponent(caseId)}/tasks/${encodeURIComponent(taskId)}/complete`,
+  orgOnboardingTaskFileUpload: (
+    orgId: string,
+    caseId: string,
+    taskId: string,
+  ) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/onboarding/cases/${encodeURIComponent(caseId)}/tasks/${encodeURIComponent(taskId)}/file-sources/upload`,
+  orgOnboardingTaskActivateApiSource: (
+    orgId: string,
+    caseId: string,
+    taskId: string,
+  ) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/onboarding/cases/${encodeURIComponent(caseId)}/tasks/${encodeURIComponent(taskId)}/api-sources/activate`,
   // Monitoring (operational)
   monitoringAlertsSummary: `${V1}/monitoring/alerts/summary`,
   monitoringAlertsByOrg: `${V1}/monitoring/alerts/by-org`,

@@ -6,6 +6,11 @@ import {
   getSerpResourceSlugs,
 } from "../../../../lib/content/serp-resources-fr";
 import { isValidLocale } from "../../../../lib/i18n/config";
+import {
+  PRAEDIXA_SOCIAL_IMAGE_HEIGHT,
+  PRAEDIXA_SOCIAL_IMAGE_URL,
+  PRAEDIXA_SOCIAL_IMAGE_WIDTH,
+} from "../../../../lib/seo/entity";
 import { absoluteUrl } from "../../../../lib/seo/metadata";
 
 interface RouteParams {
@@ -39,9 +44,9 @@ function buildPageMetadata(
       type: "article",
       images: [
         {
-          url: "/og-image.png",
-          width: 1200,
-          height: 630,
+          url: PRAEDIXA_SOCIAL_IMAGE_URL,
+          width: PRAEDIXA_SOCIAL_IMAGE_WIDTH,
+          height: PRAEDIXA_SOCIAL_IMAGE_HEIGHT,
           alt: title,
         },
       ],
@@ -50,7 +55,7 @@ function buildPageMetadata(
       card: "summary_large_image",
       title,
       description,
-      images: ["/og-image.png"],
+      images: [PRAEDIXA_SOCIAL_IMAGE_URL],
     },
   };
 }

@@ -17,6 +17,11 @@ Usage:
                         sql.Identifier("acme_raw")
                     ))
         await asyncio.to_thread(_sync_work)
+
+Important:
+    This helper opens an independent psycopg transaction. Runtime ingestion paths
+    that must read uncommitted rows from the caller transaction should stay on the
+    caller's SQLAlchemy session/connection instead of using ddl_connection().
 """
 
 from __future__ import annotations

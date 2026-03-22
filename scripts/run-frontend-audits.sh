@@ -81,7 +81,7 @@ start_standalone_app() {
 }
 
 echo "[frontend-audits] Freeing ports..."
-bash ./scripts/e2e-free-ports.sh || true
+bash ./scripts/dev/e2e-free-ports.sh || true
 
 echo "[frontend-audits] Starting landing/webapp/admin standalone servers..."
 start_standalone_app "app-landing" 3000 "${ROOT_DIR}/${LANDING_LOG}"

@@ -80,11 +80,19 @@ function mapScenarioOption(row: DbScenarioOptionRow): ScenarioOption {
     coutTotalEur: toNumber(row.cout_total_eur) ?? 0,
     serviceAttenduPct: toNumber(row.service_attendu_pct) ?? 0,
     heuresCouvertes: toNumber(row.heures_couvertes) ?? 0,
-    feasibilityScore: toNumber(row.feasibility_score) ?? undefined,
-    riskScore: toNumber(row.risk_score) ?? undefined,
+    ...(toNumber(row.feasibility_score) != null
+      ? { feasibilityScore: toNumber(row.feasibility_score)! }
+      : {}),
+    ...(toNumber(row.risk_score) != null
+      ? { riskScore: toNumber(row.risk_score)! }
+      : {}),
     policyCompliance: row.policy_compliance,
-    dominanceReason: row.dominance_reason ?? undefined,
-    recommendationPolicyVersion: row.recommendation_policy_version ?? undefined,
+    ...(row.dominance_reason != null
+      ? { dominanceReason: row.dominance_reason }
+      : {}),
+    ...(row.recommendation_policy_version != null
+      ? { recommendationPolicyVersion: row.recommendation_policy_version }
+      : {}),
     isParetoOptimal: row.is_pareto_optimal,
     isRecommended: row.is_recommended,
     contraintesJson:

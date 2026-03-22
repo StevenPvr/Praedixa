@@ -7,6 +7,10 @@ describe("blog post route", () => {
 
     expect(params).toContainEqual({
       locale: "fr",
+      slug: "comite-ops-finance-prouver-roi-decision",
+    });
+    expect(params).toContainEqual({
+      locale: "fr",
       slug: "decision-log-ops-daf-template",
     });
   });
@@ -39,5 +43,23 @@ describe("blog post route", () => {
       "roi",
     ]);
     expect(metadata.authors).toEqual([{ name: "Praedixa" }]);
+  });
+
+  it("returns metadata for the ROI review article", async () => {
+    const metadata = await generateMetadata({
+      params: Promise.resolve({
+        locale: "fr",
+        slug: "comite-ops-finance-prouver-roi-decision",
+      }),
+    });
+
+    expect(metadata.title).toBe(
+      "Comité Ops/Finance : comment prouver le ROI d'une décision, pas seulement raconter un avant/après",
+    );
+    expect(metadata.keywords).toEqual([
+      "roi",
+      "ops-finance",
+      "decision-intelligence",
+    ]);
   });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import type { ReactNode } from "react";
 import type { ActionDispatchDetailResponse } from "@praedixa/shared-types/api";
 import { SkeletonCard } from "@praedixa/ui";
 
@@ -29,37 +30,47 @@ export default function ActionDispatchDetailPage() {
     "admin:org:write",
   ]);
   const actionId = useParams<{ actionId: string }>().actionId;
+  const detailUrl = actionId
+    ? ADMIN_ENDPOINTS.orgActionDispatchDetail(orgId, actionId)
+    : null;
   const { data, loading, error, refetch } =
-    useApiGet<ActionDispatchDetailResponse>(
-      actionId
-        ? ADMIN_ENDPOINTS.orgActionDispatchDetail(orgId, actionId)
-        : null,
+    useApiGet<ActionDispatchDetailResponse>(detailUrl);
+  const header = buildHeader(orgId);
+
+  let content: ReactNode;
+
+  if (actionId == null || actionId.length === 0) {
+    content = <ErrorFallback message="Aucun dispatch n'a ete selectionne." />;
+  } else if (loading) {
+    content = (
+      <div className="space-y-4">
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
     );
+  } else if (error || !data) {
+    content = (
+      <ErrorFallback
+        message={error ?? "Impossible de charger le detail d'action"}
+        onRetry={refetch}
+      />
+    );
+  } else {
+    content = (
+      <ActionDispatchDetailContent
+        orgId={orgId}
+        data={data}
+        currentPermissions={currentUser?.permissions}
+        canManageDispatch={canManageDispatch}
+        onRefresh={refetch}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <ReadOnlyDetailHeader {...buildHeader(orgId)} />
-      {!actionId ? (
-        <ErrorFallback message="Aucun dispatch n'a ete selectionne." />
-      ) : loading ? (
-        <>
-          <SkeletonCard />
-          <SkeletonCard />
-        </>
-      ) : error || !data ? (
-        <ErrorFallback
-          message={error ?? "Impossible de charger le detail d'action"}
-          onRetry={refetch}
-        />
-      ) : (
-        <ActionDispatchDetailContent
-          orgId={orgId}
-          data={data}
-          currentPermissions={currentUser?.permissions}
-          canManageDispatch={canManageDispatch}
-          onRefresh={refetch}
-        />
-      )}
+      <ReadOnlyDetailHeader {...header} />
+      {content}
     </div>
   );
 }

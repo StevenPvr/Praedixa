@@ -70,8 +70,14 @@ function buildContext(input: {
     },
     clientIp: "127.0.0.1",
     userAgent: "vitest",
+    headers: {},
     params: input.params ?? {},
     body: input.body ?? null,
+    rawBody: input.body == null ? null : JSON.stringify(input.body),
+    rawBodyBytes:
+      input.body == null
+        ? null
+        : Buffer.from(JSON.stringify(input.body), "utf8"),
     user: {
       userId: USER_ID,
       email: "planner@praedixa.test",

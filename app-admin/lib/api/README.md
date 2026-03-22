@@ -29,6 +29,8 @@ Ce dossier centralise les chemins et le client HTTP utilises par la console supe
 - Les pages utilisent `hooks/use-api.ts`.
 - Les hooks appellent les chemins definis dans `ADMIN_ENDPOINTS`.
 - Le navigateur passe ensuite par `app/api/v1/[...path]/route.ts`.
+- `client.ts` reste en mode `proxy` par defaut; quand `NEXT_PUBLIC_ADMIN_API_MODE=direct`, il appelle `NEXT_PUBLIC_API_URL` et attend qu'un bearer navigateur valide soit fourni par `lib/auth/client.ts`.
+- En mode `direct`, le bearer provient exclusivement de `GET /auth/session?include_access_token=1`; il ne doit pas etre rederive ailleurs ni remplace par un fallback cookie-only.
 - Les operations connecteurs passent aussi par ce catalogue:
   - `.../integrations/connections/:connectionId/test`
   - `.../integrations/connections/:connectionId/sync`

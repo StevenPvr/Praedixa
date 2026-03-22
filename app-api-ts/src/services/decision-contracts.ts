@@ -258,11 +258,12 @@ export function forkDecisionContractVersion(
     throw new Error("Only published DecisionContracts can be version-forked");
   }
 
+  const description = input.description?.trim() || contract.description;
   return {
     ...contract,
     contractVersion: contract.contractVersion + 1,
     name: input.name?.trim() || contract.name,
-    description: input.description?.trim() || contract.description,
+    ...(description !== undefined ? { description } : {}),
     status: "draft",
     validation: createValidationReset(contract.validation),
     audit: {

@@ -271,15 +271,23 @@ export function buildLedgerDeltaSummary(
     const baselineValue = asFiniteNumber(entry.baseline.values[key]);
     const recommendedValue = asFiniteNumber(entry.recommended.values[key]);
     const actualValue = asFiniteNumber(entry.actual?.values[key]);
+    const recommendedDelta = computeDelta(baselineValue, recommendedValue);
+    const actualDelta = computeDelta(baselineValue, actualValue);
+    const actualVsRecommendedDelta = computeDelta(
+      recommendedValue,
+      actualValue,
+    );
 
     return {
       key,
-      baselineValue,
-      recommendedValue,
-      actualValue,
-      recommendedDelta: computeDelta(baselineValue, recommendedValue),
-      actualDelta: computeDelta(baselineValue, actualValue),
-      actualVsRecommendedDelta: computeDelta(recommendedValue, actualValue),
+      ...(baselineValue !== undefined ? { baselineValue } : {}),
+      ...(recommendedValue !== undefined ? { recommendedValue } : {}),
+      ...(actualValue !== undefined ? { actualValue } : {}),
+      ...(recommendedDelta !== undefined ? { recommendedDelta } : {}),
+      ...(actualDelta !== undefined ? { actualDelta } : {}),
+      ...(actualVsRecommendedDelta !== undefined
+        ? { actualVsRecommendedDelta }
+        : {}),
     };
   });
 
@@ -308,8 +316,8 @@ export function buildLedgerRevisionLineage(
     status: entry.status,
     validationStatus: entry.roi.validationStatus,
     openedAt: entry.openedAt,
-    closedAt: entry.closedAt,
-    supersedes: entry.supersedes,
+    ...(entry.closedAt !== undefined ? { closedAt: entry.closedAt } : {}),
+    ...(entry.supersedes !== undefined ? { supersedes: entry.supersedes } : {}),
     isSelected: entry.revision === selectedRevision,
   }));
 }
@@ -399,13 +407,17 @@ export function resolveLedgerDetail(
   return {
     kind: "LedgerDetail",
     ledgerId: selected.ledgerId,
-    requestedRevision: request.revision,
+    ...(request.revision !== undefined
+      ? { requestedRevision: request.revision }
+      : {}),
     selectedRevision: selected.revision,
     latestRevision: history[history.length - 1]!.revision,
     contractId: selected.contractId,
     contractVersion: selected.contractVersion,
     recommendationId: selected.recommendationId,
-    scenarioRunId: selected.scenarioRunId,
+    ...(selected.scenarioRunId !== undefined
+      ? { scenarioRunId: selected.scenarioRunId }
+      : {}),
     status: selected.status,
     validationStatus: selected.roi.validationStatus,
     scope: selected.scope,
@@ -413,7 +425,7 @@ export function resolveLedgerDetail(
     action: selected.action,
     baseline: selected.baseline,
     recommended: selected.recommended,
-    actual: selected.actual,
+    ...(selected.actual !== undefined ? { actual: selected.actual } : {}),
     counterfactual: selected.counterfactual,
     roi: selected.roi,
     roiComponents,
@@ -427,6 +439,6 @@ export function resolveLedgerDetail(
     requiredComponentKeys,
     explanation: selected.explanation,
     openedAt: selected.openedAt,
-    closedAt: selected.closedAt,
+    ...(selected.closedAt !== undefined ? { closedAt: selected.closedAt } : {}),
   };
 }

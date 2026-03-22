@@ -153,6 +153,7 @@ async def ingest_file_bytes_to_dataset(
         file_name=file_name,
         file_size=len(content),
     )
+    await session.flush()
     await run_incremental(
         dataset.id,
         session,

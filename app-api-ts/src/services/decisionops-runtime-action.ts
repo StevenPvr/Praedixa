@@ -64,15 +64,17 @@ function applyActionDecision(
         return appendActionDispatchRetry(record, {
           retriedAt: occurredAt,
           errorCode: prepared.errorCode,
-          errorMessage: prepared.errorMessage,
+          ...(prepared.errorMessage !== undefined
+            ? { errorMessage: prepared.errorMessage }
+            : {}),
         });
+      default:
+        throw new PersistenceError(
+          "Action dispatch decision outcome is invalid.",
+          400,
+          "INVALID_ACTION_DISPATCH_DECISION",
+        );
     }
-
-    throw new PersistenceError(
-      "Action dispatch decision outcome is invalid.",
-      400,
-      "INVALID_ACTION_DISPATCH_DECISION",
-    );
   } catch (error) {
     throw new PersistenceError(
       error instanceof Error
@@ -102,27 +104,29 @@ function applyActionFallback(
 ): ActionDispatchRecord {
   try {
     switch (input.request.operation) {
-      case "prepare":
+      case "prepare": {
+        const reference = normalizeOptionalText(input.request.reference);
         return activateHumanFallback(record, {
           channel: input.request.channel,
           preparedAt: occurredAt,
           activatedBy: "human",
           activationReason: buildFallbackActivationReason(input.request),
-          reference: normalizeOptionalText(input.request.reference),
+          ...(reference !== undefined ? { reference } : {}),
         });
+      }
       case "execute":
         normalizeReasonCode(
           input.request.reasonCode,
           "INVALID_ACTION_FALLBACK_REASON_CODE",
         );
         return executePreparedFallback(record, occurredAt);
+      default:
+        throw new PersistenceError(
+          "Action dispatch fallback operation is invalid.",
+          400,
+          "INVALID_ACTION_DISPATCH_FALLBACK",
+        );
     }
-
-    throw new PersistenceError(
-      "Action dispatch fallback operation is invalid.",
-      400,
-      "INVALID_ACTION_DISPATCH_FALLBACK",
-    );
   } catch (error) {
     throw new PersistenceError(
       error instanceof Error
@@ -203,9 +207,20 @@ function syncLedgerForAction(
     action: {
       ...ledger.action,
       status: action.status,
-      targetReference:
-        lastAttempt?.targetReference ?? ledger.action.targetReference,
-      lastAttemptAt: lastAttempt?.dispatchedAt ?? ledger.action.lastAttemptAt,
+      ...((lastAttempt?.targetReference ?? ledger.action.targetReference) !==
+      undefined
+        ? {
+            targetReference:
+              lastAttempt?.targetReference ?? ledger.action.targetReference,
+          }
+        : {}),
+      ...((lastAttempt?.dispatchedAt ?? ledger.action.lastAttemptAt) !==
+      undefined
+        ? {
+            lastAttemptAt:
+              lastAttempt?.dispatchedAt ?? ledger.action.lastAttemptAt,
+          }
+        : {}),
     },
     explanation: {
       ...ledger.explanation,

@@ -88,18 +88,6 @@
       "lines": 755
     },
     {
-      "file": "app-api-ts/src/services/dataset-health-api.ts",
-      "lines": 536
-    },
-    {
-      "file": "app-api-ts/src/services/decision-audit-feed.ts",
-      "lines": 1171
-    },
-    {
-      "file": "app-api-ts/src/services/decision-audit.ts",
-      "lines": 741
-    },
-    {
       "file": "app-api-ts/src/services/decision-compatibility.ts",
       "lines": 539
     },
@@ -110,10 +98,6 @@
     {
       "file": "app-api-ts/src/services/decision-contract-templates.ts",
       "lines": 937
-    },
-    {
-      "file": "app-api-ts/src/services/decision-graph-explorer.ts",
-      "lines": 604
     },
     {
       "file": "app-api-ts/src/services/decision-graph.ts",
@@ -941,55 +925,6 @@
       "occurrence": 1
     },
     {
-      "file": "app-api-ts/src/services/dataset-health-api.ts",
-      "name": "matchesFilter",
-      "start": 303,
-      "lines": 53,
-      "occurrence": 1
-    },
-    {
-      "file": "app-api-ts/src/services/decision-audit-feed.ts",
-      "name": "buildDecisionAuditFeedChainSummary",
-      "start": 1039,
-      "lines": 52,
-      "occurrence": 1
-    },
-    {
-      "file": "app-api-ts/src/services/decision-audit-feed.ts",
-      "name": "normalizeScopeFilter",
-      "start": 589,
-      "lines": 71,
-      "occurrence": 1
-    },
-    {
-      "file": "app-api-ts/src/services/decision-audit-feed.ts",
-      "name": "normalizeSubjectFilter",
-      "start": 494,
-      "lines": 77,
-      "occurrence": 1
-    },
-    {
-      "file": "app-api-ts/src/services/decision-audit-feed.ts",
-      "name": "paginateDecisionAuditFeedEntries",
-      "start": 1092,
-      "lines": 53,
-      "occurrence": 1
-    },
-    {
-      "file": "app-api-ts/src/services/decision-audit.ts",
-      "name": "matchesSubjectFilter",
-      "start": 441,
-      "lines": 52,
-      "occurrence": 1
-    },
-    {
-      "file": "app-api-ts/src/services/decision-audit.ts",
-      "name": "validateChainEntry",
-      "start": 535,
-      "lines": 62,
-      "occurrence": 1
-    },
-    {
       "file": "app-api-ts/src/services/decision-compatibility.ts",
       "name": "buildVersionIssues",
       "start": 321,
@@ -1085,20 +1020,6 @@
       "name": "buildDecisionContractStudioPublishReadiness",
       "start": 138,
       "lines": 71,
-      "occurrence": 1
-    },
-    {
-      "file": "app-api-ts/src/services/decision-graph-explorer.ts",
-      "name": "buildDecisionGraphExplorerResponse",
-      "start": 540,
-      "lines": 64,
-      "occurrence": 1
-    },
-    {
-      "file": "app-api-ts/src/services/decision-graph-explorer.ts",
-      "name": "buildDecisionGraphRelationGraphSummary",
-      "start": 413,
-      "lines": 52,
       "occurrence": 1
     },
     {
@@ -1977,13 +1898,6 @@
       "occurrence": 1
     },
     {
-      "file": "app-webapp/components/actions/optimization-panel.tsx",
-      "name": "OptimizationPanel",
-      "start": 22,
-      "lines": 119,
-      "occurrence": 1
-    },
-    {
       "file": "app-webapp/components/app-shell.tsx",
       "name": "AppShellContent",
       "start": 156,
@@ -2009,13 +1923,6 @@
       "name": "MessageThread",
       "start": 34,
       "lines": 122,
-      "occurrence": 1
-    },
-    {
-      "file": "app-webapp/components/dashboard/forecast-timeline-chart.tsx",
-      "name": "ForecastTimelineChart",
-      "start": 50,
-      "lines": 169,
       "occurrence": 1
     },
     {

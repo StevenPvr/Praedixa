@@ -5,13 +5,8 @@ import { render, screen, fireEvent } from "@testing-library/react";
 /*  Mocks                                         */
 /* ────────────────────────────────────────────── */
 
-const mockUseApiGet = vi.fn();
 const mockReplace = vi.fn();
 let mockSearchParams = new URLSearchParams();
-
-vi.mock("@/hooks/use-api", () => ({
-  useApiGet: (...args: unknown[]) => mockUseApiGet(...args),
-}));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: mockReplace, refresh: vi.fn() }),
@@ -102,22 +97,6 @@ const MOCK_CONVERSATIONS = [
   },
 ];
 
-function setupMock(
-  overrides: {
-    data?: unknown;
-    loading?: boolean;
-    error?: string | null;
-  } = {},
-) {
-  mockUseApiGet.mockReturnValue({
-    data: MOCK_CONVERSATIONS,
-    loading: false,
-    error: null,
-    refetch: vi.fn(),
-    ...overrides,
-  });
-}
-
 /* ────────────────────────────────────────────── */
 /*  Tests                                         */
 /* ────────────────────────────────────────────── */
@@ -131,33 +110,53 @@ describe("ConversationList", () => {
   });
 
   it("shows loading state", () => {
-    setupMock({ loading: true, data: null });
     render(
-      <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
+      <ConversationList
+        conversations={null}
+        loading
+        error={null}
+        selectedId={null}
+        onSelect={onSelect}
+      />,
     );
     expect(screen.getByText("Chargement...")).toBeInTheDocument();
   });
 
   it("shows error state", () => {
-    setupMock({ error: "Network error", data: null });
     render(
-      <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
+      <ConversationList
+        conversations={null}
+        loading={false}
+        error="Network error"
+        selectedId={null}
+        onSelect={onSelect}
+      />,
     );
     expect(screen.getByText("Network error")).toBeInTheDocument();
   });
 
   it("shows empty state when no conversations", () => {
-    setupMock({ data: [] });
     render(
-      <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
+      <ConversationList
+        conversations={[]}
+        loading={false}
+        error={null}
+        selectedId={null}
+        onSelect={onSelect}
+      />,
     );
     expect(screen.getByText("Aucune conversation")).toBeInTheDocument();
   });
 
   it("renders all conversations by default", () => {
-    setupMock();
     render(
-      <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
+      <ConversationList
+        conversations={MOCK_CONVERSATIONS}
+        loading={false}
+        error={null}
+        selectedId={null}
+        onSelect={onSelect}
+      />,
     );
     expect(screen.getByText("Probleme import")).toBeInTheDocument();
     expect(screen.getByText("Question config")).toBeInTheDocument();
@@ -165,9 +164,14 @@ describe("ConversationList", () => {
   });
 
   it("renders status badges", () => {
-    setupMock();
     render(
-      <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
+      <ConversationList
+        conversations={MOCK_CONVERSATIONS}
+        loading={false}
+        error={null}
+        selectedId={null}
+        onSelect={onSelect}
+      />,
     );
     const badges = screen.getAllByTestId("status-badge");
     expect(badges).toHaveLength(3);
@@ -177,35 +181,51 @@ describe("ConversationList", () => {
   });
 
   it("shows client icon for client-initiated conversations", () => {
-    setupMock();
     render(
-      <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
+      <ConversationList
+        conversations={MOCK_CONVERSATIONS}
+        loading={false}
+        error={null}
+        selectedId={null}
+        onSelect={onSelect}
+      />,
     );
     expect(screen.getAllByTestId("icon-user")).toHaveLength(2);
   });
 
   it("shows admin icon for admin-initiated conversations", () => {
-    setupMock();
     render(
-      <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
+      <ConversationList
+        conversations={MOCK_CONVERSATIONS}
+        loading={false}
+        error={null}
+        selectedId={null}
+        onSelect={onSelect}
+      />,
     );
     expect(screen.getByTestId("icon-headphones")).toBeInTheDocument();
   });
 
   it("calls onSelect when clicking a conversation", () => {
-    setupMock();
     render(
-      <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
+      <ConversationList
+        conversations={MOCK_CONVERSATIONS}
+        loading={false}
+        error={null}
+        selectedId={null}
+        onSelect={onSelect}
+      />,
     );
     fireEvent.click(screen.getByText("Probleme import"));
     expect(onSelect).toHaveBeenCalledWith("conv-1");
   });
 
   it("highlights selected conversation", () => {
-    setupMock();
     const { container } = render(
       <ConversationList
-        orgId="org-1"
+        conversations={MOCK_CONVERSATIONS}
+        loading={false}
+        error={null}
         selectedId="conv-1"
         onSelect={onSelect}
       />,
@@ -218,9 +238,14 @@ describe("ConversationList", () => {
 
   it("filters by open status via URL param", () => {
     mockSearchParams = new URLSearchParams("filter=open");
-    setupMock();
     render(
-      <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
+      <ConversationList
+        conversations={MOCK_CONVERSATIONS}
+        loading={false}
+        error={null}
+        selectedId={null}
+        onSelect={onSelect}
+      />,
     );
     expect(screen.getByText("Probleme import")).toBeInTheDocument();
     expect(screen.queryByText("Question config")).not.toBeInTheDocument();
@@ -229,18 +254,28 @@ describe("ConversationList", () => {
 
   it("filters by resolved status via URL param", () => {
     mockSearchParams = new URLSearchParams("filter=resolved");
-    setupMock();
     render(
-      <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
+      <ConversationList
+        conversations={MOCK_CONVERSATIONS}
+        loading={false}
+        error={null}
+        selectedId={null}
+        onSelect={onSelect}
+      />,
     );
     expect(screen.queryByText("Probleme import")).not.toBeInTheDocument();
     expect(screen.getByText("Question config")).toBeInTheDocument();
   });
 
   it("updates URL when filter tab is clicked", () => {
-    setupMock();
     render(
-      <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
+      <ConversationList
+        conversations={MOCK_CONVERSATIONS}
+        loading={false}
+        error={null}
+        selectedId={null}
+        onSelect={onSelect}
+      />,
     );
     fireEvent.click(screen.getByText("Ouvertes"));
     expect(mockReplace).toHaveBeenCalledWith("?filter=open", {
@@ -250,18 +285,28 @@ describe("ConversationList", () => {
 
   it("removes filter param when Toutes is clicked", () => {
     mockSearchParams = new URLSearchParams("filter=open");
-    setupMock();
     render(
-      <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
+      <ConversationList
+        conversations={MOCK_CONVERSATIONS}
+        loading={false}
+        error={null}
+        selectedId={null}
+        onSelect={onSelect}
+      />,
     );
     fireEvent.click(screen.getByText("Toutes"));
     expect(mockReplace).toHaveBeenCalledWith("?", { scroll: false });
   });
 
   it("renders 3 filter tabs", () => {
-    setupMock();
     render(
-      <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
+      <ConversationList
+        conversations={MOCK_CONVERSATIONS}
+        loading={false}
+        error={null}
+        selectedId={null}
+        onSelect={onSelect}
+      />,
     );
     expect(screen.getByText("Toutes")).toBeInTheDocument();
     expect(screen.getByText("Ouvertes")).toBeInTheDocument();
@@ -270,22 +315,16 @@ describe("ConversationList", () => {
 
   it("shows empty state when filter yields no results", () => {
     mockSearchParams = new URLSearchParams("filter=resolved");
-    setupMock({ data: [MOCK_CONVERSATIONS[0]] }); // only "open"
     render(
-      <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
+      <ConversationList
+        conversations={[MOCK_CONVERSATIONS[0]]}
+        loading={false}
+        error={null}
+        selectedId={null}
+        onSelect={onSelect}
+      />,
     );
     expect(screen.getByText("Aucune conversation")).toBeInTheDocument();
-  });
-
-  it("passes orgId to useApiGet", () => {
-    setupMock();
-    render(
-      <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
-    );
-    expect(mockUseApiGet).toHaveBeenCalledWith(
-      expect.stringContaining("/organizations/org-1/conversations"),
-      expect.objectContaining({ pollInterval: 30000 }),
-    );
   });
 });
 

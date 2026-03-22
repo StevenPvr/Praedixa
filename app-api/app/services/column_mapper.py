@@ -29,6 +29,10 @@ logger = logging.getLogger(__name__)
 
 __all__ = ["ColumnMapping", "map_columns", "MappingResult"]
 
+
+def _empty_string_list() -> list[str]:
+    return []
+
 # ── Format-specific alias dictionaries ──────────────────
 
 # Lucca HR/absence CSV headers -> normalized column names.
@@ -144,9 +148,9 @@ class MappingResult:
     """Complete mapping result with matched and unmatched columns."""
 
     mappings: list[ColumnMapping]
-    unmapped_source: list[str] = field(default_factory=list)
-    unmapped_target: list[str] = field(default_factory=list)
-    warnings: list[str] = field(default_factory=list)
+    unmapped_source: list[str] = field(default_factory=_empty_string_list)
+    unmapped_target: list[str] = field(default_factory=_empty_string_list)
+    warnings: list[str] = field(default_factory=_empty_string_list)
 
 
 # ── Public API ───────────────────────────────────────────

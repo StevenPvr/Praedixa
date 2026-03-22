@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from itertools import islice
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
+from app.integrations.connectors._shared import ingest_provider_event_batches
 from app.integrations.connectors.salesforce.client import SalesforceApiClient
 from app.integrations.connectors.salesforce.mapper import (
     build_salesforce_queries,
@@ -23,7 +23,6 @@ if TYPE_CHECKING:
         RuntimeProviderAccessContext,
     )
 
-_MAX_PROVIDER_INGEST_BATCH = 200
 _SALESFORCE_SCHEMA_VERSION = "salesforce.rest.v1"
 
 
@@ -34,21 +33,6 @@ class SalesforcePullResult:
     fetched_records: int
     accepted_events: int
     duplicate_events: int
-
-
-def _chunk_events(
-    events: list[dict[str, object]],
-    chunk_size: int = _MAX_PROVIDER_INGEST_BATCH,
-) -> tuple[list[dict[str, object]], ...]:
-    chunks: list[list[dict[str, object]]] = []
-    iterator = iter(events)
-    while True:
-        chunk = list(islice(iterator, chunk_size))
-        if not chunk:
-            break
-        chunks.append(chunk)
-    return tuple(chunks)
-
 
 async def pull_salesforce_connection(
     runtime_client: ConnectorsRuntimeClient,
@@ -62,7 +46,7 @@ async def pull_salesforce_connection(
     config = connection.get("config", {})
     if not isinstance(config, dict):
         raise TypeError("Salesforce connection config must be an object")
-    api_version = resolve_salesforce_api_version(config)
+    api_version = resolve_salesforce_api_version(cast("dict[str, Any]", config))
 
     salesforce_client = SalesforceApiClient(
         base_url=access_context.base_url,
@@ -83,17 +67,15 @@ async def pull_salesforce_connection(
                 map_salesforce_record_to_event(query.source_object, record)
                 for record in records
             ]
-            for chunk in _chunk_events(events):
-                ingest_result = await runtime_client.ingest_provider_events(
-                    claimed_run.organization_id,
-                    claimed_run.connection_id,
-                    sync_run_id=claimed_run.id,
-                    worker_id=worker_id,
-                    schema_version=_SALESFORCE_SCHEMA_VERSION,
-                    events=chunk,
-                )
-                accepted_events += int(ingest_result.get("accepted", 0))
-                duplicate_events += int(ingest_result.get("duplicates", 0))
+            ingest_totals = await ingest_provider_event_batches(
+                runtime_client,
+                claimed_run,
+                worker_id=worker_id,
+                schema_version=_SALESFORCE_SCHEMA_VERSION,
+                events=events,
+            )
+            accepted_events += ingest_totals.accepted_events
+            duplicate_events += ingest_totals.duplicate_events
     finally:
         await salesforce_client.aclose()
 

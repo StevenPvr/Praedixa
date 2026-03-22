@@ -10,7 +10,15 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-from alembic import op
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
+
+NOW_SQL = "now()"
+ORGANIZATIONS_ID_REF = "organizations.id"
+USERS_ID_REF = "users.id"
+INTEGRATION_CONNECTIONS_ID_REF = "integration_connections.id"
+INTEGRATION_SYNC_RUNS_ID_REF = "integration_sync_runs.id"
+ON_DELETE_CASCADE = "CASCADE"
+ON_DELETE_SET_NULL = "SET NULL"
 
 # revision identifiers, used by Alembic.
 revision: str = "026"
@@ -161,19 +169,19 @@ def upgrade() -> None:
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+            ["organization_id"], [ORGANIZATIONS_ID_REF], ondelete=ON_DELETE_CASCADE
         ),
-        sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="SET NULL"),
-        sa.ForeignKeyConstraint(["updated_by"], ["users.id"], ondelete="SET NULL"),
+        sa.ForeignKeyConstraint(["created_by"], [USERS_ID_REF], ondelete=ON_DELETE_SET_NULL),
+        sa.ForeignKeyConstraint(["updated_by"], [USERS_ID_REF], ondelete=ON_DELETE_SET_NULL),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
             "organization_id",
@@ -210,7 +218,7 @@ def upgrade() -> None:
             "available_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column("attempts", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("max_attempts", sa.Integer(), nullable=False, server_default="8"),
@@ -242,21 +250,21 @@ def upgrade() -> None:
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+            ["organization_id"], [ORGANIZATIONS_ID_REF], ondelete=ON_DELETE_CASCADE
         ),
         sa.ForeignKeyConstraint(
-            ["connection_id"], ["integration_connections.id"], ondelete="CASCADE"
+            ["connection_id"], [INTEGRATION_CONNECTIONS_ID_REF], ondelete=ON_DELETE_CASCADE
         ),
-        sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="SET NULL"),
+        sa.ForeignKeyConstraint(["created_by"], [USERS_ID_REF], ondelete=ON_DELETE_SET_NULL),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
             "connection_id",
@@ -297,22 +305,22 @@ def upgrade() -> None:
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+            ["organization_id"], [ORGANIZATIONS_ID_REF], ondelete=ON_DELETE_CASCADE
         ),
         sa.ForeignKeyConstraint(
-            ["connection_id"], ["integration_connections.id"], ondelete="CASCADE"
+            ["connection_id"], [INTEGRATION_CONNECTIONS_ID_REF], ondelete=ON_DELETE_CASCADE
         ),
         sa.ForeignKeyConstraint(
-            ["last_run_id"], ["integration_sync_runs.id"], ondelete="SET NULL"
+            ["last_run_id"], [INTEGRATION_SYNC_RUNS_ID_REF], ondelete=ON_DELETE_SET_NULL
         ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
@@ -340,7 +348,7 @@ def upgrade() -> None:
             "received_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "replayed", sa.Boolean(), nullable=False, server_default=sa.text("false")
@@ -349,22 +357,22 @@ def upgrade() -> None:
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+            ["organization_id"], [ORGANIZATIONS_ID_REF], ondelete=ON_DELETE_CASCADE
         ),
         sa.ForeignKeyConstraint(
-            ["connection_id"], ["integration_connections.id"], ondelete="CASCADE"
+            ["connection_id"], [INTEGRATION_CONNECTIONS_ID_REF], ondelete=ON_DELETE_CASCADE
         ),
         sa.ForeignKeyConstraint(
-            ["sync_run_id"], ["integration_sync_runs.id"], ondelete="SET NULL"
+            ["sync_run_id"], [INTEGRATION_SYNC_RUNS_ID_REF], ondelete=ON_DELETE_SET_NULL
         ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
@@ -403,21 +411,21 @@ def upgrade() -> None:
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+            ["organization_id"], [ORGANIZATIONS_ID_REF], ondelete=ON_DELETE_CASCADE
         ),
         sa.ForeignKeyConstraint(
-            ["connection_id"], ["integration_connections.id"], ondelete="CASCADE"
+            ["connection_id"], [INTEGRATION_CONNECTIONS_ID_REF], ondelete=ON_DELETE_CASCADE
         ),
-        sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="SET NULL"),
+        sa.ForeignKeyConstraint(["created_by"], [USERS_ID_REF], ondelete=ON_DELETE_SET_NULL),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
             "connection_id",
@@ -450,7 +458,7 @@ def upgrade() -> None:
             "occurred_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "resolved", sa.Boolean(), nullable=False, server_default=sa.text("false")
@@ -461,24 +469,24 @@ def upgrade() -> None:
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+            ["organization_id"], [ORGANIZATIONS_ID_REF], ondelete=ON_DELETE_CASCADE
         ),
         sa.ForeignKeyConstraint(
-            ["connection_id"], ["integration_connections.id"], ondelete="CASCADE"
+            ["connection_id"], [INTEGRATION_CONNECTIONS_ID_REF], ondelete=ON_DELETE_CASCADE
         ),
         sa.ForeignKeyConstraint(
-            ["sync_run_id"], ["integration_sync_runs.id"], ondelete="SET NULL"
+            ["sync_run_id"], [INTEGRATION_SYNC_RUNS_ID_REF], ondelete=ON_DELETE_SET_NULL
         ),
-        sa.ForeignKeyConstraint(["resolved_by"], ["users.id"], ondelete="SET NULL"),
+        sa.ForeignKeyConstraint(["resolved_by"], [USERS_ID_REF], ondelete=ON_DELETE_SET_NULL),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -515,22 +523,22 @@ def upgrade() -> None:
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+            ["organization_id"], [ORGANIZATIONS_ID_REF], ondelete=ON_DELETE_CASCADE
         ),
         sa.ForeignKeyConstraint(
-            ["connection_id"], ["integration_connections.id"], ondelete="CASCADE"
+            ["connection_id"], [INTEGRATION_CONNECTIONS_ID_REF], ondelete=ON_DELETE_CASCADE
         ),
         sa.ForeignKeyConstraint(
-            ["sync_run_id"], ["integration_sync_runs.id"], ondelete="SET NULL"
+            ["sync_run_id"], [INTEGRATION_SYNC_RUNS_ID_REF], ondelete=ON_DELETE_SET_NULL
         ),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -568,28 +576,28 @@ def upgrade() -> None:
             "received_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+            ["organization_id"], [ORGANIZATIONS_ID_REF], ondelete=ON_DELETE_CASCADE
         ),
         sa.ForeignKeyConstraint(
-            ["connection_id"], ["integration_connections.id"], ondelete="CASCADE"
+            ["connection_id"], [INTEGRATION_CONNECTIONS_ID_REF], ondelete=ON_DELETE_CASCADE
         ),
         sa.ForeignKeyConstraint(
-            ["sync_run_id"], ["integration_sync_runs.id"], ondelete="SET NULL"
+            ["sync_run_id"], [INTEGRATION_SYNC_RUNS_ID_REF], ondelete=ON_DELETE_SET_NULL
         ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
@@ -620,21 +628,21 @@ def upgrade() -> None:
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
         ),
         sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+            ["organization_id"], [ORGANIZATIONS_ID_REF], ondelete=ON_DELETE_CASCADE
         ),
         sa.ForeignKeyConstraint(
-            ["connection_id"], ["integration_connections.id"], ondelete="SET NULL"
+            ["connection_id"], [INTEGRATION_CONNECTIONS_ID_REF], ondelete=ON_DELETE_SET_NULL
         ),
-        sa.ForeignKeyConstraint(["actor_user_id"], ["users.id"], ondelete="SET NULL"),
+        sa.ForeignKeyConstraint(["actor_user_id"], [USERS_ID_REF], ondelete=ON_DELETE_SET_NULL),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(

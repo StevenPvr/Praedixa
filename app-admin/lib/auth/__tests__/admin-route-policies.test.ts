@@ -6,10 +6,8 @@ import { describe, expect, it } from "vitest";
 import {
   ADMIN_API_POLICIES,
   ADMIN_PAGE_POLICIES,
-  getRequiredPermissionsForPath,
   resolveAdminApiPolicy,
 } from "../admin-route-policies";
-import { getRequiredPermissionsForPath as getLegacyRequiredPermissionsForPath } from "../route-access";
 
 function resolvePermissionTaxonomyPath() {
   const candidatePaths = [
@@ -76,25 +74,6 @@ describe("admin route policy taxonomy", () => {
       }
 
       expectPermissionsToBeVersioned(policy.requiredPermissions);
-    }
-  });
-
-  it("keeps legacy route-access helpers aligned with page policies", () => {
-    const coveredPaths = [
-      "/",
-      "/clients",
-      "/clients/org-1/dashboard",
-      "/clients/org-1/config",
-      "/clients/org-1/equipe",
-      "/journal",
-      "/demandes-contact",
-      "/parametres",
-    ] as const;
-
-    for (const pathname of coveredPaths) {
-      expect(getLegacyRequiredPermissionsForPath(pathname)).toEqual(
-        getRequiredPermissionsForPath(pathname),
-      );
     }
   });
 

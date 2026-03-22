@@ -7,8 +7,7 @@ Create Date: 2026-03-18 15:20:00.000000
 
 from collections.abc import Sequence
 
-from alembic import op
-
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
 
 # revision identifiers, used by Alembic.
 revision: str = "029_onboarding_camunda_only"

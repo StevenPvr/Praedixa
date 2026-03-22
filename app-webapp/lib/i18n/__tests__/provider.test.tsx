@@ -10,6 +10,15 @@ vi.mock("@/lib/api/client", () => ({
   apiPatch: (...args: unknown[]) => mockApiPatch(...args),
 }));
 
+vi.mock("@/lib/runtime-features", () => ({
+  WEBAPP_RUNTIME_FEATURES: {
+    messagingWorkspace: false,
+    operationalDecisionHistory: false,
+    userPreferencesPersistence: true,
+  },
+  unavailableFeatureMessage: (label: string) => `${label} indisponible`,
+}));
+
 function Harness() {
   const { locale, preferencesSyncError, preferencesSyncState, setLocale } =
     useI18n();

@@ -6,8 +6,8 @@ Appliquer un gate sécurité/qualité bloquant avec preuve locale signée.
 
 ## Architecture actuelle (3 couches)
 
-- Couche A (pre-commit, bloquante): `./scripts/gate-precommit-blocking.sh`
-- Couche B (pre-push, deep): `./scripts/gate-prepush-deep.sh`
+- Couche A (pre-commit, bloquante): `./scripts/gates/gate-precommit-blocking.sh`
+- Couche B (pre-push, deep): `./scripts/gates/gate-prepush-deep.sh`
 - Couche C (exhaustive): `pnpm gate:exhaustive`
 
 ## Commandes canoniques
@@ -22,20 +22,20 @@ Appliquer un gate sécurité/qualité bloquant avec preuve locale signée.
 ## Hooks
 
 - `pre-commit` execute:
-  - `./scripts/gate-precommit-blocking.sh`
+  - `./scripts/gates/gate-precommit-blocking.sh`
   - `prettier --write` sur les fichiers stages compatibles
-    - `./scripts/gate-precommit-delta.sh` (garde-fous securite)
-    - `./scripts/gate-precommit-tests.sh` (pytest complet incluant unit + vitest Next.js + Playwright e2e)
+    - `./scripts/gates/gate-precommit-delta.sh` (garde-fous securite)
+    - `./scripts/gates/gate-precommit-tests.sh` (pytest complet incluant unit + vitest Next.js + Playwright e2e)
 - `commit-msg` execute:
-  - `./scripts/check-commit-message.sh`
+  - `./scripts/gates/check-commit-message.sh`
 - `pre-push` execute:
-  - `./scripts/gate-prepush-deep.sh`
-  - puis `./scripts/verify-gate-report.sh --mode manual --run-if-missing --max-age-seconds 21600`
+  - `./scripts/gates/gate-prepush-deep.sh`
+  - puis `./scripts/gates/verify-gate-report.sh --mode manual --run-if-missing --max-age-seconds 21600`
 
 Installation hooks:
 
 ```bash
-./scripts/install-prek.sh
+./scripts/dev/install-prek.sh
 ```
 
 ## Contrat de rapport signe
@@ -106,7 +106,8 @@ Securite/qualite/perf:
 - `grype`
 - `terraform` + `tflint` (si fichiers `.tf`)
 
-Le `pre-push` profond execute aussi `./scripts/gate-quality-static.sh` avec lint ESLint sans warnings, resynchronise `app-api/.venv` depuis `app-api/uv.lock`, lance `pip-audit` via l'extra `dev` du sous-projet, puis verifie les invariants declares (`python3 scripts/check-security-invariants.py --mode full`) avant la verification du rapport signe.
+Le hook `pre-push` commence maintenant par `./scripts/gates/gate-typecheck-all.sh`, qui rejoue les typechecks TypeScript projet par projet pour remonter d'un coup toutes les erreurs de type du monorepo.
+Le `pre-push` profond execute ensuite `./scripts/gates/gate-quality-static.sh` avec lint ESLint sans warnings, typecheck exhaustif, resynchronisation `app-api/.venv` depuis `app-api/uv.lock`, `pip-audit` via l'extra `dev` du sous-projet, puis verification des invariants declares (`python3 scripts/check-security-invariants.py --mode full`) avant la verification du rapport signe.
 Le `pre-push` et le gate exhaustif rejouent aussi `pnpm performance:validate-budgets`, pour que les baselines performance versionnees restent effectivement bloquantes au niveau local.
 Le scan Trivy secrets du gate profond ignore uniquement les fichiers `.env`, `.env.local` et `.env.*.local` deja exclus par Git, afin de ne pas confondre secrets locaux non versionnes et fuite commitable.
 Le gate exhaustif lance CodeQL `security-extended` sur un snapshot source epure des artefacts generes (`.next`, `.open-next`, `coverage`, `playwright-report`) et des depots imbriques hors scope. Les controles de qualite restent portes par ESLint, TypeScript, Ruff, MyPy, Knip, dependency-cruiser, deptry et les builds/tests.

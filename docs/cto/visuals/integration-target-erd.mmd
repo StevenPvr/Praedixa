@@ -1,0 +1,26 @@
+flowchart TB
+    connections[(integration_connections)]
+    sync_runs[(integration_sync_runs)]
+    sync_state[(integration_sync_state)]
+    raw_events[(integration_raw_events)]
+    field_mappings[(integration_field_mappings)]
+    error_events[(integration_error_events)]
+    dlq[(integration_dead_letter_queue)]
+    webhooks[(integration_webhook_receipts)]
+    audit[(integration_audit_events)]
+
+    connections --> sync_runs
+    connections --> sync_state
+    connections --> raw_events
+    connections --> field_mappings
+    connections --> error_events
+    connections --> dlq
+    connections --> webhooks
+    connections --> audit
+    sync_runs --> raw_events
+    sync_runs --> error_events
+    sync_runs --> dlq
+    sync_runs --> webhooks
+
+    note["Cible relationnelle cote Python/Alembic.\nA lire en parallele avec le runtime reel\nconnector_runtime_snapshots + connector_secret_records."]
+    connections -.-> note

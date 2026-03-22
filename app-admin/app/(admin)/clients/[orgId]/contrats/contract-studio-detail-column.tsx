@@ -26,8 +26,46 @@ interface ContractStudioDetailColumnProps {
   onRetryDetail: () => void;
 }
 
+type ContractStudioDetailCardsProps = {
+  orgId: string;
+  detail: DecisionContractStudioDetailResponse;
+  rollbackError: string | null;
+  rollbackCandidates: DecisionContractStudioRollbackCandidateResponse | null;
+  templates: DecisionContractTemplateListResponse | null;
+  canMutate: boolean;
+  onSelectionChange: (selection: ContractStudioSelection) => void;
+};
+
+type ContractStudioRollbackWarningProps = {
+  error: string;
+};
+
+type ContractStudioCurrentCardProps = {
+  detail: DecisionContractStudioDetailResponse;
+};
+
+type ContractStudioCurrentHeaderProps = {
+  detail: DecisionContractStudioDetailResponse;
+};
+
+type ContractStudioContractMetricsProps = {
+  detail: DecisionContractStudioDetailResponse;
+};
+
+type ContractStudioChangeSummaryProps = {
+  detail: DecisionContractStudioDetailResponse;
+};
+
+type ContractStudioPublishChecklistProps = {
+  detail: DecisionContractStudioDetailResponse;
+};
+
+type ContractStudioAuditCardProps = {
+  detail: DecisionContractStudioDetailResponse;
+};
+
 export function ContractStudioDetailColumn(
-  props: ContractStudioDetailColumnProps,
+  props: Readonly<ContractStudioDetailColumnProps>,
 ) {
   const detailState = getContractStudioDetailState(props);
   if (detailState) {
@@ -46,13 +84,11 @@ export function ContractStudioDetailColumn(
   );
 }
 
-function getContractStudioDetailState({
-  detailLoading,
-  rollbackLoading,
-  detailError,
-  detail,
-  onRetryDetail,
-}: ContractStudioDetailColumnProps) {
+function getContractStudioDetailState(
+  props: Readonly<ContractStudioDetailColumnProps>,
+) {
+  const { detailLoading, rollbackLoading, detailError, detail, onRetryDetail } =
+    props;
   if (detailLoading || rollbackLoading) {
     return <SkeletonCard />;
   }
@@ -70,25 +106,20 @@ function getContractStudioDetailState({
   return null;
 }
 
-function ContractStudioDetailCards({
-  orgId,
-  detail,
-  rollbackError,
-  rollbackCandidates,
-  templates,
-  canMutate,
-  onSelectionChange,
-}: {
-  orgId: string;
-  detail: DecisionContractStudioDetailResponse;
-  rollbackError: string | null;
-  rollbackCandidates: DecisionContractStudioRollbackCandidateResponse | null;
-  templates: DecisionContractTemplateListResponse | null;
-  canMutate: boolean;
-  onSelectionChange: (selection: ContractStudioSelection) => void;
-}) {
+function ContractStudioDetailCards(
+  props: Readonly<ContractStudioDetailCardsProps>,
+) {
+  const {
+    orgId,
+    detail,
+    rollbackError,
+    rollbackCandidates,
+    templates,
+    canMutate,
+    onSelectionChange,
+  } = props;
   return (
-    <>
+    <div className="space-y-6">
       {rollbackError ? (
         <ContractStudioRollbackWarning error={rollbackError} />
       ) : null}
@@ -102,11 +133,14 @@ function ContractStudioDetailCards({
       />
       <ContractStudioCurrentCard detail={detail} />
       <ContractStudioAuditCard detail={detail} />
-    </>
+    </div>
   );
 }
 
-function ContractStudioRollbackWarning({ error }: { error: string }) {
+function ContractStudioRollbackWarning(
+  props: Readonly<ContractStudioRollbackWarningProps>,
+) {
+  const { error } = props;
   return (
     <ReadOnlyStateCard
       tone="warning"
@@ -117,11 +151,10 @@ function ContractStudioRollbackWarning({ error }: { error: string }) {
   );
 }
 
-function ContractStudioCurrentCard({
-  detail,
-}: {
-  detail: DecisionContractStudioDetailResponse;
-}) {
+function ContractStudioCurrentCard(
+  props: Readonly<ContractStudioCurrentCardProps>,
+) {
+  const { detail } = props;
   return (
     <Card className="rounded-2xl shadow-soft">
       <CardContent className="space-y-4 p-5">
@@ -136,11 +169,10 @@ function ContractStudioCurrentCard({
   );
 }
 
-function ContractStudioCurrentHeader({
-  detail,
-}: {
-  detail: DecisionContractStudioDetailResponse;
-}) {
+function ContractStudioCurrentHeader(
+  props: Readonly<ContractStudioCurrentHeaderProps>,
+) {
+  const { detail } = props;
   return (
     <div>
       <h3 className="text-sm font-medium text-ink-secondary">
@@ -154,11 +186,10 @@ function ContractStudioCurrentHeader({
   );
 }
 
-function ContractStudioContractMetrics({
-  detail,
-}: {
-  detail: DecisionContractStudioDetailResponse;
-}) {
+function ContractStudioContractMetrics(
+  props: Readonly<ContractStudioContractMetricsProps>,
+) {
+  const { detail } = props;
   const items = [
     [
       "Graph ref",
@@ -172,18 +203,18 @@ function ContractStudioContractMetrics({
     <div className="grid gap-3 text-sm text-ink-tertiary md:grid-cols-2">
       {items.map(([label, value]) => (
         <p key={label}>
-          {label}: <span className="text-ink">{value}</span>
+          <span>{label}: </span>
+          <span className="text-ink">{value}</span>
         </p>
       ))}
     </div>
   );
 }
 
-function ContractStudioChangeSummary({
-  detail,
-}: {
-  detail: DecisionContractStudioDetailResponse;
-}) {
+function ContractStudioChangeSummary(
+  props: Readonly<ContractStudioChangeSummaryProps>,
+) {
+  const { detail } = props;
   return (
     <div className="rounded-xl border border-border bg-surface-sunken p-4 text-sm text-ink-tertiary">
       <p className="font-medium text-ink">Resume des changements</p>
@@ -203,18 +234,19 @@ function ContractStudioChangeSummary({
   );
 }
 
-function ContractStudioPublishChecklist({
-  detail,
-}: {
-  detail: DecisionContractStudioDetailResponse;
-}) {
+function ContractStudioPublishChecklist(
+  props: Readonly<ContractStudioPublishChecklistProps>,
+) {
+  const { detail } = props;
   return (
     <div className="rounded-xl border border-border bg-surface-sunken p-4 text-sm text-ink-tertiary">
       <p className="font-medium text-ink">Checklist de publish</p>
       <ul className="mt-2 space-y-1">
         {detail.publishReadiness.checklist.map((item) => (
           <li key={item.key}>
-            {item.complete ? "OK" : "KO"} - {item.label}
+            <span>{item.complete ? "OK" : "KO"}</span>
+            <span> - </span>
+            <span>{item.label}</span>
           </li>
         ))}
       </ul>
@@ -222,11 +254,10 @@ function ContractStudioPublishChecklist({
   );
 }
 
-function ContractStudioAuditCard({
-  detail,
-}: {
-  detail: DecisionContractStudioDetailResponse;
-}) {
+function ContractStudioAuditCard(
+  props: Readonly<ContractStudioAuditCardProps>,
+) {
+  const { detail } = props;
   return (
     <Card className="rounded-2xl shadow-soft">
       <CardContent className="space-y-3 p-5">

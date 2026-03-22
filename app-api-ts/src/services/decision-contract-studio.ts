@@ -168,10 +168,9 @@ export function buildDecisionContractStudioPublishReadiness(
       label: "Validation passed",
       complete: contract.validation?.status === "passed",
       blocking: true,
-      detail:
-        contract.validation?.status === "failed"
-          ? contract.validation.issues.join("; ")
-          : undefined,
+      ...(contract.validation?.status === "failed"
+        ? { detail: contract.validation.issues.join("; ") }
+        : {}),
     },
     {
       key: "approvalAudit",
@@ -351,10 +350,14 @@ export function buildDecisionContractStudioDetailResponse(
     validation: buildDecisionContractStudioValidationSummary(contract),
     publishReadiness: buildDecisionContractStudioPublishReadiness(contract),
     lineage: buildDecisionContractStudioLineageDisplay(contract),
-    changeSummary:
-      compareTo == null
-        ? undefined
-        : buildDecisionContractStudioChangeSummary(contract, compareTo),
+    ...(compareTo != null
+      ? {
+          changeSummary: buildDecisionContractStudioChangeSummary(
+            contract,
+            compareTo,
+          ),
+        }
+      : {}),
     history,
   };
 }
@@ -366,14 +369,16 @@ export function buildDecisionContractStudioForkDraftResponse(
 ): DecisionContractStudioForkDraftResponse {
   const draftContract = forkDecisionContractVersion(contract, {
     actor: request.actor,
-    name: request.name,
-    description: request.description,
+    ...(request.name !== undefined ? { name: request.name } : {}),
+    ...(request.description !== undefined
+      ? { description: request.description }
+      : {}),
   });
 
   return {
     sourceContractId: contract.contractId,
     sourceContractVersion: contract.contractVersion,
-    targetContractVersion,
+    ...(targetContractVersion !== undefined ? { targetContractVersion } : {}),
     draftContract,
     badge: buildBadge(draftContract),
     validation: buildDecisionContractStudioValidationSummary(draftContract),

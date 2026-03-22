@@ -388,23 +388,17 @@ function mapCoverageAlert(
     pRupture: toNumber(row.p_rupture) ?? 0,
     gapH: toNumber(row.gap_h) ?? 0,
     ...(toNumber(row.prediction_interval_low) != null
-      ? {
-          predictionIntervalLow:
-            toNumber(row.prediction_interval_low) ?? undefined,
-        }
+      ? { predictionIntervalLow: toNumber(row.prediction_interval_low)! }
       : {}),
     ...(toNumber(row.prediction_interval_high) != null
-      ? {
-          predictionIntervalHigh:
-            toNumber(row.prediction_interval_high) ?? undefined,
-        }
+      ? { predictionIntervalHigh: toNumber(row.prediction_interval_high)! }
       : {}),
     ...(row.model_version ? { modelVersion: row.model_version } : {}),
     ...(row.calibration_bucket
       ? { calibrationBucket: row.calibration_bucket }
       : {}),
     ...(toNumber(row.impact_eur) != null
-      ? { impactEur: toNumber(row.impact_eur) ?? undefined }
+      ? { impactEur: toNumber(row.impact_eur)! }
       : {}),
     severity: row.severity as PersistentCoverageAlertRecord["severity"],
     status: row.status as PersistentCoverageAlertRecord["status"],
@@ -489,25 +483,22 @@ function mapProofRecordRow(row: DbProofRecordRow): PersistentProofPackRecord {
     coutReelEur: toNumber(row.cout_reel_eur) ?? 0,
     gainNetEur: toNumber(row.gain_net_eur) ?? 0,
     ...(toNumber(row.service_bau_pct) != null
-      ? { serviceBauPct: toNumber(row.service_bau_pct) ?? undefined }
+      ? { serviceBauPct: toNumber(row.service_bau_pct)! }
       : {}),
     ...(toNumber(row.service_reel_pct) != null
-      ? { serviceReelPct: toNumber(row.service_reel_pct) ?? undefined }
+      ? { serviceReelPct: toNumber(row.service_reel_pct)! }
       : {}),
     ...(toNumber(row.capture_rate) != null
-      ? { captureRate: toNumber(row.capture_rate) ?? undefined }
+      ? { captureRate: toNumber(row.capture_rate)! }
       : {}),
     ...(row.bau_method_version
       ? { bauMethodVersion: row.bau_method_version }
       : {}),
     ...(toNumber(row.attribution_confidence) != null
-      ? {
-          attributionConfidence:
-            toNumber(row.attribution_confidence) ?? undefined,
-        }
+      ? { attributionConfidence: toNumber(row.attribution_confidence)! }
       : {}),
     ...(toNumber(row.adoption_pct) != null
-      ? { adoptionPct: toNumber(row.adoption_pct) ?? undefined }
+      ? { adoptionPct: toNumber(row.adoption_pct)! }
       : {}),
     alertesEmises: Number(row.alertes_emises),
     alertesTraitees: Number(row.alertes_traitees),

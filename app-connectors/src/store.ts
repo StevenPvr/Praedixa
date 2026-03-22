@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { CONNECTOR_CATALOG } from "./catalog.js";
-import { makeIdempotencyKey } from "./security.js";
+import { createOpaqueStateToken, makeIdempotencyKey } from "./security.js";
 import type {
   AuthorizationSession,
   ConnectionSyncState,
@@ -343,6 +343,35 @@ export class InMemoryConnectorStore {
     };
   }
 
+  findRawEventByEventId(
+    organizationId: string,
+    connectionId: string,
+    eventId: string,
+  ): IngestRawEvent | null {
+    const replayKey = makeIdempotencyKey(
+      organizationId,
+      connectionId,
+      "raw_event",
+      eventId,
+    );
+    const existingId = this.rawEventIndex.get(replayKey);
+    if (existingId == null) {
+      return null;
+    }
+
+    const existing = this.rawEvents.get(existingId);
+    if (
+      existing == null ||
+      existing.organizationId !== organizationId ||
+      existing.connectionId !== connectionId
+    ) {
+      this.rawEventIndex.delete(replayKey);
+      return null;
+    }
+
+    return existing;
+  }
+
   listRawEvents(
     organizationId: string,
     connectionId?: string | null,
@@ -404,6 +433,7 @@ export class InMemoryConnectorStore {
     connectionId: string,
     workerId: string,
     limit: number,
+    claimTokenFactory?: (() => string) | null,
   ): IngestRawEvent[] {
     const claimedAt = new Date().toISOString();
     const candidates = this.listRawEvents(organizationId, connectionId)
@@ -415,7 +445,7 @@ export class InMemoryConnectorStore {
         this.updateRawEvent(organizationId, connectionId, event.id, {
           processingStatus: "processing",
           claimedAt,
-          claimedBy: workerId,
+          claimedBy: claimTokenFactory?.() ?? workerId,
           errorMessage: null,
         }),
       )
@@ -633,6 +663,7 @@ export class InMemoryConnectorStore {
     workerId: string,
     limit: number,
     leaseSeconds: number,
+    lockTokenFactory?: (() => string) | null,
   ): SyncRun[] {
     if (organizationIds.length === 0 || limit < 1) {
       return [];
@@ -648,10 +679,13 @@ export class InMemoryConnectorStore {
         if (!allowedOrganizations.has(run.organizationId)) {
           return false;
         }
-        if (run.status !== "queued") {
+        if (run.status === "queued") {
+          return Date.parse(run.availableAt) <= nowMs;
+        }
+        if (run.status !== "running" || run.leaseExpiresAt == null) {
           return false;
         }
-        return Date.parse(run.availableAt) <= nowMs;
+        return Date.parse(run.leaseExpiresAt) <= nowMs;
       })
       .sort((left, right) => {
         if (left.priority !== right.priority) {
@@ -675,11 +709,15 @@ export class InMemoryConnectorStore {
           startedAt: claimedAt,
           endedAt: null,
           attempts: run.attempts + 1,
-          lockedBy: workerId,
+          lockedBy: lockTokenFactory?.() ?? workerId,
           leaseExpiresAt,
         }),
       )
       .filter((run): run is SyncRun => run != null);
+  }
+
+  issueClaimToken(): string {
+    return createOpaqueStateToken();
   }
 
   getSyncRun(organizationId: string, runId: string): SyncRun | null {

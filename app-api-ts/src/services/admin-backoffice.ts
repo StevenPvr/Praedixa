@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import type { EmailDeliveryProof } from "@praedixa/shared-types/api";
 import { Pool, type PoolClient } from "pg";
 import {
   KeycloakAdminIdentityError,
@@ -7,6 +8,10 @@ import {
   getKeycloakAdminIdentityServiceFromEnv,
   type ManagedAdminUserRole,
 } from "./keycloak-admin-identity.js";
+import {
+  InvitationDeliveryProofService,
+  getInvitationDeliveryProofService,
+} from "./invitation-delivery-proof.js";
 
 type AssignableRole = ManagedAdminUserRole;
 type DbQueryable = Pick<Pool, "query"> | Pick<PoolClient, "query">;
@@ -39,6 +44,7 @@ export interface AdminOrganizationListItem {
   userCount: number;
   siteCount: number;
   createdAt: string;
+  initialInviteProof?: EmailDeliveryProof | null;
 }
 
 export interface AdminOrganizationSiteHierarchy {
@@ -187,6 +193,7 @@ export interface AdminUserRecord {
   invitedAt: string;
   invitedBy: string | null;
   updatedAt: string;
+  deliveryProof?: EmailDeliveryProof | null;
 }
 
 export interface AdminIngestionLogRecord {
@@ -361,6 +368,12 @@ type DbUserRow = {
   last_login_at: string | Date | null;
   created_at: string | Date;
   updated_at: string | Date;
+  delivery_proof_status: EmailDeliveryProof["status"] | null;
+  delivery_proof_initiated_at: string | Date | null;
+  delivery_proof_event_type: string | null;
+  delivery_proof_occurred_at: string | Date | null;
+  delivery_proof_observed_at: string | Date | null;
+  delivery_proof_summary: string | null;
 };
 
 type DbBillingRow = {
@@ -759,6 +772,30 @@ function mapUserStatus(status: string): AdminUserRecord["status"] {
   return "deactivated";
 }
 
+function mapOptionalDeliveryProof(row: DbUserRow): EmailDeliveryProof | null {
+  if (!row.delivery_proof_status || row.delivery_proof_initiated_at == null) {
+    return null;
+  }
+
+  return {
+    provider: "resend",
+    channel: "keycloak_execute_actions_email",
+    delivery: "activation_link",
+    status: row.delivery_proof_status,
+    initiatedAt: toIso(row.delivery_proof_initiated_at),
+    eventType: row.delivery_proof_event_type,
+    occurredAt:
+      row.delivery_proof_occurred_at == null
+        ? null
+        : toIso(row.delivery_proof_occurred_at),
+    observedAt:
+      row.delivery_proof_observed_at == null
+        ? null
+        : toIso(row.delivery_proof_observed_at),
+    summary: row.delivery_proof_summary,
+  };
+}
+
 function mapUserRow(row: DbUserRow): AdminUserRecord {
   return {
     id: row.id,
@@ -773,6 +810,7 @@ function mapUserRow(row: DbUserRow): AdminUserRecord {
     invitedAt: toIso(row.created_at),
     invitedBy: null,
     updatedAt: toIso(row.updated_at),
+    deliveryProof: mapOptionalDeliveryProof(row),
   };
 }
 
@@ -806,6 +844,31 @@ function mapIngestionLogRow(row: DbIngestionLogRow): AdminIngestionLogRecord {
   };
 }
 
+const USER_DELIVERY_PROOF_SELECT_SQL = `
+      invite_proof.proof_status AS delivery_proof_status,
+      invite_proof.initiated_at AS delivery_proof_initiated_at,
+      invite_proof.matched_event_type AS delivery_proof_event_type,
+      invite_proof.occurred_at AS delivery_proof_occurred_at,
+      invite_proof.observed_at AS delivery_proof_observed_at,
+      invite_proof.matched_event_summary AS delivery_proof_summary
+`;
+
+const USER_DELIVERY_PROOF_JOIN_SQL = `
+      LEFT JOIN LATERAL (
+        SELECT
+          proof_status,
+          initiated_at,
+          matched_event_type,
+          occurred_at,
+          observed_at,
+          matched_event_summary
+        FROM identity_invitation_delivery_attempts
+        WHERE user_id = u.id
+        ORDER BY initiated_at DESC
+        LIMIT 1
+      ) invite_proof ON TRUE
+`;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value != null && typeof value === "object" && !Array.isArray(value);
 }
@@ -815,12 +878,12 @@ function readOrganizationIsTest(settings: unknown): boolean {
     return false;
   }
 
-  const adminBackoffice = settings.adminBackoffice;
+  const adminBackoffice = settings["adminBackoffice"];
   if (!isRecord(adminBackoffice)) {
     return false;
   }
 
-  return adminBackoffice.isTest === true;
+  return adminBackoffice["isTest"] === true;
 }
 
 function buildOrganizationSettings(isTest: boolean): Record<string, unknown> {
@@ -1027,6 +1090,7 @@ function nextBillingDate(): string {
 export class AdminBackofficeService {
   private readonly pool: Pool | null;
   private readonly identityService: KeycloakAdminIdentityService | null;
+  private readonly deliveryProofService: InvitationDeliveryProofService;
 
   constructor(
     databaseUrl: string | null,
@@ -1036,6 +1100,7 @@ export class AdminBackofficeService {
       ? new Pool({ connectionString: databaseUrl })
       : null;
     this.identityService = identityService;
+    this.deliveryProofService = getInvitationDeliveryProofService(this.pool);
   }
 
   hasDatabase(): boolean {
@@ -1204,6 +1269,39 @@ export class AdminBackofficeService {
     return Array.from(deletedAuthUserIds);
   }
 
+  private async provisionManagedUserWithConflictCleanup(
+    queryable: DbQueryable,
+    identityService: KeycloakAdminIdentityService,
+    input: {
+      email: string;
+      organizationId: string;
+      role: ManagedAdminUserRole;
+      siteId: string | null;
+    },
+  ): Promise<{ authUserId: string }> {
+    try {
+      return await identityService.provisionUser(input);
+    } catch (error) {
+      if (
+        !(error instanceof KeycloakAdminIdentityError) ||
+        error.code !== "CONFLICT"
+      ) {
+        throw error;
+      }
+
+      const deletedOrphanIds = await this.cleanupOrphanedKeycloakUsersByLogin(
+        queryable,
+        identityService,
+        input.email,
+      );
+      if (deletedOrphanIds.length === 0) {
+        throw error;
+      }
+
+      return await identityService.provisionUser(input);
+    }
+  }
+
   private async cleanupKeycloakUsersForDeletedOrganization(
     queryable: DbQueryable,
     identityService: KeycloakAdminIdentityService,
@@ -1329,6 +1427,7 @@ export class AdminBackofficeService {
     ensureUuid(input.actorUserId, "actorUserId");
     const identityService = this.requireIdentityProvisioning();
     let provisionedAuthUserId: string | null = null;
+    let initialInviteProof: EmailDeliveryProof | null = null;
 
     try {
       return await this.withTransaction(async (client) => {
@@ -1361,39 +1460,16 @@ export class AdminBackofficeService {
         });
 
         await this.ensureEmailAvailable(client, contactEmail);
-        let provisioned;
-        try {
-          provisioned = await identityService.provisionUser({
+        const provisioned = await this.provisionManagedUserWithConflictCleanup(
+          client,
+          identityService,
+          {
             email: contactEmail,
             organizationId: created.organizationId,
             role: "org_admin",
             siteId: null,
-          });
-        } catch (error) {
-          if (
-            error instanceof KeycloakAdminIdentityError &&
-            error.code === "CONFLICT"
-          ) {
-            const deletedOrphanIds =
-              await this.cleanupOrphanedKeycloakUsersByLogin(
-                client,
-                identityService,
-                contactEmail,
-              );
-            if (deletedOrphanIds.length > 0) {
-              provisioned = await identityService.provisionUser({
-                email: contactEmail,
-                organizationId: created.organizationId,
-                role: "org_admin",
-                siteId: null,
-              });
-            } else {
-              throw error;
-            }
-          } else {
-            throw error;
-          }
-        }
+          },
+        );
         provisionedAuthUserId = provisioned.authUserId;
 
         const insertedUser = await client.query<DbUserRow>(
@@ -1451,6 +1527,19 @@ export class AdminBackofficeService {
           );
         }
 
+        initialInviteProof =
+          await this.deliveryProofService.recordInvitationAttempt(client, {
+            organizationId: created.organizationId,
+            userId: userRow.id,
+            authUserId: provisioned.authUserId,
+            email: contactEmail,
+            metadata: {
+              source: "create_organization",
+              actorUserId: input.actorUserId,
+              requestId: input.requestId,
+            },
+          });
+
         await this.writeAudit(client, {
           action: "invite_user",
           actorUserId: input.actorUserId,
@@ -1476,10 +1565,13 @@ export class AdminBackofficeService {
           },
         });
 
-        return mapOrganizationRow({
-          ...created.row,
-          user_count: "1",
-        });
+        return {
+          ...mapOrganizationRow({
+            ...created.row,
+            user_count: "1",
+          }),
+          initialInviteProof,
+        };
       });
     } catch (error) {
       if (provisionedAuthUserId) {
@@ -2360,6 +2452,7 @@ export class AdminBackofficeService {
     organizationId: string,
   ): Promise<AdminUserRecord[]> {
     ensureUuid(organizationId, "organizationId");
+    await this.deliveryProofService.ensureReady();
     const rows = await this.getPool().query<DbUserRow>(
       `
       SELECT
@@ -2373,9 +2466,11 @@ export class AdminBackofficeService {
         s.name AS site_name,
         u.last_login_at,
         u.created_at,
-        u.updated_at
+        u.updated_at,
+${USER_DELIVERY_PROOF_SELECT_SQL}
       FROM users u
       LEFT JOIN sites s ON s.id = u.site_id
+${USER_DELIVERY_PROOF_JOIN_SQL}
       WHERE u.organization_id = $1::uuid
       ORDER BY u.created_at DESC
       `,
@@ -2390,6 +2485,7 @@ export class AdminBackofficeService {
   ): Promise<AdminUserRecord | null> {
     ensureUuid(organizationId, "organizationId");
     ensureUuid(userId, "userId");
+    await this.deliveryProofService.ensureReady();
     const row = await this.getPool().query<DbUserRow>(
       `
       SELECT
@@ -2403,9 +2499,11 @@ export class AdminBackofficeService {
         s.name AS site_name,
         u.last_login_at,
         u.created_at,
-        u.updated_at
+        u.updated_at,
+${USER_DELIVERY_PROOF_SELECT_SQL}
       FROM users u
       LEFT JOIN sites s ON s.id = u.site_id
+${USER_DELIVERY_PROOF_JOIN_SQL}
       WHERE u.organization_id = $1::uuid
         AND u.id = $2::uuid
       LIMIT 1
@@ -2446,6 +2544,7 @@ export class AdminBackofficeService {
     const pool = this.getPool();
     let siteId: string | null = null;
     let provisionedAuthUserId: string | null = null;
+    let deliveryProof: EmailDeliveryProof | null = null;
     try {
       await this.ensureOrganizationExists(pool, input.organizationId);
       siteId = await this.resolveValidatedSiteId(
@@ -2456,12 +2555,16 @@ export class AdminBackofficeService {
       );
       await this.ensureEmailAvailable(pool, email);
 
-      const provisioned = await identityService.provisionUser({
-        email,
-        organizationId: input.organizationId,
-        role: input.role,
-        siteId,
-      });
+      const provisioned = await this.provisionManagedUserWithConflictCleanup(
+        pool,
+        identityService,
+        {
+          email,
+          organizationId: input.organizationId,
+          role: input.role,
+          siteId,
+        },
+      );
       provisionedAuthUserId = provisioned.authUserId;
 
       return await this.withTransaction(async (client) => {
@@ -2504,7 +2607,13 @@ export class AdminBackofficeService {
             (SELECT name FROM sites WHERE id = users.site_id) AS site_name,
             last_login_at,
             created_at,
-            updated_at
+            updated_at,
+            NULL::text AS delivery_proof_status,
+            NULL::timestamptz AS delivery_proof_initiated_at,
+            NULL::text AS delivery_proof_event_type,
+            NULL::timestamptz AS delivery_proof_occurred_at,
+            NULL::timestamptz AS delivery_proof_observed_at,
+            NULL::text AS delivery_proof_summary
           `,
           [
             randomUUID(),
@@ -2524,6 +2633,22 @@ export class AdminBackofficeService {
             "INTERNAL_ERROR",
           );
         }
+
+        deliveryProof = await this.deliveryProofService.recordInvitationAttempt(
+          client,
+          {
+            organizationId: input.organizationId,
+            userId: row.id,
+            authUserId: provisioned.authUserId,
+            email,
+            metadata: {
+              source: "invite_user",
+              actorUserId: input.actorUserId,
+              requestId: input.requestId,
+              role: input.role,
+            },
+          },
+        );
 
         await this.writeAudit(client, {
           action: "invite_user",
@@ -2549,7 +2674,10 @@ export class AdminBackofficeService {
           },
         });
 
-        return mapUserRow(row);
+        return {
+          ...mapUserRow(row),
+          deliveryProof,
+        };
       });
     } catch (error) {
       const normalized =
@@ -2673,7 +2801,13 @@ export class AdminBackofficeService {
             (SELECT name FROM sites WHERE id = users.site_id) AS site_name,
             last_login_at,
             created_at,
-            updated_at
+            updated_at,
+            NULL::text AS delivery_proof_status,
+            NULL::timestamptz AS delivery_proof_initiated_at,
+            NULL::text AS delivery_proof_event_type,
+            NULL::timestamptz AS delivery_proof_occurred_at,
+            NULL::timestamptz AS delivery_proof_observed_at,
+            NULL::text AS delivery_proof_summary
           `,
           [input.organizationId, input.userId, input.role, siteId],
         );
@@ -2858,7 +2992,13 @@ export class AdminBackofficeService {
             (SELECT name FROM sites WHERE id = users.site_id) AS site_name,
             last_login_at,
             created_at,
-            updated_at
+            updated_at,
+            NULL::text AS delivery_proof_status,
+            NULL::timestamptz AS delivery_proof_initiated_at,
+            NULL::text AS delivery_proof_event_type,
+            NULL::timestamptz AS delivery_proof_occurred_at,
+            NULL::timestamptz AS delivery_proof_observed_at,
+            NULL::text AS delivery_proof_summary
           `,
           [input.organizationId, input.userId, input.nextStatus],
         );
@@ -3392,7 +3532,7 @@ let singleton: AdminBackofficeService | null = null;
 export function getAdminBackofficeService(): AdminBackofficeService {
   if (!singleton) {
     singleton = new AdminBackofficeService(
-      process.env.DATABASE_URL?.trim() || null,
+      process.env["DATABASE_URL"]?.trim() || null,
       getKeycloakAdminIdentityServiceFromEnv(process.env),
     );
   }

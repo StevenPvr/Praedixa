@@ -32,7 +32,7 @@ function getBackendApiBaseUrl(): string {
 }
 
 function getMaxProxyBodyBytes(): number {
-  const raw = process.env.API_PROXY_MAX_BODY_BYTES?.trim();
+  const raw = process.env["API_PROXY_MAX_BODY_BYTES"]?.trim();
   if (!raw) {
     return DEFAULT_MAX_PROXY_BODY_BYTES;
   }
@@ -152,7 +152,13 @@ function buildUpstreamUrl(request: NextRequest, path: string[]): string {
 }
 
 function isPublicGetPath(method: string, path: string[]): boolean {
-  return method === "GET" && path.length === 1 && PUBLIC_GET_PATHS.has(path[0]);
+  const [segment] = path;
+  return (
+    method === "GET" &&
+    path.length === 1 &&
+    segment !== undefined &&
+    PUBLIC_GET_PATHS.has(segment)
+  );
 }
 
 function resolveRequestId(request: NextRequest): string {
@@ -280,16 +286,20 @@ async function handleProxy(
     const requestBody = await readRequestBody(request, getMaxProxyBodyBytes());
 
     upstreamUrl = buildUpstreamUrl(request, path);
-    const upstream = await fetch(upstreamUrl, {
+    const upstreamInit: RequestInit = {
       method: request.method,
       headers: buildForwardHeaders(
         request,
         requestId,
         resolved && resolved.ok ? resolved.accessToken : null,
       ),
-      body: requestBody ?? undefined,
       cache: "no-store",
-    });
+    };
+    if (requestBody !== undefined) {
+      upstreamInit.body = requestBody;
+    }
+
+    const upstream = await fetch(upstreamUrl, upstreamInit);
 
     const response = withRequestId(
       new NextResponse(upstream.body, {

@@ -50,7 +50,7 @@
 #### 5.1(d) Exactitude
 
 - **Statut**: CONFORME
-- **Constat**: Les donnees sont importees depuis les SIRH clients (Lucca, PayFit) avec pipeline de qualite (dedup, validation, outlier detection via `data_quality.py`).
+- **Constat**: Les donnees sont importees depuis les SIRH clients (Lucca, PayFit) avec pipeline de qualite (dedup, validation, outlier detection via `app/services/quality/`).
 
 #### 5.1(e) Limitation de la conservation
 

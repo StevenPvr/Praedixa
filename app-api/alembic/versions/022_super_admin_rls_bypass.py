@@ -15,7 +15,7 @@ from collections.abc import Sequence
 
 from sqlalchemy import inspect
 
-from alembic import op
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
 
 revision: str = "022"
 down_revision: str | None = "021"
@@ -63,6 +63,12 @@ _INDIRECT_ALERT_TABLES = [
 ]
 
 _BYPASS_COND = " OR current_setting('app.bypass_rls', true) = 'true'"
+_POLICY_ACTIONS = [
+    ("SELECT", "USING"),
+    ("INSERT", "WITH CHECK"),
+    ("UPDATE", "USING WITH CHECK"),
+    ("DELETE", "USING"),
+]
 
 
 def _drop_policies(table: str) -> None:
@@ -142,6 +148,45 @@ def _add_indirect_alert_policies(table: str) -> None:
     )
 
 
+def _restore_policies(table: str, cond: str) -> None:
+    for action, clause in _POLICY_ACTIONS:
+        policy = f"tenant_isolation_{action.lower()}"
+        if clause == "USING WITH CHECK":
+            op.execute(
+                f"CREATE POLICY {policy} ON {table} "
+                f"FOR {action} USING ({cond}) WITH CHECK ({cond})"
+            )
+            continue
+
+        keyword = clause.split(" ", 1)[0]
+        op.execute(
+            f"CREATE POLICY {policy} ON {table} FOR {action} "
+            f"{keyword} ({cond})"
+        )
+
+
+def _restore_direct_policies(table: str, id_col: str) -> None:
+    _restore_policies(table, f"{id_col} = current_org_id()")
+
+
+def _restore_dataset_policies(table: str) -> None:
+    _restore_policies(
+        table,
+        "( SELECT cd.organization_id FROM client_datasets cd"
+        f" WHERE cd.id = {table}.dataset_id"  # nosec B608
+        ") = current_org_id()",
+    )
+
+
+def _restore_alert_policies(table: str) -> None:
+    _restore_policies(
+        table,
+        "( SELECT ca.organization_id FROM coverage_alerts ca"
+        f" WHERE ca.id = {table}.coverage_alert_id"  # nosec B608
+        ") = current_org_id()",
+    )
+
+
 def upgrade() -> None:
     bind = op.get_bind()
     existing_tables = set(inspect(bind).get_table_names(schema="public"))
@@ -174,71 +219,24 @@ def downgrade() -> None:
     bind = op.get_bind()
     existing_tables = set(inspect(bind).get_table_names(schema="public"))
 
-    def _add_direct_no_bypass(table: str, id_col: str) -> None:
-        cond = f"{id_col} = current_org_id()"
-        for action, clause in [
-            ("SELECT", f"USING ({cond})"),
-            ("INSERT", f"WITH CHECK ({cond})"),
-            ("UPDATE", f"USING ({cond}) WITH CHECK ({cond})"),
-            ("DELETE", f"USING ({cond})"),
-        ]:
-            policy = f"tenant_isolation_{action.lower()}"
-            op.execute(
-                f"CREATE POLICY {policy} ON {table} FOR {action.upper()} {clause}"
-            )
-
-    def _add_indirect_dataset_no_bypass(table: str) -> None:
-        cond = (
-            "( SELECT cd.organization_id FROM client_datasets cd"
-            f" WHERE cd.id = {table}.dataset_id"  # nosec B608
-            ") = current_org_id()"
-        )
-        for action, clause in [
-            ("SELECT", f"USING ({cond})"),
-            ("INSERT", f"WITH CHECK ({cond})"),
-            ("UPDATE", f"USING ({cond}) WITH CHECK ({cond})"),
-            ("DELETE", f"USING ({cond})"),
-        ]:
-            policy = f"tenant_isolation_{action.lower()}"
-            op.execute(
-                f"CREATE POLICY {policy} ON {table} FOR {action.upper()} {clause}"
-            )
-
-    def _add_indirect_alert_no_bypass(table: str) -> None:
-        cond = (
-            "( SELECT ca.organization_id FROM coverage_alerts ca"
-            f" WHERE ca.id = {table}.coverage_alert_id"  # nosec B608
-            ") = current_org_id()"
-        )
-        for action, clause in [
-            ("SELECT", f"USING ({cond})"),
-            ("INSERT", f"WITH CHECK ({cond})"),
-            ("UPDATE", f"USING ({cond}) WITH CHECK ({cond})"),
-            ("DELETE", f"USING ({cond})"),
-        ]:
-            policy = f"tenant_isolation_{action.lower()}"
-            op.execute(
-                f"CREATE POLICY {policy} ON {table} FOR {action.upper()} {clause}"
-            )
-
     if "organizations" in existing_tables:
         _drop_policies("organizations")
-        _add_direct_no_bypass("organizations", "id")
+        _restore_direct_policies("organizations", "id")
 
     for table in _DIRECT_ORG_TABLES:
         if table not in existing_tables:
             continue
         _drop_policies(table)
-        _add_direct_no_bypass(table, "organization_id")
+        _restore_direct_policies(table, "organization_id")
 
     for table in _INDIRECT_DATASET_TABLES:
         if table not in existing_tables:
             continue
         _drop_policies(table)
-        _add_indirect_dataset_no_bypass(table)
+        _restore_dataset_policies(table)
 
     for table in _INDIRECT_ALERT_TABLES:
         if table not in existing_tables:
             continue
         _drop_policies(table)
-        _add_indirect_alert_no_bypass(table)
+        _restore_alert_policies(table)

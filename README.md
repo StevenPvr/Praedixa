@@ -1,6 +1,6 @@
 # Praedixa
 
-**Pilotage economique de la couverture multi-sites pour PME/ETI** — boucle fermee: prevision, decision optimale, 1re action assistee, preuve ROI mensuelle.
+**DecisionOps multi-sites pour operations terrain** — federer les donnees, predire, calculer les meilleures decisions, declencher une premiere action assistee et prouver le ROI.
 
 ## Structure
 
@@ -11,12 +11,13 @@ praedixa/
 ├── app-admin/           # Back-office super admin (Next.js 15)
 ├── app-api-ts/          # API backend applicatif (TypeScript)
 ├── app-api/             # Data/ML engine Python (medallion + jobs)
+├── marketing/           # Contenus, assets commerciaux et presentations
 ├── packages/
 │   ├── ui/              # Composants React partages
 │   └── shared-types/    # Types TypeScript partages
 ├── infra/               # docker-compose local (PostgreSQL)
 ├── testing/             # E2E tests, shared test utils
-├── scripts/             # Dev setup, migrations, seed scripts
+├── scripts/             # Dev setup, infra, auth et gates locaux
 └── docs/                # Architecture docs, security reports
 ```
 
@@ -31,17 +32,38 @@ Le repo n'utilise pas seulement une documentation centrale. Les dossiers importa
 
 Points d'entrée utiles :
 
-- `docs/README.md` pour la documentation longue durée ;
+- `docs/cto/README.md` pour le parcours CTO orienté architecture, donnees, runtimes et sources de verite ;
+- `docs/README.md` pour distinguer la documentation durable du cadrage/PRD ;
+- `docs/specs/README.md` pour les contrats documentaires Symphony ;
 - `scripts/README.md` pour l'automatisation ;
-- `ticket.md` pour le format exact des tickets Linear executables par Symphony ;
+- `docs/specs/ticket.md` pour le format exact des tickets Linear executables par Symphony ;
+- `marketing/` pour les contenus et assets business hors runtime applicatif ;
 - `testing/README.md` pour les tests partagés ;
 - `infra/README.md` pour les artefacts d'infrastructure ;
 - `contracts/README.md` pour les contrats techniques ;
 - les `README.md` présents dans chaque app, package et sous-dossier versionné.
 
+## Commencer ici pour comprendre les données
+
+Si l'objectif est de comprendre rapidement la base et les flux de données, suivre ce parcours :
+
+1. `docs/cto/README.md`
+2. `docs/cto/01-systeme-et-runtimes.md`
+3. `docs/ARCHITECTURE.md`
+4. `docs/DATABASE.md`
+5. `docs/cto/08-contrats-et-types-partages.md`
+
+Ce parcours sert de carte de lecture. Les vérités d'exécution restent ensuite dans :
+
+- `app-api/app/models/*` et `app-api/alembic/versions/*` pour le schéma PostgreSQL ;
+- `contracts/*` et `packages/shared-types/*` pour les contrats et types partagés ;
+- `app-api-ts/*`, `app-connectors/*` et `app-api/*` pour les frontieres runtime et la verite d'execution.
+
+Les documents de cadrage produit vivent desormais sous `docs/prd/*`; ils ne remplacent pas les sources API/runtime normatives. La reference API publique versionnee reste `contracts/openapi/public.yaml`.
+
 ## Artefacts business
 
-- `pitch-deck-v2.html` : pitch investisseur HTML autonome, réécrit en langage simple avec une mise en page calibrée sur le contenu, répartie sur la hauteur de chaque slide et uniformisée carte par carte à l’échelle de la slide. La cover met explicitement en avant l’anticipation des besoins opérationnels, l’optimisation des décisions, l’appui sur l’état de l’art du machine learning et l’incubation du projet à EuraTechnologies dans la verticale IA / Data, avec des exemples concrets de charge, demande, saisonnalité, pics et creux. Le volet bootstrap précise aussi une discipline commerciale fondée sur des apporteurs d’affaires payés au succès, sur client signé et non sur simple prospect. La slide DeepTech expose désormais une vraie feuille de route R&D autour du decision-focused learning, de l’optimisation discrète, de l’endogénéité, du board scientifique, des dossiers BPI de juin 2026, d’un doctorat CIFRE visé pour septembre 2026 et de l’accompagnement Euratechnologies. La slide finale précise aussi la composition cible de l’équipe, les recrutements actifs CTO / Head of Research et le socle d’écosystème vérifié autour d’EuraTechnologies et d’Inria à Lille. Le header du deck réutilise maintenant le monogramme actuel de Praedixa, aligné sur `@praedixa/ui`.
+- `marketing/sales-assets/pitch-deck-v2.html` : pitch investisseur HTML autonome, réécrit en langage simple avec une mise en page calibrée sur le contenu, répartie sur la hauteur de chaque slide et uniformisée carte par carte à l’échelle de la slide. La cover met explicitement en avant l’anticipation des besoins opérationnels, l’optimisation des décisions, l’appui sur l’état de l’art du machine learning et l’incubation du projet à EuraTechnologies dans la verticale IA / Data, avec des exemples concrets de charge, demande, saisonnalité, pics et creux. Le volet bootstrap précise aussi une discipline commerciale fondée sur des apporteurs d’affaires payés au succès, sur client signé et non sur simple prospect. La slide DeepTech expose désormais une vraie feuille de route R&D autour du decision-focused learning, de l’optimisation discrète, de l’endogénéité, du board scientifique, des dossiers BPI de juin 2026, d’un doctorat CIFRE visé pour septembre 2026 et de l’accompagnement Euratechnologies. La slide finale précise aussi la composition cible de l’équipe, les recrutements actifs CTO / Head of Research et le socle d’écosystème vérifié autour d’EuraTechnologies et d’Inria à Lille. Le header du deck réutilise maintenant le monogramme actuel de Praedixa, aligné sur `@praedixa/ui`.
 
 ## Prerequis
 
@@ -49,7 +71,7 @@ Points d'entrée utiles :
 - Node.js 22+
 - pnpm 9+
 - Python 3.12+ et [uv](https://docs.astral.sh/uv/)
-- prek (installe via `./scripts/install-prek.sh`)
+- prek (installe via `./scripts/dev/install-prek.sh`)
 - Outils de gate local exhaustif: `semgrep`, `checkov`, `trivy`, `codeql`, `osv-scanner`, `k6`
 
 ## Installation locale
@@ -68,6 +90,10 @@ pnpm test
 
 `pnpm test` couvre maintenant les suites unitaires/frontend racine ainsi que les runtimes `app-symphony`, `app-api-ts` et `app-connectors`, pour eviter un faux vert monorepo quand un backend casse hors du radar de la commande canonique.
 
+Le profil TypeScript du monorepo est maintenant durci au niveau racine: toutes les apps Next.js partagent la meme base stricte (`strict`, `strictNullChecks`, `noUncheckedIndexedAccess`, `noImplicitReturns`, `noImplicitOverride`, `useUnknownInCatchVariables`, `noFallthroughCasesInSwitch`, `noEmitOnError`) et le lint TypeScript est desormais type-aware sur le code source pour attraper les promesses oubliees, les `switch` non exhaustifs et les assertions de type inutiles avant revue.
+
+Le monorepo applique maintenant aussi `exactOptionalPropertyTypes` et `noPropertyAccessFromIndexSignature` dans `tsconfig.base.json`. Les contrats, apps et runtimes refusent donc repo-wide les objets "optionnels ambigus" et les acces pointes fragiles sur des records indexes; les packages partages `@praedixa/shared-types`, `@praedixa/ui`, `@praedixa/api-hooks` et `@praedixa/telemetry` gardent ce palier explicitement visible dans leurs configs locales.
+
 ## Developpement
 
 ### Landing page (port 3000)
@@ -79,6 +105,7 @@ pnpm dev:landing
 ### Web app frontend (port 3001)
 
 ```bash
+pnpm dev:auth
 pnpm dev:webapp
 ```
 
@@ -127,10 +154,24 @@ uv run --active alembic upgrade head
 ### Back-office admin (port 3002)
 
 ```bash
+pnpm dev:auth
 pnpm dev:admin
 ```
 
 Accessible sur http://localhost:3002. Necessite un compte OIDC avec le role `super_admin`.
+
+### Auth OIDC locale (Keycloak, port 8081)
+
+```bash
+# Mode attache avec logs
+pnpm dev:auth
+
+# Ou en fond
+pnpm dev:auth:bg
+pnpm dev:auth:status
+```
+
+Le dev local pointe maintenant vers `http://localhost:8081/realms/praedixa` dans `app-admin/.env.local` et `app-webapp/.env.local`, pour ne plus dependre de `auth.praedixa.com` pendant le debug. Le service importe le realm versionne `infra/auth/realm-praedixa.json`, persiste son stockage en volume Docker, et provisionne par defaut le compte `admin@praedixa.com` avec le secret admin Keycloak local deja charge depuis les `.env.local` standards.
 
 Si Keycloak rejette `redirect_uri` pour `praedixa-admin` en local:
 
@@ -144,24 +185,24 @@ pnpm dev:webapp:3004
 
 ### Comptes OIDC (Keycloak)
 
-Commandes utiles via le wrapper local `scripts/kcadm` :
+Commandes utiles via le wrapper local `scripts/keycloak/kcadm` :
 
 ```bash
 # 1) Connexion admin Keycloak (master realm)
-scripts/kcadm config credentials \
+scripts/keycloak/kcadm config credentials \
   --server "https://auth.praedixa.com" \
   --realm master \
   --user kcadmin \
   --password "<KCADMIN_PASSWORD>"
 
 # 2) Lister les comptes du realm applicatif
-scripts/kcadm get users -r praedixa --fields id,username,email,enabled,emailVerified --format csv
+scripts/keycloak/kcadm get users -r praedixa --fields id,username,email,enabled,emailVerified --format csv
 
 # 3) Voir un compte par email
-scripts/kcadm get users -r praedixa -q email='<utilisateur@client.com>'
+scripts/keycloak/kcadm get users -r praedixa -q email='<utilisateur@client.com>'
 
 # 4) Voir les roles realm d'un utilisateur
-scripts/kcadm get users/<USER_ID>/role-mappings/realm -r praedixa
+scripts/keycloak/kcadm get users/<USER_ID>/role-mappings/realm -r praedixa
 
 # 5) Recaler les claims canoniques d'un compte client cree depuis app-admin
 TARGET_USER_EMAIL='<utilisateur@client.com>' \
@@ -179,14 +220,14 @@ pnpm auth:keycloak:ensure-api-contract
 # 7) Provisionner le super admin back-office
 SUPER_ADMIN_EMAIL='admin@praedixa.com' \
 SUPER_ADMIN_PASSWORD='<mot-de-passe-super-admin>' \
-./scripts/keycloak-ensure-super-admin.sh
+./scripts/keycloak/keycloak-ensure-super-admin.sh
 
 # 8) Recaler le contrat OIDC canonique des clients frontend/admin (idempotent)
 pnpm auth:keycloak:ensure-api-contract
 
 # 9) Verifier le mapper d'audience pour le client webapp
-WEBAPP_CLIENT_ID="$(scripts/kcadm get clients -r praedixa -q clientId=praedixa-webapp | jq -r '.[0].id')"
-scripts/kcadm get "clients/${WEBAPP_CLIENT_ID}/protocol-mappers/models" -r praedixa \
+WEBAPP_CLIENT_ID="$(scripts/keycloak/kcadm get clients -r praedixa -q clientId=praedixa-webapp | jq -r '.[0].id')"
+scripts/keycloak/kcadm get "clients/${WEBAPP_CLIENT_ID}/protocol-mappers/models" -r praedixa \
   | jq '.[] | select(.name=="claim-role" or .name=="audience-praedixa-api") | {name, protocolMapper, config}'
 ```
 
@@ -195,7 +236,7 @@ Notes:
 - Les comptes client ne doivent plus etre seeds ou documentes comme des comptes fake: la creation normale passe par `app-admin` -> `Clients` -> `Equipe`, ce qui provisionne l'identite Keycloak et le lien DB ensemble.
 - Les comptes `manager` et `hr_manager` doivent etre crees avec un `site_id` explicite; le backoffice refuse maintenant toute invitation site-scopee sans site.
 - Les scripts Keycloak relisent automatiquement `KEYCLOAK_ADMIN_PASSWORD` ou `KC_BOOTSTRAP_ADMIN_PASSWORD` depuis `app-landing/.env.local`, `app-webapp/.env.local`, `app-admin/.env.local`, puis `.env.local` racine si la variable n'est pas deja exportee.
-- L'assignation d'un realm role seule ne suffit plus pour les apps Next strictes: synchroniser aussi les attributs utilisateur canoniques (`role`, `organization_id`, `site_id`, et `permissions` admin) via `pnpm auth:keycloak:ensure-api-contract` ou `./scripts/keycloak-ensure-super-admin.sh`.
+- L'assignation d'un realm role seule ne suffit plus pour les apps Next strictes: synchroniser aussi les attributs utilisateur canoniques (`role`, `organization_id`, `site_id`, et `permissions` admin) via `pnpm auth:keycloak:ensure-api-contract` ou `./scripts/keycloak/keycloak-ensure-super-admin.sh`.
 - `super_admin` doit se connecter sur `app-admin` (pas sur `app-webapp`).
 - `org_admin`/`manager` se connectent sur `app-webapp`.
 - `manager`/`hr_manager` doivent avoir un `site_id` dans le token OIDC (sinon acces API refuse en `403`).
@@ -213,7 +254,7 @@ Le endpoint de provenance controle la politique data stricte : seules les colonn
 
 ### Tout en parallele
 
-Lancer les 4 services dans des terminaux separes :
+Lancer les 6 services dans des terminaux separes :
 
 ```bash
 # Terminal 1 — Landing
@@ -225,7 +266,13 @@ pnpm dev:webapp
 # Terminal 3 — Back-office admin
 pnpm dev:admin
 
-# Terminal 4 — API TS
+# Terminal 4 — Auth locale Keycloak
+pnpm dev:auth:bg
+
+# Terminal 5 - Camunda
+pnpm camunda:up
+
+# Terminal 6 — API TS
 pnpm dev:api
 # ou, en explicite :
 pnpm --filter @praedixa/api-ts dev
@@ -340,7 +387,7 @@ pnpm gate:exhaustive
 ## Qualite & Securite (gate local exhaustif)
 
 ```bash
-./scripts/install-prek.sh
+./scripts/dev/install-prek.sh
 pnpm gate:exhaustive
 pnpm gate:verify
 ```

@@ -1,3 +1,5 @@
+export type { TrustedOidcEndpoints } from "@praedixa/shared-types/oidc-discovery";
+
 export const ACCESS_TOKEN_COOKIE = "prx_web_at";
 export const REFRESH_TOKEN_COOKIE = "prx_web_rt";
 export const SESSION_COOKIE = "prx_web_sess";
@@ -41,12 +43,6 @@ export interface OidcEnv {
   clientSecret: string;
   scope: string;
   sessionSecret: string;
-}
-
-export interface TrustedOidcEndpoints {
-  authorizationEndpoint: string;
-  tokenEndpoint: string;
-  revocationEndpoint: string | null;
 }
 
 export const ROLE_PRIORITY = [

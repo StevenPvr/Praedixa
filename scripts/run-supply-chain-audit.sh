@@ -39,7 +39,7 @@ SUMMARY_JSON="${ARTIFACT_DIR}/supply-chain-evidence.json"
 
 SYFT_EXCLUDES=(
   "./.git/**"
-  "./.tools/**"
+  "./.meta/**"
   "./.venv/**"
   "./app-api/.venv/**"
   "./node_modules/**"

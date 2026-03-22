@@ -103,8 +103,8 @@ export const frContentA: Record<
       {
         title: "À lire en priorité",
         paragraphs: [
-          "Commencez par Produit & méthode, Comment ça marche, Intégration & données et Preuve sur historique.",
-          "Le parcours est volontairement court: moins de pages, plus de clarté.",
+          "Commencez par Produit & méthode, Comment ça marche, Intégration & données et Preuve sur historique pour cadrer la promesse, la méthode et la preuve.",
+          "Cette page sert maintenant de hub: elle relie les pages piliers, les verticales, le blog et les ressources SEO qui prennent le relais quand l'intention se précise.",
         ],
       },
       {
@@ -123,8 +123,8 @@ export const frContentA: Record<
       {
         title: "Quand aller plus loin",
         paragraphs: [
-          "Les détails métier vivent désormais dans les pages sectorielles, le blog, les ressources SEO et les échanges commerciaux, pas dans une forêt de pages annexes.",
-          "Le site garde seulement les pages qui aident vraiment à comprendre l'offre et à passer à l'action.",
+          "Les détails métier vivent désormais dans les pages sectorielles, le blog, les ressources SEO et les échanges commerciaux, pas dans une forêt de pages annexes sans maillage.",
+          "Le site garde seulement les pages qui aident vraiment à comprendre l'offre, comparer les options et passer à l'action.",
         ],
       },
     ],

@@ -40,7 +40,7 @@ _LOG_LEVELS = {
     "info": logging.INFO,
     "debug": logging.DEBUG,
 }
-_STRUCTURED_LOGGING_CONFIGURED = False
+_structured_logging_configured = False
 
 
 @dataclass(frozen=True)
@@ -149,8 +149,8 @@ def configure_structured_logging(
 ) -> None:
     """Configure root logging once for structured JSON events."""
 
-    global _STRUCTURED_LOGGING_CONFIGURED
-    if _STRUCTURED_LOGGING_CONFIGURED and not force:
+    global _structured_logging_configured
+    if _structured_logging_configured and not force:
         return
 
     handler = logging.StreamHandler(stream)
@@ -178,7 +178,7 @@ def configure_structured_logging(
         logger_factory=structlog.stdlib.LoggerFactory(),
         cache_logger_on_first_use=False,
     )
-    _STRUCTURED_LOGGING_CONFIGURED = True
+    _structured_logging_configured = True
 
 
 def get_telemetry_logger(

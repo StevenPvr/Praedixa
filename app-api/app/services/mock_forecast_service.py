@@ -76,7 +76,7 @@ def _generate_drivers(
     trend: float,
 ) -> list[str]:
     """Generate top 3 explanation drivers for an alert."""
-    candidates = []
+    candidates: list[str] = []
 
     if trend > 0:
         candidates.append("Tendance absences \u2191")

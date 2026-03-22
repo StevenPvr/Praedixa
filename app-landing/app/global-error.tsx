@@ -1,15 +1,12 @@
 "use client";
 
 export default function GlobalError({
-  error,
+  error: _error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  // Re-enable Sentry here when monitoring is restored.
-  void error;
-
   return (
     <html lang="fr">
       <body style={{ margin: 0, fontFamily: "system-ui, sans-serif" }}>

@@ -129,11 +129,11 @@ export function validateRequestBody(
   }
 
   let phone = "";
-  if (obj.phone !== undefined && obj.phone !== null) {
-    if (typeof obj.phone !== "string") {
+  if (obj["phone"] !== undefined && obj["phone"] !== null) {
+    if (typeof obj["phone"] !== "string") {
       return { valid: false, error: "Numéro de téléphone invalide." };
     }
-    phone = obj.phone.trim();
+    phone = obj["phone"].trim();
     if (phone.length > MAX_PHONE_LENGTH) {
       return { valid: false, error: "Numéro de téléphone trop long." };
     }
@@ -164,20 +164,21 @@ export function validateRequestBody(
   );
   if (!r4.valid) return r4;
 
-  const website = typeof obj.website === "string" ? obj.website.trim() : "";
+  const website =
+    typeof obj["website"] === "string" ? obj["website"].trim() : "";
 
-  const firstName = normaliseOptionalField(obj.firstName, MAX_NAME_LENGTH);
+  const firstName = normaliseOptionalField(obj["firstName"], MAX_NAME_LENGTH);
   if (firstName === null) return { valid: false, error: "Prénom invalide." };
 
-  const lastName = normaliseOptionalField(obj.lastName, MAX_NAME_LENGTH);
+  const lastName = normaliseOptionalField(obj["lastName"], MAX_NAME_LENGTH);
   if (lastName === null) return { valid: false, error: "Nom invalide." };
 
-  const role = normaliseOptionalField(obj.role, MAX_ROLE_LENGTH);
+  const role = normaliseOptionalField(obj["role"], MAX_ROLE_LENGTH);
   if (role === null) return { valid: false, error: "Fonction invalide." };
   const rRole = optionalAllowlist(role, ALLOWED_ROLES, "Fonction invalide.");
   if (!rRole.valid) return rRole;
 
-  const siteCount = normaliseOptionalField(obj.siteCount, 20);
+  const siteCount = normaliseOptionalField(obj["siteCount"], 20);
   if (siteCount === null)
     return { valid: false, error: "Nombre de sites invalide." };
   const rSite = optionalAllowlist(
@@ -187,7 +188,7 @@ export function validateRequestBody(
   );
   if (!rSite.valid) return rSite;
 
-  const timeline = normaliseOptionalField(obj.timeline, 20);
+  const timeline = normaliseOptionalField(obj["timeline"], 20);
   if (timeline === null)
     return { valid: false, error: "Horizon projet invalide." };
   const rTimeline = optionalAllowlist(
@@ -198,23 +199,23 @@ export function validateRequestBody(
   if (!rTimeline.valid) return rTimeline;
 
   const currentStack = normaliseOptionalField(
-    obj.currentStack,
+    obj["currentStack"],
     MAX_STACK_LENGTH,
   );
   if (currentStack === null)
     return { valid: false, error: "Stack actuelle invalide." };
 
   const painPoint = normaliseOptionalField(
-    obj.painPoint,
+    obj["painPoint"],
     MAX_PAIN_POINT_LENGTH,
   );
   if (painPoint === null)
     return { valid: false, error: "Enjeu principal invalide." };
 
-  if (typeof obj.consent !== "boolean") {
+  if (typeof obj["consent"] !== "boolean") {
     return { valid: false, error: "Consentement requis." };
   }
-  if (!obj.consent) {
+  if (!obj["consent"]) {
     return {
       valid: false,
       error:
@@ -222,9 +223,9 @@ export function validateRequestBody(
     };
   }
 
-  const acquisitionSource = optionalTrackingField(obj.acquisitionSource, 64);
-  const acquisitionSlug = optionalTrackingField(obj.acquisitionSlug, 120);
-  const acquisitionQuery = optionalTrackingField(obj.acquisitionQuery, 240);
+  const acquisitionSource = optionalTrackingField(obj["acquisitionSource"], 64);
+  const acquisitionSlug = optionalTrackingField(obj["acquisitionSlug"], 120);
+  const acquisitionQuery = optionalTrackingField(obj["acquisitionQuery"], 240);
 
   return {
     valid: true,

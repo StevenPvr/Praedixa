@@ -52,6 +52,42 @@ function getCachedSession(): SessionResponse | null {
   return cachedSession?.session ?? null;
 }
 
+function isCurrentUserShape(value: unknown): value is CurrentUser {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  const hasNullableString = (field: string) =>
+    candidate[field] === null || typeof candidate[field] === "string";
+
+  return (
+    typeof candidate["id"] === "string" &&
+    candidate["id"].length > 0 &&
+    typeof candidate["email"] === "string" &&
+    candidate["email"].length > 0 &&
+    typeof candidate["role"] === "string" &&
+    candidate["role"].length > 0 &&
+    hasNullableString("organizationId") &&
+    hasNullableString("siteId")
+  );
+}
+
+function parseSessionResponsePayload(payload: unknown): SessionResponse | null {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const user = (payload as { user?: unknown }).user;
+  if (!isCurrentUserShape(user)) {
+    return null;
+  }
+
+  return {
+    user,
+  };
+}
+
 async function fetchSession(
   minTtlSeconds: number,
 ): Promise<SessionResponse | null> {
@@ -69,14 +105,15 @@ async function fetchSession(
       clearSessionCache();
       return null;
     }
-    const payload = (await response.json()) as SessionResponse;
-    if (!payload?.user) {
+    const payload = parseSessionResponsePayload(await response.json());
+    if (!payload) {
       clearSessionCache();
       return null;
     }
     cacheSession(payload);
     return payload;
   } catch {
+    clearSessionCache();
     return null;
   }
 }
@@ -127,13 +164,24 @@ export function useCurrentUser(): CurrentUser | null {
   );
 
   useEffect(() => {
-    fetchSession(DEFAULT_MIN_TTL_SECONDS).then((session) => {
-      if (!session) {
-        setUser(null);
-        return;
-      }
-      setUser(session.user);
-    });
+    let cancelled = false;
+
+    fetchSession(DEFAULT_MIN_TTL_SECONDS)
+      .then((session) => {
+        if (cancelled) {
+          return;
+        }
+        if (!session) {
+          setUser(null);
+          return;
+        }
+        setUser(session.user);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return user;

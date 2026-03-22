@@ -5,8 +5,8 @@ export const BLOG_ROUTE_SEGMENT = "blog";
 export const BLOG_POSTS_PER_PAGE = 12;
 
 const CONTENT_DIRECTORY_CANDIDATES = [
-  path.resolve(process.cwd(), "content"),
-  path.resolve(process.cwd(), "..", "content"),
+  path.resolve(process.cwd(), "marketing", "content"),
+  path.resolve(process.cwd(), "..", "marketing", "content"),
 ];
 
 function resolveExistingDirectory(candidates: string[]): string {
@@ -16,7 +16,7 @@ function resolveExistingDirectory(candidates: string[]): string {
     }
   }
 
-  return candidates[0] ?? path.resolve(process.cwd(), "content");
+  return candidates[0] ?? path.resolve(process.cwd(), "marketing", "content");
 }
 
 export function resolveContentDirectory(): string {
@@ -32,5 +32,5 @@ export function resolveInternalLinksConfigPath(): string {
 }
 
 export function isProductionEnvironment(): boolean {
-  return process.env.NODE_ENV === "production";
+  return process.env["NODE_ENV"] === "production";
 }

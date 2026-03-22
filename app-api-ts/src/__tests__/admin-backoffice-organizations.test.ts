@@ -114,6 +114,14 @@ describe("admin backoffice organizations", () => {
 
   it("creates an organization shell with a persisted test flag and writes an audit entry", async () => {
     const actorUserId = "11111111-1111-4111-8111-111111111111";
+    const initialInviteProof = {
+      provider: "resend" as const,
+      channel: "keycloak_execute_actions_email" as const,
+      delivery: "activation_link" as const,
+      status: "pending" as const,
+      initiatedAt: "2026-03-18T11:00:00.000Z",
+      summary: "Invitation initialisee",
+    };
     const provisionUser = vi.fn().mockResolvedValue({
       authUserId: "keycloak-user-1",
     });
@@ -222,6 +230,13 @@ describe("admin backoffice organizations", () => {
         provisionUser,
       } as unknown,
     );
+    Reflect.set(
+      service as unknown as Record<string, unknown>,
+      "deliveryProofService",
+      {
+        recordInvitationAttempt: vi.fn().mockResolvedValue(initialInviteProof),
+      } as unknown,
+    );
 
     const result = await service.createOrganization({
       name: "Nouvel acteur",
@@ -245,6 +260,7 @@ describe("admin backoffice organizations", () => {
       userCount: 1,
       siteCount: 0,
       createdAt: "2026-03-18T11:00:00.000Z",
+      initialInviteProof,
     });
     expect(provisionUser).toHaveBeenCalledWith({
       email: "ops@nouvel-acteur.fr",
@@ -257,6 +273,14 @@ describe("admin backoffice organizations", () => {
 
   it("retries organization contact provisioning after deleting an orphaned Keycloak test user", async () => {
     const actorUserId = "11111111-1111-4111-8111-111111111111";
+    const initialInviteProof = {
+      provider: "resend" as const,
+      channel: "keycloak_execute_actions_email" as const,
+      delivery: "activation_link" as const,
+      status: "pending" as const,
+      initiatedAt: "2026-03-18T11:00:00.000Z",
+      summary: "Invitation initialisee",
+    };
     const provisionUser = vi
       .fn()
       .mockRejectedValueOnce(
@@ -395,6 +419,13 @@ describe("admin backoffice organizations", () => {
         deleteProvisionedUser,
       } as unknown,
     );
+    Reflect.set(
+      service as unknown as Record<string, unknown>,
+      "deliveryProofService",
+      {
+        recordInvitationAttempt: vi.fn().mockResolvedValue(initialInviteProof),
+      } as unknown,
+    );
 
     const result = await service.createOrganization({
       name: "Nouvel acteur",
@@ -408,6 +439,7 @@ describe("admin backoffice organizations", () => {
     });
 
     expect(result.contactEmail).toBe("ops@nouvel-acteur.fr");
+    expect(result.initialInviteProof).toEqual(initialInviteProof);
     expect(findManagedUsersByEmail).toHaveBeenCalledWith(
       "ops@nouvel-acteur.fr",
     );

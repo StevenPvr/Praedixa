@@ -2,8 +2,13 @@ import { CheckCircle } from "lucide-react";
 import { Card } from "@praedixa/ui";
 import type { UnreadCount } from "@/lib/inbox-helpers";
 
-export function UnreadMessagesCard({ unread }: { unread: UnreadCount }) {
+type UnreadMessagesCardProps = Readonly<{
+  unread: UnreadCount;
+}>;
+
+export function UnreadMessagesCard({ unread }: UnreadMessagesCardProps) {
   const byOrg = Array.isArray(unread.byOrg) ? unread.byOrg : [];
+  const hasOrgBreakdown = byOrg.length > 0;
   const total = Number.isFinite(unread.total)
     ? unread.total
     : byOrg.reduce((acc, org) => {
@@ -21,12 +26,7 @@ export function UnreadMessagesCard({ unread }: { unread: UnreadCount }) {
           {total}
         </span>
       </div>
-      {byOrg.length === 0 ? (
-        <div className="flex items-center gap-2 text-sm text-ink-placeholder">
-          <CheckCircle className="h-4 w-4 text-success-500" />
-          Aucun message en attente
-        </div>
-      ) : (
+      {hasOrgBreakdown ? (
         <div className="space-y-2">
           {byOrg.map((org) => (
             <a
@@ -40,6 +40,11 @@ export function UnreadMessagesCard({ unread }: { unread: UnreadCount }) {
               </span>
             </a>
           ))}
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 text-sm text-ink-placeholder">
+          <CheckCircle className="h-4 w-4 text-success-500" />
+          Aucun message en attente
         </div>
       )}
     </Card>

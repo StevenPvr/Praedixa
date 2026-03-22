@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import uuid
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -29,6 +29,11 @@ if TYPE_CHECKING:
 
 _POSTGRES_MAX_BIND_PARAMS = 65_535
 _DEFAULT_BULK_IMPORT_BATCH_SIZE = 1000
+
+
+def _result_rowcount(result: Any) -> int:
+    rowcount = getattr(result, "rowcount", None)
+    return rowcount if isinstance(rowcount, int) else 0
 
 
 async def list_canonical_records(
@@ -209,8 +214,7 @@ async def _insert_canonical_chunk(
     stmt = pg_insert(CanonicalRecord).values(rows)
     stmt = stmt.on_conflict_do_nothing(constraint="uq_canonical_record")
     result = await session.execute(stmt)
-    rowcount: int = result.rowcount  # type: ignore[attr-defined]
-    return int(rowcount or 0)
+    return _result_rowcount(result)
 
 
 async def get_quality_dashboard(

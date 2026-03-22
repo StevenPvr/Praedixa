@@ -60,6 +60,29 @@ export interface IntegrationConnection {
   updatedAt: string;
 }
 
+export interface IntegrationCatalogItem {
+  vendor: string;
+  label: string;
+  domain: string;
+  authModes: string[];
+  sourceObjects: string[];
+  recommendedSyncMinutes: number;
+  medallionTargets: Array<"bronze" | "silver" | "gold">;
+  onboardingModes?: string[];
+  requiredConfigFields?: string[];
+}
+
+export interface CreateIntegrationConnectionPayload {
+  vendor: string;
+  displayName: string;
+  authMode: string;
+  sourceObjects?: string[];
+  runtimeEnvironment?: "production" | "sandbox";
+  baseUrl?: string | null;
+  config?: Record<string, unknown>;
+  credentials?: Record<string, unknown>;
+}
+
 export interface IntegrationConnectionTestResult {
   ok: boolean;
   latencyMs: number;

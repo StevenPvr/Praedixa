@@ -174,6 +174,28 @@ describe("connectors transport and auth surface", () => {
     ).toBeNull();
   });
 
+  it("lets dedicated control-plane tokens access every organization", () => {
+    const principal = authenticateServiceToken(
+      [
+        {
+          name: "admin-control-plane",
+          token: "token-long-enough-1234567890zzzz",
+          allowedOrgs: ["global:all-orgs"],
+          capabilities: ["connections:read"],
+        },
+      ],
+      "Bearer token-long-enough-1234567890zzzz",
+    );
+
+    expect(principal).toEqual({
+      name: "admin-control-plane",
+      allowedOrgs: ["global:all-orgs"],
+      capabilities: ["connections:read"],
+    });
+    expect(canAccessOrganization(principal!, "org-1")).toBe(true);
+    expect(canAccessOrganization(principal!, "org-999")).toBe(true);
+  });
+
   it("rate-limits the public ingest endpoint by client IP", () => {
     const ingestRoute = getRoute("/v1/ingest/:orgId/:connectionId/events");
 

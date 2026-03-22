@@ -13,7 +13,7 @@ from collections.abc import Sequence
 
 import sqlalchemy as sa
 
-from alembic import op
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
 
 # revision identifiers, used by Alembic.
 revision: str = "014"

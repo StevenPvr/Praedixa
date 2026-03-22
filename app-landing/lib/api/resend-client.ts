@@ -4,10 +4,10 @@ let resend: Resend | null = null;
 
 export function getResendClient(): Resend {
   if (!resend) {
-    if (!process.env.RESEND_API_KEY) {
+    if (!process.env["RESEND_API_KEY"]) {
       throw new Error("RESEND_API_KEY is not configured");
     }
-    resend = new Resend(process.env.RESEND_API_KEY);
+    resend = new Resend(process.env["RESEND_API_KEY"]);
   }
 
   return resend;

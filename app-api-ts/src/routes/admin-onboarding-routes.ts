@@ -1,15 +1,9 @@
 import { z } from "zod";
-import type {
-  CompleteOnboardingCaseTaskRequest,
-  CreateAdminOnboardingCaseRequest,
-  CreateOnboardingCaseRequest,
-  OnboardingCaseLifecycleRequest,
-  SaveOnboardingCaseTaskRequest,
-} from "@praedixa/shared-types/api";
 
 import { failure, paginated, success } from "../response.js";
 import { route } from "../router.js";
 import {
+  activateOnboardingApiSource,
   cancelOnboardingCase,
   completeOnboardingTask,
   createOnboardingCase,
@@ -20,6 +14,7 @@ import {
   recomputeOnboardingReadiness,
   reopenOnboardingCase,
   saveOnboardingTaskDraft,
+  uploadOnboardingFileSource,
 } from "../services/admin-onboarding.js";
 import { PersistenceError, isUuidString } from "../services/persistence.js";
 import type { RouteContext, RouteDefinition, RouteResult } from "../types.js";
@@ -33,6 +28,7 @@ const adminOnboardingWrite = {
   allowedRoles: adminAllowedRoles,
   requiredPermissions: ["admin:onboarding:write"] as const,
 };
+const DEFAULT_ONBOARDING_UPLOAD_MAX_BYTES = 50 * 1024 * 1024;
 
 const sourceModeSchema = z.enum(["api", "file", "sftp"]);
 const activationModeSchema = z.enum(["shadow", "limited", "full"]);
@@ -66,6 +62,23 @@ const saveOnboardingTaskSchema = z.object({
 const onboardingCaseLifecycleSchema = z.object({
   reason: z.string().trim().max(500).nullable().optional(),
 });
+const activateOnboardingApiSourceSchema = z.object({
+  connectionId: z.string().trim().min(1).max(128),
+});
+
+function getOnboardingUploadMaxBytes(): number {
+  const raw = process.env["ONBOARDING_SOURCE_UPLOAD_MAX_BYTES"]?.trim();
+  if (!raw) {
+    return DEFAULT_ONBOARDING_UPLOAD_MAX_BYTES;
+  }
+
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return DEFAULT_ONBOARDING_UPLOAD_MAX_BYTES;
+  }
+
+  return Math.min(parsed, 100 * 1024 * 1024);
+}
 
 function isRouteResult(value: unknown): value is RouteResult {
   return (
@@ -125,7 +138,7 @@ function requireActorUserId(ctx: RouteContext): string | RouteResult {
 }
 
 function requireOrganizationId(ctx: RouteContext): string | RouteResult {
-  const organizationId = normalizeOptionalText(ctx.params.orgId);
+  const organizationId = normalizeOptionalText(ctx.params["orgId"]);
   if (organizationId && isUuidString(organizationId)) {
     return organizationId;
   }
@@ -139,7 +152,7 @@ function requireOrganizationId(ctx: RouteContext): string | RouteResult {
 }
 
 function requireCaseId(ctx: RouteContext): string | RouteResult {
-  const caseId = normalizeOptionalText(ctx.params.caseId);
+  const caseId = normalizeOptionalText(ctx.params["caseId"]);
   if (caseId && isUuidString(caseId)) {
     return caseId;
   }
@@ -153,7 +166,7 @@ function requireCaseId(ctx: RouteContext): string | RouteResult {
 }
 
 function requireTaskId(ctx: RouteContext): string | RouteResult {
-  const taskId = normalizeOptionalText(ctx.params.taskId);
+  const taskId = normalizeOptionalText(ctx.params["taskId"]);
   if (taskId && isUuidString(taskId)) {
     return taskId;
   }
@@ -279,7 +292,7 @@ async function listGlobalOnboardingCases(ctx: RouteContext) {
 }
 
 async function createGlobalOnboardingCase(ctx: RouteContext) {
-  const parsed = parseBody<CreateAdminOnboardingCaseRequest>(
+  const parsed = parseBody(
     ctx,
     createAdminOnboardingCaseSchema,
     "INVALID_ONBOARDING_CASE_BODY",
@@ -295,7 +308,27 @@ async function createGlobalOnboardingCase(ctx: RouteContext) {
   }
 
   try {
-    const { organizationId, ...request } = parsed;
+    const { organizationId, ...requestData } = parsed;
+    const request = {
+      activationMode: requestData.activationMode,
+      environmentTarget: requestData.environmentTarget,
+      dataResidencyRegion: requestData.dataResidencyRegion,
+      subscriptionModules: requestData.subscriptionModules,
+      selectedPacks: requestData.selectedPacks,
+      sourceModes: requestData.sourceModes,
+      ...(requestData.ownerUserId !== undefined
+        ? { ownerUserId: requestData.ownerUserId }
+        : {}),
+      ...(requestData.sponsorUserId !== undefined
+        ? { sponsorUserId: requestData.sponsorUserId }
+        : {}),
+      ...(requestData.targetGoLiveAt !== undefined
+        ? { targetGoLiveAt: requestData.targetGoLiveAt }
+        : {}),
+      ...(requestData.metadataJson !== undefined
+        ? { metadataJson: requestData.metadataJson }
+        : {}),
+    };
     return success(
       await createOnboardingCase({
         organizationId,
@@ -353,7 +386,7 @@ async function createOrganizationCase(ctx: RouteContext) {
     return organizationId;
   }
 
-  const parsed = parseBody<CreateOnboardingCaseRequest>(
+  const parsed = parseBody(
     ctx,
     createOnboardingCaseSchema,
     "INVALID_ONBOARDING_CASE_BODY",
@@ -373,7 +406,26 @@ async function createOrganizationCase(ctx: RouteContext) {
       await createOnboardingCase({
         organizationId,
         actorUserId,
-        request: parsed,
+        request: {
+          activationMode: parsed.activationMode,
+          environmentTarget: parsed.environmentTarget,
+          dataResidencyRegion: parsed.dataResidencyRegion,
+          subscriptionModules: parsed.subscriptionModules,
+          selectedPacks: parsed.selectedPacks,
+          sourceModes: parsed.sourceModes,
+          ...(parsed.ownerUserId !== undefined
+            ? { ownerUserId: parsed.ownerUserId }
+            : {}),
+          ...(parsed.sponsorUserId !== undefined
+            ? { sponsorUserId: parsed.sponsorUserId }
+            : {}),
+          ...(parsed.targetGoLiveAt !== undefined
+            ? { targetGoLiveAt: parsed.targetGoLiveAt }
+            : {}),
+          ...(parsed.metadataJson !== undefined
+            ? { metadataJson: parsed.metadataJson }
+            : {}),
+        },
       }),
       ctx.requestId,
       "Onboarding case created",
@@ -418,7 +470,7 @@ async function completeOrganizationCaseTask(ctx: RouteContext) {
     return taskId;
   }
 
-  const parsed = parseBody<CompleteOnboardingCaseTaskRequest>(
+  const parsed = parseBody(
     ctx,
     completeOnboardingTaskSchema,
     "INVALID_ONBOARDING_TASK_BODY",
@@ -467,7 +519,7 @@ async function saveOrganizationCaseTask(ctx: RouteContext) {
     return taskId;
   }
 
-  const parsed = parseBody<SaveOnboardingCaseTaskRequest>(
+  const parsed = parseBody(
     ctx,
     saveOnboardingTaskSchema,
     "INVALID_ONBOARDING_TASK_BODY",
@@ -505,6 +557,93 @@ async function saveOrganizationCaseTask(ctx: RouteContext) {
   }
 }
 
+async function uploadOrganizationFileSource(ctx: RouteContext) {
+  const scoped = await requireScopedCase(ctx);
+  if (isRouteResult(scoped)) {
+    return scoped;
+  }
+
+  const taskId = requireTaskId(ctx);
+  if (isRouteResult(taskId)) {
+    return taskId;
+  }
+
+  const actorUserId = requireActorUserId(ctx);
+  if (isRouteResult(actorUserId)) {
+    return actorUserId;
+  }
+
+  try {
+    return success(
+      await uploadOnboardingFileSource({
+        organizationId: scoped.organizationId,
+        caseId: scoped.caseId,
+        taskId,
+        actorUserId,
+        headers: ctx.headers,
+        rawBodyBytes: ctx.rawBodyBytes,
+      }),
+      ctx.requestId,
+      "Onboarding file source uploaded",
+    );
+  } catch (error) {
+    return onboardingFailureResponse(
+      error,
+      ctx.requestId,
+      "ONBOARDING_FILE_SOURCE_UPLOAD_FAILED",
+      "Unable to upload onboarding file source.",
+    );
+  }
+}
+
+async function activateOrganizationApiSource(ctx: RouteContext) {
+  const scoped = await requireScopedCase(ctx);
+  if (isRouteResult(scoped)) {
+    return scoped;
+  }
+
+  const taskId = requireTaskId(ctx);
+  if (isRouteResult(taskId)) {
+    return taskId;
+  }
+
+  const parsed = parseBody(
+    ctx,
+    activateOnboardingApiSourceSchema,
+    "INVALID_ONBOARDING_API_SOURCE_BODY",
+    "Onboarding API source activation body is invalid.",
+  );
+  if (isRouteResult(parsed)) {
+    return parsed;
+  }
+
+  const actorUserId = requireActorUserId(ctx);
+  if (isRouteResult(actorUserId)) {
+    return actorUserId;
+  }
+
+  try {
+    return success(
+      await activateOnboardingApiSource({
+        organizationId: scoped.organizationId,
+        caseId: scoped.caseId,
+        taskId,
+        actorUserId,
+        connectionId: parsed.connectionId,
+      }),
+      ctx.requestId,
+      "Onboarding API source activated",
+    );
+  } catch (error) {
+    return onboardingFailureResponse(
+      error,
+      ctx.requestId,
+      "ONBOARDING_API_SOURCE_ACTIVATE_FAILED",
+      "Unable to activate onboarding API source.",
+    );
+  }
+}
+
 async function recomputeOrganizationCaseReadiness(ctx: RouteContext) {
   const scoped = await requireScopedCase(ctx);
   if (isRouteResult(scoped)) {
@@ -536,7 +675,7 @@ async function cancelOrganizationCase(ctx: RouteContext) {
     return scoped;
   }
 
-  const parsed = parseBody<OnboardingCaseLifecycleRequest>(
+  const parsed = parseBody(
     ctx,
     onboardingCaseLifecycleSchema,
     "INVALID_ONBOARDING_CASE_BODY",
@@ -578,7 +717,7 @@ async function reopenOrganizationCase(ctx: RouteContext) {
     return scoped;
   }
 
-  const parsed = parseBody<OnboardingCaseLifecycleRequest>(
+  const parsed = parseBody(
     ctx,
     onboardingCaseLifecycleSchema,
     "INVALID_ONBOARDING_CASE_BODY",
@@ -674,6 +813,22 @@ export const ADMIN_ONBOARDING_ROUTES: readonly RouteDefinition[] = [
     "POST",
     "/api/v1/admin/organizations/:orgId/onboarding/cases/:caseId/tasks/:taskId/complete",
     completeOrganizationCaseTask,
+    adminOnboardingWrite,
+  ),
+  route(
+    "POST",
+    "/api/v1/admin/organizations/:orgId/onboarding/cases/:caseId/tasks/:taskId/file-sources/upload",
+    uploadOrganizationFileSource,
+    {
+      ...adminOnboardingWrite,
+      bodyParsing: "binary",
+      maxBodyBytes: getOnboardingUploadMaxBytes(),
+    },
+  ),
+  route(
+    "POST",
+    "/api/v1/admin/organizations/:orgId/onboarding/cases/:caseId/tasks/:taskId/api-sources/activate",
+    activateOrganizationApiSource,
     adminOnboardingWrite,
   ),
 ];

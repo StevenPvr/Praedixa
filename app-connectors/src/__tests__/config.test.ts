@@ -44,6 +44,20 @@ describe("connectors configuration hardening", () => {
     expect(config.allowedSandboxOutboundHosts).toEqual([]);
   });
 
+  it("accepts JSON CORS origins from the shared local env files", () => {
+    const config = loadConfig({
+      NODE_ENV: "development",
+      CORS_ORIGINS:
+        '["http://localhost:3001","http://127.0.0.1:3001","http://localhost:3001"]',
+      CONNECTORS_SERVICE_TOKENS: developmentServiceTokens,
+    });
+
+    expect(config.corsOrigins).toEqual([
+      "http://localhost:3001",
+      "http://127.0.0.1:3001",
+    ]);
+  });
+
   it("rejects legacy service-token env aliases", () => {
     expect(() =>
       loadConfig({
@@ -69,6 +83,27 @@ describe("connectors configuration hardening", () => {
     ).toThrow('Invalid organization scope "*"');
   });
 
+  it("accepts the dedicated all-org control-plane scope", () => {
+    const config = loadConfig({
+      NODE_ENV: "development",
+      CONNECTORS_SERVICE_TOKENS: JSON.stringify([
+        {
+          name: "admin-control-plane",
+          token: "token-long-enough-1234567890cccc",
+          allowedOrgs: ["global:all-orgs"],
+          capabilities: ["connections:read", "connections:write"],
+        },
+      ]),
+    });
+
+    expect(config.serviceTokens[0]).toEqual({
+      name: "admin-control-plane",
+      token: "token-long-enough-1234567890cccc",
+      allowedOrgs: ["global:all-orgs"],
+      capabilities: ["connections:read", "connections:write"],
+    });
+  });
+
   it("validates DATABASE_URL when persistence is enabled", () => {
     expect(() =>
       loadConfig({
@@ -77,6 +112,19 @@ describe("connectors configuration hardening", () => {
         CONNECTORS_SERVICE_TOKENS: developmentServiceTokens,
       }),
     ).toThrow("DATABASE_URL must use postgres:// or postgresql://");
+  });
+
+  it("normalizes asyncpg database URLs for local shared env files", () => {
+    const config = loadConfig({
+      NODE_ENV: "development",
+      DATABASE_URL:
+        "postgresql+asyncpg://praedixa:praedixa_local_dev_pg_2026@localhost:5433/praedixa",
+      CONNECTORS_SERVICE_TOKENS: developmentServiceTokens,
+    });
+
+    expect(config.databaseUrl).toBe(
+      "postgresql://praedixa:praedixa_local_dev_pg_2026@localhost:5433/praedixa",
+    );
   });
 
   it("requires a database outside development", () => {

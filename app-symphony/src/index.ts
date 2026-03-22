@@ -48,7 +48,7 @@ await loadSymphonyLocalEnv({
 
 const logger = createSymphonyLogger(
   "symphony",
-  process.env.NODE_ENV ?? "development",
+  process.env["NODE_ENV"] ?? "development",
 );
 const args = parseCliArgs(process.argv.slice(2));
 const workflowPath = resolveWorkflowPath(args.workflowPath, process.cwd());

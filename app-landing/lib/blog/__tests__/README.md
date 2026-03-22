@@ -13,6 +13,7 @@ Sous-dossiers :
 Fichiers :
 
 - `internal-links.test.ts`
+- `mdx.test.tsx`
 - `posts.test.ts`
 
 ## Intégration

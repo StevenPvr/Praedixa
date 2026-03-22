@@ -1,6 +1,6 @@
 const localIntegrationsWorkspaceEnabled =
   process.env.NODE_ENV !== "development" ||
-  process.env.NEXT_PUBLIC_ADMIN_INTEGRATIONS_WORKSPACE === "1";
+  process.env["NEXT_PUBLIC_ADMIN_INTEGRATIONS_WORKSPACE"] === "1";
 
 export const ADMIN_WORKSPACE_FEATURE_GATES = {
   forecastingWorkspace: false,

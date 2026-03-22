@@ -60,10 +60,23 @@ function parseCorsOrigins(
   rawOrigins: string | undefined,
   nodeEnv: AppConfig["nodeEnv"],
 ): string[] {
-  const configuredOrigins = (rawOrigins ?? "")
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter((origin) => origin.length > 0);
+  const rawValue = rawOrigins?.trim() ?? "";
+  let configuredOrigins: string[] = [];
+
+  if (rawValue.startsWith("[")) {
+    const parsed = JSON.parse(rawValue);
+    if (!Array.isArray(parsed)) {
+      throw new Error("CORS_ORIGINS JSON value must be an array of origins");
+    }
+    configuredOrigins = parsed
+      .map((origin) => (typeof origin === "string" ? origin.trim() : ""))
+      .filter((origin) => origin.length > 0);
+  } else {
+    configuredOrigins = rawValue
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter((origin) => origin.length > 0);
+  }
 
   const candidateOrigins =
     configuredOrigins.length > 0
@@ -191,11 +204,15 @@ function parseDatabaseUrl(
     throw new Error("DATABASE_URL is required outside development");
   }
 
-  const parsed = new URL(value);
+  const normalizedValue = value
+    .replace(/^postgresql\+[^:]+:\/\//i, "postgresql://")
+    .replace(/^postgres\+[^:]+:\/\//i, "postgres://");
+
+  const parsed = new URL(normalizedValue);
   if (parsed.protocol !== "postgresql:" && parsed.protocol !== "postgres:") {
     throw new Error("DATABASE_URL must use postgres:// or postgresql://");
   }
-  return value;
+  return normalizedValue;
 }
 
 function parseBooleanEnv(

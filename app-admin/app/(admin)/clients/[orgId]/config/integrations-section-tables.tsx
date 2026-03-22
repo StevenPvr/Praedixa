@@ -30,15 +30,7 @@ export interface AsyncTableState<T> {
   data: T[] | null | undefined;
 }
 
-function InlineTableBlock<T>({
-  title,
-  loading,
-  error,
-  onRetry,
-  columns,
-  data,
-  getRowKey,
-}: {
+type InlineTableBlockProps<T> = {
   title: string;
   loading: boolean;
   error: string | null;
@@ -46,26 +38,66 @@ function InlineTableBlock<T>({
   columns: DataTableColumn<T>[];
   data: T[];
   getRowKey: (row: T) => string;
-}) {
+};
+
+type ConnectionsTableProps = {
+  connections: IntegrationConnection[];
+};
+
+type IssueCredentialButtonProps = {
+  canManageIntegrations: boolean;
+  actionLoading: string | null;
+  effectiveIntegrationId: string | null;
+  onIssueCredential: () => void;
+};
+
+type CredentialTableProps = {
+  canManageIntegrations: boolean;
+  actionLoading: string | null;
+  credentials: AsyncTableState<IntegrationIngestCredential>;
+  onRevokeCredential: (credentialId: string) => void;
+};
+
+type SyncRunTableProps = {
+  syncRuns: AsyncTableState<IntegrationSyncRun>;
+};
+
+type RawEventTableProps = {
+  rawEvents: AsyncTableState<IntegrationRawEvent>;
+};
+
+type IntegrationDataPanelsProps = {
+  canManageIntegrations: boolean;
+  actionLoading: string | null;
+  effectiveIntegrationId: string | null;
+  syncRuns: AsyncTableState<IntegrationSyncRun>;
+  credentials: AsyncTableState<IntegrationIngestCredential>;
+  rawEvents: AsyncTableState<IntegrationRawEvent>;
+  onIssueCredential: () => void;
+  onRevokeCredential: (credentialId: string) => void;
+};
+
+function InlineTableBlock<T>(props: Readonly<InlineTableBlockProps<T>>) {
+  const { title, loading, error, onRetry, columns, data, getRowKey } = props;
+  let content = (
+    <DataTable columns={columns} data={data} getRowKey={getRowKey} />
+  );
+  if (loading) {
+    content = <SkeletonCard />;
+  } else if (error) {
+    content = <ErrorFallback message={error} onRetry={onRetry} />;
+  }
+
   return (
     <div className="space-y-2">
       <p className="text-sm font-medium text-ink">{title}</p>
-      {loading ? (
-        <SkeletonCard />
-      ) : error ? (
-        <ErrorFallback message={error} onRetry={onRetry} />
-      ) : (
-        <DataTable columns={columns} data={data} getRowKey={getRowKey} />
-      )}
+      {content}
     </div>
   );
 }
 
-export function ConnectionsTable({
-  connections,
-}: {
-  connections: IntegrationConnection[];
-}) {
+export function ConnectionsTable(props: Readonly<ConnectionsTableProps>) {
+  const { connections } = props;
   return (
     <InlineTableBlock
       title="Connexions configurees"
@@ -79,27 +111,24 @@ export function ConnectionsTable({
   );
 }
 
-function IssueCredentialButton({
-  canManageIntegrations,
-  actionLoading,
-  effectiveIntegrationId,
-  onIssueCredential,
-}: {
-  canManageIntegrations: boolean;
-  actionLoading: string | null;
-  effectiveIntegrationId: string | null;
-  onIssueCredential: () => void;
-}) {
+function IssueCredentialButton(props: Readonly<IssueCredentialButtonProps>) {
+  const {
+    canManageIntegrations,
+    actionLoading,
+    effectiveIntegrationId,
+    onIssueCredential,
+  } = props;
+  const hasEffectiveIntegration = effectiveIntegrationId != null;
+  const isActionIdle = actionLoading == null;
+  const canIssueCredential =
+    canManageIntegrations && hasEffectiveIntegration && isActionIdle;
+
   return (
     <div className="flex flex-wrap gap-2">
       <Button
         type="button"
         onClick={onIssueCredential}
-        disabled={
-          !canManageIntegrations ||
-          !effectiveIntegrationId ||
-          actionLoading != null
-        }
+        disabled={!canIssueCredential}
       >
         Generer une cle d'ingestion
       </Button>
@@ -107,17 +136,13 @@ function IssueCredentialButton({
   );
 }
 
-function CredentialTable({
-  canManageIntegrations,
-  actionLoading,
-  credentials,
-  onRevokeCredential,
-}: {
-  canManageIntegrations: boolean;
-  actionLoading: string | null;
-  credentials: AsyncTableState<IntegrationIngestCredential>;
-  onRevokeCredential: (credentialId: string) => void;
-}) {
+function CredentialTable(props: Readonly<CredentialTableProps>) {
+  const {
+    canManageIntegrations,
+    actionLoading,
+    credentials,
+    onRevokeCredential,
+  } = props;
   const columns = buildIngestCredentialColumns({
     formatDateTime,
     canManageIntegrations,
@@ -138,11 +163,8 @@ function CredentialTable({
   );
 }
 
-function SyncRunTable({
-  syncRuns,
-}: {
-  syncRuns: AsyncTableState<IntegrationSyncRun>;
-}) {
+function SyncRunTable(props: Readonly<SyncRunTableProps>) {
+  const { syncRuns } = props;
   return (
     <InlineTableBlock
       title="Runs de sync"
@@ -156,11 +178,8 @@ function SyncRunTable({
   );
 }
 
-function RawEventTable({
-  rawEvents,
-}: {
-  rawEvents: AsyncTableState<IntegrationRawEvent>;
-}) {
+function RawEventTable(props: Readonly<RawEventTableProps>) {
+  const { rawEvents } = props;
   return (
     <InlineTableBlock
       title="Evenements recus"
@@ -174,25 +193,19 @@ function RawEventTable({
   );
 }
 
-export function IntegrationDataPanels({
-  canManageIntegrations,
-  actionLoading,
-  effectiveIntegrationId,
-  syncRuns,
-  credentials,
-  rawEvents,
-  onIssueCredential,
-  onRevokeCredential,
-}: {
-  canManageIntegrations: boolean;
-  actionLoading: string | null;
-  effectiveIntegrationId: string | null;
-  syncRuns: AsyncTableState<IntegrationSyncRun>;
-  credentials: AsyncTableState<IntegrationIngestCredential>;
-  rawEvents: AsyncTableState<IntegrationRawEvent>;
-  onIssueCredential: () => void;
-  onRevokeCredential: (credentialId: string) => void;
-}) {
+export function IntegrationDataPanels(
+  props: Readonly<IntegrationDataPanelsProps>,
+) {
+  const {
+    canManageIntegrations,
+    actionLoading,
+    effectiveIntegrationId,
+    syncRuns,
+    credentials,
+    rawEvents,
+    onIssueCredential,
+    onRevokeCredential,
+  } = props;
   return (
     <>
       <IssueCredentialButton

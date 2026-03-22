@@ -9,7 +9,8 @@ export function normalizePermission(permission: string): string {
 export function normalizePermissions(
   permissions: readonly string[] | null | undefined,
 ): string[] {
-  if (!permissions || permissions.length === 0) {
+  const hasPermissions = Array.isArray(permissions) && permissions.length > 0;
+  if (hasPermissions === false) {
     return [];
   }
 
@@ -67,9 +68,8 @@ export function hasAnyPermission(
 }
 
 export function canAccessAdminConsole(
-  role: string | null | undefined,
+  _role: string | null | undefined,
   permissions: readonly string[] | null | undefined,
 ): boolean {
-  void role;
   return hasPermission(permissions, ADMIN_CONSOLE_PERMISSION);
 }

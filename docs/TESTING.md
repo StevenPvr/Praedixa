@@ -292,7 +292,7 @@ node --test scripts/__tests__/synthetic-monitoring-baseline.test.mjs  # Baseline
 
 Les E2E ne remplacent pas les verifications de release et d'exploitation versionnees dans `scripts/`:
 
-- `./scripts/scw-post-deploy-smoke.sh` est le smoke CLI canonique apres deploy ou rollback pour `api`, `webapp`, `admin`, `auth`, `landing` et `connectors` selon les URLs disponibles;
+- `./scripts/scw/scw-post-deploy-smoke.sh` est le smoke CLI canonique apres deploy ou rollback pour `api`, `webapp`, `admin`, `auth`, `landing` et `connectors` selon les URLs disponibles;
 - `./scripts/validate-synthetic-monitoring-baseline.mjs` valide la baseline machine-readable `docs/runbooks/synthetic-monitoring-baseline.json`, utilisee comme source de verite pour les checks synthetiques critiques.
 
 Ces checks doivent rester coherents avec `docs/runbooks/observability-baseline.md`, `docs/runbooks/post-deploy-smoke-baseline.md` et `docs/runbooks/release-and-rollback-baseline.md`.
@@ -393,7 +393,7 @@ pnpm gate:prepush
 Tests de regression securite cibles utilises aussi par les hooks:
 
 ```bash
-./scripts/gate-sensitive-security-tests.sh
+./scripts/gates/gate-sensitive-security-tests.sh
 ```
 
 Ce gate impose:

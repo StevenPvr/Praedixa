@@ -21,6 +21,115 @@ const VIEWBOX_H = 290;
 const CHART_W = VIEWBOX_W - PADDING.left - PADDING.right;
 const CHART_H = VIEWBOX_H - PADDING.top - PADDING.bottom;
 
+type ParetoDomain = {
+  minCost: number;
+  costRange: number;
+  minService: number;
+  serviceRange: number;
+};
+
+function getParetoDomain(points: ParetoPoint[]): ParetoDomain {
+  const costs = points.map((point) => point.cost);
+  const services = points.map((point) => point.service);
+  const minCost = Math.min(...costs);
+  const maxCost = Math.max(...costs);
+  const minService = Math.min(...services);
+  const maxService = Math.max(...services);
+
+  return {
+    minCost,
+    costRange: maxCost - minCost || 1,
+    minService,
+    serviceRange: maxService - minService || 1,
+  };
+}
+
+function createChartCoords(domain: ParetoDomain) {
+  return {
+    xPos(cost: number): number {
+      return (
+        PADDING.left + ((cost - domain.minCost) / domain.costRange) * CHART_W
+      );
+    },
+    yPos(service: number): number {
+      return (
+        PADDING.top +
+        CHART_H -
+        ((service - domain.minService) / domain.serviceRange) * CHART_H
+      );
+    },
+  };
+}
+
+function buildFrontierPath(
+  points: ParetoPoint[],
+  xPos: (cost: number) => number,
+  yPos: (service: number) => number,
+): { optimal: ParetoPoint[]; frontierPath: string } {
+  const optimal = points
+    .filter((point) => point.isParetoOptimal)
+    .sort((left, right) => left.cost - right.cost);
+
+  const frontierPath =
+    optimal.length > 1
+      ? optimal
+          .map((point, index) =>
+            index === 0
+              ? `M ${xPos(point.cost)} ${yPos(point.service)}`
+              : `L ${xPos(point.cost)} ${yPos(point.service)}`,
+          )
+          .join(" ")
+      : "";
+
+  return { optimal, frontierPath };
+}
+
+function buildTicks(minValue: number, valueRange: number): number[] {
+  return Array.from({ length: 4 }, (_, index) =>
+    Math.round(minValue + (valueRange * (index + 1)) / 4),
+  );
+}
+
+type ParetoPointTooltipProps = {
+  point: ParetoPoint;
+  cx: number;
+  cy: number;
+};
+
+function ParetoPointTooltip({ point, cx, cy }: ParetoPointTooltipProps) {
+  const tooltipWidth = Math.max(point.label.length * 6 + 34, 130);
+  return (
+    <g>
+      <rect
+        x={cx + 10}
+        y={cy - 34}
+        width={tooltipWidth}
+        height={44}
+        rx={8}
+        fill="var(--card-bg)"
+        stroke="var(--border)"
+        strokeWidth={1}
+        opacity={0.97}
+      />
+      <text
+        x={cx + 18}
+        y={cy - 16}
+        fontSize="9"
+        fill="var(--ink)"
+        fontWeight={600}
+      >
+        {point.label}
+      </text>
+      <text x={cx + 18} y={cy - 2} fontSize="8" fill="var(--ink-secondary)">
+        Cout: {point.cost.toFixed(0)} EUR
+      </text>
+      <text x={cx + 18} y={cy + 10} fontSize="8" fill="var(--ink-secondary)">
+        Service: {point.service.toFixed(1)}%
+      </text>
+    </g>
+  );
+}
+
 const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
   ({ points, onPointClick, className, ...props }, ref) => {
     const [hoveredId, setHoveredId] = React.useState<string | null>(null);
@@ -41,48 +150,13 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
       );
     }
 
-    const costs = points.map((p) => p.cost);
-    const services = points.map((p) => p.service);
-    const minCost = Math.min(...costs);
-    const maxCost = Math.max(...costs);
-    const costRange = maxCost - minCost || 1;
-    const minService = Math.min(...services);
-    const maxService = Math.max(...services);
-    const serviceRange = maxService - minService || 1;
-
-    function xPos(cost: number): number {
-      return PADDING.left + ((cost - minCost) / costRange) * CHART_W;
-    }
-
-    function yPos(service: number): number {
-      return (
-        PADDING.top +
-        CHART_H -
-        ((service - minService) / serviceRange) * CHART_H
-      );
-    }
-
-    const optimal = points
-      .filter((p) => p.isParetoOptimal)
-      .toSorted((a, b) => a.cost - b.cost);
-
-    const frontierPath =
-      optimal.length > 1
-        ? optimal
-            .map((p, i) =>
-              i === 0
-                ? `M ${xPos(p.cost)} ${yPos(p.service)}`
-                : `L ${xPos(p.cost)} ${yPos(p.service)}`,
-            )
-            .join(" ")
-        : "";
-
-    const xTicks = Array.from({ length: 4 }, (_, i) =>
-      Math.round(minCost + (costRange * (i + 1)) / 4),
-    );
-    const yTicks = Array.from({ length: 4 }, (_, i) =>
-      Math.round(minService + (serviceRange * (i + 1)) / 4),
-    );
+    const domain = getParetoDomain(points);
+    const { xPos, yPos } = createChartCoords(domain);
+    const { optimal, frontierPath } = buildFrontierPath(points, xPos, yPos);
+    const firstOptimal = optimal[0];
+    const lastOptimal = optimal[optimal.length - 1];
+    const xTicks = buildTicks(domain.minCost, domain.costRange);
+    const yTicks = buildTicks(domain.minService, domain.serviceRange);
 
     return (
       <div
@@ -177,23 +251,26 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
             Niveau de service (%)
           </text>
 
-          {frontierPath && optimal.length > 1 && (
-            <>
-              <path
-                d={`${frontierPath} L ${xPos(optimal[optimal.length - 1].cost)} ${PADDING.top + CHART_H} L ${xPos(optimal[0].cost)} ${PADDING.top + CHART_H} Z`}
-                fill="url(#pareto-area-grad)"
-                data-testid="frontier-area"
-              />
-              <path
-                d={frontierPath}
-                fill="none"
-                stroke="var(--chart-2)"
-                strokeWidth={2}
-                strokeDasharray="6 4"
-                data-testid="frontier-line"
-              />
-            </>
-          )}
+          {frontierPath &&
+            firstOptimal &&
+            lastOptimal &&
+            optimal.length > 1 && (
+              <>
+                <path
+                  d={`${frontierPath} L ${xPos(lastOptimal.cost)} ${PADDING.top + CHART_H} L ${xPos(firstOptimal.cost)} ${PADDING.top + CHART_H} Z`}
+                  fill="url(#pareto-area-grad)"
+                  data-testid="frontier-area"
+                />
+                <path
+                  d={frontierPath}
+                  fill="none"
+                  stroke="var(--chart-2)"
+                  strokeWidth={2}
+                  strokeDasharray="6 4"
+                  data-testid="frontier-line"
+                />
+              </>
+            )}
           {frontierPath && optimal.length <= 1 && (
             <path
               d={frontierPath}
@@ -211,7 +288,6 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
             const isHovered = hoveredId === point.id;
             const isFocused = focusedId === point.id;
             const radius = point.isRecommended ? 7 : 5;
-            const tooltipWidth = Math.max(point.label.length * 6 + 34, 130);
 
             return (
               <g
@@ -271,46 +347,9 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
                   strokeWidth={2}
                 />
 
-                {(isHovered || isFocused) && (
-                  <g>
-                    <rect
-                      x={cx + 10}
-                      y={cy - 34}
-                      width={tooltipWidth}
-                      height={44}
-                      rx={8}
-                      fill="var(--card-bg)"
-                      stroke="var(--border)"
-                      strokeWidth={1}
-                      opacity={0.97}
-                    />
-                    <text
-                      x={cx + 18}
-                      y={cy - 16}
-                      fontSize="9"
-                      fill="var(--ink)"
-                      fontWeight={600}
-                    >
-                      {point.label}
-                    </text>
-                    <text
-                      x={cx + 18}
-                      y={cy - 2}
-                      fontSize="8"
-                      fill="var(--ink-secondary)"
-                    >
-                      Cout: {point.cost.toFixed(0)} EUR
-                    </text>
-                    <text
-                      x={cx + 18}
-                      y={cy + 10}
-                      fontSize="8"
-                      fill="var(--ink-secondary)"
-                    >
-                      Service: {point.service.toFixed(1)}%
-                    </text>
-                  </g>
-                )}
+                {isHovered || isFocused ? (
+                  <ParetoPointTooltip point={point} cx={cx} cy={cy} />
+                ) : null}
               </g>
             );
           })}

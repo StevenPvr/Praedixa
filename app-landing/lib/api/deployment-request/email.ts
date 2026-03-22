@@ -164,9 +164,9 @@ export async function sendDeploymentRequestEmails(
   };
 
   const subjectCompany = safeSubject(data.companyName);
-  const fromEmail = process.env.RESEND_FROM_EMAIL || DEFAULT_FROM_EMAIL;
+  const fromEmail = process.env["RESEND_FROM_EMAIL"] || DEFAULT_FROM_EMAIL;
   const replyToEmail =
-    process.env.RESEND_REPLY_TO_EMAIL || siteConfig.contact.email;
+    process.env["RESEND_REPLY_TO_EMAIL"] || siteConfig.contact.email;
 
   const [adminResult, confirmResult] = await Promise.all([
     resend.emails.send({

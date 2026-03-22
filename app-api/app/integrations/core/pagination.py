@@ -6,7 +6,7 @@ import base64
 import json
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 _MAX_CURSOR_CHARS = 4096
 _MAX_CURSOR_BYTES = 8192
@@ -14,10 +14,24 @@ _MAX_CURSOR_ITEMS = 32
 _MAX_CURSOR_DEPTH = 4
 _MAX_CURSOR_KEY_CHARS = 128
 _MAX_CURSOR_STRING_CHARS = 1024
+INVALID_CURSOR_MESSAGE = "Invalid cursor"
+INVALID_CURSOR_PAYLOAD_TYPE_MESSAGE = "Invalid cursor payload type"
 
 
 def _raise_invalid_cursor() -> None:
-    raise ValueError("Invalid cursor")
+    raise ValueError(INVALID_CURSOR_MESSAGE)
+
+
+def _require_cursor_mapping(value: Any) -> dict[Any, Any]:
+    if not isinstance(value, dict):
+        raise TypeError(INVALID_CURSOR_PAYLOAD_TYPE_MESSAGE)
+    return cast("dict[Any, Any]", value)  # type: ignore[redundant-cast]
+
+
+def _require_cursor_list(value: Any) -> list[Any]:
+    if not isinstance(value, list):
+        raise TypeError(INVALID_CURSOR_PAYLOAD_TYPE_MESSAGE)
+    return cast("list[Any]", value)  # type: ignore[redundant-cast]
 
 
 def sanitize_limit(
@@ -71,7 +85,7 @@ def decode_cursor(cursor: str | None) -> dict[str, Any] | None:
     if normalized == "":
         return None
     if len(normalized) > _MAX_CURSOR_CHARS:
-        raise ValueError("Invalid cursor")
+        raise ValueError(INVALID_CURSOR_MESSAGE)
 
     padding = "=" * ((4 - len(normalized) % 4) % 4)
     try:
@@ -79,45 +93,59 @@ def decode_cursor(cursor: str | None) -> dict[str, Any] | None:
         if len(raw) > _MAX_CURSOR_BYTES:
             _raise_invalid_cursor()
         decoded = json.loads(raw.decode("utf-8"))
-    except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise ValueError("Invalid cursor") from exc
+    except ValueError as exc:
+        raise ValueError(INVALID_CURSOR_MESSAGE) from exc
 
     if not isinstance(decoded, dict):
-        raise TypeError("Invalid cursor payload type")
+        raise TypeError(INVALID_CURSOR_PAYLOAD_TYPE_MESSAGE)
     _validate_cursor_payload(decoded, depth=0)
 
-    return decoded
+    return cast("dict[str, Any]", decoded)
 
 
 def _validate_cursor_payload(value: Any, *, depth: int) -> None:
     if depth > _MAX_CURSOR_DEPTH:
-        raise ValueError("Invalid cursor")
+        raise ValueError(INVALID_CURSOR_MESSAGE)
 
     if isinstance(value, dict):
-        if len(value) > _MAX_CURSOR_ITEMS:
-            raise ValueError("Invalid cursor")
-        for key, child in value.items():
-            if not isinstance(key, str) or len(key) > _MAX_CURSOR_KEY_CHARS:
-                raise ValueError("Invalid cursor")
-            _validate_cursor_payload(child, depth=depth + 1)
+        _validate_cursor_dict_payload(value, depth=depth)
         return
 
     if isinstance(value, list):
-        if len(value) > _MAX_CURSOR_ITEMS:
-            raise ValueError("Invalid cursor")
-        for child in value:
-            _validate_cursor_payload(child, depth=depth + 1)
+        _validate_cursor_list_payload(value, depth=depth)
         return
 
     if isinstance(value, str):
-        if len(value) > _MAX_CURSOR_STRING_CHARS:
-            raise ValueError("Invalid cursor")
+        _validate_cursor_string_payload(value)
         return
 
     if isinstance(value, (int, float, bool)) or value is None:
         return
 
-    raise TypeError("Invalid cursor payload type")
+    raise TypeError(INVALID_CURSOR_PAYLOAD_TYPE_MESSAGE)
+
+
+def _validate_cursor_dict_payload(value: dict[Any, Any], *, depth: int) -> None:
+    typed_value = _require_cursor_mapping(value)
+    if len(typed_value) > _MAX_CURSOR_ITEMS:
+        raise ValueError(INVALID_CURSOR_MESSAGE)
+    for key, child in typed_value.items():
+        if not isinstance(key, str) or len(key) > _MAX_CURSOR_KEY_CHARS:
+            raise ValueError(INVALID_CURSOR_MESSAGE)
+        _validate_cursor_payload(child, depth=depth + 1)
+
+
+def _validate_cursor_list_payload(value: list[Any], *, depth: int) -> None:
+    typed_items = _require_cursor_list(value)
+    if len(typed_items) > _MAX_CURSOR_ITEMS:
+        raise ValueError(INVALID_CURSOR_MESSAGE)
+    for child in typed_items:
+        _validate_cursor_payload(child, depth=depth + 1)
+
+
+def _validate_cursor_string_payload(value: str) -> None:
+    if len(value) > _MAX_CURSOR_STRING_CHARS:
+        raise ValueError(INVALID_CURSOR_MESSAGE)
 
 
 @dataclass(frozen=True, slots=True)

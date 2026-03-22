@@ -12,6 +12,7 @@ import {
   getPublishedBlogPosts,
 } from "../../../../lib/blog/posts";
 import { type Locale, isValidLocale } from "../../../../lib/i18n/config";
+import { PRAEDIXA_SOCIAL_IMAGE_URL } from "../../../../lib/seo/entity";
 import { absoluteUrl } from "../../../../lib/seo/metadata";
 
 interface BlogPostParams {
@@ -39,17 +40,19 @@ function resolveAlternateLanguageUrls(
   const alternates = getBlogPostAlternateLocales(post, { includeDrafts });
   const languageUrls: Record<string, string> = {};
 
-  if (alternates.fr) {
+  if (alternates["fr"]) {
     languageUrls["fr-FR"] = absoluteUrl(
-      buildBlogPostPath("fr", alternates.fr.slug),
+      buildBlogPostPath("fr", alternates["fr"].slug),
     );
     languageUrls["x-default"] = absoluteUrl(
-      buildBlogPostPath("fr", alternates.fr.slug),
+      buildBlogPostPath("fr", alternates["fr"].slug),
     );
   }
 
-  if (alternates.en) {
-    languageUrls.en = absoluteUrl(buildBlogPostPath("en", alternates.en.slug));
+  if (alternates["en"]) {
+    languageUrls["en"] = absoluteUrl(
+      buildBlogPostPath("en", alternates["en"].slug),
+    );
   }
 
   if (!languageUrls["x-default"]) {
@@ -135,7 +138,7 @@ export async function generateMetadata({
       authors: post.authors.length > 0 ? post.authors : ["Praedixa"],
       images: [
         {
-          url: post.image ?? "/og-image.png",
+          url: post.image ?? PRAEDIXA_SOCIAL_IMAGE_URL,
           width: 1200,
           height: 630,
           alt: post.title,
@@ -146,7 +149,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: post.title,
       description: post.description,
-      images: [post.image ?? "/og-image.png"],
+      images: [post.image ?? PRAEDIXA_SOCIAL_IMAGE_URL],
     },
   };
 }

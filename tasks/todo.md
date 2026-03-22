@@ -1,3 +1,3167 @@
+# Current Pass - 2026-03-22 - Pre-Push Typecheck Aggregator
+
+### Plan
+
+- [x] Auditer le systeme de hooks versionne et le point d'integration pre-push reel
+- [x] Ajouter un agregateur TypeScript qui remonte toutes les erreurs de type par projet
+- [x] Brancher ce garde-fou dans le hook pre-push, documenter puis reverifier localement
+
+### Review
+
+- Correctifs appliques:
+  - ajout de `scripts/gates/gate-typecheck-all.sh`, qui rejoue les typechecks TypeScript sur les references workspace puis sur `app-landing`, `app-webapp`, `app-admin`, `app-api-ts` et `app-connectors`.
+  - branchement explicite de ce script dans `.pre-commit-config.yaml` sur le stage `pre-push`, avant le gate profond.
+  - `scripts/gates/gate-quality-static.sh` reutilise maintenant ce script plutot qu'un simple `pnpm typecheck`, pour garder le meme comportement exhaustif dans le gate profond et dans les executions manuelles.
+  - ajout du script `pnpm gate:typecheck:all` dans `package.json`.
+  - documentation alignee dans `scripts/README.md` et `docs/runbooks/local-gate-exhaustive.md`.
+- Intention long terme:
+  - le hook ne s'arrete plus au premier sous-projet TypeScript en erreur; il remonte l'ensemble des erreurs de type par application ou package critique avant de bloquer le push.
+  - cela rend les regressions de typage plus visibles sur un monorepo sale ou sur des passes globales transverses.
+- Verification:
+  - `bash scripts/gates/gate-typecheck-all.sh`
+  - `pnpm --dir app-admin exec eslint ...` / `tsc --noEmit` / `vitest ...` / `build` sur la passe onboarding en cours
+
+# Current Pass - 2026-03-22 - Pre-Commit Gate Closure Before Push
+
+### Plan
+
+- [x] Fermer les attentes de la gate sensible avec de vrais tests auth et site scope
+- [x] Corriger les regressions runtime detectees par la gate repo (`proof_service`, contract tests, connecteurs, drapeaux webapp, E2E`)
+- [x] Revalider les rouges E2E critiques avant le commit final
+
+### Review
+
+- Correctifs appliques:
+  - tests de regression ajoutes dans `app-api-ts/src/__tests__/auth.test.ts` et `app-api-ts/src/__tests__/operational-data.test.ts` pour les claims JWT canoniques, le webhook interne et le fail-close site scope.
+  - `app-api/tests/test_decision_contracts.py` realigne sur les helpers publics `resolve_bau_baseline` / `resolve_proof_outcome`.
+  - les tests de creation d'organisation admin mockent maintenant explicitement `deliveryProofService`, ce qui ferme la derive introduite par la preuve mail provider-side.
+  - `app-connectors/src/__tests__/activation-readiness.test.ts` genere maintenant `datasetMappings` quand ce champ est requis par le catalogue.
+  - `app-webapp/lib/runtime-features.ts` reactive `messagingWorkspace` et `userPreferencesPersistence`, ce qui rouvre le runtime reel deja branche et remet les E2E `messages` / `parametres` sur le contrat produit.
+  - `testing/e2e/admin/clients.spec.ts` suit le libelle singulier reel `0 client au total`.
+- Verification:
+  - `python3 scripts/check-sensitive-diff-tests.py --allow-empty-diff`
+  - `pnpm --dir app-api-ts exec vitest run src/__tests__/auth.test.ts src/__tests__/operational-data.test.ts`
+  - `cd app-api && uv run pytest -q tests/test_decision_contracts.py`
+  - `pnpm --dir app-api-ts exec vitest run src/__tests__/admin-backoffice-organizations.test.ts src/__tests__/routes.contracts.test.ts src/__tests__/openapi-public-contract.test.ts`
+  - `pnpm --dir app-connectors exec vitest run src/__tests__/activation-readiness.test.ts`
+  - `pnpm e2e:ports:free && pnpm exec playwright test --config playwright.config.ts testing/e2e/webapp/parametres.spec.ts testing/e2e/admin/clients.spec.ts --grep "language switch is available|shows empty state" --workers=1`
+
+# Current Pass - 2026-03-22 - Admin Onboarding Clean-Code Parallel Pass
+
+### Plan
+
+- [x] Auditer les fichiers onboarding les plus charges et identifier les extractions propres
+- [x] Refactoriser les composants onboarding en sous-composants lisibles sans changer le comportement
+- [x] Mettre a jour la doc locale et reverifier typecheck, tests cibles et build admin
+
+### Review
+
+- Objectif:
+  - faire une vraie passe `clean-code` sur le wizard onboarding admin sans revenir au cockpit vertical ni casser le parcours francise.
+- Refactors appliques:
+  - `page.tsx` a ete recentre sur l'orchestration du wizard; la navigation, le pied d'etape, l'etat de chargement et la carte de transition vivent maintenant dans `onboarding-step-shell.tsx`.
+  - `case-workspace-card.tsx` compose maintenant des blocs specialises; le resume de dossier est dans `case-workspace-header.tsx` et les panneaux `blocages / historique` dans `case-workspace-aside.tsx`.
+  - `case-workspace-sections.tsx` ne garde plus que l'etat vide et le panneau principal des taches de l'etape courante.
+  - `use-onboarding-page-model.ts` s'appuie maintenant sur `onboarding-page-model-helpers.ts` pour ses derives pures de selection, validation et mapping.
+  - `use-onboarding-case-actions.ts` est devenu un hook composeur tres mince; les mutations sont maintenant decoupees entre `use-onboarding-case-task-actions.ts`, `use-onboarding-case-invite-actions.ts` et `use-onboarding-case-lifecycle-actions.ts`.
+  - `create-case-card.tsx` a ete nettoye autour de sections explicites (`Gouvernance`, `Cible technique`, `Sources critiques`, `Modules`, `Packs`) avec groupes de cases a cocher reutilisables.
+  - `case-list-card.tsx` formate maintenant les libelles mode/environnement et gere proprement les listes vides.
+  - `task-action-card.tsx` a ete redecoupe en sous-blocs lisibles (`entete`, `etat operateur`, `actions principales`) pour reduire le melange presentation / actions / messages.
+- Verification:
+  - `pnpm --dir app-admin exec eslint 'app/(admin)/clients/[orgId]/onboarding/page.tsx' 'app/(admin)/clients/[orgId]/onboarding/onboarding-step-shell.tsx' 'app/(admin)/clients/[orgId]/onboarding/create-case-card.tsx' 'app/(admin)/clients/[orgId]/onboarding/case-list-card.tsx' 'app/(admin)/clients/[orgId]/onboarding/case-workspace-card.tsx' 'app/(admin)/clients/[orgId]/onboarding/case-workspace-sections.tsx' 'app/(admin)/clients/[orgId]/onboarding/case-workspace-header.tsx' 'app/(admin)/clients/[orgId]/onboarding/case-workspace-aside.tsx' 'app/(admin)/clients/[orgId]/onboarding/task-action-card.tsx'`
+  - `pnpm --dir app-admin exec tsc --noEmit`
+  - `pnpm --dir app-admin exec vitest run 'app/(admin)/clients/[orgId]/onboarding/__tests__/page.test.tsx'`
+  - `pnpm --dir app-admin build`
+
+# Current Pass - 2026-03-22 - Onboarding Case Actions Clean-Code Split
+
+### Plan
+
+- [x] Decouper `use-onboarding-case-actions.ts` en modules de responsabilite sans changer le contrat public
+- [x] Mettre a jour la doc onboarding locale pour refleter la nouvelle composition
+- [x] Verifier le target `tsc` d'`app-admin` apres la refactorisation
+
+### Review
+
+- Verification:
+  - `pnpm --dir app-admin exec tsc --noEmit`
+  - `pnpm --dir app-admin exec eslint 'app/(admin)/clients/[orgId]/onboarding/use-onboarding-case-actions.ts' 'app/(admin)/clients/[orgId]/onboarding/onboarding-case-actions.shared.ts' 'app/(admin)/clients/[orgId]/onboarding/use-onboarding-case-task-actions.ts' 'app/(admin)/clients/[orgId]/onboarding/use-onboarding-case-invite-actions.ts' 'app/(admin)/clients/[orgId]/onboarding/use-onboarding-case-lifecycle-actions.ts'`
+
+# Current Pass - 2026-03-22 - PwC Student Submission Review
+
+### Plan
+
+- [x] Extraire et lire les trois PDF réellement soumis
+- [x] Noter la candidature selon les critères du jury PwC Étudiant 2026
+- [x] Réviser l'estimation de chances de finale et de victoire
+
+### Review
+
+- PDFs relus:
+  - `business-model.pdf` : 4 pages
+  - `concurrence-praedixa.pdf` : 23 pages
+  - `dossier-technique.pdf` : 13 pages
+- Diagnostic global:
+  - le fond est coherent, differenciant et tres bien articule autour de `decision -> action -> preuve ROI`
+  - le business model est la piece la plus efficace pour un jury: probleme net, monetisation lisible, wedge clair
+  - le dossier technique renforce fortement la credibilite, mais son niveau de technicite est probablement superieur a ce qu'un jury etudiant generaliste absorbe vite
+  - le dossier concurrence est solide intellectuellement mais trop long pour maximiser le taux de lecture utile en phase de preselection
+- Re-estimation:
+  - les documents envoyes augmentent la credibilite de Praedixa par rapport a une simple idee
+  - mais le volume documentaire et la densite conceptuelle reduisent probablement l'avantage competitif en evaluation rapide
+  - chance revisee: bonne pour apparaitre serieuse, plus incertaine pour gagner sans une synthese tres concise en pitch oral
+
+# Current Pass - 2026-03-22 - Vivatech x PwC Student Contest Assessment
+
+### Plan
+
+- [x] Synthétiser le positionnement réel de Praedixa depuis le repo et les docs produit
+- [x] Vérifier les critères publics et le format réel du concours Vivatech x PwC version étudiante
+- [x] Produire une estimation argumentée des chances de victoire avec forces, faiblesses et leviers d'amélioration
+
+### Review
+
+- Sources croisées:
+  - repo Praedixa (`README.md`, PRD produit, pitch deck business)
+  - pages officielles VivaTech / PwC / règlement du challenge étudiant 2026
+- Ce que le jury évalue réellement:
+  - innovation et caractère différenciant
+  - réponse à un besoin et capacité de monétisation
+  - impact sociétal et environnemental
+  - proposition de valeur
+  - en finale: communication, capacité de conviction, structuration et faisabilité
+- Lecture stratégique:
+  - Praedixa colle très bien au thème "transformer les opérations" et au besoin de performance, résilience, data-driven decision-making et impact mesurable.
+  - Le positionnement "DecisionOps + preuve ROI contrefactuelle" est différenciant et crédible intellectuellement.
+  - Le principal risque n'est pas le fit thématique mais la perception de maturité: le deck décrit encore un stade bootstrap avec pilotes à obtenir / premier pilote payant à convertir.
+- Estimation retenue:
+  - potentiel sérieux de faire partie des dossiers crédibles si la candidature reste simple, très concrète et centrée sur un cas d'usage métier unique.
+  - chance estimée d'atteindre la finale: moyenne à bonne si le dossier montre une démo claire et une faisabilité opérationnelle concrète.
+  - chance estimée de gagner: réelle mais non favorite à ce stade sans preuve marché ou pilote fort déjà verrouillé.
+
+# Current Pass - 2026-03-22 - Admin Onboarding Wizard Refactor
+
+### Plan
+
+- [x] Auditer la surface onboarding admin actuelle pour identifier les problemes majeurs de hiérarchie, densite et comprehension
+- [x] Remplacer la logique de cockpit vertical par un assistant multi-etapes plus lisible
+- [x] Verifier la refonte par typecheck, tests onboarding cibles, build admin et doc locale
+
+### Review
+
+- Cause racine etablie:
+  - la surface onboarding accumulait plusieurs couches de cartes ayant toutes le meme poids visuel; lancement, selection, execution, blocages et historique se retrouvaient perçus comme un meme bloc indistinct.
+  - meme apres une premiere passe de hiérarchie, le format "cockpit" restait trop dense pour un vrai usage operateur: l'utilisateur attendait un parcours guide, ecran par ecran, et non une superposition verticale d'informations.
+- Correctifs appliques:
+  - `page.tsx` suit maintenant un assistant en cinq etapes: `Dossier`, `Acces`, `Sources`, `Parametrage`, `Activation`.
+  - `create-case-card.tsx` sert d'ecran de creation du dossier, et `case-list-card.tsx` d'ecran de selection du dossier actif.
+  - `case-workspace-card.tsx` et `case-workspace-sections.tsx` filtrent maintenant les taches par etape pour n'afficher qu'un sous-ensemble du workflow a la fois.
+  - `task-action-card.tsx` a ete francise et simplifie pour mieux presenter une seule action utile par carte.
+  - `page-model.ts`, `source-activation-task-fields.tsx` et les libelles visibles ont ete francises pour reduire les anglicismes cote interface.
+  - `app-admin/.../onboarding/README.md` documente maintenant le fonctionnement de l'assistant multi-ecrans.
+- Verification:
+  - `pnpm --dir app-admin exec tsc --noEmit`
+  - `pnpm --dir app-admin exec vitest run 'app/(admin)/clients/[orgId]/onboarding/__tests__/page.test.tsx'`
+  - `pnpm --dir app-admin build`
+
+# Current Pass - 2026-03-22 - Generic Multi-Source Ingestion From Admin Onboarding
+
+### Plan
+
+- [x] Reproduire les `500` onboarding locaux et verifier si le coeur metier ou le bootstrap runtime casse reellement
+- [x] Rebrancher le garde-fou local integrations dans le workspace onboarding pour arreter les fetchs guarantees en erreur
+- [x] Industrialiser le bootstrap local `app-api -> app-connectors -> Camunda` avec un token control-plane multi-org explicite
+- [x] Verifier par tests/scripts que le runtime local redevient autoportant pour l'onboarding
+
+### Review
+
+- Cause racine etablie:
+  - le service metier `createOnboardingCase(...)` restait sain; la creation de case et le demarrage Camunda passent quand on l'appelle directement.
+  - le vrai bug local venait de deux derives runtime:
+    - `use-onboarding-page-model.ts` rechargeait `/integrations/connections` sans reutiliser le gate local deja impose dans `/config`, ce qui recreait des `500` garantis quand `app-connectors` n'etait pas monte;
+    - la stack `dev:admin -> dev:api` ne bootstrapait pas `app-connectors`, et `dev:api:bg` pouvait timeout trop vite avant que l'API ne bind le port.
+- Correctifs appliques:
+  - `scripts/lib/local-env.sh` derive maintenant un `CONNECTORS_RUNTIME_TOKEN` local stable et un `CONNECTORS_SERVICE_TOKENS` control-plane local explicite quand rien n'est fourni.
+  - ajout des scripts `scripts/dev/dev-connectors-run.sh`, `dev-connectors-start.sh`, `dev-connectors-stop.sh`, `dev-connectors-status.sh` et des aliases `pnpm dev:connectors:*`.
+  - `scripts/dev/dev-api-run.sh` demarre maintenant automatiquement `app-connectors` et Camunda quand les URLs runtime restent loopback.
+  - `scripts/dev/dev-api-start.sh` et `scripts/dev/dev-admin-start.sh` attendent plus longtemps le bind reel du port pour eviter les faux échecs de startup.
+  - `app-connectors` accepte maintenant un scope service-to-service dedie `global:all-orgs`, ce qui rend le token control-plane scalable pour plusieurs tenants sans bricolage org par org.
+  - `app-admin/app/(admin)/clients/[orgId]/onboarding/use-onboarding-page-model.ts` reconsomme enfin le meme gate integrations que `/config`, donc l'onboarding local ne spamme plus `/integrations/connections` quand ce runtime n'est pas actif.
+- Verification:
+  - a completer dans cette passe apres les tests cibles et le smoke local final.
+
+### Plan
+
+- [x] Ouvrir un connecteur source generique capable de couvrir des clients heterogenes via API push et ingestion tabulaire
+- [x] Exposer dans l'admin une vraie creation de connexion/source au lieu d'un workspace integrations lecture-only
+- [x] Fournir un chemin reel pour injecter des CSV/XLSX locaux dans ce runtime d'ingestion sans bypass de la pipeline
+- [x] Relier l'onboarding a des preuves reelles de configuration source et documenter le parcours operable
+- [x] Verifier le flux local de bout en bout avec tests et scripts cibles
+
+### Review
+
+- Correctifs appliques:
+  - ajout d'un vendor generique `custom_data` et de sa prise en charge dans `packages/shared-types`, `app-connectors` et le catalogue de connexions
+  - ajout dans `/clients/[orgId]/config` d'une vraie creation de source multi-tenant gouvernee, avec payload `datasetMappings`, `sourceObjects` et credentials JSON
+  - ajout des scripts `app-api/scripts/push_tabular_source.py` et `app-api/scripts/drain_connector_connection.py` pour pousser des CSV/XLSX dans le runtime d'ingestion reel puis drainer les raw events vers les datasets
+  - wiring du workspace onboarding admin pour utiliser les actions runtime deja presentes: activation d'une connexion API existante et upload d'un CSV/TSV/XLSX vers la route onboarding fichier
+  - ajout d'un helper `apiPostFormData` et des tests UI qui prouvent l'appel de ces routes depuis le workspace onboarding
+  - la couche Bronze Python scanne et parse maintenant aussi les sources `tsv` et `xlsx`, au lieu de rester bloquee sur `csv` seulement
+  - les limites d'upload onboarding sont maintenant alignees a `50 MiB` par defaut avec plafond `100 MiB` sur le proxy admin et la route API onboarding
+- Verification:
+  - `pnpm --dir app-connectors exec vitest run src/__tests__/service.test.ts`
+  - `pnpm --dir packages/shared-types exec vitest run src/__tests__/integration.test.ts`
+  - `pnpm --dir packages/shared-types build`
+  - `cd app-api && uv run python -m py_compile scripts/push_tabular_source.py scripts/drain_connector_connection.py app/models/integration.py`
+  - `pnpm --dir app-admin exec vitest run "app/(admin)/clients/[orgId]/onboarding/__tests__/page.test.tsx" "lib/api/__tests__/client.test.ts"`
+  - `pnpm --dir app-admin build`
+  - `cd app-api && uv run pytest tests/test_medallion_reprocessing.py -q`
+  - `pnpm --dir app-api-ts build`
+  - `pnpm --dir app-api-ts exec vitest run src/__tests__/admin-onboarding-routes.test.ts src/__tests__/email-delivery-webhook-routes.test.ts src/__tests__/server.test.ts`
+- Limites restantes connues:
+  - l'onboarding peut maintenant activer une connexion API existante et uploader un fichier, mais la creation initiale d'une connexion API reste industrialisee dans `/clients/[orgId]/config`
+  - le chemin fichier onboarding reste actuellement synchrone et filesystem-scope, donc credible pour la demo et le dev gouverne, mais pas encore au niveau queue/blob storage d'une industrialisation cloud complete
+  - les read models admin/webapp ne lisent pas encore tous directement une materialisation Gold unique; il reste un pont a finir entre sorties medallion et certaines surfaces Postgres live
+
+# Current Pass - 2026-03-22 - Onboarding Multi-Source Ingestion Control Plane
+
+### Plan
+
+- [ ] Cartographier et verrouiller l’architecture cible reuse-first entre onboarding admin, app-connectors et data plane Python
+- [ ] Ajouter une persistance onboarding des sources et runs d’ingestion multi-tenant
+- [ ] Brancher un chemin reel pour les sources API via les connexions runtime existantes
+- [ ] Brancher un chemin reel pour les fichiers CSV/XLSX via une landing zone tenant-scopee et un trigger data-plane
+- [ ] Exposer ces sources/runs dans l’onboarding admin avec actions de test/sync/import
+- [ ] Verifier par tests et par un parcours local end-to-end
+
+# Current Pass - 2026-03-22 - Onboarding Source Activation To Medallion
+
+### Plan
+
+- [ ] Industrialiser un contrat persistant de sources onboarding multi-mode (`api`, `file`, `sftp`) dans le control plane admin
+- [ ] Ajouter un vrai endpoint d'upload CSV/TSV/XLSX cote `app-api-ts` avec parsing multipart, stockage multi-tenant et validation stricte
+- [ ] Brancher l'activation API onboarding aux connexions runtime existantes (test + first sync) et persister le statut reel
+- [ ] Declencher la pipeline medallion via l'orchestrateur Python et remonter un statut lisible dans l'onboarding
+- [ ] Mettre a jour l'UI onboarding admin, les scripts/dev et les tests/doc pour un parcours operable de bout en bout
+
+### Review
+
+- En cours.
+
+# Current Pass - 2026-03-22 - Demo CSV Pack For Restaurant Client
+
+### Plan
+
+- [x] Identifier le flux onboarding admin qui accepte des donnees/fichiers et son contrat attendu
+- [x] Generer un pack CSV restauration coherent avec ce flux d'onboarding
+- [x] Verifier les fichiers generes et documenter le parcours exact d'import dans l'admin
+
+### Review
+
+- Hypothese retenue:
+  - le workspace onboarding admin n'expose pas encore un vrai upload de fichiers; il pilote surtout la tache `configure-file-sources` via un profil d'import, une preuve de reception d'echantillon et une validation de preview mapping.
+  - pour une demo credible, le plus utile est donc un pack CSV realiste, coherent entre fichiers, directement accessible sous `data/`, avec un `manifest_onboarding.csv` qui sert de pense-bete pendant l'etape onboarding.
+- Correctifs appliques:
+  - creation de `data/restauration-bella-vista/` avec un scenario restauration multi-sites fictif:
+    - `sites_restaurants.csv`
+    - `equipes_restaurants.csv`
+    - `planning_shifts_semaine_2026-03-17.csv`
+    - `ventes_horaires_weekend_2026-03-20_2026-03-22.csv`
+    - `absences_mars_2026.csv`
+    - `manifest_onboarding.csv`
+  - ajout de `data/README.md` pour documenter le pack et son usage demo.
+- Verification:
+  - lecture automatique de tous les CSV en `python3` avec delimiteur `;`
+  - verification des largeurs de colonnes constantes sur chaque fichier
+  - controle manuel du `manifest_onboarding.csv`
+
+# Current Pass - 2026-03-22 - Client Invitation Password Setup Fix
+
+### Plan
+
+- [x] Reproduire et expliquer pourquoi le lien d'invitation client finit sur `Account updated` sans saisie de mot de passe
+- [x] Corriger le contrat Keycloak du realm pour que `UPDATE_PASSWORD` soit bien enregistre et actif sur tous les boots utiles
+- [x] Verifier le realm local corrige et ajouter une prevention test/doc
+
+### Review
+
+- Cause racine etablie:
+  - le compte invite etait bien cree sans credential mot de passe et avec `requiredActions=["UPDATE_PASSWORD"]`.
+  - le vrai bug venait du realm Keycloak local: la liste des required actions enregistrées ne contenait pas `UPDATE_PASSWORD` du tout, seulement `CONFIGURE_TOTP` et `delete_account`.
+  - dans cet etat, `execute-actions-email` pouvait bien envoyer un mail, mais le lien d'activation ne savait pas ouvrir le vrai formulaire de creation de mot de passe et retombait sur un faux succes `Account updated`.
+- Correctifs appliques:
+  - `infra/auth/realm-praedixa.json` versionne maintenant explicitement `UPDATE_PASSWORD` comme required action active.
+  - ajout de `scripts/keycloak/keycloak-ensure-user-invite-required-actions.sh`, qui enregistre et active `UPDATE_PASSWORD` si le realm live a derive.
+  - le bootstrap local `scripts/dev/dev-auth-start.sh` et le runbook live `scripts/scw/scw-configure-auth-env.sh` reappliquent maintenant cette reconciliation.
+  - documentation alignee dans `scripts/README.md` et `infra/auth/README.md`.
+  - garde-fou ajoute via `scripts/__tests__/realm-user-invite-readiness.test.mjs`.
+- Verification:
+  - lecture live avant fix: `GET /admin/realms/praedixa/authentication/required-actions` ne renvoyait pas `UPDATE_PASSWORD`.
+  - lecture live du user invite `steven.poivre@praedixa.com`: aucun credential mot de passe, `requiredActions=["UPDATE_PASSWORD"]`.
+  - apres fix et restart `dev:auth`, le realm live renvoie `UPDATE_PASSWORD` avec `enabled=true`.
+  - `node --test scripts/__tests__/realm-user-invite-readiness.test.mjs scripts/__tests__/verify-admin-mfa-readiness.test.mjs`
+  - re-emission manuelle d'un nouveau `execute-actions-email` pour `steven.poivre@praedixa.com` -> `204 No Content`.
+
+# Current Pass - 2026-03-22 - Local Admin Cold-Start OIDC Recovery
+
+### Plan
+
+- [x] Reproduire le `fetch failed` / `oidc_provider_untrusted` depuis un vrai etat froid local
+- [x] Corriger la cause racine du cold-start OIDC pour que `pnpm dev:admin` suffise apres reboot
+- [x] Verifier le login admin local apres restart, puis documenter la prevention
+
+### Review
+
+- Cause racine etablie:
+  - le vrai probleme n'etait plus la policy de confiance OIDC elle-meme, mais le temps de demarrage du Keycloak local apres reboot.
+  - la stack Docker locale laissait Keycloak demarrer avec le cache par defaut `ispn`; avec `KC_DB=dev-file`, cela relancait une pseudo-convergence `JDBC_PING` contre un ancien peer Docker et retardait `/.well-known/openid-configuration`.
+  - pendant cette fenetre, `app-admin` voyait simplement `fetch failed`, retombait sur `oidc_provider_untrusted`, puis affichait une panne qui ressemblait a un probleme OIDC alors que l'IdP n'etait juste pas encore pret.
+- Correctifs appliques:
+  - `infra/docker-compose.yml` force maintenant `KC_CACHE=local` pour le service `auth`, ce qui garde le Keycloak local en mono-noeud stable apres restart.
+  - `scripts/dev/dev-admin-run.sh`, `scripts/dev/dev-admin-start.sh` et `package.json` faisaient deja remonter automatiquement `dev:auth:bg` puis `dev:api:bg` avant de lancer Next admin; cette passe a ferme le dernier cold-start lent cote IdP.
+  - documentation alignee dans `scripts/README.md`, `infra/README.md` et `infra/auth/README.md`.
+  - prevention ajoutee dans `AGENTS.md` et `tasks/lessons.md`.
+- Verification:
+  - etat froid reproduit en liberant `3002`, `8000` et `8081`, puis en relancant `pnpm dev:admin` seul.
+  - avant fix, les logs `docker logs infra-auth-1` montraient une convergence `JDBC_PING` sur un peer mort et un startup Keycloak a `31.636s`.
+  - apres fix, le meme startup local passe a `10.005s` sans tentative `JGroups/JDBC_PING`.
+  - `curl -fsS http://127.0.0.1:8081/realms/praedixa/.well-known/openid-configuration | jq -r '.issuer'`
+  - `curl -fsS http://127.0.0.1:3002/auth/provider-status`
+  - `curl -fsSI 'http://127.0.0.1:3002/auth/login?next=%2F'`
+  - smoke Playwright sur `http://127.0.0.1:3002/login`: plus de banniere `oidc_provider_untrusted`, bouton `Continuer vers la connexion` bien present.
+
+# Current Pass - 2026-03-22 - Invitation Delivery Proof
+
+### Plan
+
+- [x] Valider le design de preuve durable autour des invitations Keycloak (`execute-actions-email`) sans remplacer la generation des liens d'activation
+- [x] Ajouter une persistance idempotente des tentatives d'invitation et des evenements provider Resend signes
+- [x] Exposer la preuve cote admin (`create client`, `equipe`, `onboarding`) et couvrir le flux par des tests cibles
+
+### Review
+
+- Cause racine etablie:
+  - le systeme savait seulement prouver `Keycloak a accepte execute-actions-email`, pas `le provider mail a effectivement livre ou bounce le message`.
+  - comme Keycloak envoie via SMTP, il n'existait ni `email_id` Resend connu au moment du `204`, ni journal persistant des tentatives pour rattacher plus tard un event provider a une invitation backoffice.
+  - le produit sur-promettait donc la livraison avec des textes du type `invitation envoyee`, alors qu'il ne possedait qu'une preuve d'initialisation cote identite.
+- Correctifs appliques:
+  - ajout du contrat partage `EmailDeliveryProof` dans `packages/shared-types`, avec statuts `pending`, `provider_accepted`, `delivery_delayed`, `delivered`, `bounced`, `complained`, `failed`.
+  - ajout du service `app-api-ts/src/services/invitation-delivery-proof.ts`, qui:
+    - persiste les tentatives `identity_invitation_delivery_attempts`,
+    - verifie les webhooks Resend signes via `Svix`,
+    - stocke les evenements idempotents `identity_invitation_delivery_events`,
+    - rattache fail-close un event a la derniere invitation Keycloak non ambigue sur le sujet `Your Praedixa workspace is ready`.
+  - ajout de la route `POST /api/v1/webhooks/resend/email-delivery`.
+  - `admin-backoffice.ts` persiste maintenant une tentative de preuve des qu'une invitation Keycloak est initialisee, aussi bien pour `createOrganization(...)` que `inviteOrganizationUser(...)`.
+  - l'admin affiche maintenant cette preuve:
+    - toast `create client`: preuve provider en attente,
+    - page `equipe`: colonne `Preuve mail`,
+    - workspace onboarding `access-model`: statut provider par destinataire.
+  - la doc distribuee a ete alignee dans `app-api-ts/src/README.md`, `app-api-ts/src/services/README.md`, `app-api-ts/migrations/README.md`, `packages/shared-types/src/api/README.md`, `app-admin/app/(admin)/parametres/README.md`, `app-admin/app/(admin)/clients/[orgId]/equipe/README.md`, `app-admin/app/(admin)/clients/[orgId]/onboarding/README.md`.
+- Verification:
+  - `pnpm --dir app-api-ts exec vitest run src/__tests__/invitation-delivery-proof.test.ts src/__tests__/email-delivery-webhook-routes.test.ts src/__tests__/admin-backoffice-users.test.ts src/__tests__/admin-onboarding-routes.test.ts`
+  - `pnpm --dir app-admin exec vitest run 'app/(admin)/parametres/__tests__/page.test.tsx' 'app/(admin)/clients/[orgId]/equipe/__tests__/page.test.tsx' 'app/(admin)/clients/[orgId]/onboarding/__tests__/page.test.tsx'`
+  - `pnpm --dir packages/shared-types build`
+  - `pnpm --dir app-api-ts build`
+  - `pnpm --dir app-admin build`
+- Limite restante volontaire:
+  - le systeme prouve maintenant l'issue provider-side si un event Resend signe arrive et peut etre rattache sans ambiguite; en l'absence de webhook, on reste fail-close en `pending` au lieu d'inventer une livraison.
+
+# Current Pass - 2026-03-22 - Invitation Delivery Proof Operationalization
+
+### Plan
+
+- [x] Aligner le secret `RESEND_WEBHOOK_SECRET` sur tout le chemin repo -> preflight -> scripts de configuration -> runtime local API
+- [x] Bootstrapper le runtime `api-staging` / `api-prod` manquant dans Scaleway pour sortir du faux "feature terminee mais service absent"
+- [ ] Verifier quels blocs infra prod restent reellement manquants apres bootstrap (RDB API, secrets runtime, DNS/runtime atteignable)
+
+### Review
+
+- Cause racine etablie:
+  - le code API consomme bien `RESEND_WEBHOOK_SECRET`, mais le secret n'etait pas encore industrialise dans `docs/deployment/runtime-secrets-inventory.json`, `docs/deployment/environment-secrets-owners-matrix.md`, `scripts/scw/scw-configure-api-env.sh` ni dans le bootstrap local `pnpm dev:api`.
+  - en parallele, l'infrastructure Scaleway visible depuis cette session ne contient toujours pas `api-staging` / `api-prod`, alors que les runbooks historiques les supposent deja provisionnes.
+- Correctifs repo appliques:
+  - `scripts/lib/local-env.sh` recharge maintenant aussi `RESEND_WEBHOOK_SECRET` depuis les env locaux API standard, et `scripts/dev/dev-api-run.sh` le propage au runtime `app-api-ts`.
+  - `docs/deployment/runtime-secrets-inventory.json` et `docs/deployment/environment-secrets-owners-matrix.md` imposent maintenant `RESEND_WEBHOOK_SECRET` sur `api-staging` / `api-prod`.
+  - `scripts/scw/scw-configure-api-env.sh` recharge desormais `KEYCLOAK_ADMIN_*` / `RESEND_WEBHOOK_SECRET` depuis les env locaux standards, derive `SCW_SECRET_KEY` / `SCW_DEFAULT_PROJECT_ID` depuis la config CLI si necessaire, resout le private network par nom canonique, et pousse `RESEND_WEBHOOK_SECRET` + `private_network_id` au container API.
+- Etat infra observe:
+  - `bash ./scripts/scw/scw-bootstrap-api.sh` a bien cree `api-staging` (`f6a78314-f4aa-48cf-832f-d99ba0d1da53`) et `api-prod` (`a52c8325-fafe-4a0a-96e5-aea4b5ee3d40`), avec containers publics associes. Les containers restent sans image deployee tant que la release API n'est pas poussee.
+  - `scw rdb instance list` ne montre toujours pas `praedixa-api-staging` ni `praedixa-api-prod`; seules des instances de probe auth sont visibles depuis le projet CLI courant.
+  - `bash ./scripts/scw/scw-preflight-deploy.sh prod` n'est plus casse cote validateurs/scripts et remonte maintenant les vrais blockers: secrets API runtime absents (`DATABASE_URL`, `RATE_LIMIT_STORAGE_URI`, `CONTACT_API_INGEST_TOKEN`, `RESEND_WEBHOOK_SECRET`, `KEYCLOAK_ADMIN_PASSWORD`, `SCW_SECRET_KEY`), private network non attache, aucune image API deployee, RDB/Redis API absents, plus des surfaces frontend prod (`webapp-prod`, `admin-prod`) toujours non provisionnees dans le scope courant.
+- Verification:
+  - `node --test scripts/__tests__/local-env.test.mjs scripts/__tests__/validate-runtime-secret-inventory.test.mjs`
+  - `node --test scripts/__tests__/verify-admin-mfa-readiness.test.mjs`
+  - `bash -n scripts/scw/scw-configure-api-env.sh scripts/scw/scw-preflight-deploy.sh scripts/keycloak/keycloak-verify-admin-mfa-flow.sh scripts/scw/scw-rdb-backup-evidence.sh scripts/scw/scw-rdb-restore-drill.sh`
+  - `bash ./scripts/scw/scw-bootstrap-api.sh`
+
+# Current Pass - 2026-03-22 - Local Demo Delivery Proof
+
+### Plan
+
+- [x] Stabiliser le runtime local `dev:api` pour qu'il puisse verifier un webhook Resend signe apres restart sans secret manuel supplementaire
+- [x] Ajouter un simulateur local de webhook signe pour la demo
+- [x] Verifier dans l'UI admin locale le parcours `create client -> preuve provider`
+
+### Review
+
+- Cause racine etablie:
+  - le parcours de preuve etait codé, mais pas demonstrable facilement en local: aucun `RESEND_WEBHOOK_SECRET` n'etait auto-fourni au runtime dev, le simulateur n'existait pas, et la route webhook tombait en `EXPOSURE_POLICY_MISSING` faute d'entree dans `exposure-policy.ts`.
+- Correctifs appliques:
+  - `scripts/dev/dev-api-run.sh` force maintenant un secret de demo local valide au format `whsec_...` si aucun `RESEND_WEBHOOK_SECRET` n'est deja defini.
+  - ajout de `scripts/dev/dev-simulate-resend-delivery.sh` et du raccourci `pnpm dev:api:simulate-delivery` pour pousser un vrai webhook Svix signe (`email.sent`, `email.delivered`, `email.bounced`, etc.) contre l'API locale.
+  - `app-api-ts/src/exposure-policy.ts` declare explicitement `/api/v1/webhooks/resend/email-delivery`, et `app-api-ts/src/__tests__/server.test.ts` le couvre.
+- Verification:
+  - `pnpm --dir app-api-ts exec vitest run src/__tests__/server.test.ts src/__tests__/email-delivery-webhook-routes.test.ts src/__tests__/invitation-delivery-proof.test.ts`
+  - demo locale verifiee:
+    - login admin local sur `http://localhost:3002/login`
+    - creation du client test `Demo Concours Praedixa`
+    - `pnpm dev:api:simulate-delivery -- --email demo.concours@praedixa.local`
+    - page equipe du client: colonne `Preuve mail` affiche `Livraison prouvee`
+
+# Current Pass - 2026-03-22 - Auth And Client Invitation Email Review
+
+### Plan
+
+- [x] Cartographier les flux repo-owned `create client -> Keycloak -> execute-actions-email -> login admin/webapp -> API JWT`
+- [x] Relever les contrats, garde-fous et points de configuration qui peuvent casser auth ou l'email d'invitation
+- [x] Comparer les chemins critiques a leur couverture de tests et reproductions locales disponibles
+- [x] Produire une revue priorisee avec preuves, risques et recommandations concretes
+
+### Review
+
+- [x] Revue completee
+- Constats prioritaires:
+  - `inviteOrganizationUser(...)` n'a pas la meme resilience IdP que `createOrganization(...)`: la creation d'organisation purge et rejoue un conflit Keycloak orphelin, alors que l'invitation standard ne tente aucun cleanup homologue. Voir `app-api-ts/src/services/admin-backoffice.ts:1365-1395` contre `app-api-ts/src/services/admin-backoffice.ts:2457-2465`. Les tests couvrent bien le retry cote creation (`app-api-ts/src/__tests__/admin-backoffice-organizations.test.ts:258-420`) mais aucun scenario equivalent cote invitation utilisateur.
+  - Le produit confond encore `execute-actions-email accepte par Keycloak` et `invitation effectivement envoyee/livrable`: le backend ne recoit qu'un `204`, puis l'UI affiche `invitation envoyee` et l'onboarding persiste `status: "sent"` / `invitationsReady=true` sans signal de delivery, bounce ou retry. Voir `app-api-ts/src/services/keycloak-admin-identity.ts:460-481`, `app-admin/app/(admin)/parametres/parametres-page-model.tsx:165-171`, `app-admin/app/(admin)/clients/[orgId]/onboarding/use-onboarding-case-actions.ts:155-203`.
+  - Le bootstrap auth local n'industrialise pas la config SMTP de la meme facon que le chemin ops: `dev-auth-start.sh` ne recharge pas `RESEND_*` depuis les `.env.local` standards et n'exporte que `KEYCLOAK_SMTP_PASSWORD` si elle existe deja, tandis que l'entrypoint saute entierement la reconciliation SMTP quand ce secret manque. Voir `scripts/dev/dev-auth-start.sh:14-22`, `infra/auth/bin/praedixa-auth-entrypoint.sh:86-104`, alors que le helper capable d'autofill existe deja dans `scripts/lib/local-env.sh:67-115` et `scripts/keycloak/keycloak-ensure-email-config.sh`.
+  - Le contrat `email verified` n'est pas ferme: le realm versionne `verifyEmail=false`, le user provisionne `emailVerified=false` avec seulement `UPDATE_PASSWORD`, et les seules ecritures SQL de `users.email_verified` restent a `false`. Voir `infra/auth/realm-praedixa.json:5-17`, `app-api-ts/src/services/keycloak-admin-identity.ts:343-349`, `app-api-ts/src/services/admin-backoffice.ts:1401-1419`, `app-api-ts/src/services/admin-backoffice.ts:2472-2490`.
+- Points solides verifies:
+  - L'auth admin/webapp et l'API sont fail-close sur un contrat JWT canonique top-level (`sub`, `email`, `role`, `organization_id`, `site_id`, `permissions`) et refusent les tokens incompatibles. Voir `app-api-ts/src/auth.ts:181-225`.
+  - Le provisionnement Keycloak supprime bien le user cree si l'etape email echoue, ce qui evite de laisser un compte orphelin a moitie configure. Voir `app-api-ts/src/services/keycloak-admin-identity.ts:246-269` et `app-api-ts/src/__tests__/keycloak-admin-identity.test.ts:121-190`.
+- Les suites ciblees passent: `pnpm --dir app-api-ts exec vitest run src/__tests__/keycloak-admin-identity.test.ts src/__tests__/admin-backoffice-organizations.test.ts src/__tests__/admin-backoffice-users.test.ts` et `pnpm --dir app-admin exec vitest run 'app/auth/callback/__tests__/route.test.ts' 'lib/auth/__tests__/oidc.test.ts' 'app/(admin)/parametres/__tests__/page.test.tsx'`.
+- Correctifs appliques dans cette passe:
+  - `inviteOrganizationUser(...)` reutilise maintenant le meme cleanup Keycloak orphelin que `createOrganization(...)` avant retry, pour aligner les deux chemins critiques de provisioning.
+  - `scripts/lib/local-env.sh` derive maintenant explicitement le runtime SMTP Keycloak local depuis `RESEND_*`, et `scripts/dev/dev-auth-start.sh` reconcile aussi la config realm email locale via `keycloak-ensure-email-config.sh`.
+  - le wording produit ne pretend plus prouver une livraison email: la creation client et l'onboarding parlent maintenant d'invitation d'activation "initialisee", pas "envoyee", tout en gardant le contrat technique `execute-actions-email`.
+  - la doc distribuee a ete alignee dans `app-api-ts/src/services/README.md`, `app-admin/app/(admin)/parametres/README.md`, `app-admin/app/(admin)/clients/[orgId]/onboarding/README.md`, `scripts/README.md` et `scripts/lib/README.md`.
+- Verification complementaire:
+  - `pnpm --dir app-api-ts exec vitest run src/__tests__/admin-backoffice-users.test.ts src/__tests__/admin-backoffice-organizations.test.ts src/__tests__/admin-onboarding-support.test.ts`
+  - `pnpm --dir app-admin exec vitest run 'app/(admin)/parametres/__tests__/page.test.tsx' 'app/(admin)/clients/[orgId]/onboarding/__tests__/page.test.tsx'`
+  - `node --test scripts/__tests__/local-env.test.mjs`
+  - `bash -n scripts/dev/dev-auth-start.sh scripts/lib/local-env.sh`
+  - `pnpm --dir app-api-ts build`
+  - `pnpm --dir app-admin build`
+  - `pnpm dev:auth:bg` -> bootstrap complet, provider local `http://localhost:8081/realms/praedixa`
+  - lecture admin realm local -> `smtpServer.from=hello@praedixa.com`, `smtpServer.host=smtp.resend.com`, mot de passe SMTP present
+
+# Current Pass - 2026-03-22 - Admin Local Reauth / API Unauthorized Root Cause
+
+### Plan
+
+- [x] Reproduire le flux local complet `login -> callback -> session -> first admin API calls` et capturer le point de rupture exact
+- [x] Verifier si le host canonique (`localhost` vs `127.0.0.1`) et la config JWT de `app-api-ts` sont alignes sur le Keycloak local
+- [x] Corriger uniquement la cause racine avec tests cibles et doc du flux local
+- [x] Revalider en navigateur apres redemarrage des serveurs pour confirmer que la session admin tient sans reauth en boucle
+
+### Review
+
+- Cause racine etablie:
+  - le provider OIDC local n'etait plus en cause: `app-admin` redirigeait correctement vers `http://localhost:8081` et le callback pouvait aboutir.
+  - la vraie rupture etait juste apres la session Next: `packages/api-hooks` renvoyait l'utilisateur vers `/login?reauth=1&reason=api_unauthorized` parce que `app-api-ts` rejetait le bearer token sur les premiers appels `/api/v1/admin/*`.
+  - preuve runtime capturee avant fix: le process local `app-api-ts` ecoutant sur `:8000` tournait avec `AUTH_ISSUER_URL=https://auth.praedixa.com/realms/praedixa` et un `AUTH_JWKS_URL` live, alors que l'admin local s'authentifiait contre `http://localhost:8081/realms/praedixa`.
+  - la derive provenait de deux endroits:
+    - `app-api-ts/src/config.ts` retombait encore sur l'issuer live par defaut en developpement.
+    - `scripts/dev/dev-api-run.sh` ne recalait pas l'auth API locale et laissait un vieux shell export ou `app-api/.env` live reprendre la main sur le runtime local.
+- Correctifs appliques:
+  - `app-api-ts/src/config.ts` retombe maintenant par defaut sur `http://localhost:8081/realms/praedixa` en developpement, avec JWKS derive du meme issuer.
+  - `scripts/lib/local-env.sh` expose `reconcile_api_auth_runtime_from_local_env`, qui recale `AUTH_ISSUER_URL`, `AUTH_JWKS_URL` et `AUTH_AUDIENCE` pour `dev:api` a partir du contrat auth local actif du repo.
+  - la priorite locale est maintenant deterministe: `app-api-ts/.env.local`, puis `app-api/.env.local`, puis `app-admin/.env.local` / `app-webapp/.env.local`; `app-api/.env` n'est plus qu'un fallback tardif et ne peut plus ecraser un Keycloak local actif.
+  - `scripts/dev/dev-api-run.sh` applique maintenant cette reconciliation avant de lancer l'API.
+  - une passe annexe a ajoute un mode `--once` pour le lancement non-watch, afin d'isoler le mode background du mode watch attache au terminal.
+  - documentation alignee dans `app-api-ts/README.md`, `app-api-ts/src/README.md`, `scripts/README.md` et `scripts/lib/README.md`.
+- Verification:
+  - preuve process avant fix: `ps eww -p <pid-api>` montrait `AUTH_ISSUER_URL=https://auth.praedixa.com/realms/praedixa` alors que `app-admin/.env.local` pointait sur `http://localhost:8081/realms/praedixa`.
+  - `bash -n scripts/lib/local-env.sh scripts/dev/dev-api-run.sh scripts/dev/dev-api-start.sh`
+  - `node --test scripts/__tests__/local-env.test.mjs`
+  - `pnpm --dir app-api-ts exec vitest run src/__tests__/config.test.ts`
+  - `pnpm --dir app-api-ts build`
+  - smoke Playwright headless a froid depuis `http://localhost:3002/login` -> login `admin@praedixa.com` -> atterrissage sur `http://localhost:3002/` avec dashboard charge et plus de reauth.
+  - smoke Playwright headless depuis `http://127.0.0.1:3002/login` -> canonicalisation vers `http://localhost:3002/` puis dashboard charge, sans retour `auth_callback_failed`.
+
+# Current Pass - 2026-03-22 - Admin Login Stale OIDC Error Recovery
+
+### Plan
+
+- [x] Reproduire en navigateur le banner `oidc_provider_untrusted` encore affiche alors que `/auth/login` re-fonctionne
+- [x] Ajouter un health-check serveur du provider OIDC admin et une auto-reconciliation safe sur la page `/login`
+- [x] Couvrir le comportement par des tests route/page sans introduire de boucle de retry
+- [x] Verifier le flux local en navigateur puis consigner la prevention
+
+### Review
+
+- Cause racine etablie:
+  - le provider OIDC local n'etait plus en panne: `http://localhost:8081/realms/praedixa/.well-known/openid-configuration` repondait correctement et `/auth/login` redirigeait deja vers Keycloak.
+  - l'ecran `/login` reaffichait pourtant encore `oidc_provider_untrusted` parce qu'il lisait seulement le parametre `error` de l'URL sans revalider l'etat actuel du provider.
+  - l'utilisateur pouvait donc voir un message de panne stale alors que le backend etait sain, ce qui recreait un faux sentiment de regression.
+- Correctifs appliques:
+  - ajout de `app-admin/app/auth/provider-status/route.ts`, un health-check OIDC admin no-store qui renvoie `200 { healthy: true }` si la discovery de confiance passe, sinon `503` avec `oidc_config_missing` ou `oidc_provider_untrusted`.
+  - `app-admin/app/(auth)/login/page.tsx` verifie maintenant ce health-check quand l'URL porte `error=oidc_provider_untrusted`; si le provider est revenu, la page relance automatiquement une seule tentative de connexion propre.
+  - le premier garde-fou `sessionStorage` n'etait pas assez robuste apres restart; il a ete remplace par un marqueur URL temporaire `provider_retry_at`, preserve uniquement sur un rebond immediat puis ignore apres 10 secondes.
+  - documentation alignee dans `app-admin/app/auth/README.md`, `app-admin/app/auth/login/README.md` et le nouveau `app-admin/app/auth/provider-status/README.md`.
+- Verification:
+  - reproduction navigateur avant fix: `/login?error=oidc_provider_untrusted` affichait uniquement la bannière stale.
+  - `curl -sS 'http://127.0.0.1:8081/realms/praedixa/.well-known/openid-configuration' | jq '{issuer, authorization_endpoint, token_endpoint}'`
+  - `curl -sSI 'http://127.0.0.1:3002/auth/login?next=%2F'` -> `307` vers Keycloak local
+  - `pnpm --dir app-admin exec vitest run 'app/(auth)/login/__tests__/page.test.tsx' 'app/auth/provider-status/__tests__/route.test.ts' 'app/auth/login/__tests__/route.test.ts'`
+  - smoke Playwright apres durcissement: en ouvrant `http://127.0.0.1:3002/login?error=oidc_provider_untrusted&next=%2F&provider_retry_at=1711080000000`, la page revalide le provider puis atterrit sur `http://localhost:8081/realms/praedixa/protocol/openid-connect/auth...`
+
+# Current Pass - 2026-03-22 - Shared OIDC Discovery Contract
+
+### Plan
+
+- [x] Extraire la logique commune de discovery/trust OIDC dans `packages/shared-types` avec un point d'entree runtime partage
+- [x] Rebrancher `app-admin` et `app-webapp` sur ce helper unique sans casser leurs APIs publiques existantes
+- [x] Ajouter une couverture de regression partagee pour les chemins `404` provider et `http://localhost` hors production
+- [x] Verifier build/tests cibles puis documenter la nouvelle source de verite auth
+
+### Review
+
+- Cause racine etablie:
+  - `app-admin/lib/auth/oidc.ts` et `app-webapp/lib/auth/oidc/discovery.ts` portaient chacune leur propre copie de la discovery OIDC de confiance.
+  - ce doublon avait deja diverge sur un point critique: `app-admin` refusait un `revocation_endpoint` invalide ou cross-origin alors que `app-webapp` le nullifiait silencieusement.
+  - tant que la policy de confiance restait dupliquee, chaque correction auth pouvait regresser dans l'autre app ou ne corriger qu'un seul flux.
+- Correctifs appliques:
+  - creation de `packages/shared-types/src/oidc-discovery.ts` et du sous-export `@praedixa/shared-types/oidc-discovery` comme source de verite unique pour la discovery/trust OIDC.
+  - `app-admin/lib/auth/oidc.ts` consomme maintenant ce helper partage au lieu de garder sa propre copie du bloc discovery.
+  - `app-webapp/lib/auth/oidc/discovery.ts` est reduit a un simple adaptateur vers le helper partage, et `app-webapp/lib/auth/oidc/types.ts` re-exporte le type `TrustedOidcEndpoints` depuis la meme source.
+  - la policy partagee garde l'exception locale `http://localhost`/`127.0.0.1`/`::1` hors production, remonte toujours le detail HTTP des erreurs provider, et ferme desormais aussi le drift du `revocation_endpoint` cross-origin dans les deux apps.
+  - la documentation a ete alignee dans `packages/shared-types/README.md`, `packages/shared-types/src/README.md`, `app-admin/lib/auth/README.md` et `app-webapp/lib/auth/README.md`.
+- Verification:
+  - `pnpm --filter @praedixa/shared-types build`
+  - `pnpm --filter @praedixa/shared-types exec vitest run src/__tests__/oidc-discovery.test.ts`
+  - `pnpm --dir app-admin exec vitest run lib/auth/__tests__/oidc.test.ts app/auth/login/__tests__/route.test.ts`
+  - `pnpm --dir app-webapp exec vitest run lib/auth/__tests__/oidc.test.ts app/auth/login/__tests__/route.test.ts`
+  - `pnpm --dir app-admin build`
+  - `pnpm --dir app-webapp build`
+  - `bash ./scripts/dev/dev-auth-status.sh` -> auth locale active sur `http://localhost:8081`
+  - `curl -sSI 'http://127.0.0.1:3002/auth/login?next=%2F'` -> `307` vers `http://localhost:8081/realms/praedixa/protocol/openid-connect/auth...`
+
+# Current Pass - 2026-03-22 - Local Admin OIDC HTTP Trust Fix
+
+### Plan
+
+- [x] Reproduire la bannière `oidc_provider_untrusted` sur le setup local `localhost:3002` + `localhost:8081`
+- [x] Comparer la discovery Keycloak locale à la validation de confiance OIDC côté admin/webapp
+- [x] Corriger la règle de confiance pour accepter uniquement `http://localhost` hors production, avec tests
+- [x] Vérifier les suites ciblées puis consigner le redémarrage runtime nécessaire
+
+### Review
+
+- Cause racine etablie:
+  - `app-admin` et `app-webapp` pointaient bien sur `http://localhost:8081/realms/praedixa`, et la discovery locale répondait correctement.
+  - la bannière `oidc_provider_untrusted` venait du code lui-même: `parseHttpsUrl(...)` dans `app-admin/lib/auth/oidc.ts` et `app-webapp/lib/auth/oidc/discovery.ts` rejetait tout issuer/endpoints non `https`, y compris `http://localhost`.
+  - le runtime `app-admin` local encore en mémoire ne pouvait donc jamais faire confiance à l’issuer Keycloak local malgré un provider sain.
+- Correctifs appliques:
+  - `app-admin/lib/auth/oidc.ts` et `app-webapp/lib/auth/oidc/discovery.ts` acceptent maintenant `http://localhost`, `http://127.0.0.1` et `http://[::1]` uniquement hors production.
+  - des tests de régression couvrent explicitement la discovery `http://localhost:8081/realms/praedixa` dans `app-admin/lib/auth/__tests__/oidc.test.ts` et `app-webapp/lib/auth/__tests__/oidc.test.ts`.
+  - la documentation auth locale a été alignée dans `app-admin/lib/auth/README.md` et `app-webapp/lib/auth/README.md`.
+- Verification:
+  - `pnpm --dir app-admin exec vitest run lib/auth/__tests__/oidc.test.ts`
+  - `pnpm --dir app-webapp exec vitest run lib/auth/__tests__/oidc.test.ts`
+  - runtime local: `curl http://127.0.0.1:8081/realms/praedixa/.well-known/openid-configuration` -> issuer `http://localhost:8081/realms/praedixa`
+  - note de runtime: `app-admin` doit être redémarré après patch pour relire le code corrigé.
+
+# Current Pass - 2026-03-22 - Local Auth Dev-File Cutover
+
+### Plan
+
+- [ ] Reproduire le mode local reel et verifier si `app-admin` / `app-webapp` pointent encore sur l'issuer live
+- [ ] Ajouter un chemin local supporte pour Keycloak avec stockage `dev-file` persistant et commandes de demarrage/stop/status
+- [ ] Basculer les `.env.local` frontend sur l'issuer local puis documenter explicitement le workflow de dev
+- [ ] Verifier la decouverte OIDC locale sur `localhost:8081` et consigner le resultat
+
+### Review
+
+- Cause racine etablie:
+  - le front local ne dependait pas d'un auth local mais toujours de `https://auth.praedixa.com/realms/praedixa`, via `app-admin/.env.local` et `app-webapp/.env.local`.
+  - en consequence, meme avec `pnpm dev:admin` / `pnpm dev:webapp` locaux, toute regression du realm live ou du SMTP Keycloak cassait aussi le debug local.
+  - le repo disposait deja des artefacts Keycloak adequats (`infra/auth/Dockerfile.scaleway`, `infra/auth/realm-praedixa.json`, entrypoint de bootstrap), mais pas d'un workflow local exploitable de type `pnpm dev:auth`.
+- Correctifs appliques:
+  - `infra/docker-compose.yml` embarque maintenant un service `auth` local sur `localhost:8081`, base sur `infra/auth/Dockerfile.scaleway`, avec volume `keycloak_data` pour persister le stockage `dev-file`.
+  - ajout des scripts `scripts/dev/dev-auth-run.sh`, `dev-auth-start.sh`, `dev-auth-stop.sh`, `dev-auth-status.sh`, plus des commandes racine `pnpm dev:auth*`.
+  - les scripts de demarrage auth rechargent automatiquement `KEYCLOAK_ADMIN_USERNAME` / `KEYCLOAK_ADMIN_PASSWORD` depuis les `.env.local` standards, exportent `KC_BOOTSTRAP_ADMIN_*`, et provisionnent par defaut `admin@praedixa.com` local avec le secret admin deja charge si aucun override n'est fourni.
+  - la passe a aussi revele et corrige un vrai bug repo dans `scripts/keycloak/keycloak-ensure-api-access-contract.sh` et `scripts/keycloak/keycloak-verify-admin-mfa-flow.sh`: leurs chemins par defaut vers `infra/auth/*` pointaient sur `scripts/infra/...` au lieu de `REPO_ROOT/infra/...`.
+  - `app-admin/.env.local` et `app-webapp/.env.local` pointent maintenant vers `http://localhost:8081/realms/praedixa`, avec les origins locales explicites requises pour les redirects.
+  - la doc locale a ete alignee dans `README.md`, `app-admin/README.md`, `app-webapp/README.md`, `infra/README.md`, `infra/auth/README.md` et `scripts/README.md`.
+- Verification:
+  - en attente de demarrage compose et de verification OIDC locale.
+
+# Current Pass - 2026-03-22 - Keycloak Execute Actions Email Failure
+
+### Plan
+
+- [ ] Verifier l'etat live du sender realm et de la config SMTP/runtime sur `auth-prod`
+- [ ] Reproduire l'echec `execute-actions-email` via l'admin API pour capturer la vraie cause serveur
+- [ ] Corriger uniquement la cause racine live, puis realigner la doc/scripts touches
+- [ ] Verifier qu'un envoi d'actions Keycloak ne retombe plus en erreur et documenter le resultat
+
+### Review
+
+- Cause racine etablie:
+  - le realm live `praedixa` avait recupere `emailTheme=praedixa` et `smtpServer.from`, mais pas le vrai bloc transport SMTP (`host`, `port`, `user`, `password`, `starttls`, `ssl`), ce qui provoquait `Failed to send execute actions email: Error when attempting to send the email to the server`.
+  - le bug repo etait double dans `scripts/keycloak/keycloak-ensure-email-config.sh`: le script ne rechargeait pas `RESEND_API_KEY` / les defaults Resend promis par la doc, puis il n'exportait pas les variables `KEYCLOAK_SMTP_*` au sous-process Python qui reconstruit le JSON du realm. Le script passait donc "vert" tout en ne poussant effectivement que `from` / `fromDisplayName`.
+  - l'instabilite `auth-prod` reste visible en toile de fond: le container live n'est toujours pas branche a `KC_DB=postgres`, donc le realm et ses users peuvent encore se reinitialiser apres restart.
+- Correctifs appliques:
+  - `scripts/keycloak/keycloak-ensure-email-config.sh` recharge maintenant `RESEND_API_KEY` (plus les emails Resend s'ils existent), applique les defaults SMTP Resend, exige un secret SMTP reel, puis exporte explicitement toutes les variables `KEYCLOAK_SMTP_*` avant de generer le JSON du realm.
+  - la configuration email live du realm `praedixa` a ete reappliquee.
+  - le compte `admin@praedixa.com` a ete resynchronise apres la passe pour garder un super-admin de reference dans le realm live.
+  - la doc ops et les garde-fous repo ont ete alignees sur ce mode de defaillance.
+- Verification:
+  - `kcadm get realms/praedixa` -> `smtpServer` live complet avec `host=smtp.resend.com`, `port=587`, `user=resend`, `auth=true`, `starttls=true`, `ssl=false`, `password=**********`, `from=hello@praedixa.com`.
+  - reproduction admin REST avant fix: `PUT /admin/realms/praedixa/users/<id>/execute-actions-email` -> `500` avec `Failed to send execute actions email: Error when attempting to send the email to the server`.
+  - meme appel apres fix: `204`.
+  - `bash -n scripts/keycloak/keycloak-ensure-email-config.sh`
+  - tentative de fermeture infra durable:
+    - `scw rdb instance create ...` -> `Permission denied` sur le profil/orga courant, donc impossible de brancher tout de suite `auth-prod` sur un Postgres persistant depuis cette session.
+    - un bootstrap runtime `sh -lc` a ete tente pour autoreconcilier SMTP + super-admin au boot; le provider Scaleway a eclate les args multi-lignes, donc la commande live a ete immediatement remise sur le demarrage Keycloak connu sain (`/opt/keycloak/bin/kc.sh start --optimized --import-realm --http-port=8080`) pour ne pas laisser `auth-prod` sur une config runtime fragile.
+
+# Current Pass - 2026-03-22 - Super Admin Invalid Credentials Regression
+
+### Plan
+
+- [ ] Reproduire le refus de connexion sur la source de vérité Keycloak et identifier si l'échec vient du mot de passe, d'un lock bruteforce, d'un compte désactivé, ou d'un drift de realm/client
+- [ ] Corriger uniquement la cause racine côté identité/provisionnement/configuration, puis aligner la documentation touchée
+- [ ] Vérifier explicitement que `admin@praedixa.com` peut de nouveau obtenir un token sur le realm `praedixa`, puis consigner le résultat
+
+### Review
+
+- Cause racine etablie:
+  - le realm live `praedixa` etait de nouveau present mais completement vide (`0` users), donc `admin@praedixa.com` n'existait plus et Keycloak affichait logiquement des identifiants invalides.
+  - le vrai facteur de recurrence est infra: `auth-prod` tourne encore en live sans `KC_DB=postgres` ni `KC_DB_URL_*`, donc le service n'est pas branche a une base persistante et peut repartir sur un stockage jetable apres restart/redeploy.
+  - un bug repo secondaire empechait meme la reparation idempotente: `scripts/keycloak/keycloak-ensure-super-admin.sh` cherchait par defaut `contracts/admin/permission-taxonomy.v1.json` sous `scripts/contracts/...` au lieu de la racine du repo.
+- Correctifs appliques:
+  - `scripts/keycloak/keycloak-ensure-super-admin.sh` resolve maintenant correctement la taxonomie admin depuis `$REPO_ROOT/contracts/...`.
+  - le compte `admin@praedixa.com` a ete reprovisionne en live avec le role `super_admin`, les permissions admin canoniques et `CONFIGURE_TOTP`.
+  - `scripts/scw/scw-configure-auth-env.sh` peut maintenant reappliquer automatiquement `keycloak-ensure-super-admin.sh` quand `SUPER_ADMIN_PASSWORD` est fourni explicitement, pour qu'un realm reimporte ne reste pas avec `0` bootstrap admin.
+  - la documentation ops et les guardrails repo ont ete alignees sur ce mode de defaillance (`realm live vide`, `auth-prod` non persistant).
+- Verification:
+  - `scripts/keycloak/kcadm get users -r praedixa -q username=admin@praedixa.com` -> user present, `enabled=true`, `requiredActions=["CONFIGURE_TOTP"]`, attributs `role=super_admin` + permissions admin completes.
+  - `scw container container get ... auth-prod ...` -> runtime live sans `KC_DB_*` exposes; seul `KC_HOSTNAME` est actuellement visible en env, ce qui confirme l'absence de persistence Postgres.
+  - `bash -n scripts/keycloak/keycloak-ensure-super-admin.sh scripts/scw/scw-configure-auth-env.sh`
+
+# Current Pass - 2026-03-22 - Admin OIDC Provider Untrusted Debug
+
+### Plan
+
+- [x] Reproduire précisément la redirection `oidc_provider_untrusted` et identifier quelle validation OIDC échoue dans `app-admin`
+- [x] Tracer les valeurs de configuration réelles côté admin (`AUTH_OIDC_ISSUER_URL`, origin publique, découverte OIDC) et les comparer au contrat du code
+- [x] Corriger uniquement la cause racine identifiée, ajouter ou ajuster la couverture de test correspondante, puis vérifier le flux ciblé
+
+### Review
+
+- Cause racine établie:
+  - le handler `app-admin/auth/login` redirigeait bien vers `oidc_provider_untrusted`, mais la validation locale n'était pas la cause primaire.
+  - l'issuer configuré en local (`https://auth.praedixa.com/realms/praedixa`) échoue aujourd'hui en découverte OIDC réelle: `GET /realms/praedixa/.well-known/openid-configuration` renvoie `404` avec `{"error":"Realm does not exist"}`.
+  - le problème bloquant d'accès super-admin était donc d'abord côté fournisseur OIDC live: le realm `praedixa` avait disparu de `auth.praedixa.com`.
+  - la cause durable la plus probable du retour en panne a aussi été trouvée côté infra: le container `auth-prod` tournait sans `--import-realm` dans ses args actifs (`start --optimized --http-port=8080`), donc un redeploy/restart pouvait repartir sans réimport du realm malgré le `CMD` corrigé dans l'image.
+- Correctif appliqué côté repo:
+  - `app-admin/lib/auth/oidc.ts` et `app-webapp/lib/auth/oidc/discovery.ts` remontent maintenant le statut HTTP et un extrait du payload d'erreur du provider au lieu d'un simple `OIDC discovery request failed`.
+  - `app-admin/app/auth/login/route.ts` et `app-webapp/app/auth/login/route.ts` journalisent maintenant la cause exacte côté serveur avant de conserver la bannière navigateur fail-close `oidc_provider_untrusted`.
+  - des tests ciblés couvrent désormais les erreurs de découverte enrichies et la journalisation associée.
+  - `scripts/keycloak/kcadm` résout maintenant correctement le binaire sous `.meta/.tools/...`.
+  - `scripts/scw/scw-apply-container-config.sh` accepte maintenant des `--command` / `--arg` répétés et les sérialise vers l'API Scaleway.
+  - `scripts/scw/scw-configure-auth-env.sh` force désormais explicitement `command=/opt/keycloak/bin/kc.sh` et `args=start --optimized --import-realm --http-port=8080`.
+  - `scripts/scw/scw-preflight-deploy.sh` vérifie désormais aussi ces args `auth-prod` pour détecter tout drift futur avant release.
+- Correctif appliqué live:
+  - restauration immédiate du realm `praedixa` via l'admin REST Keycloak depuis `infra/auth/realm-praedixa.json`.
+  - mise à jour du container `auth-prod` pour tourner avec `command=/opt/keycloak/bin/kc.sh` et `args=start --optimized --import-realm --http-port=8080`.
+- Documentation alignée:
+  - `app-admin/app/auth/README.md`
+  - `app-admin/lib/auth/README.md`
+  - `app-webapp/app/auth/README.md`
+  - `app-webapp/lib/auth/README.md`
+  - `scripts/README.md`
+  - `infra/auth/README.md`
+- Vérification:
+  - `curl -sSI 'http://localhost:3002/auth/login?next=/'` avant arrêt du serveur local: redirection vers `/login?error=oidc_provider_untrusted`
+  - `curl -sS 'https://auth.praedixa.com/realms/praedixa/.well-known/openid-configuration'` -> `200`
+  - `scw container container get a3584ba1-dde4-4bfb-b6ec-1bb82caedc94 region=fr-par -o json` -> `args=start --optimized --import-realm --http-port=8080`
+  - `scripts/keycloak/kcadm --help >/dev/null && echo ok`
+  - `pnpm --dir app-admin exec vitest run lib/auth/__tests__/oidc.test.ts app/auth/login/__tests__/route.test.ts`
+  - `pnpm --dir app-webapp exec vitest run lib/auth/__tests__/oidc.test.ts app/auth/login/__tests__/route.test.ts`
+  - `bash -n scripts/keycloak/kcadm scripts/scw/scw-apply-container-config.sh scripts/scw/scw-configure-auth-env.sh scripts/scw/scw-preflight-deploy.sh`
+  - `node --test scripts/__tests__/scw-apply-container-config.test.mjs`
+  - `pnpm dev:admin:status` après la passe: serveur local non lancé (`[dev:admin] not running`)
+
+# Current Pass - 2026-03-22 - App Admin Proxy Config Build Fix
+
+### Plan
+
+- [x] Capture the current app-admin build blocker and root cause in the task log
+- [x] Replace the unsupported `String.raw` proxy matcher with a static Next-compatible matcher and refresh the nearby docs/tests
+- [x] Rebuild `app-admin` and fix the next blocking issue if the proxy config no longer fails first
+
+### Review
+
+- Root cause: `app-admin/proxy.ts` exported `config.matcher[0]` through `String.raw\`...\``, which Next 16 rejects because route config must stay on static literal values.
+- Fix applied:
+  - `app-admin/proxy.ts` now exports the matcher as a plain escaped string literal.
+  - `app-admin/README.md` now documents that `config.matcher` must remain a static Next-compatible string and must not reintroduce `String.raw`.
+- Verification:
+  - `pnpm --dir app-admin build`
+  - `pnpm --dir app-admin exec vitest run __tests__/middleware.test.ts`
+
+# Current Pass - 2026-03-22 - Tailwind v4 Import Order Alignment
+
+### Plan
+
+- [x] Align `app-landing`, `app-webapp`, and `app-admin` `app/globals.css` files with the Tailwind v4 import order from the official docs
+- [x] Refresh the Tailwind v4 README notes in the touched apps and shared UI package so the repo documents the same import contract
+- [x] Rebuild the touched frontend apps to verify the Tailwind CSS-first setup still compiles cleanly
+
+### Review
+
+- `app-landing/app/globals.css`, `app-webapp/app/globals.css`, and `app-admin/app/globals.css` now follow the Tailwind v4 import contract from the official docs: `@import "tailwindcss"` first, then `@import "@praedixa/ui/tailwind-theme.css"`, then local `@theme inline` / `@utility` extensions.
+- `app-landing/README.md`, `app-webapp/README.md`, `app-admin/README.md`, and `packages/ui/README.md` now document that same order explicitly so the repo no longer teaches the inverse pattern.
+- Verification:
+  - `pnpm --dir app-landing build`
+  - `pnpm --dir app-webapp build`
+  - `pnpm --dir app-admin build` -> still fails on the pre-existing Next `/proxy` `config.matcher` `TaggedTemplateExpression` error, which is unrelated to Tailwind and unchanged by this pass
+
+# Current Pass - 2026-03-22 - Decision Contract Migration Parser Cleanup
+
+### Plan
+
+- [x] Flatten `002_decisionops_runtime_guards.sql` and `003_decision_contract_runtime.sql` to remove parser-hostile procedural SQL
+- [x] Update the `app-api-ts` migration docs to match the new flat DDL shape
+- [x] Verify the touched SQL files no longer contain the problematic syntax markers
+
+### Review
+
+- `app-api-ts/migrations/002_decisionops_runtime_guards.sql` is now a single plain `CREATE UNIQUE INDEX` statement for the action-dispatch idempotency key.
+- `app-api-ts/migrations/003_decision_contract_runtime.sql` is now just the current contract schema for `decision_contract_versions` and `decision_contract_audit`, with the JSONB default rendered via `CAST('{}' AS JSONB)`.
+- `app-api-ts/README.md` and `app-api-ts/migrations/README.md` now describe the migration files as flat DDL contracts instead of legacy reconciliation scripts.
+- Verification:
+  - `rg -n "IF NOT EXISTS|DO \\$\\$|to_regclass|::jsonb|::" app-api-ts/migrations/002_decisionops_runtime_guards.sql app-api-ts/migrations/003_decision_contract_runtime.sql`
+  - `rg -n "contract_json|audit_id|event_type|reconcile" app-api-ts/README.md app-api-ts/migrations/README.md`
+
+# Current Pass - 2026-03-22 - Decision Engine Config Migration Parser Cleanup
+
+### Plan
+
+- [x] Inspect the `001_decision_engine_config.sql` migration and compare it with the existing SQL migration conventions
+- [x] Replace parser-unfriendly `CREATE ... IF NOT EXISTS` statements with explicit Postgres existence guards
+- [x] Update the migration docs and verify the cleaned file
+
+### Review
+
+- `app-api-ts/migrations/001_decision_engine_config.sql` now stays on plain `CREATE TABLE` / `CREATE INDEX` DDL, with `CAST('{}' AS JSONB)` replacing the parser-hostile cast shorthand so the migration is easier for Sonar and other SQL parsers to digest.
+- `app-api-ts/migrations/README.md` now documents that the decision-config base migration intentionally keeps to flat DDL instead of `DO $$` / `IF NOT EXISTS`.
+- Verification:
+  - `rg -n "IF NOT EXISTS|DO \\$\\$|to_regclass|::jsonb|::" app-api-ts/migrations/001_decision_engine_config.sql`
+  - `sed -n '1,220p' app-api-ts/migrations/001_decision_engine_config.sql`
+
+# Current Pass - 2026-03-22 - Seed Full Demo Sonar Cleanup
+
+### Plan
+
+- [x] Replace the monthly metrics dict construction with `dict.fromkeys`
+- [x] Remove the stale `sites` parameter from `_step9_proof` and the stale `strict_step4` flow from `seed_all`
+- [x] Run targeted verification on `app-api/scripts/seed_full_demo.py`
+
+### Review
+
+- `app-api/scripts/seed_full_demo.py` now uses `dict.fromkeys` for the repeated zero-initialized monthly aggregates, and the dead `_add_monthly_metrics`/`metric_names_map` helpers are gone.
+- `seed_all` now requires an explicit `target_org_id`, `main()` parses `--org-id`, and `_step9_proof` now reflects the fact that it only needs the organization-level decisions data.
+- `seed_full_demo.py` no longer forwards the removed `strict_step4` keyword to `provision_organization_foundation`.
+- The script docs now show the explicit `--org-id` contract in `app-api/scripts/README.md` and `docs/DATABASE.md`.
+- Verification:
+  - `cd app-api && uv run pyright scripts/seed_full_demo.py`
+  - `cd app-api && uv run python -m py_compile scripts/seed_full_demo.py`
+  - `cd app-api && uv run python - <<'PY'` (CLI contract parse check)
+
+# Current Pass - 2026-03-22 - Medallion Reprocessing Window Sonar Cleanup
+
+### Plan
+
+- [x] Flip the `effective_start` window comparison in `medallion_reprocessing_common.py` to the direct opposite operator
+- [x] Update the scripts README to mention the shared window-overlap helper
+- [x] Revalidate the reprocessing helper with targeted tests and Pyright
+
+### Review
+
+- `app-api/scripts/medallion_reprocessing_common.py` now uses the direct `<=` comparison for `effective_start`, which keeps the overlap predicate readable and satisfies Sonar.
+- `app-api/scripts/README.md` now notes that the replay path relies on a shared window-overlap helper.
+- Verification:
+  - `cd app-api && uv run pytest tests/test_medallion_reprocessing.py -q`
+  - `cd app-api && uv run pyright scripts/medallion_reprocessing_common.py`
+
+# Current Pass - 2026-03-22 - Medallion External Feature Sonar Cleanup
+
+### Plan
+
+- [x] Split `fetch_school_holiday_intervals` into cache, request, and record parsing helpers
+- [x] Split `_apply_external_features` and `add_lag_rolling_features` into smaller row/group helpers
+- [x] Add regression tests for holiday caching, external feature application, and lag/rolling features
+- [x] Update repo docs for the feature helper split
+- [x] Run targeted verification on the touched Python files
+
+### Review
+
+- `app-api/scripts/medallion_pipeline_features.py` now isolates school-holiday cache parsing, per-year fetches, external row application, and lag/rolling feature assignment into smaller helpers so the Sonar hotspots stay below the threshold.
+- `app-api/scripts/numpy_helpers.py` continues to provide editor-friendly NumPy wrappers for the feature scripts.
+- `app-api/tests/test_medallion_pipeline_features.py` covers holiday cache parsing, weather/holiday enrichment, and lag/rolling statistics.
+- Documentation was refreshed in:
+  - `app-api/scripts/README.md`
+  - `app-api/tests/README.md`
+- Verification:
+  - `cd app-api && uv run pytest tests/test_medallion_pipeline_features.py -q`
+  - `cd app-api && uv run pyright scripts/numpy_helpers.py scripts/medallion_pipeline_features.py tests/test_medallion_pipeline_features.py`
+
+# Current Pass - 2026-03-22 - Medallion Quality Helper Sonar Cleanup
+
+### Plan
+
+- [x] Split `_ingest_silver_asset` into per-row ingestion helpers and widen the shared parser signature for Bronze assets
+- [x] Split `_score_causal_predictors` and `_clamp_quality_outliers` into smaller helpers
+- [x] Add regression tests for the clamp path and keep the quality pass covered
+- [x] Update repo docs for the new helper split
+- [x] Run targeted lint and pytest on the touched Python files
+
+### Review
+
+- `app-api/scripts/medallion_pipeline_bronze.py` now accepts both `SourceFile` and `BronzeAsset` in `parse_source_rows`, which removes the false type mismatch when the quality stage reuses the helper.
+- `app-api/scripts/medallion_pipeline_quality.py` now breaks the remaining Sonar hotspots into row-level ingestion, single-predictor scoring, and group-level clamp helpers, and the ridge solver builds a float-only feature vector before calling NumPy.
+- `app-api/scripts/numpy_helpers.py` centralizes the editor-friendly NumPy bindings so Pylance sees local symbols instead of unresolved NumPy imports.
+- `app-api/tests/test_medallion_pipeline_quality.py` now covers the outlier clamp path in addition to the Silver densification and median-imputation cases.
+- Documentation was refreshed in:
+  - `app-api/scripts/README.md`
+  - `app-api/tests/README.md`
+- Verification:
+  - `cd app-api && uv run pytest tests/test_medallion_pipeline_quality.py -q`
+  - `cd app-api && uv run pyright scripts/numpy_helpers.py scripts/medallion_pipeline_bronze.py scripts/medallion_pipeline_quality.py scripts/medallion_pipeline_features.py`
+
+# Current Pass - 2026-03-22 - Medallion Scalar Coercion Sonar Cleanup
+
+### Plan
+
+- [x] Split the scalar coercion helpers in `medallion_pipeline_base.py` to lower Sonar cognitive complexity on `to_float` and `coerce_scalar`
+- [x] Add focused tests for numeric, boolean and date coercion edge cases
+- [x] Update the `scripts` and `tests` READMEs for the new helper coverage
+- [x] Run targeted Python verification for the refactor
+
+### Review
+
+- `app-api/scripts/medallion_pipeline_base.py` now keeps the scalar coercion logic in small helpers so `to_float` and `coerce_scalar` stay below the Sonar complexity threshold.
+- `app-api/scripts/medallion_pipeline_quality.py` now delegates Silver row ingestion, missingness classification and ridge fitting to smaller helpers, and it uses explicit NumPy imports instead of alias attribute access.
+- `app-api/scripts/medallion_pipeline_features.py` now uses the same explicit NumPy import style for its rolling statistics.
+- Regression coverage was added in:
+  - `app-api/tests/test_medallion_pipeline_base.py`
+  - `app-api/tests/test_medallion_pipeline_quality.py`
+- Verification:
+  - `cd app-api && uv run ruff check scripts/medallion_pipeline_base.py scripts/medallion_pipeline_quality.py scripts/medallion_pipeline_features.py tests/test_medallion_pipeline_base.py tests/test_medallion_pipeline_quality.py`
+  - `cd app-api && uv run pytest tests/test_medallion_pipeline_base.py tests/test_medallion_pipeline_quality.py -q`
+
+# Current Pass - 2026-03-22 - Medallion Pipeline Split and Type Cleanup
+
+### Plan
+
+- [x] Cartographier `medallion_pipeline.py` et identifier les blocs a extraire
+- [x] Extraire les helpers partages dans `medallion_pipeline_base.py`, `medallion_pipeline_bronze.py`, `medallion_pipeline_quality.py` et `medallion_pipeline_features.py`
+- [x] Refaire `medallion_pipeline.py` en facade CLI/re-export stable pour les tests et consommateurs existants
+- [x] Actualiser la documentation `scripts/README.md` et les suivis de repo
+- [x] Verifier lint, compilation, pyright et tests cibles
+
+### Review
+
+- `app-api/scripts/medallion_pipeline.py` est maintenant une facade courte qui garde l'interface publique tout en deleguant la logique metier a quatre modules dedies.
+- Les helpers bronze, quality, base et features vivent desormais chacun dans leur propre fichier, ce qui isole mieux les responsabilites et simplifie les imports consommateurs.
+- Le type-check Pyright reste vert sur le pipeline, les modules extraits, `medallion_reprocessing_common.py` et `medallion_orchestrator.py`.
+- Verification:
+  - `cd app-api && uv run ruff check scripts/medallion_pipeline.py scripts/medallion_pipeline_base.py scripts/medallion_pipeline_bronze.py scripts/medallion_pipeline_quality.py scripts/medallion_pipeline_features.py`
+  - `python3 -m py_compile app-api/scripts/medallion_pipeline.py app-api/scripts/medallion_pipeline_base.py app-api/scripts/medallion_pipeline_bronze.py app-api/scripts/medallion_pipeline_quality.py app-api/scripts/medallion_pipeline_features.py`
+  - `cd app-api && uv run pyright scripts/medallion_pipeline.py scripts/medallion_pipeline_base.py scripts/medallion_pipeline_bronze.py scripts/medallion_pipeline_quality.py scripts/medallion_pipeline_features.py scripts/medallion_reprocessing_common.py scripts/medallion_orchestrator.py`
+  - `cd app-api && uv run pytest tests/test_medallion_reprocessing.py tests/test_security_hardening.py -q`
+
+# Current Pass - 2026-03-22 - Alembic Onboarding JSONB Cleanup
+
+### Plan
+
+- [x] Centraliser `now()` et `'"'"'{}'"'"'::jsonb` dans `028_onboarding_bpm_foundation.py`
+- [x] Documenter le refactor dans `alembic/versions/README.md`
+- [x] Revalider le fichier avec `ruff` et `pyright`
+
+### Review
+
+- `app-api/alembic/versions/028_onboarding_bpm_foundation.py` utilise maintenant `NOW_SQL` et `JSONB_EMPTY_OBJECT` pour les timestamps et payloads JSONB vides.
+- La documentation du dossier versions mentionne explicitement ce refactor pour le workflow BPM.
+- Verification:
+  - `cd app-api && uv run ruff check alembic/versions/028_onboarding_bpm_foundation.py`
+  - `cd app-api && uv run pyright alembic/versions/028_onboarding_bpm_foundation.py`
+
+# Current Pass - 2026-03-22 - Alembic RLS Bypass Downgrade Cleanup
+
+### Plan
+
+- [x] Extraire la logique de restauration des policies dans `022_super_admin_rls_bypass.py`
+- [x] Documenter le refactor dans `alembic/versions/README.md`
+- [x] Revalider le fichier avec `ruff` et `pyright`
+
+### Review
+
+- `app-api/alembic/versions/022_super_admin_rls_bypass.py` a maintenant un `downgrade()` plus court qui rebranche des helpers partages pour restaurer les policies sans bypass.
+- La documentation du dossier versions mentionne explicitement ce refactor.
+- Verification:
+  - `cd app-api && uv run ruff check alembic/versions/022_super_admin_rls_bypass.py`
+  - `cd app-api && uv run pyright alembic/versions/022_super_admin_rls_bypass.py`
+
+# Current Pass - 2026-03-22 - Alembic RGPD Literals Cleanup
+
+### Plan
+
+- [x] Centraliser `now()` et `created_at DESC` dans `021_rgpd_erasure_persistence.py`
+- [x] Documenter le refactor dans `alembic/versions/README.md`
+- [x] Revalider le fichier avec `ruff` et `pyright`
+
+### Review
+
+- `app-api/alembic/versions/021_rgpd_erasure_persistence.py` utilise maintenant des constantes locales pour les timestamps et index temporels RGPD.
+- La documentation du dossier versions mentionne explicitement ce refactor pour la persistence d'erasure.
+- Verification:
+  - `cd app-api && uv run ruff check alembic/versions/021_rgpd_erasure_persistence.py`
+  - `cd app-api && uv run pyright alembic/versions/021_rgpd_erasure_persistence.py`
+
+# Current Pass - 2026-03-22 - Alembic Conversations Timestamp Cleanup
+
+### Plan
+
+- [x] Centraliser `now()` dans `017_conversations.py`
+- [x] Documenter le refactor dans `alembic/versions/README.md`
+- [x] Revalider le fichier avec `ruff` et `pyright`
+
+### Review
+
+- `app-api/alembic/versions/017_conversations.py` utilise maintenant `NOW_SQL` pour les timestamps `created_at` et `updated_at`.
+- La documentation du dossier versions mentionne explicitement ce refactor pour les tables de conversation.
+- Verification:
+  - `cd app-api && uv run ruff check alembic/versions/017_conversations.py`
+  - `cd app-api && uv run pyright alembic/versions/017_conversations.py`
+
+# Current Pass - 2026-03-22 - Alembic Operational Layer Literals Cleanup
+
+### Plan
+
+- [x] Centraliser `now()` et les FKs repetes dans `012_operational_layer.py`
+- [x] Documenter le refactor dans `alembic/versions/README.md`
+- [x] Revalider le fichier avec `ruff` et `pyright`
+
+### Review
+
+- `app-api/alembic/versions/012_operational_layer.py` utilise maintenant des constantes locales pour les literals DDL repetes et les references de FKs operatives.
+- La documentation du dossier versions mentionne explicitement ce refactor pour la couche operationnelle.
+- Verification:
+  - `cd app-api && uv run ruff check alembic/versions/012_operational_layer.py`
+  - `cd app-api && uv run pyright alembic/versions/012_operational_layer.py`
+
+# Current Pass - 2026-03-22 - Alembic Admin Backoffice Literals Cleanup
+
+### Plan
+
+- [x] Centraliser `now()`, `users.id`, `organizations.id` et `created_at DESC` dans `010_admin_backoffice.py`
+- [x] Documenter le refactor dans `alembic/versions/README.md`
+- [x] Revalider le fichier avec `ruff` et `pyright`
+
+### Review
+
+- `app-api/alembic/versions/010_admin_backoffice.py` utilise maintenant des constantes locales pour les literals DDL et index répétés.
+- La documentation du dossier versions mentionne explicitement ce refactor pour les tables d'audit et d'onboarding admin.
+- Verification:
+  - `cd app-api && uv run ruff check alembic/versions/010_admin_backoffice.py`
+  - `cd app-api && uv run pyright alembic/versions/010_admin_backoffice.py`
+
+# Current Pass - 2026-03-22 - Alembic Data Catalog Literals Cleanup
+
+### Plan
+
+- [x] Centraliser `now()` et `client_datasets.id` dans `004_data_catalog_tables.py`
+- [x] Documenter le refactor dans `alembic/versions/README.md`
+- [x] Revalider le fichier avec `ruff` et `pyright`
+
+### Review
+
+- `app-api/alembic/versions/004_data_catalog_tables.py` utilise maintenant des constantes locales pour `now()` et `client_datasets.id`, plus `organizations.id` et `CASCADE` pour garder la migration lisible.
+- La documentation du dossier versions mentionne explicitement ce refactor.
+- Verification:
+  - `cd app-api && uv run ruff check alembic/versions/004_data_catalog_tables.py`
+  - `cd app-api && uv run pyright alembic/versions/004_data_catalog_tables.py`
+
+# Current Pass - 2026-03-22 - Alembic Onboarding E501 Cleanup
+
+### Plan
+
+- [x] Replier les colonnes BPM trop longues dans `028_onboarding_bpm_foundation.py`
+- [x] Documenter le reflow dans `alembic/versions/README.md`
+- [x] Revalider le sous-dossier `alembic/versions` avec `ruff` et `pyright`
+
+### Review
+
+- `app-api/alembic/versions/028_onboarding_bpm_foundation.py` reflowe maintenant ses colonnes longues en multi-ligne, sans changer la logique de migration.
+- La doc des versions mentionne explicitement ce reflow pour les futures revisions BPM.
+- Verification:
+  - `cd app-api && uv run ruff check alembic/versions --select E501`
+  - `cd app-api && uv run pyright alembic/versions/028_onboarding_bpm_foundation.py`
+
+# Current Pass - 2026-03-22 - Alembic Pgcrypto Pylance Cleanup
+
+### Plan
+
+- [x] Corriger l'import Alembic `op` dans `002_pgcrypto_extension.py` sans changer le runtime
+- [x] Documenter le cas Pylance/Alembic dans `alembic/versions/README.md`
+- [x] Revalider le fichier avec `ruff` et `pyright`
+
+### Review
+
+- `app-api/alembic/versions/002_pgcrypto_extension.py` utilise maintenant un ignore Pylance cible sur l'import dynamique `op`.
+- La documentation du dossier versions rappelle aussi le pattern pour les revisions Alembic qui exposent `op` dynamiquement.
+- Verification:
+  - `cd app-api && uv run ruff check alembic/versions/002_pgcrypto_extension.py`
+  - `cd app-api && uv run pyright alembic/versions/002_pgcrypto_extension.py`
+
+# Current Pass - 2026-03-22 - Alembic Initial Schema Sonar Cleanup
+
+### Plan
+
+- [x] Remplacer l'import Alembic `op` par un import explicite compatible Pylance dans `001_initial_schema.py`
+- [x] Centraliser les literals DDL repetes en constantes locales (`now()`, `organizations.id`, `users.id`, `employees.id`, `SET NULL`)
+- [x] Revalider la migration avec un check statique cible
+
+### Review
+
+- `app-api/alembic/versions/001_initial_schema.py` importe maintenant `alembic.op` explicitement et centralise les literals DDL repetes en constantes locales.
+- Les repetitions Sonar sur `now()`, `organizations.id`, `users.id`, `employees.id`, `departments.id`, `sites.id`, `forecast_runs.id` et `SET NULL` sont sorties du corps de migration.
+- Verification:
+  - `cd app-api && uv run ruff check alembic/versions/001_initial_schema.py`
+  - `cd app-api && uv run pyright alembic/versions/001_initial_schema.py`
+
+# Current Pass - 2026-03-22 - Frontend Monorepo Tailwind v4 Migration
+
+### Plan
+
+- [x] Auditer les usages Tailwind v3 restants sur `app-admin`, `app-webapp` et le preset partage `packages/ui/tailwind.preset.js`
+- [x] Remplacer le preset JS partage par un socle Tailwind v4 CSS-first exporte depuis `@praedixa/ui`
+- [x] Migrer `app-landing`, `app-admin` et `app-webapp` vers `@tailwindcss/postcss`, `@import "tailwindcss"` et des extensions locales `@theme` / `@utility`
+- [x] Revalider `pnpm install`, les lints, les builds et les typechecks sur les trois apps, puis documenter le passage
+
+### Review
+
+- Migration Tailwind v4 complete sur le frontend monorepo:
+  - `app-landing`, `app-admin` et `app-webapp` utilisent maintenant `tailwindcss@^4.2.2` et `@tailwindcss/postcss`.
+  - les anciens `tailwind.config.js` de `app-admin` et `app-webapp`, ainsi que le preset JS partage `packages/ui/tailwind.preset.js`, ont ete supprimes.
+  - `packages/ui/src/tailwind-theme.css` devient la nouvelle source de verite CSS-first partagee pour les tokens semantiques, les echelles typo custom, les utilitaires de timing et `shine-effect`.
+- Extensions locales preservees sans reintroduire de config JS:
+  - `app-admin/app/globals.css` expose maintenant ses alias de shell (`sidebar`, `plan`, `admin:*`, `shadow-soft`, `w-sidebar`, `h-topbar`, `animate-toast-*`) via `@theme inline` et `@utility`.
+  - `app-webapp/app/globals.css` garde ses alias de shell et de surface (`sidebar`, `paper`, `stone`, `max-w-page`, ombres locales, gradients) via `@theme inline` et `@utility`.
+  - `app-landing/app/globals.css` importe aussi le socle partage `@praedixa/ui/tailwind-theme.css`, puis conserve ses tokens landing specifiques en surcharge locale.
+- Correctif structurel ferme dans le meme pass:
+  - le build `@praedixa/admin` revelait un dereferencement possible de message precedent absent dans `components/chat/message-thread.tsx`; le guard passe maintenant par `previousCreatedAt` avant comparaison de date.
+- Documentation alignee:
+  - `packages/ui/README.md`
+  - `app-landing/README.md`
+  - `app-admin/README.md`
+  - `app-webapp/README.md`
+  - `app-admin/components/chat/README.md`
+
+### Verification
+
+- `pnpm install`
+- `pnpm --filter @praedixa/admin lint`
+- `pnpm --filter @praedixa/webapp lint`
+- `pnpm --filter @praedixa/landing lint`
+- `pnpm --filter @praedixa/admin build`
+- `pnpm --filter @praedixa/webapp build`
+- `pnpm --filter @praedixa/landing build`
+- `pnpm --filter @praedixa/admin typecheck`
+- `pnpm --filter @praedixa/webapp typecheck`
+- `pnpm --filter @praedixa/landing typecheck`
+- `pnpm --filter @praedixa/ui lint`
+- `pnpm --filter @praedixa/ui typecheck`
+- `pnpm --filter @praedixa/ui build`
+
+# Current Pass - 2026-03-22 - Sonar Source Cleanup
+
+### Plan
+
+- [x] Identifier les vrais cas source `replace(...string...)` et `void ...` en excluant le code genere
+- [x] Remplacer les cas string-litteral par `replaceAll(...)`
+- [x] Remplacer les usages `void` par des flux explicites (`await`, `.catch(...)` ou parametres inutilises renommes)
+- [x] Revalider les fichiers impactes avec lint/typecheck cible
+
+### Review
+
+- `replace(...string...)` a ete ferme sur le contrat OpenAPI public via `replaceAll(...)`.
+- Les usages `void` de placeholders ont ete retires sur les helpers auth, analytics, telemetry, onboarding et error boundaries.
+- Les usages `void` asynchrones ont ete rendus explicites via `await` ou `.catch(() => undefined)` dans les hooks API, les handlers UI et les tests impactes.
+- Les IIFE serveur Node/TS passent maintenant par une terminaison `.catch(...)` explicite au lieu de l'operateur `void`.
+- Verification:
+  - `pnpm lint`
+  - `pnpm typecheck`
+
+# Current Pass - 2026-03-22 - Python Strict Ignore Reduction Pass 8
+
+### Plan
+
+- [x] Mesurer la grappe finale `app/integrations/connectors/*/{client,mapper}.py`
+- [x] Identifier les patterns communs et corriger la dette Pyright par familles plutot que fichier par fichier
+- [x] Retirer les deux derniers patterns `ignore` si la validation reste verte
+- [x] Revalider `cd app-api && uv run pyright`, `uv run mypy app` et `uv run ruff check app`
+
+### Review
+
+- Reduction reelle du reliquat `pyright`:
+  - les deux derniers patterns `ignore` (`app/integrations/connectors/*/client.py` et `app/integrations/connectors/*/mapper.py`) sortent maintenant de la config.
+  - `pyrightconfig.json` et `[tool.pyright]` n'ont plus de dette `ignore` residuelle.
+- Correctifs appliques:
+  - ajout du helper partage `app/integrations/connectors/_shared/json_payloads.py` pour centraliser `require_object`, `require_record_sequence` et `get_path`.
+  - fermeture de la famille standard des clients REST (`blue_yonder`, `cdk`, `fourth`, `manhattan`, `ncr_aloha`, `olo`, `oracle_tm`, `reynolds`, `sap_tm`, `toast`, `ukg`) par mutualisation du narrowing JSON et des sequences records.
+  - fermeture des mappers standard sur les memes vendors via `require_object(...)` pour la config/endpoints et normalisation explicite des maps string.
+  - fermeture des cas speciaux `geotab/client.py`, `geotab/mapper.py` et `salesforce/client.py`.
+- Documentation alignee:
+  - `app-api/app/integrations/README.md`
+  - `app-api/app/integrations/connectors/_shared/README.md`
+  - `app-api/README.md`
+- Verification:
+  - `cd app-api && uv run pyright --project .pyright-measure.json $(rg --files app/integrations/connectors | rg '/(client|mapper)\\.py$')`
+  - `cd app-api && uv run mypy $(rg --files app/integrations/connectors | rg '/(client|mapper)\\.py$')`
+  - `cd app-api && uv run ruff check $(rg --files app/integrations/connectors | rg '/(client|mapper)\\.py$')`
+  - `cd app-api && uv run pyright`
+  - `cd app-api && uv run mypy app`
+  - `cd app-api && uv run ruff check app`
+
+# Current Pass - 2026-03-22 - Python Strict Ignore Reduction Pass 7
+
+### Plan
+
+- [x] Mesurer les diagnostics `pyright` restants sur `integration_runtime_worker.py`
+- [x] Corriger ce bloc runtime sans rouvrir de dette hors cible
+- [x] Retirer `integration_runtime_worker.py` de `pyrightconfig.json` et `[tool.pyright].ignore` si la validation reste verte
+- [x] Revalider `cd app-api && uv run pyright`, `uv run mypy app` et `uv run ruff check app`
+
+### Review
+
+- Reduction reelle du reliquat `pyright`:
+  - `app/services/integration_runtime_worker.py` sort maintenant de la liste `ignore`.
+  - la mesure cible est passee de `79` diagnostics a `0` avant retrait effectif de `ignore`.
+- Correctifs appliques:
+  - ajout de helpers locaux `_require_object`, `_require_list`, `_optional_string`, `_string_tuple` et `_string_pairs` pour resserrer les payloads runtime internes.
+  - fermeture des branches `claim_sync_runs`, `get_sync_run_execution_plan`, `get_provider_access_context`, `claim_raw_events` et de la config de `drain_connector_connection`.
+  - le worker ne propage plus de `dict[Unknown, Unknown]` ni de listes inconnues vers `integration_event_ingestor.py`.
+- Documentation alignee:
+  - `app-api/app/services/README.md`
+- Verification:
+  - `cd app-api && uv run pyright`
+  - `cd app-api && uv run mypy app`
+  - `cd app-api && uv run ruff check app`
+
+# Current Pass - 2026-03-22 - Python Strict Ignore Reduction Pass 6
+
+### Plan
+
+- [x] Mesurer les diagnostics `pyright` de `data_quality.py`
+- [x] Supprimer le shim legacy et rebind l'appelant interne vers `app.services.quality`
+- [x] Retirer `data_quality.py` de `pyrightconfig.json` et `[tool.pyright].ignore`
+- [x] Revalider `cd app-api && uv run pyright`, `uv run mypy app` et `uv run ruff check app`
+
+### Review
+
+- Reduction reelle du reliquat `pyright`:
+  - `app/services/data_quality.py` ne sort pas seulement de la liste `ignore`; le shim legacy est retire du repo.
+  - la source de verite du pipeline de qualite reste `app/services/quality/`.
+- Correctifs appliques:
+  - `organization_foundation.py` importe maintenant `QualityConfig` et `run_quality_checks` depuis `app.services.quality`.
+  - `data_quality.py` est supprime au lieu d'etre conserve comme re-export de symboles prives, conformement a la politique repo de suppression des shims legacy.
+- Documentation alignee:
+  - `app-api/app/services/README.md`
+  - `docs/security/rgpd-checklist.md`
+- Verification:
+  - `cd app-api && uv run pyright`
+  - `cd app-api && uv run mypy app`
+  - `cd app-api && uv run ruff check app`
+
+# Current Pass - 2026-03-21 - Python Strict Ignore Reduction Pass 5
+
+### Plan
+
+- [x] Mesurer les diagnostics `pyright` restants sur `organization_foundation.py` et `gold_live_data.py`
+- [x] Corriger ce sous-lot de services data/runtime sans rouvrir de dette hors cible
+- [x] Retirer ce sous-lot de `pyrightconfig.json` et `[tool.pyright].ignore` si la validation reste verte
+- [x] Revalider `cd app-api && uv run pyright`, `uv run mypy app` et `uv run ruff check app`
+
+### Review
+
+- Reduction reelle du reliquat `pyright`:
+  - 2 fichiers sortent maintenant de la liste `ignore`: `app/services/organization_foundation.py` et `app/services/gold_live_data.py`.
+  - la mesure cible est passee de `30` diagnostics a `0` sur ce sous-lot avant retrait effectif de `ignore`.
+- Correctifs appliques:
+  - `organization_foundation.py` borne maintenant explicitement les snapshots JSON utilises pour `pipeline_config`, `data_quality` et `organization.settings`, puis hydrate `QualityConfig` via une construction champ par champ.
+  - `gold_live_data.py` remplace le cache global majuscule par un cache local typé, borne les lectures scalar/tuple SQLAlchemy via un helper dedie, et resserre les rapports JSON live avant les projections de qualite.
+- Documentation alignee:
+  - `app-api/app/services/README.md`
+- Verification:
+  - `cd app-api && uv run pyright --project .pyright-measure.json app/services/organization_foundation.py app/services/gold_live_data.py`
+  - `cd app-api && uv run mypy app/services/organization_foundation.py app/services/gold_live_data.py`
+  - `cd app-api && uv run ruff check app/services/organization_foundation.py app/services/gold_live_data.py`
+  - `cd app-api && uv run pyright`
+  - `cd app-api && uv run mypy app`
+  - `cd app-api && uv run ruff check app`
+
+# Current Pass - 2026-03-21 - Python Strict Ignore Reduction Pass 4
+
+### Plan
+
+- [x] Mesurer le reliquat `pyright` global sans `ignore` et choisir une grappe rentable hors `integration_runtime_worker.py`
+- [x] Corriger les diagnostics `pyright` sur `mock_forecast_service.py`, `scenario_engine_service.py` et `model_inference_jobs.py`
+- [x] Retirer ce sous-lot de `pyrightconfig.json` et `[tool.pyright].ignore` si la validation reste verte
+- [x] Revalider `cd app-api && uv run pyright`, `uv run mypy app` et `uv run ruff check app`
+
+### Review
+
+- Reduction reelle du reliquat `pyright`:
+  - 3 fichiers sortent maintenant de la liste `ignore`: `app/services/mock_forecast_service.py`, `app/services/model_inference_jobs.py` et `app/services/scenario_engine_service.py`.
+  - la mesure globale sans `ignore` a servi de tri: `integration_runtime_worker.py` restait le hotspot majeur (`79` diagnostics), alors que cette grappe forecast/MLOps etait la meilleure cible rentable du tour.
+- Correctifs appliques:
+  - `mock_forecast_service.py` borne explicitement la liste des drivers pour fermer les `list[Unknown]`.
+  - `scenario_engine_service.py` borne explicitement les blueprints d'options et resserre l'acces dictionnaire des cost params.
+  - `model_inference_jobs.py` centralise le narrowing de `scope_json` via un helper local avant lecture de `model_family`, `site_code`, fenetres de dates et `horizon_days`.
+- Documentation alignee:
+  - `app-api/app/services/README.md`
+- Verification:
+  - `cd app-api && uv run pyright --project .pyright-measure.json app/services/mock_forecast_service.py app/services/scenario_engine_service.py app/services/model_inference_jobs.py`
+  - `cd app-api && uv run mypy app/services/mock_forecast_service.py app/services/scenario_engine_service.py app/services/model_inference_jobs.py`
+  - `cd app-api && uv run ruff check app/services/mock_forecast_service.py app/services/scenario_engine_service.py app/services/model_inference_jobs.py`
+  - `cd app-api && uv run pyright`
+  - `cd app-api && uv run mypy app`
+  - `cd app-api && uv run ruff check app`
+
+# Current Pass - 2026-03-21 - Python Strict Ignore Reduction Pass 3
+
+### Plan
+
+- [x] Mesurer la grappe runtime restante et isoler un sous-lot tenable dans ce tour
+- [x] Corriger les diagnostics `pyright` sur `schema_manager.py`, `integration_sftp_runtime_worker.py` et `integration_event_ingestor.py`
+- [x] Retirer ce sous-lot de `pyrightconfig.json` et `[tool.pyright].ignore` si la validation reste verte
+- [x] Revalider `cd app-api && uv run pyright`, `uv run mypy app` et `uv run ruff check app`
+
+### Review
+
+- Reduction reelle du reliquat `pyright`:
+  - 3 fichiers sortent maintenant de la liste `ignore`: `app/services/schema_manager.py`, `app/services/integration_sftp_runtime_worker.py` et `app/services/integration_event_ingestor.py`.
+  - la mesure par validation cible est passee a `0 errors` sur ce sous-lot avant retrait effectif de `ignore`.
+- Correctifs appliques:
+  - `schema_manager.py` borne maintenant explicitement les DDL `pg_type` via `_validated_type_sql(...)` et retrecit les frontieres SQLAlchemy / `rules_override` avant composition SQL.
+  - `integration_sftp_runtime_worker.py` ferme les retours optionnels Paramiko (`from_transport`, `st_size`, `st_mtime`) et borne les loaders de cles privees / payloads `processedFiles`.
+  - `integration_event_ingestor.py` retrecit les objets/listes JSON, formalise le routage `datasetMappings` par `sourceObject` et garde des resultats multi-dataset explicitement types.
+- Documentation alignee:
+  - `app-api/app/services/README.md`
+- Verification:
+  - `cd app-api && uv run pyright`
+  - `cd app-api && uv run mypy app`
+  - `cd app-api && uv run ruff check app`
+
+# Current Pass - 2026-03-21 - Python Strict Ignore Reduction Pass 2
+
+### Plan
+
+- [x] Mesurer une deuxieme grappe de fichiers ignores autour de `app/core`, `integrations/core`, `salesforce/extractor` et quelques services transverses
+- [x] Corriger les diagnostics restants sur `ddl_validation`, `key_management`, `pipeline_config`, `telemetry`, `salesforce/extractor`, `auth`, `pagination`, `admin_onboarding`, `datasets`, `file_parser`, `integration_sync_queue_worker`, `model_registry`, `proof_service`
+- [x] Retirer cette deuxieme grappe de `pyrightconfig.json` et `[tool.pyright].ignore`
+- [x] Revalider `cd app-api && uv run pyright`, `uv run mypy app` et `uv run ruff check app`
+
+### Review
+
+- Reduction reelle du reliquat `pyright`:
+  - 13 fichiers sortent maintenant de la liste `ignore`: `app/core/ddl_validation.py`, `app/core/key_management.py`, `app/core/pipeline_config.py`, `app/core/telemetry.py`, `app/integrations/connectors/salesforce/extractor.py`, `app/integrations/core/auth.py`, `app/integrations/core/pagination.py`, `app/services/admin_onboarding.py`, `app/services/datasets.py`, `app/services/file_parser.py`, `app/services/integration_sync_queue_worker.py`, `app/services/model_registry.py`, `app/services/proof_service.py`.
+  - la mesure par config temporaire locale est passee de `subsetErrorCount 49` a `subsetErrorCount 0` avant retrait effectif de `ignore`.
+- Correctifs appliques:
+  - suppression de plusieurs guards `isinstance(..., str|int)` devenus inutiles car deja garantis par les types de signatures et enums.
+  - introduction de helpers de frontiere `Any -> type concret` dans `pipeline_config.py`, `auth.py` et `pagination.py` pour satisfaire a la fois `pyright` strict et `mypy` strict sur les payloads dynamiques.
+  - ouverture explicite de certains helpers inter-workers (`classify_sync_run_failure`, `compute_sync_retry_delay_seconds`) pour supprimer le `private usage` entre `integration_runtime_worker.py` et `integration_sync_queue_worker.py`.
+  - resserrage des frontieres JSONB/SQLAlchemy dans `datasets.py`, `model_registry.py` et `proof_service.py`.
+- Documentation alignee:
+  - `app-api/app/core/README.md`
+  - `app-api/app/integrations/README.md`
+  - `app-api/app/services/README.md`
+- Verification:
+  - `cd app-api && uv run pyright`
+  - `cd app-api && uv run mypy app`
+  - `cd app-api && uv run ruff check app`
+
+# Current Pass - 2026-03-21 - Tailwind Patterns Skill Sync For Codex
+
+### Plan
+
+- [x] Comparer le skill source `.claude/skills/tailwind-patterns` avec la cible `.codex/skills/tailwind-patterns`
+- [x] Identifier les ecarts de compatibilite Codex dans le front matter et les metadonnees UI
+- [x] Synchroniser la version Codex avec la source en retirant les champs specifiques a Claude
+- [x] Verifier le resultat final et documenter la review
+
+### Review
+
+- La cible Codex existait deja; elle a ete resynchronisee avec la source Claude sans changer le corps du skill.
+- Compatibilite Codex appliquee:
+  - suppression du champ `allowed-tools` dans [SKILL.md](/Users/steven/Programmation/praedixa/.codex/skills/tailwind-patterns/SKILL.md), conserve uniquement `name` et `description` dans le front matter.
+  - conservation du contenu pedagogique du skill tel que fourni dans `.claude`.
+  - mise a jour de [openai.yaml](/Users/steven/Programmation/praedixa/.codex/skills/tailwind-patterns/agents/openai.yaml) avec une `short_description` plus specifique.
+- Verification:
+  - `diff -u .codex/skills/tailwind-patterns/SKILL.md .claude/skills/tailwind-patterns/SKILL.md`
+  - resultat attendu: seul le champ `allowed-tools` differe encore, car il est specifique a Claude et retire pour Codex.
+
+# Current Pass - 2026-03-21 - Python Strict Ignore Reduction Pass 1
+
+### Plan
+
+- [x] Mesurer proprement une premiere grappe de fichiers ignores via une config Pyright temporaire locale
+- [x] Corriger les diagnostics restants sur `provider_sync`, `admin_billing`, `admin_orgs`, `arbitrage`, `canonical_data_service`, `column_mapper`, `medallion_reprocessing`, `medical_masking`, `quality/types`, `raw_inserter`, `rgpd_erasure`
+- [x] Retirer cette grappe de `pyrightconfig.json` et `[tool.pyright].ignore`
+- [x] Revalider `cd app-api && uv run pyright`, `uv run mypy app` et `uv run ruff check app`
+
+### Review
+
+- Reduction reelle du reliquat `pyright`:
+  - 11 fichiers sortent maintenant de la liste `ignore`: `app/integrations/provider_sync.py`, `app/services/admin_billing.py`, `app/services/admin_orgs.py`, `app/services/arbitrage.py`, `app/services/canonical_data_service.py`, `app/services/column_mapper.py`, `app/services/medallion_reprocessing.py`, `app/services/medical_masking.py`, `app/services/quality/types.py`, `app/services/raw_inserter.py`, `app/services/rgpd_erasure.py`.
+  - la mesure par config temporaire locale est passee de `subsetErrorCount 23` a `subsetErrorCount 0` avant retrait effectif de `ignore`.
+- Correctifs appliques:
+  - collections et `default_factory` explicitement types pour fermer les `Unknown` sur dataclasses et listes accumulatrices.
+  - simplification de quelques enums/guards devenus inutiles (`plan.value`, `status.value`) dans les services admin.
+  - helpers `rowcount` et casts bornees pour les resultats SQLAlchemy dynamiques dans `canonical_data_service.py` et `raw_inserter.py`.
+  - narrowing explicite des payloads JSON dynamiques dans `provider_sync.py` et `medallion_reprocessing.py`.
+  - verification RGPD typée via un protocole minimal `organization_id` dans `rgpd_erasure.py`.
+- Documentation alignee:
+  - `app-api/app/integrations/README.md`
+  - `app-api/app/services/README.md`
+- Verification:
+  - `cd app-api && uv run pyright`
+  - `cd app-api && uv run mypy app`
+  - `cd app-api && uv run ruff check app`
+
+# Current Pass - 2026-03-21 - Python Strictness Maximum Enforceable Gate
+
+### Plan
+
+- [x] Mesurer les erreurs Python restantes et distinguer dette de code vs bruit de config Pyright
+- [x] Corriger les hotspots rentables (`config.py`, `yaml_validation.py`, `transform_engine.py`, `integration_event_ingestor.py`, `integration_runtime_worker.py`)
+- [x] Configurer `pyright` au niveau strict maximal tenable sur `app/`, avec une frontiere explicite pour le reliquat legacy
+- [x] Valider `uv run pyright`, `uv run mypy app` et `uv run ruff check app`
+- [x] Mettre a jour la documentation Python pour refléter le palier strict atteint et le backlog restant
+
+### Review
+
+- Durcissement applique:
+  - `app-api/pyproject.toml` et `app-api/pyrightconfig.json` passent `pyright` en `strict` sur `app/`, activent `reportMissingImports`, ajoutent `stubPath=typings`, excluent `alembic/`, `scripts/`, `tests/` et versionnent un reliquat legacy explicite dans `ignore`.
+  - `app-api/typings/strictyaml/__init__.pyi` fournit un stub local minimal pour supprimer le `missing stubs` sur `strictyaml` sans baisser la garde globale.
+  - `app-api/app/core/config.py` documente localement le faux positif `reportConstantRedefinition` lie au contrat `BaseSettings` en UPPERCASE au lieu de desactiver cette regle globalement.
+- Corrections de code fermees dans le meme changement:
+  - `app-api/app/core/yaml_validation.py` utilise maintenant des `TypedDict` explicites pour le metadata YAML, ce qui ferme une partie importante des `Unknown` au bord de confiance.
+  - `app-api/app/models/base.py` remplace le `lambda` anonyme de `sa_enum()` par un helper type, ce qui supprime le bruit Pyright sur les enums SQLAlchemy.
+  - `app-api/app/services/transform_engine.py` retrecit explicitement les JSONB et resultats SQLAlchemy via `_require_json_object()` et `_result_rowcount()`, corrige les `rowcount` qui bloquaient `mypy`, et documente les requetes texte sûres au lieu de laisser des findings Ruff ambigus.
+  - `app-api/app/services/integration_event_ingestor.py` et `app-api/app/services/integration_runtime_worker.py` ferment les derniers findings Ruff (`TypeError` sur mauvais type, suppression du `setattr` constant).
+- Documentation alignee:
+  - `app-api/README.md`
+  - `app-api/app/core/README.md`
+  - `app-api/app/services/README.md`
+- Validation finale:
+  - `cd app-api && uv run pyright`
+  - `cd app-api && uv run mypy app`
+  - `cd app-api && uv run ruff check app`
+- Frontiere du reliquat:
+  - le backlog Pyright le plus dynamique n'est pas masque implicitement: il est liste explicitement dans `app-api/pyrightconfig.json` et `[tool.pyright].ignore` pour les connecteurs vendor-specifiques, certains workers runtime et plusieurs services legacy encore fortement dynamiques.
+
+# Current Pass - 2026-03-21 - Admin Vue Client Sonar Cleanup
+
+### Plan
+
+- [x] Identifier les alertes Sonar restantes dans `app-admin/app/(admin)/clients/[orgId]/vue-client`
+- [x] Rendre les props de sections explicitement immuables et sortir les rendus imbriques dans des statements dedies
+- [x] Mettre a jour la documentation locale puis revalider le lint cible
+
+### Review
+
+- Correctifs appliques:
+  - `vue-client-sections.tsx` utilise maintenant des types de props `Readonly` pour les sections locales.
+  - `VueClientMirrorSection` et `VueClientBillingSection` calculent leur contenu via une variable `content`, ce qui supprime les ternaires JSX imbriques signales par Sonar.
+  - la section `Facturation` n'ouvre plus sur une condition negatee `!canReadBilling`; le flux est exprime d'abord par le cas autorise puis par la degradation permissionnelle.
+- Documentation alignee:
+  - `app-admin/app/(admin)/clients/[orgId]/vue-client/README.md`
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'app/(admin)/clients/[orgId]/vue-client/vue-client-sections.tsx'`
+  - ajustement complementaire: `VueClientOrganizationSection` derive maintenant `hasSiteCount` via `typeof org.siteCount === "number"` pour fermer le `typescript:S7735` remonte sur `org.siteCount != null`
+  - ajustement complementaire: `VueClientBillingSection` et `VueClientQuickActionsSection` derivent maintenant `hasBilling`, `lifecycleBlocked`, `suspendDisabled` et `reactivateDisabled` pour supprimer les verites implicites et negations inline restantes sur `billing` et `canManageLifecycle`
+  - ajustement complementaire: `VueClientOrganizationSection` et `VueClientBillingSection` derivent aussi `hasUserCount` et `hasMonthlyAmount` pour supprimer les derniers checks `!= null` remontes sur `userCount` et `monthlyAmount`
+
+# Current Pass - 2026-03-21 - Admin Client Segment Readonly Props Cleanup
+
+### Plan
+
+- [x] Identifier les signatures de props signalees dans `client-context.tsx` et `layout.tsx`
+- [x] Passer ces composants sur des contrats de props dedies en `Readonly`
+- [x] Mettre a jour la documentation locale puis verifier par lint cible
+
+### Review
+
+- Correctifs appliques:
+  - `client-context.tsx` utilise maintenant `ClientProviderProps = Readonly<...>`.
+  - `layout.tsx` remplace sa signature inline par `ClientWorkspaceLayoutProps = Readonly<...>`.
+  - le README du segment `[orgId]` documente cette convention de props immuables.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'app/(admin)/clients/[orgId]/client-context.tsx' 'app/(admin)/clients/[orgId]/layout.tsx'`
+
+# Current Pass - 2026-03-21 - Admin Read-Only Detail Readonly Props Cleanup
+
+### Plan
+
+- [x] Identifier les interfaces de props signalees dans `read-only-detail.tsx`
+- [x] Passer les composants read-only sur des contrats `Readonly`
+- [x] Mettre a jour la documentation du segment puis verifier par lint cible
+
+### Review
+
+- Correctifs appliques:
+  - `ReadOnlyDetailHeaderProps` et `ReadOnlyStateCardProps` sont maintenant definis via `Readonly<...>`.
+  - le README du segment `[orgId]` documente aussi cette convention pour `read-only-detail.tsx`.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'app/(admin)/clients/[orgId]/read-only-detail.tsx'`
+
+# Current Pass - 2026-03-21 - Admin Query And Pagination Sonar Cleanup
+
+### Plan
+
+- [x] Identifier la source du `total` signale dans `onboarding/page.tsx`
+- [x] Remplacer les templates imbriques autour de `queryString` dans les modeles admin concernes
+- [x] Mettre a jour la documentation locale puis verifier par lint cible
+
+### Review
+
+- Correctifs appliques:
+  - `onboarding/page.tsx` derive maintenant `hasPagination` avant le JSX au lieu de porter `total > 20` directement dans la branche de rendu.
+  - `clients/use-clients-page-model.ts` et `demandes-contact/demandes-contact-page-model.tsx` derivent `querySuffix` avant le `return`, ce qui supprime les template literals imbriques autour de `queryString`.
+  - les README locaux `clients/`, `clients/[orgId]/onboarding/` et `demandes-contact/` documentent cette convention.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'app/(admin)/clients/[orgId]/onboarding/page.tsx' 'app/(admin)/clients/use-clients-page-model.ts' 'app/(admin)/demandes-contact/demandes-contact-page-model.tsx'`
+
+# Current Pass - 2026-03-21 - Admin Contact Requests Sonar Cleanup
+
+### Plan
+
+- [x] Fermer le finding `queryString` dans `demandes-contact-page-model.tsx`
+- [x] Supprimer la negation inline sur `canManageSupport` et sortir le rendu imbrique du `DataTable`
+- [x] Mettre a jour la documentation locale puis verifier par lint cible
+
+### Review
+
+- Correctifs appliques:
+  - `demandes-contact-page-model.tsx` assemble maintenant l'URL via concatenation simple `ADMIN_ENDPOINTS.contactRequests + querySuffix`, avec `querySuffix` derive hors template imbrique.
+  - `page.tsx` remplace `!canManageSupport` par un guard explicite `canEditSupport`.
+  - `page.tsx` calcule `selectionToolbar` et `content` avant le `return`, ce qui supprime le ternaire imbrique autour du `DataTable`.
+  - `README.md` documente ces conventions.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'app/(admin)/demandes-contact/demandes-contact-page-model.tsx' 'app/(admin)/demandes-contact/page.tsx'`
+  - ajustement complementaire: `page.tsx` derive aussi `hasMultipleRequests` pour supprimer les deux comparaisons `total !== 1` restantes dans le libelle de comptage
+
+# Current Pass - 2026-03-21 - Admin Parametres And Layout Sonar Cleanup
+
+### Plan
+
+- [x] Identifier les signatures de props et branches JSX sensibles dans `create-client-card.tsx`, `parametres-sections.tsx` et `app/(admin)/layout.tsx`
+- [x] Passer ces composants sur des contrats `Readonly` et sortir les derives Sonar-sensibles hors du JSX
+- [x] Mettre a jour la documentation locale puis verifier par lint cible
+
+### Review
+
+- Correctifs appliques:
+  - `create-client-card.tsx` utilise maintenant `CreateClientCardProps = Readonly<...>`.
+  - `parametres-sections.tsx` declare des props dedies en `Readonly`, derive ses classes/guards/contenus (`onboardingContent`, `globalStatusLabel`, `globalStatusIcon`) hors JSX, et extrait aussi la carte org de config dans `ParametresConfigOrgCard`.
+  - `app/(admin)/layout.tsx` remplace sa signature inline par `AdminLayoutProps = Readonly<...>`.
+  - `parametres/README.md` documente ces conventions.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'app/(admin)/parametres/create-client-card.tsx' 'app/(admin)/parametres/parametres-sections.tsx' 'app/(admin)/layout.tsx'`
+
+# Current Pass - 2026-03-21 - Components Sonar Cleanup
+
+### Plan
+
+- [x] Inspecter `command-palette.tsx`, `command-palette-model.ts`, `inbox-item-card.tsx`, `activity-feed.tsx`, `chat/conversation-list.tsx`, `chat/message-input.tsx`, `chat/message-thread.tsx` et `components/README.md`
+- [x] Corriger les props `Readonly`, guards positifs, ternaires JSX imbriques, `window` et contenus derives dans le perimetre demande
+- [x] Verifier par lint cible et consigner les resultats
+
+### Review
+
+- Correctifs appliques:
+  - `command-palette-model.ts` utilise maintenant `globalThis` pour le hook clavier et des guards positifs pour le filtrage.
+  - `command-palette.tsx`, `chat/conversation-list.tsx`, `chat/message-input.tsx`, `chat/message-thread.tsx`, `activity-feed.tsx` et `inbox-item-card.tsx` exposent des props `Readonly` et externalisent les contenus derives / rendus critiques hors des ternaires imbriques.
+  - `components/README.md` documente ces conventions locales pour le lot navigation/chat/supervision.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'components/command-palette.tsx' 'components/command-palette-model.ts' 'components/inbox-item-card.tsx' 'components/activity-feed.tsx' 'components/chat/conversation-list.tsx' 'components/chat/message-input.tsx' 'components/chat/message-thread.tsx'`
+
+# Current Pass - 2026-03-21 - Admin Auth Segment Sonar Cleanup
+
+### Plan
+
+- [x] Identifier le `window` signale dans `app/(auth)/login/page.tsx` et la signature de props inline dans `app/(auth)/layout.tsx`
+- [x] Remplacer `window` par `globalThis` et passer le layout auth sur un contrat `Readonly`
+- [x] Mettre a jour la documentation locale puis verifier par lint cible
+
+### Review
+
+- Correctifs appliques:
+  - `login/page.tsx` utilise maintenant `globalThis.location.origin` et `globalThis.location.href` pour la redirection OIDC.
+  - `layout.tsx` remplace sa signature inline par `AuthLayoutProps = Readonly<...>`.
+  - `app/(auth)/README.md` documente ces conventions.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'app/(auth)/login/page.tsx' 'app/(auth)/layout.tsx'`
+
+# Current Pass - 2026-03-21 - Admin API Proxy Sonar Cleanup
+
+### Plan
+
+- [x] Inspecter `app-admin/app/api/v1/[...path]/route.ts` et relever les findings Sonar sur stringification, optional chaining et complexite
+- [x] Sortir des helpers cibles pour `readRequestBody` et `handleProxy` sans changer le comportement du proxy BFF
+- [x] Mettre a jour la documentation locale puis verifier par lint cible
+
+### Review
+
+- Correctifs appliques:
+  - `buildProxyFailureLogEntry` passe maintenant par `serializeUnknownError(...)` pour eviter la stringification par defaut de `error`.
+  - `readRequestBody(...)` est decoupe en `validateContentLength`, `readFallbackBody` et `readStreamBody`, ce qui baisse la complexite de la fonction principale.
+  - `handleProxy(...)` s'appuie maintenant sur `resolveProxyAccessContext`, `buildUpstreamInit` et `buildProxyResponse`, ce qui reduit sa complexite tout en gardant le meme contrat HTTP/auth/CSRF.
+  - le proxy utilise aussi des guards en optional chaining la ou Sonar les prefere (`resolved?.ok`, `resolved?.cookieUpdate`).
+  - `app-admin/app/api/v1/README.md` documente ce decoupage.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'app/api/v1/[...path]/route.ts'`
+
+# Current Pass - 2026-03-22 - Admin Auth Middleware Complexity Cleanup
+
+### Plan
+
+- [x] Inspecter `lib/auth/middleware.ts` pour isoler les branches logiques de `updateSession(...)`
+- [x] Extraire des helpers de routage/session/redirection pour faire baisser la complexite sans changer le comportement
+- [x] Mettre a jour la doc locale puis verifier par lint cible
+
+### Review
+
+- Correctifs appliques:
+  - `updateSession(...)` delegue maintenant le passthrough a `createPassThroughResponse(...)`, la classification de route a `resolveMiddlewareRouteState(...)`, l'etat d'acces a `resolveSessionAccessState(...)`, puis chaque decision de redirect a un helper explicite.
+  - les redirections `login`, `unauthorized`, `forced reauth`, `fallback /` et `login deja authentifie` sont maintenant chacune exprimees via un predicat nomme.
+  - `lib/auth/README.md` documente ce decoupage.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'lib/auth/middleware.ts'`
+
+# Current Pass - 2026-03-21 - Admin Components And Auth Cleanup
+
+### Plan
+
+- [x] Cartographier `app-admin/app/auth`, `app-admin/app/unauthorized` et `app-admin/components`
+- [x] Corriger les patterns Sonar classiques sur le shell, le topbar, les badges, les toasts et la palette de commandes
+- [x] Mettre a jour les README locaux touches puis verifier les fichiers source modifiees
+
+### Review
+
+- Correctifs appliques:
+  - les composants de shell et navigation (`admin-shell.tsx`, `admin-shell-sections.tsx`, `admin-sidebar.tsx`, `admin-topbar.tsx`, `client-tabs-nav.tsx`, `command-palette-model.ts`, `command-palette.tsx`) utilisent maintenant des props `Readonly`, des variables intermediaires positives et `globalThis` pour les timers/events browser.
+  - les composants de statut et feedback (`org-header.tsx`, `onboarding-status-badge.tsx`, `error-fallback.tsx`, `toast.tsx`, `toast-provider.tsx`, `ui/data-table-toolbar.tsx`) gardent des contrats immuables et des gardes explicites.
+  - `route-progress-bar.tsx` a ete aligne sur `globalThis`.
+  - `components/README.md` documente les nouvelles conventions locales.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint app/auth/callback/route.ts app/auth/login/route.ts app/auth/logout/route.ts app/auth/session/route.ts components/activity-feed.tsx components/admin-shell.tsx components/admin-sidebar.tsx components/admin-topbar.tsx components/chat/conversation-list.tsx components/chat/message-input.tsx components/chat/message-thread.tsx components/client-tabs-nav.tsx components/command-palette.tsx components/error-fallback.tsx components/inbox-item-card.tsx components/onboarding-status-badge.tsx components/org-header.tsx components/org-status-badge.tsx components/plan-badge.tsx components/route-progress-bar.tsx components/severity-badge.tsx components/site-tree.tsx components/skeletons/skeleton-admin-dashboard.tsx components/skeletons/skeleton-org-list.tsx components/system-health-bar.tsx components/theme-provider.tsx components/theme-toggle.tsx components/toast-provider.tsx components/toast.tsx components/ui/data-table-toolbar.tsx components/ui/status-badge.tsx components/unread-messages-card.tsx`
+
+# Current Pass - 2026-03-21 - Auth And Components Sonar Cleanup
+
+### Plan
+
+- [x] Corriger les handlers `app/auth/**` sur les gardes positives et les checks de rate limit / callback
+- [x] Corriger les composants partages sur `Readonly`, `globalThis`, cles stables et ternaires explicites
+- [x] Mettre a jour les README locaux touches puis revalider par lint cible
+
+### Review
+
+- Correctifs appliques:
+  - les handlers auth utilisent maintenant des gardes positives explicites sur `rate.allowed`, `resolved.ok`, `isTrustedLogoutRequest` et l'etat de callback OIDC.
+  - `route-progress-bar.tsx` utilise `globalThis.setTimeout` / `clearTimeout` plutot que `window`.
+  - les skeletons admin remplacent leurs cles indexees par des cles stables et deterministes.
+  - plusieurs composants partages exposent maintenant des props `Readonly` et des branches de fallback plus explicites (`error-fallback`, badges, `site-tree`, `client-tabs-nav`, `org-header`, `toast`, `unread-messages-card`).
+- Documentation alignee:
+  - `app-admin/app/auth/README.md`
+  - `app-admin/components/README.md`
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'app/auth/login/route.ts' 'app/auth/callback/route.ts' 'app/auth/logout/route.ts' 'app/auth/session/route.ts' 'components/route-progress-bar.tsx' 'components/skeletons/skeleton-admin-dashboard.tsx' 'components/skeletons/skeleton-org-list.tsx' 'components/command-palette-model.ts' 'components/error-fallback.tsx' 'components/site-tree.tsx' 'components/client-tabs-nav.tsx' 'components/unread-messages-card.tsx' 'components/onboarding-status-badge.tsx' 'components/org-header.tsx' 'components/plan-badge.tsx' 'components/severity-badge.tsx' 'components/toast.tsx' 'components/admin-shell.tsx' 'components/admin-shell-sections.tsx' 'components/admin-sidebar.tsx' 'components/admin-topbar.tsx' 'components/theme-provider.tsx'`
+
+# Current Pass - 2026-03-21 - Admin Components Sonar Cleanup
+
+### Plan
+
+- [x] Inspecter le lot `app-admin/components` demande et relever les motifs Sonar classiques restants
+- [x] Passer les composants presentiels sur des props `Readonly`, guards positifs et types explicites quand necessaire
+- [x] Mettre a jour la documentation locale puis verifier par lint cible
+
+### Review
+
+- Correctifs appliques:
+  - `error-fallback.tsx`, `onboarding-status-badge.tsx`, `org-status-badge.tsx`, `plan-badge.tsx`, `severity-badge.tsx`, `theme-toggle.tsx`, `theme-provider.tsx`, `toast.tsx`, `toast-provider.tsx`, `ui/data-table-toolbar.tsx` et `ui/status-badge.tsx` exposent maintenant leurs contrats de props en `Readonly`.
+  - `PlanBadge` et `ThemeToggle` utilisent maintenant des guards positifs explicites plutot que des conditions nega(t)ives inline.
+  - `StatusBadge` est aligne sur un contrat de props `Readonly` plus simple pour les consommateurs internes.
+  - `components/README.md` documente la convention de props immuables pour ce lot.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'components/error-fallback.tsx' 'components/onboarding-status-badge.tsx' 'components/org-status-badge.tsx' 'components/plan-badge.tsx' 'components/severity-badge.tsx' 'components/theme-toggle.tsx' 'components/theme-provider.tsx' 'components/toast.tsx' 'components/toast-provider.tsx' 'components/ui/data-table-toolbar.tsx' 'components/ui/status-badge.tsx'`
+
+# Current Pass - 2026-03-21 - Components Ui Sonar Cleanup
+
+### Plan
+
+- [x] Inspecter les utilitaires `ui/` encore libres du lot `components/`
+- [x] Passer les props sur des contrats `Readonly` et clarifier les gardes de rendu
+- [x] Mettre a jour la documentation locale puis verifier par lint cible
+
+### Review
+
+- Correctifs appliques:
+  - `ui/data-table-toolbar.tsx` utilise maintenant des props `Readonly`, derive `hasMultipleSelections` et rend `children` via un guard explicite.
+  - `ui/status-badge.tsx` expose ses props via un type `StatusBadgeProps` compose avec un noyau `Readonly`.
+  - `components/README.md` documente la convention `ui/` pour ces utilitaires partages.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'app-admin/components/ui/data-table-toolbar.tsx' 'app-admin/components/ui/status-badge.tsx'`
+
+# Current Pass - 2026-03-21 - Monorepo TypeScript Ultra Strict Phase 3
+
+### Plan
+
+- [x] Corriger `app-webapp` pour `exactOptionalPropertyTypes` et `noPropertyAccessFromIndexSignature`
+- [x] Corriger `app-admin` pour `exactOptionalPropertyTypes` et `noPropertyAccessFromIndexSignature`
+- [x] Corriger `app-api-ts` et `app-connectors` sur `src` et `__tests__` pour ces deux flags
+- [x] Activer `exactOptionalPropertyTypes` et `noPropertyAccessFromIndexSignature` dans la base partagee commune
+- [x] Mettre a jour la documentation et rejouer les validations finales monorepo
+
+### Review
+
+- Gain ferme de phase 3 dans ce tour:
+  - `app-webapp`, `app-admin`, `app-connectors` et `app-api-ts` compilent maintenant sous `--exactOptionalPropertyTypes --noPropertyAccessFromIndexSignature`.
+  - plusieurs routes et services critiques ont ete aligns sur des spreads conditionnels plutot que des objets `prop: undefined`, ce qui rend les payloads beaucoup plus explicites pour du code assiste par LLM.
+  - les acces indexes fragiles sur `process.env`, `ctx.params`, `headers`, payloads JSON et records de tests ont ete remplaces par des acces explicites dans les apps admin, webapp, connectors et dans une partie importante de `app-api-ts`.
+  - `tsconfig.base.json` porte maintenant aussi ces deux flags, ce qui fait passer tout le monorepo TypeScript au meme niveau de strictesse.
+- Etat reel apres cette passe:
+  - `pnpm lint` vert
+  - `pnpm typecheck` vert
+  - `pnpm --dir app-admin exec tsc --noEmit --pretty false --exactOptionalPropertyTypes --noPropertyAccessFromIndexSignature` vert
+  - `pnpm --dir app-api-ts exec tsc --noEmit --pretty false --exactOptionalPropertyTypes --noPropertyAccessFromIndexSignature` vert
+  - `pnpm --dir app-connectors exec tsc --noEmit --pretty false --exactOptionalPropertyTypes --noPropertyAccessFromIndexSignature` vert
+  - `pnpm --dir app-webapp exec tsc --noEmit --pretty false --exactOptionalPropertyTypes --noPropertyAccessFromIndexSignature` vert
+  - `pnpm --filter @praedixa/landing exec tsc --noEmit --pretty false` vert apres alignement des routes publiques, formulaires et helpers blog/security sur les deux flags globaux
+  - `pnpm --filter @praedixa/symphony exec tsc --noEmit --pretty false` vert apres remplacement des acces indexes fragiles dans `config`, `codex-app-server` et `linear-client`
+  - `app-admin/app/(admin)/clients/[orgId]/messages/__tests__/page.test.tsx` vert
+
+# Current Pass - 2026-03-21 - Monorepo TypeScript Ultra Strict Phase 2
+
+### Plan
+
+- [x] Mesurer le delta reel pour `exactOptionalPropertyTypes` et `noPropertyAccessFromIndexSignature` sur les packages et apps TypeScript principaux
+- [x] Corriger les violations structurelles les plus repetitives sans degrader les contrats ni reintroduire de casts silencieux
+- [x] Activer les flags stricts supplementaires au niveau partage seulement si le repo reste entierement vert
+- [x] Documenter le resultat reel de phase 2 et rejouer les validations finales
+
+### Review
+
+- Gain ferme de phase 2:
+  - `packages/shared-types`, `packages/ui`, `packages/api-hooks` et `packages/telemetry` compilent maintenant avec `exactOptionalPropertyTypes` et `noPropertyAccessFromIndexSignature`, et ces flags sont actives dans leurs `tsconfig.json`.
+  - les clients HTTP partages et frontend construisent maintenant leurs `RequestInit` via affectations conditionnelles au lieu de propager des champs `undefined` ambigus.
+  - plusieurs acces pointes fragiles sur `process.env`, schemas OpenAPI et records indexes ont ete remplaces par des acces explicites en crochets dans les fondations communes.
+  - `packages/ui` a ete aligne sur des props de table explicites (`undefined` porte dans le type quand il est reellement autorise) pour etre compatible avec `exactOptionalPropertyTypes`.
+- Etat reel du repo apres cette passe:
+  - `pnpm lint` reste vert
+  - `pnpm typecheck` reste vert
+  - les builds TypeScript cibles des presentiels `skolae` et `greekia` restent verts
+  - les packages partages cites plus haut sont maintenant a un niveau de strictesse superieur au reste du monorepo
+- Backlog restant pour une phase 3 repo-wide:
+  - `app-webapp` et `app-admin`: encore surtout des payloads optionnels construits avec `prop: value ?? undefined`, des env vars lues via `process.env.FOO`, et quelques props React optionnelles a convertir en spreads conditionnels
+  - `app-api-ts` et `app-connectors`: migration plus large sur les records JSON indexes, les payloads runtime optionnels et une grosse volumetrie de tests a realigner
+  - la bascule globale de ces deux flags dans `tsconfig.base.json` n'est donc pas encore tenable sans une passe repo-wide supplementaire
+
+# Current Pass - 2026-03-21 - Monorepo TypeScript Ultra Strict
+
+### Plan
+
+- [x] Mesurer la ligne de base actuelle du monorepo sur `typecheck` et sur un lint TypeScript plus typé pour identifier les vrais blocages
+- [x] Durcir la configuration TypeScript partagée au niveau maximal raisonnable pour un monorepo Next.js/Node sans casser les workflows de build
+- [x] Aligner les apps et packages sur la base stricte commune et supprimer les écarts faibles inutiles
+- [x] Renforcer ESLint avec des règles TypeScript type-aware adaptées au code assisté par LLM
+- [x] Mettre a jour la documentation des configs touchees et verifier les validations cibles
+
+### Review
+
+- Durcissement ferme:
+  - `tsconfig.base.json` impose maintenant explicitement `noImplicitReturns`, `noImplicitOverride`, `useUnknownInCatchVariables`, `noFallthroughCasesInSwitch`, `noEmitOnError`, `allowUnreachableCode: false` et `allowUnusedLabels: false` en plus du socle strict deja present.
+  - `app-admin`, `app-webapp` et `app-landing` heritent desormais tous de la base stricte commune au lieu de maintenir une config Next plus permissive a part.
+  - les presentiels Vite `marketing/presentations-clients/skolae` et `greekia` sont aussi rattaches a la base stricte racine.
+  - `eslint.config.js` devient type-aware sur le code source TypeScript et bloque maintenant les promesses flottantes, les `await` sur valeurs non thenable, les `switch` non exhaustifs, les assertions de type inutiles, les contraintes generiques inutiles et les wrappers `String`/`Number` dangereux.
+- Dette reelle fermee dans le meme changement:
+  - correction des branches mortes detectees dans `app-api-ts`
+  - normalisation explicite de plusieurs acces indexes / tableaux / headers dans `app-webapp`, `app-admin`, `app-api-ts`, `app-connectors`, `packages/ui`, `packages/telemetry` et `app-symphony`
+  - corrections de robustesse sur les presentiels marketing pour rendre explicites les cas ou un element array pouvait etre absent
+- Documentation alignee:
+  - `README.md`
+  - `docs/ARCHITECTURE.md`
+- Verification:
+  - `pnpm lint`
+  - `pnpm typecheck`
+  - `pnpm --dir marketing/presentations-clients/skolae exec tsc --build --pretty false`
+  - `pnpm --dir marketing/presentations-clients/greekia exec tsc --build --pretty false`
+
+# Current Pass - 2026-03-21 - Admin Config Sonar Cleanup
+
+### Plan
+
+- [x] Rendre explicites les props read-only dans les composants `config` signales
+- [x] Sortir le rendu async imbrique de `async-data-table-block.tsx`
+- [x] Remplacer les `new Error()` trop generiques par `TypeError` dans `config-operations.ts`
+- [x] Mettre a jour la documentation locale puis revalider le lint cible
+
+### Review
+
+- Correctifs appliques:
+  - `async-data-table-block.tsx` recoit maintenant `props: Readonly<...>` et rend son bloc `loading/error/content` via un statement dedie, sans ternaire imbrique
+  - `config-operations.ts` utilise maintenant `TypeError` pour les cas `invalid datetime` et `invalid payload`
+  - `config-readonly-notice.tsx`, `cost-params-section.tsx` et les composants de `decision-config-card-sections.tsx` utilisent maintenant des contrats de props explicitement immuables (`Readonly`)
+- Documentation alignee:
+  - `app-admin/app/(admin)/clients/[orgId]/config/README.md`
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'app/(admin)/clients/[orgId]/config/async-data-table-block.tsx' 'app/(admin)/clients/[orgId]/config/config-operations.ts' 'app/(admin)/clients/[orgId]/config/config-readonly-notice.tsx' 'app/(admin)/clients/[orgId]/config/cost-params-section.tsx' 'app/(admin)/clients/[orgId]/config/decision-config-card-sections.tsx'`
+
+# Current Pass - 2026-03-21 - Admin Dispatch Pages Sonar Cleanup
+
+### Plan
+
+- [x] Rendre explicites les props read-only dans `dispatch-control-ui.tsx`
+- [x] Supprimer les ternaires imbriques et la condition negatee fragile dans `dispatches/[actionId]/page.tsx`
+- [x] Supprimer les ternaires imbriques de rendu dans `actions/page.tsx`
+- [x] Mettre a jour la documentation locale puis revalider le lint cible
+
+### Review
+
+- Correctifs appliques:
+  - `dispatch-control-ui.tsx` marque maintenant `MutationReadOnlyState` comme immutable et borne aussi `MutationReadOnlyCard` a `Readonly<MutationReadOnlyState>`
+  - `dispatches/[actionId]/page.tsx` extrait `detailUrl`, `header` et `content` dans des statements dedies, ce qui supprime la condition negatee fragile et les ternaires imbriques de rendu
+  - `actions/page.tsx` remplace ses branches JSX imbriquees par `alertsContent` et `scenariosContent`, ce qui garde le rendu plus lisible sans changer le comportement
+- Documentation alignee:
+  - `app-admin/app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/README.md`
+  - `app-admin/app/(admin)/clients/[orgId]/actions/README.md`
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/dispatch-control-ui.tsx' 'app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/page.tsx' 'app/(admin)/clients/[orgId]/actions/page.tsx'`
+
+# Current Pass - 2026-03-21 - SEO Findings Closure
+
+### Plan
+
+- [x] Revalider dans le worktree l'etat exact des zones SEO deja corrigees localement pour ne toucher que les ecarts reels
+- [x] Corriger de maniere definitive la canonicalisation `http://www` qui fuit actuellement vers `0.0.0.0:8080`
+- [x] Supprimer les derniers reliquats de placeholder/trust content SEO faibles encore presents dans le repo
+- [x] Rejouer les validations ciblees SEO: tests, build, checks de redirection et verifications de metadata / contenu
+- [x] Documenter la fermeture des findings et les limites restantes cote production non deployee
+
+### Review
+
+- Findings SEO fermes cote code:
+  - `proxy.ts` reconstruit maintenant les redirects publics a partir du host canonique `www.praedixa.com` au lieu de laisser fuiter le host runtime clone depuis `request.nextUrl`; le cas `http://www` vers `https://0.0.0.0:8080/...` est ferme.
+  - `__tests__/proxy.test.ts` couvre explicitement la regression `http://www` et aligne les redirects de routes commerciales legacy sur le vrai domaine public.
+  - `TrustBarSection.tsx`, bien que legacy et non utilise dans le parcours actif, n'embarque plus de placeholders repetes ou de pseudo-preuve sociale textuelle; il est borne aux logos verifies uniquement.
+  - les README de proximite (`app-landing/README.md`, `app-landing/__tests__/README.md`, `app-landing/components/homepage/README.md`) documentent maintenant les guardrails associes: redirects publics reconstruits depuis l'hote canonique et zero placeholder trust.
+- Revalidation des fixes SEO deja presents dans le worktree:
+  - image sociale: le code local pointe deja sur `logo-full-920x400.png` via `lib/seo/metadata.ts`
+  - hub ressources: le rendu local expose deja les cartes verticales / blog / ressources SEO via `components/pages/KnowledgePage.tsx`
+  - blog: la source locale ne republie plus de `H1` MDX top-level et les tests blog restent verts
+- Hygiene landing fermee dans la meme passe:
+  - 4 erreurs ESLint preexistantes dans `app-landing` ont ete corrigees (`apple-touch-icon-precomposed` test, `ProofBlockClient`, `contact-page.helpers`, `scoping-call/validation`) pour rendre la validation repo vraiment verte
+- Verifications executees:
+  - `pnpm --filter @praedixa/landing test -- --run '__tests__/proxy.test.ts' 'app/__tests__/sitemap.test.ts' 'lib/seo/__tests__/metadata.test.ts' 'app/[locale]/blog/[slug]/__tests__/page.test.tsx' 'components/blog/__tests__/BlogPostPage.test.tsx' 'lib/blog/__tests__/posts.test.ts' 'lib/blog/__tests__/mdx.test.tsx'`
+  - `pnpm --filter @praedixa/landing blog:audit-links`
+  - `pnpm --filter @praedixa/landing lint`
+  - `pnpm --filter @praedixa/landing typecheck`
+  - `pnpm --filter @praedixa/landing build`
+- Limite restante:
+  - les correctifs sont fermes cote repo mais toujours non visibles sur `https://www.praedixa.com` tant qu'un nouveau deploiement n'a pas pousse cette version
+
+# Current Pass - 2026-03-21 - Monorepo TypeScript Ultra Strict
+
+### Plan
+
+- [ ] Mesurer la ligne de base actuelle du monorepo sur `typecheck` et sur un lint TypeScript plus typé pour identifier les vrais blocages
+- [ ] Durcir la configuration TypeScript partagée au niveau maximal raisonnable pour un monorepo Next.js/Node sans casser les workflows de build
+- [ ] Aligner les apps et packages sur la base stricte commune et supprimer les écarts faibles inutiles
+- [ ] Renforcer ESLint avec des règles TypeScript type-aware adaptées au code assisté par LLM
+- [ ] Mettre a jour la documentation des configs touchees et verifier les validations cibles
+
+# Current Pass - 2026-03-21 - Static Audit Remaining Findings Closure
+
+### Plan
+
+- [x] Revalider les correctifs restants deja presents dans le worktree sur les zones admin, webapp, connecteurs et scripts ops
+- [x] Rejouer les suites ciblees pour prouver la fermeture des findings encore ouverts lors de la passe precedente
+- [x] Consolider la cloture dans les artefacts de suivi (`tasks/todo.md` et `tasks/static-bug-audit-2026-03-21.md`)
+
+### Review
+
+- Findings restants effectivement fermes:
+  - `app-connectors` revalide le DNS des hosts sortants allowlistes et rejecte maintenant les resolutions privees ou mixtes au lieu de ne controler que la chaine du hostname.
+  - `app-admin` aligne le layout workspace, la page `vue-client`, la page `messages` et le modele `parametres` sur les permissions reelles et sur une source de verite unique.
+  - `app-webapp` garde le durcissement fail-close du polling `401` et le calcul de date du shell cote client, sans mismatch SSR/hydration.
+  - les scripts release/deploy/smoke ferment bien les ecarts releves: gate report rouge refuse, digest immuable non degrade vers un tag mutable, `SCW_API_URL` borne, smoke API recale sur `/api/v1/health`.
+- Verifications executees sur cette vague:
+  - `pnpm --filter @praedixa/admin test -- --run 'app/(admin)/clients/[orgId]/vue-client/__tests__/page.test.tsx' 'app/(admin)/parametres/__tests__/page.test.tsx' 'app/(admin)/clients/[orgId]/messages/__tests__/page.test.tsx'`
+  - `pnpm --filter @praedixa/webapp test -- --run 'hooks/__tests__/use-api.test.ts' 'components/__tests__/app-shell-model.test.tsx' 'app/(app)/messages/__tests__/page.test.tsx' 'app/(app)/actions/__tests__/page.test.tsx' 'app/(app)/parametres/__tests__/page.test.tsx'`
+  - `pnpm --filter @praedixa/connectors test -- --run src/__tests__/outbound-url.test.ts src/__tests__/service.test.ts src/__tests__/config.test.ts`
+  - `node --test scripts/__tests__/release-manifest-gate-report.test.mjs scripts/__tests__/scw-release-deploy.test.mjs scripts/__tests__/scw-apply-container-config.test.mjs scripts/__tests__/smoke-test-production.test.mjs`
+- Conclusion:
+  - l'inventaire `static-bug-audit-2026-03-21` est maintenant ferme cote code et revalide par lots cibles; il reste un artefact de trace, pas une liste de dette ouverte.
+
+# Current Pass - 2026-03-21 - Admin Approvals Sonar Cleanup
+
+### Plan
+
+- [x] Confirmer la cause exacte des alertes Sonar `typescript:S6759`, `typescript:S3735` et `typescript:S7781` dans les surfaces `approvals` et `dispatches`
+- [x] Rendre les props de composants explicitement read-only dans les fichiers demandes de `approvals` et `dispatches`
+- [x] Supprimer l'usage inutile de `void` dans `approvals/page.tsx` en alignant le callback sur le contrat reel du hook
+- [x] Remplacer le `String#replace()` global du formatter de capabilities par `String#replaceAll()`
+- [x] Mettre a jour la documentation locale des dossiers touches et verifier les fichiers modifies
+- [x] Supprimer les derniers wrappers `void` restants sur les callbacks `dispatches` signales par Sonar et revalider le lint cible
+
+### Review
+
+- Cause racine confirmee:
+  - les alertes `S6759` venaient de composants locaux `approvals` et `dispatches` dont les props etaient typees via des objets mutables ou inline au lieu de contrats explicitement immuables
+  - l'alerte `S3735` venait d'un wrapper `onDecisionSaved={() => { void model.refetch(); }}` alors que `refetch` est deja expose par `useApiGet` avec une signature `() => void`
+  - l'alerte `S7781` venait du formatter `formatCapabilityKey` qui faisait un remplacement global via `replace(/([A-Z])/g, ...)` plutot que `replaceAll(...)`
+- Correctifs appliques:
+  - `approval-decision-panel.tsx` et `approvals-sections.tsx` utilisent maintenant des types de props `Readonly`
+  - les composants `approvals` recoivent maintenant explicitement `props: Readonly<Props>` avant destructuration pour eviter les faux positifs Sonar restants sur le JSX (`Unknown property '<span'`)
+  - `approvals/page.tsx` passe maintenant `model.refetch` directement a `onDecisionSaved`
+  - les composants `dispatches` de detail, controle, decision et fallback utilisent maintenant des types de props `Readonly`
+  - `action-dispatch-detail-model.ts` utilise maintenant `replaceAll(/([A-Z])/g, " $1")` pour le remplacement global
+  - `dispatch-decision-panel.tsx` et `dispatch-fallback-panel.tsx` n'utilisent plus `void` dans les handlers JSX; les callbacks `onAction` sont maintenant asynchrones et awaited jusqu'au bouton
+  - `dispatch-decision-panel.tsx` couvre maintenant explicitement les statuts `dry_run`, `acknowledged` et `canceled`, ce qui ferme aussi le `switch-exhaustiveness-check` releve pendant la verification
+  - les README locaux `approvals` et `dispatches/[actionId]` documentent ces contrats immuables et l'alignement des callbacks/helpers
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'app/(admin)/clients/[orgId]/actions/approvals/approval-decision-panel.tsx' 'app/(admin)/clients/[orgId]/actions/approvals/approvals-sections.tsx' 'app/(admin)/clients/[orgId]/actions/approvals/page.tsx' 'app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/action-dispatch-detail-model.ts' 'app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/action-dispatch-detail-sections.tsx' 'app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/action-dispatch-detail-view.tsx' 'app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/dispatch-control-ui.tsx' 'app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/dispatch-decision-panel.tsx' 'app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/dispatch-fallback-panel.tsx'`
+  - `pnpm --filter @praedixa/admin exec eslint 'app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/dispatch-decision-panel.tsx' 'app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/dispatch-fallback-panel.tsx'`
+  - `pnpm --filter @praedixa/admin typecheck`
+
+# Current Pass - 2026-03-21 - SEO Audit With Google Search Console
+
+### Plan
+
+- [x] Extraire les signaux GSC de la version de production actuellement deployee: pages, requetes, CTR, positions, tendances
+- [x] Auditer en live la crawlabilite, l'indexation observable, les templates clefs et la performance visible du site public
+- [x] Croiser les findings GSC avec le rendu live et le code `app-landing` pour distinguer prod actuelle vs correctifs locaux non deployes
+- [x] Rendre un rapport SEO priorise avec preuves, impacts et plan d'action centre sur la version deployee
+
+### Review
+
+- Donnees Search Console extraites sur la propriete `sc-domain:praedixa.com`:
+  - fenetre recente comparee: `2026-02-19` au `2026-03-18` vs `2026-01-22` au `2026-02-18`
+  - la prod actuelle passe de `39` impressions / `0` clic a `3477` impressions / `10` clics
+  - les clics restent ultra concentres: `https://www.praedixa.com/fr` porte `8` clics sur `702` impressions en 90 jours; le reste des URLs visibles prend surtout des impressions sans clic
+  - `https://www.praedixa.com/fr/blog/decision-log-ops-daf-template` est dans le sitemap mais l'inspection d'URL GSC remonte encore `Google ne reconnaît pas cette URL`
+  - le sitemap soumis `https://www.praedixa.com/sitemap.xml` est propre cote GSC (`0` erreur, `0` warning)
+- Verification live du site actuellement deployee:
+  - `robots.txt`, `sitemap.xml`, les canonicals HTML et les URL clefs sont bien servis sur `https://www.praedixa.com`
+  - la home FR reste la surface principale; Lighthouse live sur `https://www.praedixa.com/fr` donne `performance 87`, `LCP 3.7 s`, `475 KiB`, `84 KiB` de JS inutilise, `27 KiB` de CSS inutilise
+  - `https://www.praedixa.com/og-image.png` repond toujours `404` alors que les metas live `og:image` et `twitter:image` pointent encore vers cette URL
+  - l'article live `https://www.praedixa.com/fr/blog/decision-log-ops-daf-template` expose toujours `2` balises `H1`
+  - le hub live `https://www.praedixa.com/fr/ressources` reste indexe mais faible comme routeur SEO: inspection GSC `PASS`, seulement `2` referring URLs GSC, et le rendu live n'affiche toujours pas de blocs visibles vers verticales / blog / ressources SEO
+  - variante critique detectee: `http://www.praedixa.com/` et `http://www.praedixa.com/en` redirigent en production vers `https://0.0.0.0:8080/...`
+- Croisement prod vs code local:
+  - plusieurs correctifs existent deja dans le repo mais ne sont pas encore visibles en production: image sociale via [metadata.ts](/Users/steven/Programmation/praedixa/app-landing/lib/seo/metadata.ts#L64), hub ressources et cartes de maillage via [KnowledgePage.tsx](/Users/steven/Programmation/praedixa/app-landing/components/pages/KnowledgePage.tsx#L391), disparition des placeholders trust rail via [HeroPulsorLogoRail.tsx](/Users/steven/Programmation/praedixa/app-landing/components/homepage/HeroPulsorLogoRail.tsx), et pipeline blog corrige
+  - un defect critique reste encore present meme dans le code local audite: la logique de canonicalisation HTTP `www` peut cloner `request.nextUrl` et reemettre l'hote runtime interne `0.0.0.0:8080` dans [proxy.ts](/Users/steven/Programmation/praedixa/app-landing/proxy.ts#L60)
+
+# Current Pass - 2026-03-21 - Webapp Polling Fail-Close + App Shell Hydration
+
+### Plan
+
+- [x] Corriger le coeur partage des hooks GET pour qu'un `401` en polling purge l'etat stale et force la reauth en fail-close
+- [x] Stabiliser la date affichee dans `AppShell` pour supprimer le mismatch SSR/hydration
+- [x] Mettre a jour la documentation de proximite des zones touchees
+- [x] Rejouer les tests/typechecks cibles et consigner le resultat
+
+### Review
+
+- Correctifs fermes:
+  - `@praedixa/api-hooks` purge maintenant l'etat GET stale sur `401`, y compris quand l'erreur arrive via un poll silencieux, puis n'appelle la reauth qu'une seule fois par hook actif avant un succes ou un unmount.
+  - `AppShell` garde une date `null` pendant le SSR/hydration, puis la remplit cote client via `useHeaderDate` avec un refresh programme au prochain passage de minuit.
+- Documentation alignee:
+  - `app-webapp/components/README.md`
+  - `app-webapp/hooks/README.md`
+  - `packages/api-hooks/README.md`
+- Verifications executees:
+  - `pnpm --filter @praedixa/api-hooks build`
+  - `pnpm --filter @praedixa/api-hooks typecheck`
+  - `pnpm --filter @praedixa/webapp typecheck`
+  - `pnpm --filter @praedixa/webapp test -- --run 'hooks/__tests__/use-api.test.ts' 'components/__tests__/app-shell-model.test.tsx'`
+
+# Current Pass - 2026-03-21 - Resolve Google Search Console MCP Auth
+
+### Plan
+
+- [x] Inspecter le package `search-console-mcp` pour comprendre l'echec OAuth scopes
+- [x] Choisir puis executer la voie d'auth la plus fiable pour cette machine
+- [x] Verifier l'etat final des comptes connectes et du serveur MCP
+- [x] Documenter le diagnostic et les suites eventuelles
+
+### Review
+
+- Diagnostic package ferme:
+  - `search-console-mcp` embarque bien les scopes Search Console attendus (`webmasters.readonly` + `userinfo.email`)
+  - le setup OAuth utilise soit des credentials Google fournis via environnement (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`), soit les credentials integres du package
+  - le message d'erreur du wizard confirme une derive de scopes / client OAuth sur le flux teste, pas un probleme d'installation du MCP lui-meme
+- Verification machine:
+  - aucune variable d'environnement locale exploitable n'est definie pour `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_APPLICATION_CREDENTIALS`, `GOOGLE_CLIENT_EMAIL` ou `GOOGLE_PRIVATE_KEY`
+  - aucune trace de credentials Google Search Console n'a ete trouvee dans les `.env*` du repo, `~/.codex`, `~/Downloads` ou `~/Desktop`
+  - `npx -y search-console-mcp accounts list` confirme toujours un etat propre: `No accounts connected.`
+- Blocage restant:
+  - la voie retenue est maintenant le service account
+  - la cle JSON a ete enregistree localement hors repo dans `~/.config/praedixa/gsc-service-account.json` avec permissions restreintes
+  - `~/.codex/config.toml` pointe maintenant `mcp_servers.google_search_console.env.GOOGLE_APPLICATION_CREDENTIALS` vers ce fichier
+  - l'utilisateur a bien ajoute `praedixa@praedixa.iam.gserviceaccount.com` dans Google Search Console
+  - `npx -y search-console-mcp accounts list` retourne maintenant le compte `Service Account (env)` pour Google
+  - l'API `searchconsole.googleapis.com` a ensuite ete activee sur le projet GCP `63324900080`
+  - verification directe via le client du package: `client.sites.list()` retourne bien `sc-domain:praedixa.com` avec `permissionLevel = siteFullUser`
+  - etat final: le MCP Google Search Console est maintenant operationnel sur cette machine pour la propriete Praedixa
+
+# Current Pass - 2026-03-21 - Install Google Search Console MCP
+
+### Plan
+
+- [x] Inspecter la configuration MCP locale existante et retenir une implementation maintenue
+- [x] Ajouter le serveur Google Search Console MCP a `~/.codex/config.toml`
+- [x] Verifier que le CLI du serveur est resolvable et que le setup d'auth se lance
+- [x] Documenter le resultat et les prochaines etapes d'authentification
+
+### Review
+
+- Installation MCP fermee:
+  - ajout de `[mcp_servers.google_search_console]` dans `~/.codex/config.toml`
+  - configuration retenue: `command = "npx"` + `args = ["-y", "search-console-mcp"]`
+  - verification `codex mcp list`: le serveur `google_search_console` apparait en `enabled`
+- Verification runtime:
+  - `npx -y search-console-mcp setup` demarre bien le wizard interactif
+  - `npx -y search-console-mcp accounts list` repond correctement
+- Tentative d'auth executee:
+  - flux OAuth Google lance
+  - autorisation remontee pour `admin@praedixa.com`
+  - echec ensuite avec `Authentication failed: Request had insufficient authentication scopes.`
+  - cleanup execute via `npx -y search-console-mcp logout admin@praedixa.com`
+  - etat final propre: `accounts list` retourne `No accounts connected.`
+- Resultat pratique:
+  - le MCP Google Search Console est bien installe et enregistrable par Codex
+  - l'authentification Google n'est pas finalisee a ce stade; il faudra soit rerun le setup avec des scopes/client OAuth valides, soit utiliser un service account via `GOOGLE_APPLICATION_CREDENTIALS`
+
+# Current Pass - 2026-03-21 - Systematic Bugfix Sweep Critical Findings
+
+### Plan
+
+- [x] Figer un plan de correction priorise et decouper les lots d'ecriture sans collision dans le worktree existant
+- [x] Corriger le cluster auth/frontend partage: JWT malforme, mode direct bearer, stale state des mutations et pages branchees sur des routes stubbees
+- [x] Corriger le cluster `app-connectors`: capabilities runtime, ownership worker, leases, coherence `raw_event`/payload et cycle OAuth
+- [x] Corriger le cluster `app-api` / `app-api-ts` et les scripts ops: transactions runtime, contrats auth, gate/release/smoke
+- [x] Mettre a jour la doc de proximite puis rejouer les validations ciblees avant cloture
+
+### Review
+
+- Correctifs auth/frontend fermes:
+  - `app-admin` renvoie maintenant un vrai bearer token en mode `direct`, avec cache session `minTtlSeconds` aware et `/auth/session?include_access_token=1` borne au mode direct.
+  - `app-admin` fail-close en production si l'origine publique auth n'est pas configuree explicitement.
+  - `app-webapp` traite les JWT malformes comme invalides au lieu de laisser fuiter des exceptions `atob`.
+  - `packages/api-hooks` purge maintenant proprement l'etat stale des mutations quand l'URL change.
+  - `webapp` coupe explicitement les surfaces branchees sur des routes runtime encore stubbees (`messages`, historique `actions`, persistance de preferences`) au lieu de spammer des `503`/`500`.
+- Correctifs `app-connectors` fermes:
+  - le runtime provider access-context est maintenant lie a un `syncRun` reel via `lockToken`, en `POST`, et demande une capacite runtime d'ecriture.
+  - les claims `sync_runs` et `raw_events` utilisent maintenant des tokens opaques au lieu d'un `workerId` forgeable depuis le client.
+  - les `running` expires peuvent etre reclaim, les leases sont revalidees/prolongees sur les routes runtime actives, et les runs zombies d'ingest sont marques `failed`.
+  - la persistance Postgres passe en fail-close mono-instance via advisory lock pour eviter le split-brain `last writer wins`.
+  - les doublons `raw_event` n'ecrasent plus silencieusement le payload stocke, et une session OAuth pendante est supprimee quand une autorisation par credentials reussit.
+- Correctifs `app-api` / `app-api-ts` / scripts fermes:
+  - `app-api-ts` garde le bon durcissement auth (Bearer case-insensitive, scope `hr_manager` aligne) sans casser le contrat reel des IDs opaques.
+  - `integration_runtime_worker.py` reporte bien `raw_event.processed` apres `session.commit()` et `raw_event.failed` apres rollback.
+  - `integration_event_ingestor.py` supporte `datasetMappings` multi-`sourceObject` et `transform_engine.py` execute l'incremental dans la transaction SQLAlchemy appelante.
+  - `integration_sync_queue_worker.py` preserve maintenant `source_window_start`, `source_window_end` et `force_full_sync`.
+  - les scripts HMAC n'exposent plus la signature dans `argv`; le gate manuel remonte les vrais checks bloquants; le smoke post-deploy frontend exige maintenant une vraie session cookie authentifiee.
+- Documentation realignee:
+  - `app-admin/lib/auth/README.md`
+  - `app-admin/lib/api/README.md`
+  - `app-webapp/lib/auth/README.md`
+  - `app-webapp/app/(app)/actions/README.md`
+  - `app-webapp/app/(app)/messages/README.md`
+  - `app-webapp/lib/i18n/README.md`
+  - `app-webapp/lib/README.md`
+  - `packages/api-hooks/README.md`
+  - `app-api/app/services/README.md`
+  - `scripts/README.md`
+- Verifications executees:
+  - `pnpm --filter @praedixa/admin exec vitest run lib/auth/__tests__/client.test.ts app/auth/session/__tests__/route.test.ts lib/api/__tests__/client.test.ts lib/auth/__tests__/oidc.test.ts`
+  - `pnpm --filter @praedixa/admin typecheck`
+  - `pnpm --filter @praedixa/webapp exec vitest run lib/auth/__tests__/oidc.test.ts lib/auth/__tests__/client.test.ts app/auth/session/__tests__/route.test.ts lib/auth/__tests__/middleware.test.ts lib/auth/__tests__/middleware-security.test.ts`
+  - `pnpm --filter @praedixa/webapp test -- --run 'app/(app)/messages/__tests__/page.test.tsx' 'app/(app)/actions/__tests__/page.test.tsx' 'app/(app)/parametres/__tests__/page.test.tsx' lib/i18n/__tests__/provider.test.tsx`
+  - `pnpm --filter @praedixa/webapp typecheck`
+  - `pnpm --filter @praedixa/api-hooks test`
+  - `pnpm --filter @praedixa/api-ts typecheck`
+  - `pnpm --filter @praedixa/api-ts test`
+  - `pnpm --filter @praedixa/connectors test`
+  - `pnpm --filter @praedixa/connectors typecheck`
+  - `bash -n scripts/release-manifest-sign.sh scripts/gates/gate-report-sign.sh scripts/gates/gate-exhaustive-local.sh scripts/gates/verify-gate-report.sh scripts/scw/scw-preflight-deploy.sh scripts/scw/scw-post-deploy-smoke.sh`
+  - `node --test scripts/__tests__/gate-report-signing.test.mjs scripts/__tests__/post-deploy-smoke.test.mjs`
+  - `cd app-api && uv run pytest -q tests/test_integration_sync_queue_worker.py tests/test_integration_event_ingestor.py tests/test_integration_sftp_runtime_worker.py`
+  - `cd app-api && uv run pytest -q tests/test_provider_sync_ukg.py tests/test_provider_sync_fourth.py tests/test_provider_sync_toast.py tests/test_provider_sync_cdk.py tests/test_provider_sync_salesforce.py`
+  - `cd app-api && uv run pytest -q tests/test_integration_runtime_worker.py::test_drain_connector_connection_defers_claim_ack_until_sync_commit tests/test_integration_runtime_worker.py::test_drain_connector_connection_surfaces_failures_without_raw_event_ack tests/test_integration_runtime_worker.py::test_process_claimed_sync_run_marks_completed_after_success`
+  - `cd app-api && uv run pytest -q tests/test_integration_runtime_worker.py::test_process_claimed_sync_run_marks_raw_events_processed_only_after_commit tests/test_integration_runtime_worker.py::test_process_claimed_sync_run_marks_raw_events_failed_after_rollback tests/test_integration_runtime_worker.py::test_process_claimed_sync_run_requeues_retryable_failures`
+
+# Current Pass - 2026-03-21 - SEO Fixes Landing Praedixa
+
+### Plan
+
+- [x] Corriger les defects SEO techniques immediats: image sociale, double `H1`, `lastmod` de sitemap et trust rail hero
+- [x] Renforcer `/fr/ressources` pour en faire un vrai hub de maillage vers secteurs, blog et ressources SEO
+- [x] Densifier le blog avec de nouveaux contenus FR alignes sur les requetes ICP et Ops/Finance
+- [x] Mettre a jour la documentation locale des zones SEO touchees
+- [x] Rejouer les validations cibles et re-verifier les surfaces publiques corrigees
+
+### Review
+
+- Correctifs techniques fermes:
+  - les metadata sociales n'utilisent plus `/og-image.png` inexistant; elles pointent maintenant vers `logo-full-920x400.png` via `lib/seo/entity.ts`
+  - le pipeline MDX demote maintenant tout `H1` residuel du corps en `H2`, et le post existant `decision-log-ops-daf-template.mdx` n'embarque plus de `#` top-level
+  - `app/sitemap.ts` derive maintenant les `lastModified` depuis les fichiers source par famille de pages au lieu de republier un timestamp de build uniforme
+  - le rail de confiance du hero n'affiche plus de placeholders repetes au-dessus de la ligne de flottaison
+  - le chargement de `IBM_Plex_Mono` n'est plus precharge globalement
+- Renforts contenu / maillage:
+  - `KnowledgePage.tsx` rend maintenant le hub `resources` comme une vraie page de maillage avec cartes vers pages sectorielles, blog et ressources SEO a forte intention
+  - la copy FR/EN du hub ressources a ete realignee sur ce role de hub
+  - trois nouveaux articles FR publies dans `marketing/content/blog/` densifient le cluster Ops/Finance / ROI / coverage
+  - des liens croises explicites entre articles ont ete ajoutes; `blog:audit-links` ne remonte plus d'articles orphelins
+- Documentation realignee:
+  - `marketing/content/blog/README.md`
+  - `app-landing/components/blog/README.md`
+  - `app-landing/lib/seo/README.md`
+  - `app-landing/components/homepage/README.md`
+  - `app-landing/components/pages/README.md`
+  - `app-landing/app/[locale]/ressources/README.md`
+  - `app-landing/app/[locale]/blog/README.md`
+- Verifications executees:
+  - `pnpm --filter @praedixa/landing test -- --run 'app/__tests__/sitemap.test.ts' 'app/[locale]/blog/[slug]/__tests__/page.test.tsx' 'components/blog/__tests__/BlogPostPage.test.tsx' 'lib/blog/__tests__/posts.test.ts' 'lib/blog/__tests__/mdx.test.tsx'`
+  - `pnpm --filter @praedixa/landing lint`
+  - `pnpm --filter @praedixa/landing typecheck`
+  - `pnpm --filter @praedixa/landing blog:audit-links`
+  - `pnpm --filter @praedixa/landing build`
+- Limite restante:
+  - la verification "production truth" n'est pas encore possible sur le live public car cette passe n'a pas ete deployee; les verifications ont ete faites au niveau repo + build + audits locaux.
+
+# Current Pass - 2026-03-21 - SEO Audit Landing Praedixa
+
+### Plan
+
+- [x] Auditer la crawlabilite et l'indexation du landing live et du code `app-landing`
+- [x] Verifier les fondations techniques SEO: metadata, canonicals, status, rendu, performance visible
+- [x] Auditer le on-page, la qualite de contenu, le maillage interne et les donnees structurees
+- [x] Rendre un rapport priorise avec preuves observables et plan d'action
+
+### Review
+
+- Scope retenu:
+  - audit SEO complet du site public `https://www.praedixa.com` avec verification live et lecture directe du code `app-landing`
+  - type de site infere: landing B2B SaaS / Decision Intelligence multi-sites, objectif principal = generation de leads qualifies
+  - clusters infers: decision operationnelle multi-sites, preuve de ROI, arbitrages Ops/Finance, secteurs HCR/logistique/retail/etc.
+- Forces confirmees:
+  - canonical host, HTTPS, non-www -> www, slash normalization et redirects legacy fonctionnent sur le live
+  - `robots.txt`, `sitemap.xml`, canonicals, hreflang et JSON-LD sont bien presents sur les pages coeur
+  - les pages sectorielles sont les surfaces les plus SEO-ready: contenu riche, sources citees, breadcrumb visible et schema associe
+- Risques / defects releves:
+  - hub `/fr/ressources` trop mince et insuffisamment maille vers les pages qu'il pretend federer
+  - article de blog audite avec double `H1` (header de page + `#` dans le MDX)
+  - toutes les metadata OG/Twitter pointent vers `/og-image.png`, asset absent en production (`404`)
+  - `sitemap.xml` publie un `lastmod` de build/deploiement quasi uniforme, pas une vraie date de modification de contenu
+  - mobile Lighthouse homepage borderline pour le SEO (`performance 79`, `LCP 3.9 s`)
+  - rail de confiance hero avec texte placeholder repete au-dessus de la ligne de flottaison
+  - empreinte editoriale blog encore tres faible (1 article publie)
+- Verifications executees:
+  - inspection live HTML/headers/redirects via `curl` sur `/`, `/fr`, `/fr/services`, `/fr/comment-ca-marche`, `/fr/ressources`, `/fr/blog`, URLs legacy et variants de host/slash
+  - inspection browser live via Playwright sur homepage, services, ressources, blog, article de blog et page sectorielle `HCR`
+  - lecture du code SEO: `app-landing/app/robots.ts`, `app-landing/app/sitemap.ts`, `app-landing/proxy.ts`, `app-landing/lib/seo/metadata.ts`, pages et composants blog/knowledge/home
+  - mesure perf locale: `npx --yes lighthouse https://www.praedixa.com/fr --quiet --chrome-flags='--headless=new --no-sandbox' --only-categories=performance --output=json --output-path=stdout`
+
+# Current Pass - 2026-03-21 - Codex Skill Migration SEO Audit
+
+### Plan
+
+- [x] Copier le skill source `/.claude/skills/seo-audit` vers `/.codex/skills/seo-audit`
+- [x] Adapter `SKILL.md` au format et aux usages Codex
+- [x] Ajouter la metadata `agents/openai.yaml` attendue par Codex
+- [x] Verifier la structure finale puis documenter le resultat
+
+### Review
+
+- Le skill source `/.claude/skills/seo-audit/SKILL.md` a ete migre vers `/.codex/skills/seo-audit/SKILL.md` avec une adaptation au mode de travail Codex: inspection live, lecture du repo, preuves observables et plan d'action priorise.
+- Les references de skills annexes ont ete rendues compatibles avec l'inventaire Codex local en pointant vers `schema-markup`, `seo-optimizer`, `web-performance-optimization` et `accessibility-auditor`.
+- La metadata UI Codex a ete ajoutee dans `/.codex/skills/seo-audit/agents/openai.yaml`.
+- Verification executee:
+  - `python3 /Users/steven/.codex/skills/.system/skill-creator/scripts/generate_openai_yaml.py .codex/skills/seo-audit --interface 'display_name=SEO Audit' --interface 'short_description=Audit live pages and code for technical and on-page SEO' --interface 'default_prompt=Use $seo-audit to audit this site for crawlability, indexation, metadata, and ranking blockers.'`
+  - `python3 /Users/steven/.codex/skills/.system/skill-creator/scripts/quick_validate.py .codex/skills/seo-audit`
+  - Resultat: `Skill is valid!`
+
+# Current Pass - 2026-03-21 - Clean Code Simplification Sweep Wave 17
+
+### Plan
+
+- [x] Continuer la passe de simplification pendant que 6 agents explorent d'autres gros scopes en parallele
+- [x] Integrer au moins un decoupage local utile sur un front non overlapping
+- [x] Realigner la documentation de proximite du dossier touche
+- [x] Rejouer les validations cibles puis repartir sur la suite
+
+### Review
+
+- Verdict:
+  - `GO` pour une dix-septieme vague continuee en parallele des scopes agents, avec integration locale + retombees agents gardees seulement quand elles passent sous les garde-fous.
+- Simplifications fermees:
+  - `app-admin/app/(admin)/clients/[orgId]/rapports/rapports-sections.tsx` est retombe sous les 200 lignes et garde maintenant surtout la composition de haut niveau
+  - `app-admin/app/(admin)/clients/[orgId]/rapports/rapports-proof-pack-panel.tsx` porte desormais le tableau proof packs et le bloc de partage securise
+  - `app-admin/app/(admin)/clients/[orgId]/config/config-columns.tsx` factorise maintenant ses rendus repetitifs de dates, nombres, textes forts et statuts au lieu de dupliquer les memes spans/formatages dans chaque table
+  - `app-admin/app/(admin)/clients/[orgId]/config/integrations-section-ops.tsx` partage maintenant un shell de champ et une base de classes commune pour les formulaires d'operations connecteur
+  - `app-admin/app/(admin)/clients/[orgId]/config/decision-config-card.tsx` est redevenu une carte de composition; les sections de resume et de controle vivent dans `decision-config-card-sections.tsx`
+  - `app-admin/app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/dispatch-fallback-panel.tsx` ne porte plus sa politique fallback et son hook de mutation; ils vivent maintenant dans `dispatch-fallback-model.ts`
+  - `app-admin/app/(admin)/clients/[orgId]/donnees/donnees-sections.tsx` delegue maintenant le gros bloc `explorateur Gold` a `donnees-gold-explorer-card.tsx`
+- Documentation realignee:
+  - `app-admin/app/(admin)/clients/[orgId]/rapports/README.md`
+  - `app-admin/app/(admin)/clients/[orgId]/config/README.md`
+  - `app-admin/app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/README.md`
+  - `app-admin/app/(admin)/clients/[orgId]/donnees/README.md`
+- Verifications executees:
+  - `pnpm --filter @praedixa/admin test`
+  - `pnpm --filter @praedixa/admin test -- --run 'app/(admin)/clients/[orgId]/config/__tests__/page.test.tsx'`
+  - `pnpm --filter @praedixa/admin test -- --run 'app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/__tests__/page.test.tsx'`
+  - `pnpm --filter @praedixa/admin test -- --run 'app/(admin)/clients/[orgId]/donnees/__tests__/page.test.tsx'`
+  - `pnpm typecheck`
+
+# Current Pass - 2026-03-21 - Stitch Prompt Landing Praedixa
+
+### Plan
+
+- [x] Confirmer ce qu'est Stitch et ses capacites utiles pour ce travail
+- [x] Recuperer le positionnement canonique de la landing Praedixa depuis le repo
+- [x] Rediger un prompt maitre Stitch pour elever la landing au niveau state of the art
+- [x] Ajouter des prompts d'iteration cibles pour hero, preuve, comparatif et conversion
+
+### Review
+
+- Stitch a ete confirme comme outil experimental Google Labs pour generer des interfaces et du frontend code depuis du texte ou des images, avec export et prototypage multi-ecrans.
+- Le prompt maitre a ete aligne sur le positionnement repo-owned de Praedixa: couche de decision multi-sites, overlay sur l'existant, boucle anticiper/comparer/decider/prouver, manager decisionnaire, preuve de ROI visible.
+- Des prompts d'iteration cibles ont ete prepares pour pousser ensuite le hero, le bloc preuve, le comparatif stack et le niveau de conversion sans casser le message canonique.
+
+# Current Pass - 2026-03-21 - Clean Code Simplification Sweep Wave 16
+
+### Plan
+
+- [x] Continuer le clean-code sur les gros blocs admin/webapp encore denses mais bien couverts
+- [x] Decouper davantage shell/navigation, dashboard client et onboarding access-model
+- [x] Realigner la doc proche du code au fur et a mesure
+- [x] Rejouer les tests cibles et le typecheck apres chaque sous-lot
+
+### Review
+
+- Verdict:
+  - `GO` pour une seizieme vague continue, avec corrections immediates des erreurs de re-export/typage detectees par les garde-fous.
+- Simplifications fermees:
+  - `app-admin/components/command-palette.tsx` est maintenant recentre sur le dialogue; le catalogue, le filtrage et le hook clavier vivent dans `command-palette-model.ts`
+  - `app-admin/components/admin-shell.tsx` ne porte plus toute sa structure JSX; `admin-shell-sections.tsx` isole maintenant `backdrop`, `sidebar` et `main`
+  - `app-admin/app/(admin)/clients/[orgId]/dashboard/page.tsx` est redevenu une page de composition branchee sur `dashboard-sections.tsx`
+  - `app-admin/app/(admin)/clients/[orgId]/onboarding/access-model-task-fields.tsx` garde maintenant surtout les helpers de payload/evidence et la gestion locale des destinataires; les gros blocs UI vivent dans `access-model-task-sections.tsx`
+- Documentation realignee:
+  - `app-admin/components/README.md`
+  - `app-admin/app/(admin)/clients/[orgId]/dashboard/README.md`
+  - `app-admin/app/(admin)/clients/[orgId]/onboarding/README.md`
+- Verifications executees:
+  - `pnpm --filter @praedixa/admin test -- --run components/__tests__/command-palette.test.ts`
+  - `pnpm --filter @praedixa/admin test -- --run app/(admin)/__tests__/page.test.tsx components/__tests__/admin-sidebar.test.tsx components/__tests__/admin-topbar.test.tsx components/__tests__/command-palette.test.ts`
+  - `pnpm --filter @praedixa/admin test -- --run 'app/(admin)/clients/[orgId]/dashboard/__tests__/page.test.tsx'`
+  - `pnpm --filter @praedixa/admin test -- --run 'app/(admin)/clients/[orgId]/onboarding/__tests__/page.test.tsx'`
+  - `pnpm typecheck`
+- Correctifs explicites:
+  - re-export oublie sur `useCommandPalette` corrige dans la meme vague
+  - deux ecarts de types dans `admin-shell-sections.tsx` (`onLogout`, `title`) corriges avant validation finale
+
+# Current Pass - 2026-03-21 - Clean Code Simplification Sweep Wave 15
+
+### Plan
+
+- [x] Continuer la simplification active apres reprise, sans perdre l'etat reel du worktree
+- [x] Alleger plusieurs gros blocs restants cote admin/webapp (`rapports`, `dispatch detail`, `contract create panel`, `actions sections`)
+- [x] Mettre a jour la documentation proche du code touche
+- [x] Rejouer les tests cibles et le typecheck apres chaque sous-lot
+
+### Review
+
+- Verdict:
+  - `GO` pour une quinzieme vague poursuivie immediatement apres reprise, sans bug repo: seule une interruption utilisateur avait coupe une passe en cours.
+- Simplifications fermees:
+  - `app-admin/app/(admin)/clients/[orgId]/rapports/page.tsx` est maintenant une page de composition branchee sur `rapports-page-model.tsx` et `rapports-sections.tsx`
+  - `app-admin/app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/action-dispatch-detail-view.tsx` est redevenu un composeur de detail; derives et metadata vivent dans `action-dispatch-detail-model.ts`, et les cartes runtime dans `action-dispatch-detail-sections.tsx`
+  - `app-admin/app/(admin)/clients/[orgId]/contrats/contract-studio-create-panel.tsx` n'embarque plus son orchestration de draft initial; elle vit maintenant dans `contract-studio-create-controller.ts`
+  - `app-webapp/app/(app)/actions/page-sections.tsx` ne porte plus tout le centre Actions; `treatment-section.tsx` et `history-section.tsx` decoupent maintenant le rendu par usage
+- Documentation realignee:
+  - `app-admin/app/(admin)/clients/[orgId]/rapports/README.md`
+  - `app-admin/app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/README.md`
+  - `app-admin/app/(admin)/clients/[orgId]/contrats/README.md`
+  - `app-webapp/app/(app)/actions/README.md`
+- Verifications executees:
+  - `pnpm --filter @praedixa/admin test -- --run 'app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/__tests__/page.test.tsx'`
+  - `pnpm --filter @praedixa/admin test -- --run 'app/(admin)/clients/[orgId]/contrats/__tests__/page.test.tsx'`
+  - `pnpm --filter @praedixa/webapp test -- --run 'app/(app)/actions/__tests__/page.test.tsx'`
+  - `pnpm --filter @praedixa/webapp test -- --run 'app/(app)/messages/__tests__/page.test.tsx'`
+  - `pnpm --filter @praedixa/admin test`
+  - `pnpm typecheck`
+- Correctif explicite:
+  - une erreur de re-export sur le decoupage de `app-webapp/app/(app)/actions/` a ete detectee par les tests et corrigee immediatement dans la meme vague avant validation finale.
+
+# Current Pass - 2026-03-21 - Clean Code Simplification Sweep Wave 14
+
+### Plan
+
+- [x] Verifier et verrouiller les refactors en attente de preuve sur `vue-client`
+- [x] Integrer les retombees utiles sur `approvals`, `contrats`, `messages` et `rapports`
+- [x] Mettre a jour la documentation proche des segments touches
+- [x] Rejouer les validations cibles puis une verification large `admin` + `typecheck`
+
+### Review
+
+- Verdict:
+  - `GO` pour une quatorzieme vague continuee sans pause, avec integration mixte locale + retombees de sous-agents, puis verification large.
+- Simplifications fermees:
+  - `app-admin/app/(admin)/clients/[orgId]/vue-client/page.tsx` est maintenant une page de composition branchee sur `vue-client-page-model.tsx` et `vue-client-sections.tsx`
+  - `app-admin/app/(admin)/clients/[orgId]/actions/approvals/` est maintenant decoupe en `page.tsx`, `page-model.ts`, `approvals-sections.tsx` et `approval-decision-panel.tsx`
+  - `app-admin/app/(admin)/clients/[orgId]/contrats/contract-studio-mutation-panel.tsx` ne porte plus son orchestration de mutations; elle vit maintenant dans `contract-studio-mutation-controller.ts`
+  - `app-webapp/app/(app)/messages/page.tsx` est redevenu une page de composition; le hero, le formulaire de creation et le workspace conversation/thread vivent maintenant dans `page-sections.tsx`
+  - `app-admin/app/(admin)/clients/[orgId]/rapports/page.tsx` est redevenu largement presentational; les queries, derives et la mutation de partage vivent maintenant dans `rapports-page-model.tsx`, et le rendu dans `rapports-sections.tsx`
+- Documentation realignee:
+  - `app-admin/app/(admin)/clients/[orgId]/vue-client/README.md`
+  - `app-admin/app/(admin)/clients/[orgId]/actions/approvals/README.md`
+  - `app-admin/app/(admin)/clients/[orgId]/contrats/README.md`
+  - `app-admin/app/(admin)/clients/[orgId]/rapports/README.md`
+  - `app-webapp/app/(app)/messages/README.md`
+- Verifications executees:
+  - `pnpm --filter @praedixa/admin test -- --run 'app/(admin)/clients/[orgId]/vue-client/__tests__/page.test.tsx'`
+  - `pnpm --filter @praedixa/admin test -- --run 'app/(admin)/clients/[orgId]/contrats/__tests__/page.test.tsx'`
+  - `pnpm --filter @praedixa/admin test -- --run 'app/(admin)/clients/[orgId]/actions/approvals/__tests__/page.test.tsx'`
+  - `pnpm --filter @praedixa/webapp test -- --run 'app/(app)/messages/__tests__/page.test.tsx'`
+  - `pnpm --filter @praedixa/admin test`
+  - `pnpm typecheck`
+- Notes d'execution:
+  - une interruption utilisateur a coupe une sous-passe en cours; l'etat reel a ete re-verifie avant reprise, puis les validations ont ete rejouees proprement.
+
+# Current Pass - 2026-03-21 - Clean Code Simplification Sweep Wave 13
+
+### Plan
+
+- [x] Etendre la factorisation app-api a d'autres extracteurs standards sans toucher `geotab`
+- [x] Integrer les refactors retombes sur `rapports/ledgers`, `data.ts` et `pareto-chart.tsx`
+- [x] Mettre a jour la documentation de proximite touchee
+- [x] Rejouer les validations admin/webapp/typecheck et les tests Python cibles
+
+### Review
+
+- Verdict:
+  - `GO` pour une treizieme vague deroulee sans pause, qui etend la factorisation `app-api` et continue le resserrage des surfaces actives TS.
+- Simplifications fermees:
+  - `app-api` etend maintenant le helper partage `_shared/batch_ingest.py` a `toast`, `cdk` et `salesforce`, en plus de `ukg` et `fourth`
+  - `app-admin/app/(admin)/clients/[orgId]/rapports/ledgers/[ledgerId]/ledger-panels.tsx` est allégé avec ses sous-sections presentationnelles sorties dans `ledger-panel-sections.tsx`
+  - `app-webapp/lib/api/endpoints/data.ts` factorise maintenant son plumbing lecture/ecriture et ses helpers de chemins au lieu de dupliquer les appels
+  - `app-webapp/components/ui/pareto-chart.tsx` isole maintenant la geometrie, la frontiere Pareto, les ticks et le tooltip dans des helpers/composants locaux
+- Documentation realignee:
+  - `app-admin/app/(admin)/clients/[orgId]/rapports/ledgers/[ledgerId]/README.md`
+  - `app-api/app/integrations/connectors/_shared/README.md`
+  - `app-webapp/lib/api/endpoints/README.md`
+  - `app-webapp/components/README.md`
+- Verifications executees:
+  - `pnpm --filter @praedixa/admin test`
+  - `pnpm --filter @praedixa/webapp test`
+  - `pnpm typecheck`
+  - `cd app-api && uv run pytest -q tests/test_provider_sync_ukg.py tests/test_provider_sync_fourth.py tests/test_provider_sync_toast.py tests/test_provider_sync_cdk.py tests/test_provider_sync_salesforce.py`
+- Reserve explicite:
+  - il reste encore des extracteurs standards a migrer (`olo`, `sap_tm`, `oracle_tm`, `blue_yonder`, `manhattan`, `ncr_aloha`, `reynolds`) et `geotab` doit toujours rester une passe separee tant que sa logique de watermark n'est pas traitee a part.
+
+# Current Pass - 2026-03-21 - Clean Code Simplification Sweep Wave 12
+
+### Plan
+
+- [x] Lancer une wave 12 plus agressive avec un front principal `app-api` en parallele des autres pistes
+- [x] Integrer la factorisation Python effectivement retombee et verifiee sur les extracteurs `ukg` / `fourth`
+- [x] Mettre a jour la doc locale du helper partage
+- [x] Valider les extracteurs touches avec les tests Python cibles
+
+### Review
+
+- Verdict:
+  - `GO` pour une douzieme vague avec un vrai front Python retenu dans le lot final.
+- Simplifications fermees:
+  - ajout de `app-api/app/integrations/connectors/_shared/batch_ingest.py` pour factoriser le pattern commun `chunk -> ingest_provider_events -> cumul accepted/duplicates`
+  - export de ce helper via `app-api/app/integrations/connectors/_shared/__init__.py`
+  - migration de `app-api/app/integrations/connectors/ukg/extractor.py` vers le helper partage
+  - migration de `app-api/app/integrations/connectors/fourth/extractor.py` vers le helper partage
+- Documentation realignee:
+  - `app-api/app/integrations/connectors/_shared/README.md`
+- Verifications executees:
+  - `cd app-api && uv run pytest -q tests/test_provider_sync_ukg.py tests/test_provider_sync_fourth.py`
+- Reserve explicite:
+  - `geotab` reste volontairement hors de cette passe pour ne pas melanger la factorisation batch-ingest avec sa logique specifique de watermark et `sync_run_state`
+
+# Current Pass - 2026-03-21 - Clean Code Simplification Sweep Wave 11
+
+### Plan
+
+- [x] Lancer une wave plus agressive avec subagents sur plusieurs write scopes disjoints, y compris une piste `app-api`
+- [x] Integrer uniquement les patches effectivement retombes et verifies dans le worktree
+- [x] Mettre a jour la documentation proche des zones touchees
+- [x] Rejouer `admin`, `webapp` et le typecheck global
+
+### Review
+
+- Verdict:
+  - `GO` pour une onzieme vague en parallele; seuls les refactors effectivement retombes et valides ont ete gardes dans le lot final.
+- Simplifications fermees:
+  - `app-admin/app/(admin)/clients/[orgId]/config/config-operations.ts` reduit maintenant fortement la repetition des actions `decision-config` / `integrations` via un runner d'etat partage et des helpers de permission/selection
+  - `app-webapp/lib/api/endpoints/support.ts` n'aligne plus des routes conversations/messages dupliquees en inline; des helpers locaux de chemins portent maintenant cette repetition
+  - `app-webapp/components/ui/waterfall-chart.tsx` deplace ses calculs de geometrie dans des helpers purs, ce qui allège le composant principal
+- Documentation realignee:
+  - `app-admin/app/(admin)/clients/[orgId]/config/README.md`
+  - `app-webapp/lib/api/endpoints/README.md`
+  - `app-webapp/components/README.md`
+- Verifications executees:
+  - `pnpm --filter @praedixa/admin test`
+  - `pnpm --filter @praedixa/webapp test`
+  - `pnpm typecheck`
+- Reserve explicite:
+  - la piste plus profonde de factorisation des extracteurs `app-api` a bien ete isolee comme prochaine grosse cible, mais aucun patch Python n'a encore ete retenu dans cette wave tant qu'il n'est pas revenu proprement integre et valide.
+
+# Current Pass - 2026-03-21 - Clean Code Simplification Sweep Wave 10
+
+### Plan
+
+- [x] Pousser une wave multi-fronts avec subagents sur plusieurs write scopes disjoints
+- [x] Integrer les refactors retenus sur `config`, `journal`, `actions`, `support` et `waterfall-chart`
+- [x] Mettre a jour la documentation proche des zones touchees
+- [x] Rejouer `admin`, `webapp` et le typecheck global
+
+### Review
+
+- Verdict:
+  - `GO` pour une dixieme vague executee en parallele avec subagents, puis integree localement en un lot coherent et valide.
+- Simplifications fermees:
+  - `app-admin/app/(admin)/clients/[orgId]/config/config-operations.ts` a ete nettoye avec un runner d'etat partage pour les actions et des helpers de permission/selection, ce qui retire une grosse repetition entre operations `decision-config` et `integrations`
+  - `app-admin/app/(admin)/journal/page.tsx` est redevenu une page de composition; l'etat, les colonnes et derives vivent maintenant dans `journal-page-model.tsx`, et l'UI dans `journal-sections.tsx`
+  - `app-webapp/app/(app)/actions/page.tsx` reste maintenant une page de composition branchee sur `page-sections.tsx` et `use-actions-page-model.ts`
+  - `app-webapp/lib/api/endpoints/support.ts` utilise maintenant des helpers de chemins locaux plutot que de dupliquer les routes conversations/messages
+  - `app-webapp/components/ui/waterfall-chart.tsx` isole maintenant ses calculs de geometrie dans des helpers purs, ce qui allege le composant principal
+- Documentation realignee:
+  - `app-admin/app/(admin)/clients/[orgId]/config/README.md`
+  - `app-admin/app/(admin)/journal/README.md`
+  - `app-webapp/app/(app)/actions/README.md`
+  - `app-webapp/lib/api/endpoints/README.md`
+  - `app-webapp/components/README.md`
+- Verifications executees:
+  - `pnpm --filter @praedixa/admin test`
+  - `pnpm --filter @praedixa/webapp test`
+  - `pnpm typecheck`
+
+# Current Pass - 2026-03-21 - Clean Code Simplification Sweep Wave 9
+
+### Plan
+
+- [x] Simplifier `app-admin/app/(admin)/journal/page.tsx` en sortant le page-model et les sections UI
+- [x] Integrer la simplification `app-webapp/app/(app)/actions/` en conservant un `page.tsx` de composition
+- [x] Mettre a jour la documentation proche des segments admin/webapp touches
+- [x] Rejouer `admin`, `webapp` et le typecheck global
+
+### Review
+
+- Verdict:
+  - `GO` pour une neuvieme vague de simplification active, executee avec 6 agents en parallele puis integration locale des refactors retenus.
+- Simplifications fermees:
+  - `app-admin/app/(admin)/journal/page.tsx` est redevenu principalement presentational; permissions, etat, derivees de selection et colonnes audit vivent maintenant dans `journal-page-model.tsx`
+  - `app-admin/app/(admin)/journal/` est maintenant decoupe avec `journal-sections.tsx` pour les tabs, la table audit et les cartes RGPD
+  - `app-webapp/app/(app)/actions/page.tsx` est redevenu une page de composition; les sections presentationnelles vivent maintenant dans `page-sections.tsx` et le page-model reste centre sur l'etat/fetchs/mutations
+- Documentation realignee:
+  - `app-admin/app/(admin)/journal/README.md`
+  - `app-webapp/app/(app)/actions/README.md`
+- Verifications executees:
+  - `pnpm --filter @praedixa/admin test`
+  - `pnpm --filter @praedixa/webapp test`
+  - `pnpm typecheck`
+
+# Current Pass - 2026-03-21 - Clean Code Simplification Sweep Wave 8
+
+### Plan
+
+- [x] Simplifier `clients/[orgId]/donnees/page.tsx` en sortant le page-model et les sections runtime
+- [x] Simplifier `demandes-contact/page.tsx` en sortant l'etat, les mutations et les colonnes dans un page-model
+- [x] Isoler le bloc d'actions runtime onboarding hors de `use-onboarding-page-model.ts`
+- [x] Mettre a jour la documentation proche des segments touches
+- [x] Rejouer la suite `admin` et le typecheck global
+
+### Review
+
+- Verdict:
+  - `GO` pour une huitieme vague de simplification active, executee avec 6 agents en parallele puis integration locale des refactors retenus.
+- Simplifications fermees:
+  - `app-admin/app/(admin)/clients/[orgId]/donnees/page.tsx` est redevenu principalement presentational; les fetchs, derivees dataset et feature gates vivent maintenant dans `donnees-page-model.tsx`, et les surfaces UI sont decoupees dans `donnees-sections.tsx`
+  - `app-admin/app/(admin)/demandes-contact/page.tsx` est redevenu un shell de page; pagination, filtres, export CSV, mutation de statut et colonnes vivent maintenant dans `demandes-contact-page-model.tsx`
+  - `app-admin/app/(admin)/clients/[orgId]/onboarding/use-onboarding-page-model.ts` ne porte plus le bloc dense de mutations runtime; `save / complete / secure invites / recompute / cancel / reopen` vivent maintenant dans `use-onboarding-case-actions.ts`
+- Documentation realignee:
+  - `app-admin/app/(admin)/clients/[orgId]/donnees/README.md`
+  - `app-admin/app/(admin)/demandes-contact/README.md`
+  - `app-admin/app/(admin)/clients/[orgId]/onboarding/README.md`
+- Verifications executees:
+  - `pnpm --filter @praedixa/admin test`
+  - `pnpm typecheck`
+
+# Current Pass - 2026-03-21 - Clean Code Simplification Sweep Wave 7
+
+### Plan
+
+- [x] Simplifier `case-workspace-card.tsx` en sortant les sections runtime du workspace onboarding
+- [x] Simplifier `app/(admin)/parametres/page.tsx` en separant le page-model et les sections UI
+- [x] Mettre a jour la documentation proche des segments admin touches
+- [x] Rejouer la suite `admin` et le typecheck global
+
+### Review
+
+- Verdict:
+  - `GO` pour une septieme vague de simplification active sur deux surfaces admin encore trop denses, executee avec agents en parallele puis integration locale.
+- Simplifications fermees:
+  - `app-admin/app/(admin)/clients/[orgId]/onboarding/case-workspace-card.tsx` est redevenu un conteneur de composition; header, liste des taches, blockers, timeline et etat vide vivent maintenant dans `case-workspace-sections.tsx`
+  - `app-admin/app/(admin)/parametres/page.tsx` est redevenu largement presentational; l'orchestration de permissions, tabs, create-client, config health et table onboarding vit maintenant dans `parametres-page-model.tsx`
+  - les sections UI du workspace parametres vivent maintenant dans `parametres-sections.tsx`, ce qui retire la grosse densite JSX de la page
+- Documentation realignee:
+  - `app-admin/app/(admin)/clients/[orgId]/onboarding/README.md`
+  - `app-admin/app/(admin)/parametres/README.md`
+- Verifications executees:
+  - `pnpm --filter @praedixa/admin test`
+  - `pnpm typecheck`
+
+# Current Pass - 2026-03-21 - Regroupement Dossiers Caches Techniques
+
+### Plan
+
+- [x] Regrouper sous `.meta/` les dossiers caches techniques non conventionnels du repo (`.tools`, `.release`, `.tmp`, `.hypothesis`, `.lighthouseci`, `.mypy_cache`, `.ruff_cache`)
+- [x] Realigner les scripts, la documentation et les garde-fous qui referencent encore ces chemins
+- [x] Verifier les nouveaux chemins et expliciter les dossiers caches conserves a la racine pour raison outillage
+
+### Review
+
+- Resultat:
+  - les dossiers caches techniques propres au repo sont maintenant centralises sous `.meta/`, avec une doc d'intention dans `.meta/README.md`.
+- Regroupements effectues:
+  - `.tools/` -> `.meta/.tools/`
+  - `.release/` -> `.meta/.release/`
+  - `.tmp/` -> `.meta/.tmp/`
+  - `.hypothesis/` -> `.meta/.hypothesis/`
+  - `.lighthouseci/` -> `.meta/.lighthouseci/`
+  - `.mypy_cache/` -> `.meta/.mypy_cache/`
+  - `.ruff_cache/` -> `.meta/.ruff_cache/`
+- Realignements techniques:
+  - scripts dev/background, Camunda local, Keycloak helper et CodeQL local
+  - `package.json`, `WORKFLOW.md`, `app-symphony/src/orchestrator.test.ts`
+  - garde-fous repo: `.gitignore`, `sonar-project.properties`, `tsconfig.base.json`, `scripts/generate-directory-readmes.mjs`, `scripts/audit-ultra-strict-local.sh`, `scripts/run-supply-chain-audit.sh`
+  - documentation touchee dans `scripts/README.md`, `app-api-ts/README.md`, `infra/camunda/README.md` et les runbooks release/smoke/backup
+- Dossiers caches laisses a la racine volontairement:
+  - `.git`, `.github`, `.vscode`, `.codex`, `.claude` par convention outillage
+  - `.venv`, `.turbo`, `.pnpm-store` car leurs chemins par defaut n'ont pas encore ete reconfigures proprement dans les outils associes
+- Verification:
+  - `find . -maxdepth 1 -type d -name '.*' | sort`
+  - `bash -n` sur tous les scripts shell touches
+  - `pnpm --dir app-symphony test -- src/orchestrator.test.ts`
+
+# Current Pass - 2026-03-21 - Clean Code Simplification Sweep Wave 6
+
+### Plan
+
+- [x] Simplifier `task-action-card.tsx` en separant primitives de formulaire, helpers payload et editeurs par `taskKey`
+- [x] Simplifier `app-shell.tsx` en separant helpers de shell, topbar et menu profil
+- [x] Mettre a jour la documentation proche des deux zones touchees
+- [x] Rejouer les suites `admin`, `webapp` et le typecheck global
+
+### Review
+
+- Verdict:
+  - `GO` pour une sixieme vague sur deux composants encore trop denses, executee avec agents en parallele puis integration locale.
+- Simplifications fermees:
+  - `app-admin/app/(admin)/clients/[orgId]/onboarding/task-action-card.tsx` ne porte plus la matrice complete des formulaires onboarding
+  - les primitives vivent maintenant dans `task-action-form-fields.tsx`, les helpers payload dans `task-action-payload.ts`, et la table des editeurs dans `task-action-editors.tsx`
+  - `app-webapp/components/app-shell.tsx` est maintenant recentre sur le layout/shell orchestration
+  - la topbar a ete extraite vers `app-shell-topbar.tsx`, le menu profil vers `app-shell-profile-menu.tsx`, et les helpers de breadcrumbs/site scope/menu dismissal vers `app-shell-model.tsx`
+- Documentation realignee:
+  - `app-admin/app/(admin)/clients/[orgId]/onboarding/README.md`
+  - `app-webapp/components/README.md`
+  - `app-webapp/app/(app)/README.md`
+- Verifications executees:
+  - `pnpm --filter @praedixa/admin test`
+  - `pnpm --filter @praedixa/webapp test`
+  - `pnpm typecheck`
+
+# Current Pass - 2026-03-21 - Clean Code Simplification Sweep Wave 5
+
+### Plan
+
+- [x] Converger `app-admin/hooks/use-api.ts` et `app-webapp/hooks/use-api.ts` vers un coeur partage sans changer leurs signatures publiques
+- [x] Introduire un package workspace minimal pour ce coeur partage et realigner les references monorepo
+- [x] Mettre a jour la doc des hooks et des packages touches
+- [x] Rejouer `pnpm install`, le build du package, les suites admin/webapp, le lint du package et le typecheck global
+
+### Review
+
+- Verdict:
+  - `GO` pour une cinquieme vague transverse qui supprime un gros doublon structurel entre l'admin et le webapp.
+- Simplifications fermees:
+  - ajout du package `packages/api-hooks/` avec un moteur partage pour `useApiGet`, `useApiGetPaginated`, `useApiPost` et `useApiPatch`
+  - `app-admin/hooks/use-api.ts` et `app-webapp/hooks/use-api.ts` sont devenus des wrappers minces qui injectent leurs adapters locaux HTTP/auth/reauth
+  - realignement monorepo: `package.json`, `tsconfig.json`, `app-admin/tsconfig.build.json`, `app-webapp/tsconfig.build.json`, `app-admin/package.json`, `app-webapp/package.json`
+  - doc de proximite mise a jour dans `app-admin/hooks/README.md`, `app-webapp/hooks/README.md`, `packages/api-hooks/README.md` et `packages/README.md`
+- Verifications executees:
+  - `pnpm install`
+  - `pnpm --filter @praedixa/api-hooks build`
+  - `pnpm --filter @praedixa/api-hooks lint`
+  - `pnpm --filter @praedixa/admin test`
+  - `pnpm --filter @praedixa/webapp test`
+  - `pnpm typecheck`
+
+# Current Pass - 2026-03-21 - Regroupement Artefacts Racine Restants
+
+### Plan
+
+- [x] Regrouper `pitch-deck-v2.html` et `outreach-templates-csuite.md` sous `marketing/sales-assets/`
+- [x] Regrouper `SPEC.md` et `ticket.md` sous `docs/specs/`
+- [x] Realigner `README.md`, `docs/README.md` et les references restantes
+- [x] Verifier les nouveaux chemins et consigner la review finale
+
+### Review
+
+- Resultat:
+  - les derniers gros artefacts documentaires/commerciaux qui encombraient la racine sont maintenant ranges dans des dossiers dedicaces.
+- Regroupements effectues:
+  - `pitch-deck-v2.html` -> `marketing/sales-assets/pitch-deck-v2.html`
+  - `outreach-templates-csuite.md` -> `marketing/sales-assets/outreach-templates-csuite.md`
+  - `SPEC.md` -> `docs/specs/SPEC.md`
+  - `ticket.md` -> `docs/specs/ticket.md`
+- Realignements techniques/documentaires:
+  - ajout de `marketing/sales-assets/README.md`
+  - ajout de `docs/specs/README.md`
+  - mise a jour de `README.md` pour refléter `marketing/` et les nouveaux points d'entree
+  - mise a jour de `docs/README.md` pour indexer `specs/`
+  - mise a jour de `docs/plans/2026-03-19-symphony-service-design.md`
+- Verification:
+  - `ls -d pitch-deck-v2.html outreach-templates-csuite.md SPEC.md ticket.md` => aucun fichier restant a la racine
+  - `find marketing/sales-assets docs/specs -maxdepth 1 -type f | sort`
+
+# Current Pass - 2026-03-21 - Clean Code Simplification Sweep Wave 4
+
+### Plan
+
+- [x] Extraire la logique dense du workspace onboarding admin dans un hook dedie
+- [x] Realigner la documentation du segment onboarding touche
+- [x] Rejouer les tests admin et le typecheck global, puis consigner la review
+
+### Review
+
+- Verdict:
+  - `GO` pour une quatrieme vague de simplification active sur le control plane onboarding admin.
+- Simplifications fermees:
+  - `app-admin/app/(admin)/clients/[orgId]/onboarding/page.tsx` est maintenant largement presentational
+  - l'orchestration des fetchs, permissions, mutations lifecycle, sauvegardes de taches et invitations securisees vit dans `app-admin/app/(admin)/clients/[orgId]/onboarding/use-onboarding-page-model.ts`
+  - la doc de proximite a ete realignee dans `app-admin/app/(admin)/clients/[orgId]/onboarding/README.md`
+- Verifications executees:
+  - `pnpm --filter @praedixa/admin test`
+  - `pnpm typecheck`
+- Suite identifiee par les agents:
+  - prochain meilleur refactor transverse: converger `app-admin/hooks/use-api.ts` et `app-webapp/hooks/use-api.ts` vers un coeur partage tout en gardant leurs signatures publiques locales
+
+# Current Pass - 2026-03-21 - Clean Code Simplification Sweep Wave 3
+
+### Plan
+
+- [x] Extraire la logique dense de la page liste clients admin dans un hook dedie
+- [x] Extraire la logique dense de la page previsions webapp dans un hook dedie
+- [x] Mettre a jour la documentation de navigation proche des routes touchees
+- [x] Rejouer les tests `admin`, `webapp` et le typecheck global, puis consigner la review
+
+### Review
+
+- Verdict:
+  - `GO` pour une troisieme vague de simplification sur du code actif, focalisee sur des pages encore trop chargees plutot que sur du legacy mort.
+- Simplifications fermees:
+  - `app-admin/app/(admin)/clients/page.tsx` delegue maintenant l'etat de filtres, pagination, selection, export CSV et navigation a `app-admin/app/(admin)/clients/use-clients-page-model.ts`
+  - `app-webapp/app/(app)/previsions/page.tsx` delegue maintenant la selection d'horizon, l'orchestration des hooks de donnees et le retry global a `app-webapp/app/(app)/previsions/use-previsions-page-model.ts`
+  - la doc de proximite a ete realignee dans `app-admin/app/(admin)/clients/README.md` et `app-webapp/app/(app)/previsions/README.md`
+- Verifications executees:
+  - `pnpm --filter @praedixa/admin test`
+  - `pnpm --filter @praedixa/webapp test`
+  - `pnpm typecheck`
+- Suite suggeree par les agents:
+  - prochain meilleur refactor front a faible risque: `app-admin/app/(admin)/clients/[orgId]/onboarding/page.tsx`
+  - prochain meilleur refactor transverse a forte rentabilite: convergence du coeur partage entre `app-admin/hooks/use-api.ts` et `app-webapp/hooks/use-api.ts`
+
+# Current Pass - 2026-03-21 - Regroupement Scripts Et Marketing
+
+### Plan
+
+- [x] Regrouper les familles de scripts evidentes sous `scripts/dev/`, `scripts/scw/`, `scripts/keycloak/` et `scripts/gates/`
+- [x] Regrouper `content/`, `linkedin_banners/` et `presentations-clients/` sous un parent `marketing/`
+- [x] Realigner `package.json`, les scripts internes, la doc et les garde-fous
+- [x] Verifier les chemins critiques et consigner la review finale
+
+### Review
+
+- Resultat:
+  - la racine est simplifiee avec un nouveau pole `marketing/`, et les familles de scripts les plus evidentes sont maintenant rangees par domaine sous `scripts/`.
+- Regroupements effectues:
+  - `content/` -> `marketing/content/`
+  - `linkedin_banners/` -> `marketing/linkedin_banners/`
+  - `presentations-clients/` -> `marketing/presentations-clients/`
+  - scripts dev -> `scripts/dev/`
+  - scripts Scaleway -> `scripts/scw/`
+  - scripts Keycloak -> `scripts/keycloak/`
+  - scripts de gates/CI proches -> `scripts/gates/`
+- Realignements techniques:
+  - `package.json`, `app-admin/package.json`, `app-webapp/package.json`, `app-landing/package.json`
+  - Dockerfiles qui copiaient encore `scripts/install-prek.sh`
+  - scripts internes qui recalculaient mal la racine du repo apres deplacement
+  - garde-fous chemins/patterns: `.gitignore`, `knip.json`, `scripts/gates/ci-evaluate-scope.sh`, `scripts/generate-directory-readmes.mjs`, `scripts/run-codeql-local.sh`
+  - docs et README touches par les nouveaux chemins (`scripts/README.md`, `docs/deployment/scaleway-container.md`, `docs/seo/README.md`, `marketing/content/README.md`, `marketing/content/blog/README.md`, `marketing/presentations-clients/*`)
+  - `app-landing` relit maintenant le contenu editorial depuis `marketing/content/` dans `lib/blog/config.ts`, `scripts/audit-blog-links.mjs` et l'image Docker landing
+- Verification:
+  - `find scripts/dev scripts/gates scripts/scw scripts/keycloak -type f -name '*.sh' -print0 | xargs -0 -n 1 bash -n`
+  - `npm run test` dans `marketing/presentations-clients/skolae`
+  - `npm run test` dans `marketing/presentations-clients/greekia`
+  - `npm run test` dans `marketing/presentations-clients/centaurus`
+  - `node app-landing/scripts/audit-blog-links.mjs`
+  - `ls -1 .`
+  - `find marketing -maxdepth 2 -mindepth 1 -type d | sort`
+
+# Current Pass - 2026-03-21 - Regroupement Tests Presentations Clients
+
+### Plan
+
+- [x] Deplacer les dossiers de tests des presentations vers `marketing/presentations-clients/tests/<nom>/`
+- [x] Realigner les configurations Vitest et la documentation associee
+- [x] Verifier les nouveaux chemins et consigner la review finale
+
+### Review
+
+- Resultat:
+  - les tests des mini-sites sont maintenant regroupes sous `marketing/presentations-clients/tests/`, avec un sous-dossier par presentation.
+- Deplacements effectues:
+  - `marketing/presentations-clients/skolae/src/test/*` -> `marketing/presentations-clients/tests/skolae/`
+  - `marketing/presentations-clients/greekia/src/test/*` -> `marketing/presentations-clients/tests/greekia/`
+  - `marketing/presentations-clients/centaurus/src/test/*` -> `marketing/presentations-clients/tests/centaurus/`
+- Realignements techniques:
+  - mise a jour de `marketing/presentations-clients/skolae/vitest.config.ts`
+  - mise a jour de `marketing/presentations-clients/greekia/vitest.config.ts`
+  - mise a jour de `marketing/presentations-clients/centaurus/vitest.config.ts`
+  - ajout d'aliases explicites vers les `node_modules` locaux pour eviter un double runtime React une fois les tests sortis du dossier projet
+  - documentation mise a jour dans `marketing/presentations-clients/README.md`, `marketing/presentations-clients/tests/README.md`, `marketing/presentations-clients/skolae/README.md` et `marketing/presentations-clients/greekia/README.md`
+- Verification:
+  - `find marketing/presentations-clients/tests -maxdepth 2 -type f | sort`
+  - `rg -n "src/test/|\\.\\/src\\/test\\/setup\\.ts|src/\\*\\*/\\*\\.\\{test,spec\\}" marketing/presentations-clients`
+  - `npm run test` dans `marketing/presentations-clients/skolae`
+  - `npm run test` dans `marketing/presentations-clients/greekia`
+  - `npm run test` dans `marketing/presentations-clients/centaurus`
+
+# Current Pass - 2026-03-21 - Regroupement Presentations Clients
+
+### Plan
+
+- [x] Creer un dossier parent unique `marketing/presentations-clients/` et y regrouper `skolae`, `greekia` et `centaurus`
+- [x] Realigner les scripts, docs et gardes-fous qui referencent encore ces dossiers a la racine
+- [x] Verifier le nouvel arbre et consigner la review finale
+
+### Review
+
+- Resultat:
+  - les trois presentations vivent maintenant sous `marketing/presentations-clients/` avec un README parent de regroupement.
+- Deplacements effectues:
+  - `skolae/` -> `marketing/presentations-clients/skolae/`
+  - `greekia/` -> `marketing/presentations-clients/greekia/`
+  - `centaurus/` -> `marketing/presentations-clients/centaurus/`
+- Realignements techniques:
+  - mise a jour des `BUILD_SOURCE` dans `scripts/scw/scw-deploy-skolae.sh`, `scripts/scw/scw-deploy-greekia.sh` et `scripts/scw/scw-deploy-centaurus.sh`
+  - mise a jour des docs et gardes-fous touches (`scripts/README.md`, `docs/deployment/scaleway-container.md`, `knip.json`, `scripts/check-ts-guardrail-baseline-lib.mjs`, `scripts/generate-directory-readmes.mjs`, `scripts/run-codeql-local.sh`)
+  - ajout d'une note d'emplacement dans les README de `skolae` et `greekia`
+  - correction des liens absolus documentaires qui pointaient encore vers les anciens chemins
+- Verification:
+  - `ls -la marketing/presentations-clients`
+  - `find marketing/presentations-clients -maxdepth 2 -mindepth 1 -type d | sort`
+  - `bash -n scripts/scw/scw-deploy-skolae.sh`
+  - `bash -n scripts/scw/scw-deploy-greekia.sh`
+  - `bash -n scripts/scw/scw-deploy-centaurus.sh`
+  - `node -e "JSON.parse(require('node:fs').readFileSync('knip.json','utf8'))"`
+  - `rg -n "/Users/steven/Programmation/praedixa/(skolae|greekia|centaurus)" marketing/presentations-clients tasks/todo.md`
+- Note:
+  - `centaurus/` conserve son depot Git imbrique; il a simplement ete range sous le parent commun demande.
+
+# Current Pass - 2026-03-21 - Clean Code Simplification Sweep Wave 2
+
+### Plan
+
+- [x] Extraire la logique dense du dashboard client admin dans un hook de page dedie
+- [x] Extraire la logique dense du centre actions webapp dans un hook de page dedie
+- [x] Rejouer les tests/pages touches et le typecheck global, puis consigner la review
+
+### Review
+
+- Resultat:
+  - les pages dashboard admin et actions webapp ont ete nettoyees en mode "page model", avec un JSX plus presentational et une logique de state/data centralisee dans des hooks dedies.
+- Artefacts ajoutes:
+  - `app-admin/app/(admin)/clients/[orgId]/dashboard/use-client-dashboard-page-model.ts`
+  - `app-webapp/app/(app)/actions/use-actions-page-model.ts`
+- Artefacts simplifies:
+  - `app-admin/app/(admin)/clients/[orgId]/dashboard/page.tsx`
+  - `app-webapp/app/(app)/actions/page.tsx`
+- Verifications executees:
+  - `pnpm --filter @praedixa/admin test`
+  - `pnpm --filter @praedixa/webapp test`
+  - `pnpm typecheck`
+
+# Current Pass - 2026-03-21 - Clean Code Simplification Sweep
+
+### Plan
+
+- [x] Lancer 6 agents en parallele avec le cadre `clean-code` pour identifier les plus gros gains de simplification par runtime
+- [x] Simplifier/supprimer en priorite les wrappers, clusters test-only, composants orphelins et surfaces package inutilement larges
+- [x] Realigner la doc de navigation, les exports package et les baselines de complexite/guardrails
+- [x] Rejouer les validations pertinentes et consigner le bilan final
+
+### Review
+
+- Verdict:
+  - `GO` pour une passe de simplification agressive et largement completee. Le repo a ete nettoye des couches mortes, des wrappers inutiles, de plusieurs clusters scaffolding non branches et d'une grosse masse de README boilerplate.
+- Agents utilises:
+  - `app-api-ts`
+  - `app-webapp + app-admin`
+  - `packages/*`
+  - `app-connectors`
+  - `docs/tooling`
+  - `app-api`
+- Simplifications / suppressions majeures fermees:
+  - `app-api`: suppression de `decisions.py`, `seed_demo_data.py`, `demo_support/mock_forecast_service.py`
+  - `app-api-ts`: suppression de `mock-data.ts`, `mapping-studio.ts`, `dataset-health-api.ts`, `data-health.ts`, du cluster `decision-audit*`, du cluster `decision-graph-explorer*` et du rapport `SECURITY_AUDIT_2026-03-06.md`
+  - `shared-types`: retrait des types morts `ReplacementRecommendation`, `ReplacementCandidate`, `ActionPlan`, puis suppression du cluster `decision-audit*` / `decision-graph-explorer*`
+  - `webapp/admin`: suppression de `use-count-up.ts`, des vieux fichiers `contract-studio-*` orphelins, de `OptimizationPanel`, `ForecastTimelineChart`, `ChartInsight` et de leurs tests
+  - `packages`: reduction de la surface publique de `@praedixa/telemetry`, suppression de plusieurs README feuille morte (`packages/ui`, `packages/telemetry`, `packages/shared-types`)
+  - `docs`: suppression de `API.md`, suppression des rapports d'audit historiques isoles et retrait massif des README boilerplate `__tests__` / composants dans `app-admin` et `app-webapp`
+- Verifications executees sur l'ensemble de la passe:
+  - `pnpm --filter @praedixa/api-ts test`
+  - `pnpm --filter @praedixa/telemetry test`
+  - `pnpm --filter @praedixa/shared-types build`
+  - `pnpm --filter @praedixa/ui build`
+  - `pnpm typecheck`
+  - `cd app-api && uv run pytest -q` sur la vague Python concernee
+  - sweeps `rg` de references residuelles apres chaque lot critique
+- Ce qui reste volontairement en place:
+  - les docs encore reliees a des parcours CTO/PRD reels (`docs/data-api/README.md`, `docs/medallion-pipeline.md`)
+  - les modules encore references ou clairement structurant le runtime (`decision-graph.ts`, `decision-compatibility.ts`, services/read-models actifs, composants UI encore montes)
+  - autrement dit, ce qui reste n'est plus du legacy evident retire sans regret; on tomberait ensuite dans du refactoring semantique plus risqué que du clean brutal.
+- Simplifications actives de code fermees ensuite dans la meme dynamique:
+  - suppression de la facade `app-admin/lib/auth/route-access.ts` et bascule des imports directs vers `admin-route-policies.ts`
+  - nettoyage des tests/doc auth admin associes (`app-admin/lib/auth/__tests__/route-access.test.ts`, `app-admin/lib/auth/__tests__/admin-route-policies.test.ts`, `app-admin/lib/auth/README.md`)
+  - inline de `DataTableSortIcon` dans `packages/ui/src/components/data-table/data-table-header.tsx` puis suppression du fichier dedie
+  - retrait de l'export inutilise `LOGO_COLORS` dans `packages/ui/src/components/praedixa-logo.tsx` et `packages/ui/src/index.ts`
+  - simplification de `app-connectors/src/routes.ts` avec un helper generique `runParsedServiceAction(...)`, des helpers de params (`getOrgId`, `getConnectionId`, etc.) et une centralisation plus lisible du binding `connectorRunId`
+- Verifications complementaires executees:
+  - `pnpm --filter @praedixa/admin test`
+  - `pnpm --filter @praedixa/connectors test`
+  - `pnpm --filter @praedixa/ui build`
+  - `pnpm typecheck`
+
+# Current Pass - 2026-03-21 - Legacy Code Cleanup Sweep Wave 4
+
+### Plan
+
+- [x] Supprimer les derniers rapports historiques et README boilerplate non references dans `app-api`, `app-admin` et `app-webapp`
+- [x] Verifier qu'aucun index/runtime vivant ne pointe encore vers ces artefacts
+- [x] Rejouer une verification repo legere et consigner la review finale
+
+### Review
+
+- Verdict:
+  - `GO` pour une quatrieme vague de finition qui nettoie surtout le bruit documentaire restant dans les apps Next et les artefacts d'audit historiques isoles.
+- Suppressions executees:
+  - `app-api/SECURITY_AUDIT_2026-03-08.md`
+  - l'ensemble des `README.md` boilerplate sous `app-admin` et `app-webapp` pour les sous-dossiers `__tests__`
+  - les README boilerplate de sous-dossiers composants `chat/`, `skeletons/`, `ui/` cote `app-admin`
+  - les README boilerplate de sous-dossiers composants `chat/`, `dashboard/`, `ui/` cote `app-webapp`
+- Verification executee:
+  - sweep `rg` pour verifier l'absence de references residuelles vers les README/files supprimes
+  - `pnpm typecheck`
+- Remarque:
+  - cette vague ne change pas le runtime; elle retire surtout des feuilles doc a faible signal qui encombraient la navigation repo.
+
+# Current Pass - 2026-03-21 - Legacy Code Cleanup Sweep Wave 3
+
+### Plan
+
+- [x] Reserrer les surfaces publiques package encore trop larges (`packages/telemetry`, packages README leaves)
+- [x] Supprimer les README/doc-leaf restants qui ne servent plus de point d'entree utile
+- [x] Realigner les index package/docs touches par cette passe
+- [x] Rejouer les validations ciblees puis consigner la review finale
+
+### Review
+
+- Verdict:
+  - `GO` pour une troisieme vague plus fine de nettoyage, focalisee sur la reduction de surface package et la suppression de documentation feuille morte.
+- Suppressions/code hygiene executees:
+  - les helpers telemetry `normalizeTelemetryCorrelationValue`, `normalizeTelemetryRequestId` et `normalizeTracestate` ne font plus partie de l'API publique de `@praedixa/telemetry`
+  - suppression de `packages/telemetry/src/README.md`
+  - suppression de `packages/shared-types/src/utils/README.md`
+- Artefacts realignes:
+  - `packages/telemetry/src/correlation.ts`
+  - `packages/telemetry/src/index.ts`
+  - `packages/README.md`
+- Verifications executees:
+  - `pnpm --filter @praedixa/telemetry test`
+  - `pnpm --filter @praedixa/shared-types build`
+  - `pnpm typecheck`
+  - sweep `rg` pour verifier que les helpers telemetry ne fuient plus via l'API publique et que les README supprimes n'etaient plus references
+
+# Current Pass - 2026-03-21 - Legacy Code Cleanup Sweep Wave 2
+
+### Plan
+
+- [x] Cartographier de facon plus agressive les derniers blocs legacy/doc faible avec les agents et les outils repo (`knip`, references, docs)
+- [x] Supprimer les points d'entree doc legacy, wrappers/tests orphelins et README redondants encore presents
+- [x] Realigner les index/docs/baselines touches par cette vague
+- [x] Rejouer les validations ciblees puis consigner la review finale
+
+### Review
+
+- Verdict:
+  - `GO` pour une deuxieme grosse vague plus agressive, en assumant explicitement que le repo n'est pas en production et qu'il vaut mieux supprimer le legacy que le conserver "au cas ou".
+- Suppressions code/doc executees:
+  - cluster DecisionOps fantome cote `app-api-ts`: `decision-audit-feed.ts`, `decision-audit.ts`, `decision-graph-explorer.ts` et leurs tests associes
+  - cluster contrats/types fantomes cote `packages/shared-types`: `src/api/decision-audit-feed.ts`, `src/api/decision-graph-explorer.ts`, `src/domain/decision-audit.ts` et les tests associes
+  - docs package redondantes: `packages/ui/src/components/README.md`, `packages/ui/src/hooks/README.md`, `packages/ui/src/utils/README.md`
+  - point d'entree legacy de cadrage: suppression de `API.md` apres repli des references vers `docs/prd/*`
+  - cluster webapp orphelin `actions/`: `optimization-panel.tsx`, son test et les README du sous-dossier
+  - cluster webapp orphelin `dashboard/`: `forecast-timeline-chart.tsx`, `chart-insight.tsx`, leur test associe et le README de tests
+  - wrapper/test-only cote `app-api-ts`: `src/services/data-health.ts` et `src/__tests__/data-health.test.ts`
+  - artefact historique isole: `app-api-ts/SECURITY_AUDIT_2026-03-06.md`
+- Artefacts realignes:
+  - `README.md`
+  - `docs/README.md`
+  - `docs/cto/01-systeme-et-runtimes.md`
+  - `docs/cto/08-contrats-et-types-partages.md`
+  - `docs/cto/20-hierarchie-documentaire-et-normativite.md`
+  - `docs/cto/21-vocabulaire-harmonisation-repo.md`
+  - `app-api-ts/src/services/README.md`
+  - `app-webapp/components/README.md`
+  - `app-webapp/components/dashboard/README.md`
+  - `packages/shared-types/src/api.ts`
+  - `packages/shared-types/src/domain.ts`
+  - `packages/shared-types/src/api/README.md`
+  - `packages/shared-types/src/domain/README.md`
+  - `scripts/ts-guardrail-baseline.json`
+- Verifications executees:
+  - `pnpm architecture:knip`
+  - `pnpm --filter @praedixa/shared-types build`
+  - `pnpm --filter @praedixa/api-ts test`
+  - `pnpm --filter @praedixa/ui build`
+  - `pnpm typecheck`
+  - plusieurs sweeps `rg` pour verifier la disparition complete des references legacy retirees
+- Candidats encore ouverts pour une vague suivante:
+  - pruning d'exports helper peu utiles dans `packages/telemetry`
+  - nettoyage/redirection de docs secondaires comme `docs/data-api/README.md` ou `docs/medallion-pipeline.md`
+  - audit plus profond des composants UI locaux de `app-webapp/components/ui/*` a faible signal
+
+# Current Pass - 2026-03-21 - Legacy Code Cleanup Sweep
+
+### Plan
+
+- [x] Cartographier les zones legacy/non utilisees avec preuves repo par runtime et identifier les suppressions sures
+- [x] Supprimer en premier les doublons et types legacy sans consommateurs reels
+- [x] Realigner les docs/tests proches du code touches par ces suppressions
+- [x] Rejouer les verifications ciblees puis consigner la review finale
+
+### Review
+
+- Verdict:
+  - `GO` pour une premiere grosse vague de nettoyage legacy/non utilise, avec suppressions reellement verifiees par references repo + builds/tests verts.
+- Suppressions code/doc executees:
+  - doublon mort `app-api/scripts/demo_support/mock_forecast_service.py`
+  - seed legacy non reference `app-api/scripts/seed_demo_data.py`
+  - service legacy non reference `app-api/app/services/decisions.py`
+  - interfaces TypeScript sans consommateurs `ReplacementRecommendation`, `ReplacementCandidate` et `ActionPlan` dans `packages/shared-types/src/domain/decision.ts`
+  - fichiers orphelins admin `app-admin/app/(admin)/clients/[orgId]/contrats/contract-studio-selection.ts` et `contract-studio-detail-sections.tsx`
+  - hook webapp non utilise `app-webapp/hooks/use-count-up.ts`
+  - export utilitaire non consomme `breakpoints` dans `packages/ui/src/hooks/use-media-query.ts`
+  - bloc legacy API TS non reference: `app-api-ts/src/mock-data.ts`, `app-api-ts/src/services/mapping-studio.ts`, `app-api-ts/src/__tests__/mapping-studio.test.ts`, `app-api-ts/src/services/dataset-health-api.ts`, `app-api-ts/src/__tests__/dataset-health-api.test.ts`
+- Artefacts realignes:
+  - `app-api/scripts/README.md`
+  - `app-api/app/services/README.md`
+  - `docs/DATABASE.md`
+  - `scripts/python-complexity-baseline.json`
+  - `packages/shared-types/src/domain/README.md`
+  - `packages/shared-types/README.md`
+  - `app-admin/app/(admin)/clients/[orgId]/contrats/README.md`
+  - `app-webapp/hooks/README.md`
+  - `packages/ui/README.md`
+  - `packages/ui/src/__tests__/use-media-query.test.ts`
+  - `scripts/ts-guardrail-baseline.json`
+- Verifications executees:
+  - `pnpm --filter @praedixa/shared-types build`
+  - `pnpm --filter @praedixa/ui build`
+  - `pnpm typecheck`
+  - `pnpm --filter @praedixa/ui exec vitest run src/__tests__/use-media-query.test.ts`
+  - `pnpm --filter @praedixa/api-ts test`
+  - `cd app-api && uv run pytest -q`
+  - recherches repo `rg` pour verifier la disparition des references ciblees
+- Candidats encore ouverts pour une prochaine vague:
+  - redirection documentaire `API.md` -> `docs/prd/README.md` dans les index docs
+  - nettoyage de quelques README locaux redondants sous `packages/ui`
+  - audit plus profond des services/test scaffolding restants (`decision-audit-feed`, `decision-graph-explorer`, etc.) qui sont proches du produit mais pas encore qualifies comme suppressions sures
+
+# Current Pass - 2026-03-21 - CTO Docs Closure Wave 5
+
+### Plan
+
+- [x] Fermer les deux derniers items ouverts de `todo-cto.md`: ERD semi-auto et parite contrats internes critiques
+- [x] Integrer ces deux garde-fous dans les scripts package et la documentation distribuée
+- [x] Generer le visuel Mermaid auto a partir des modeles SQLAlchemy
+- [x] Rejouer les validations et clore `todo-cto.md`
+
+### Review
+
+- Verdict:
+  - `GO` pour une cloture fonctionnelle du chantier `todo-cto`: toutes les cases sont maintenant fermees.
+- Livrables principaux ajoutes:
+  - `scripts/generate-cto-erd.mjs`
+  - `scripts/__tests__/generate-cto-erd.test.mjs`
+  - `scripts/check-contract-ts-parity.mjs`
+  - `scripts/__tests__/check-contract-ts-parity.test.mjs`
+  - `docs/cto/visuals/schema-public-auto-generated.mmd`
+- Artefacts realignes:
+  - `package.json`
+  - `scripts/README.md`
+  - `docs/cto/04-schema-public-postgres.md`
+  - `docs/cto/08-contrats-et-types-partages.md`
+  - `todo-cto.md`
+- Verifications executees:
+  - `node --test scripts/__tests__/generate-cto-erd.test.mjs`
+  - `node --test scripts/__tests__/check-contract-ts-parity.test.mjs`
+  - `pnpm docs:generate:erd`
+  - `pnpm docs:validate:contracts-parity`
+- Point de vigilance assume:
+  - l'ERD auto-genere remonte aussi certaines cibles de FK legacy encore referencees par les modeles historiques; il faut donc le lire avec `docs/cto/18-audit-ecarts-database-doc.md` et la page editoriale `docs/cto/04-schema-public-postgres.md`.
+
+# Current Pass - 2026-03-21 - CTO Docs Closure Wave 4
+
+### Plan
+
+- [x] Harmoniser le narratif repo-level entre `README.md`, `docs/README.md` et `docs/ARCHITECTURE.md`
+- [x] Realigner les README runtime proches du code sur le vocabulaire CTO et les sources de verite
+- [x] Ajouter un garde-fou CI leger schema -> doc et l'integrer aux scripts package
+- [x] Rejouer les validations utiles, mettre a jour `todo-cto.md` et consigner la review
+
+### Review
+
+- Verdict:
+  - `GO` pour une quatrieme vague qui ferme la quasi-totalite du chantier `todo-cto` cote onboarding CTO et garde-fous documentaires.
+- Livrables principaux ajoutes:
+  - `scripts/check-schema-doc-change-parity.mjs`
+  - `scripts/__tests__/check-schema-doc-change-parity.test.mjs`
+- Artefacts realignes:
+  - `README.md`
+  - `docs/README.md`
+  - `docs/ARCHITECTURE.md`
+  - `docs/DATABASE.md`
+  - `app-api/app/models/README.md`
+  - `app-api-ts/src/services/README.md`
+  - `app-connectors/README.md`
+  - `package.json`
+  - `scripts/README.md`
+  - `todo-cto.md`
+- Verifications executees:
+  - `node --test scripts/__tests__/check-schema-doc-change-parity.test.mjs`
+  - `pnpm docs:validate:schema-parity`
+  - `node scripts/check-schema-doc-change-parity.mjs --changed-file app-api/app/models/integration.py --changed-file docs/DATABASE.md`
+- Ce qui reste encore ouvert apres cette vague:
+  - generation automatique ou semi-automatique des ERD depuis le schema reel
+  - check de parite pour les contrats internes critiques lorsqu'ils existent a la fois en JSON/OpenAPI et en TypeScript
+
+# Current Pass - 2026-03-21 - CTO Docs Closure Wave 3
+
+### Plan
+
+- [ ] Materialiser les deux livrables encore manquants localement: audit `docs/DATABASE.md` et matrice fine `table -> writer -> reader -> endpoint`
+- [ ] Integrer les retours des agents sur ADR integrations, hierarchie documentaire, vocabulaire, audit connecteurs et garde-fous doc
+- [ ] Brancher les nouveaux artefacts dans les index utiles et mettre a jour `todo-cto.md`
+- [ ] Executer les validations documentaires/scripts pertinentes puis consigner la review finale
+
+# Current Pass - 2026-03-21 - CTO Docs Closure Wave 3
+
+### Plan
+
+- [x] Fermer les items CTO encore ouverts a plus forte valeur: audit `docs/DATABASE.md`, matrice fine writers/readers, hierarchie documentaire, vocabulaire et decision d'architecture integrations
+- [x] Ajouter un garde-fou machine-readable sur l'indexation des pages CTO durables
+- [x] Integrer les nouvelles pages dans `docs/cto/README.md`, `package.json`, `scripts/README.md` et remettre `todo-cto.md` a jour
+- [x] Rejouer les validations documentaires utiles et consigner la review
+
+### Review
+
+- Verdict:
+  - `GO` pour une troisieme vague qui ferme le gros du reste documentaire structurant du chantier CTO.
+- Livrables principaux crees:
+  - `docs/cto/18-audit-ecarts-database-doc.md`
+  - `docs/cto/19-table-writers-readers-matrix.md`
+  - `docs/cto/20-hierarchie-documentaire-et-normativite.md`
+  - `docs/cto/21-vocabulaire-harmonisation-repo.md`
+  - `docs/cto/22-auth-modes-connecteurs-et-audit-integration.md`
+  - `docs/architecture/adr/ADR-004-source-de-verite-runtime-integrations.md`
+- Garde-fous ajoutes:
+  - `scripts/check-cto-doc-guardrails.mjs`
+  - `scripts/__tests__/check-cto-doc-guardrails.test.mjs`
+  - integration de `docs:validate:cto` dans `package.json`
+- Artefacts realignes:
+  - `docs/cto/README.md`
+  - `docs/architecture/adr/README.md`
+  - `scripts/README.md`
+  - `todo-cto.md`
+- Verifications executees:
+  - `node scripts/validate-database-doc-baseline.mjs`
+  - `node --test scripts/__tests__/validate-database-doc-baseline.test.mjs`
+  - `node scripts/check-cto-doc-guardrails.mjs`
+  - `node --test scripts/__tests__/check-cto-doc-guardrails.test.mjs`
+- Ce qui reste encore ouvert apres cette vague:
+  - harmonisation effective du vocabulaire directement dans `docs/DATABASE.md`, `docs/ARCHITECTURE.md`, `app-api/app/models/README.md`, `app-api-ts/src/services/README.md`, `app-connectors/README.md`
+  - elimination ou redirection des README locaux generiques a faible signal
+  - garde-fous CI plus forts sur la mise a jour documentaire lors d'un vrai changement de schema/contrat
+  - generation plus automatique des ERD et verifications de parite contrats internes
+
+# Current Pass - 2026-03-21 - CTO Docs Execution Sweep
+
+### Plan
+
+- [x] Industrialiser un premier corpus `docs/cto/` a partir du `todo-cto.md`, avec production parallele des pages et diagrammes les plus structurants
+- [x] Brancher les nouveaux points d'entree depuis `README.md`, `docs/README.md` et `docs/DATABASE.md`
+- [x] Completer localement les vues transverses manquantes (ownership/tracabilite, statut des surfaces HTTP, visuels DecisionOps/integration)
+- [x] Mettre a jour `todo-cto.md` pour refleter les items reellement fermes et distinguer le reste du chantier
+- [x] Verifier la coherence des fichiers crees/modifies et consigner la review
+
+### Review
+
+- Verdict:
+  - `GO` pour une execution substantielle du chantier CTO: le repo a maintenant un vrai socle `docs/cto/` navigable et branche sur les index principaux.
+- Livrables principaux crees:
+  - `docs/cto/README.md`
+  - `docs/cto/01-systeme-et-runtimes.md`
+  - `docs/cto/02-vocabulaire-et-domaines.md`
+  - `docs/cto/03-modele-de-donnees-global.md`
+  - `docs/cto/04-schema-public-postgres.md`
+  - `docs/cto/05-schemas-tenant-et-medallion.md`
+  - `docs/cto/06-flux-de-donnees-applicatifs.md`
+  - `docs/cto/07-connecteurs-et-sync-runs.md`
+  - `docs/cto/08-contrats-et-types-partages.md`
+  - `docs/cto/09-runbook-exploration-bd.md`
+  - `docs/cto/10-ownership-et-tracabilite-des-donnees.md`
+  - `docs/cto/11-surfaces-http-et-statut.md`
+  - plusieurs diagrammes Mermaid sous `docs/cto/visuals/`
+- Docs existantes realignees:
+  - `README.md`
+  - `docs/README.md`
+  - `docs/DATABASE.md`
+  - `todo-cto.md`
+- Ce que la passe ferme vraiment:
+  - point d'entree CTO, parcours 30/90/180 minutes, glossaire, contrats/types, modele de donnees global, schema public, schemas tenant+medallion, flux applicatifs, connecteurs, runbook SQL, matrice d'ownership/tracabilite, statut des surfaces HTTP, principaux diagrammes P0.
+- Ce qui reste volontairement ouvert:
+  - verification doc-vers-code exhaustive de `docs/DATABASE.md`
+  - matrice fine `page UI -> endpoint -> service -> table -> type`
+  - registre des taxonomies versionnees
+  - doc telemetry/correlation plus poussee
+  - decision d'architecture sur la convergence `integration_*` vs snapshot runtime
+  - garde-fous CI anti-derive
+- Verification effectuee:
+  - relecture ciblee des nouvelles pages `docs/cto/*`
+  - controle des diagrammes Mermaid source
+  - verification de l'etat `git`
+  - mise a jour des cases `todo-cto.md` pour les items reellement livres
+
+# Current Pass - 2026-03-21 - CTO Docs Closure Wave 2
+
+### Plan
+
+- [x] Fermer les items documentaires CTO restants a plus forte valeur via de nouveaux lots paralleles (matrices UI, migrations, telemetry, capabilities, legacy, taxonomies)
+- [x] Ajouter un premier garde-fou anti-derive pour `docs/DATABASE.md`
+- [x] Integrer les nouvelles pages dans l'index `docs/cto/README.md` et mettre a jour `todo-cto.md`
+- [x] Rejouer les verifications locales utiles sur les nouveaux artefacts et consigner la review
+
+### Review
+
+- Verdict:
+  - `GO` pour une deuxieme vague qui ferme une grande partie du reste P0/P1 et lance le premier garde-fou machine-readable du chantier CTO.
+- Livrables principaux crees:
+  - `docs/cto/12-ui-endpoint-service-table-type.md`
+  - `docs/cto/13-migrations-et-impacts-metier.md`
+  - `docs/cto/14-telemetry-et-correlation.md`
+  - `docs/cto/15-capabilities-et-securite-connecteurs.md`
+  - `docs/cto/16-legacy-et-surfaces-fermees.md`
+  - `docs/cto/17-taxonomies-et-registres.md`
+  - plusieurs visuels complementaires sous `docs/cto/visuals/`
+- Livrables repo hygiene ajoutes:
+  - `scripts/validate-database-doc-baseline.mjs`
+  - `scripts/__tests__/validate-database-doc-baseline.test.mjs`
+  - `scripts/README.md` mis a jour pour documenter ce validateur
+- Docs/artefacts realignes:
+  - `docs/DATABASE.md` completee sur la migration critique `019_remove_orphan_models.py`
+  - `docs/cto/README.md`
+  - `docs/cto/07-connecteurs-et-sync-runs.md`
+  - `docs/cto/08-contrats-et-types-partages.md`
+  - `docs/cto/09-runbook-exploration-bd.md`
+  - `docs/cto/11-surfaces-http-et-statut.md`
+  - `packages/shared-types/src/domain/README.md`
+  - `packages/shared-types/src/api/README.md`
+  - `todo-cto.md`
+- Verifications executees:
+  - `node scripts/validate-database-doc-baseline.mjs`
+  - `node --test scripts/__tests__/validate-database-doc-baseline.test.mjs`
+  - relecture ciblee des nouvelles pages `docs/cto/*`
+- Ce qui reste encore ouvert apres cette vague:
+  - matrice ultra-fine `table -> service writer -> service reader -> app/endpoint consommateur`
+  - audit doc-vers-code exhaustif de `docs/DATABASE.md`
+  - decision d'architecture `integration_*` vs snapshot runtime `app-connectors`
+  - isolation plus nette des docs durables vs PRD/plans (`API.md`, `docs/plans/`)
+  - harmonisation vocabulaire plus exhaustive sur tout le repo
+  - garde-fous CI supplementaires au-dela du baseline DB
+
+# Current Pass - 2026-03-21 - CTO Database Discoverability Todo
+
+### Plan
+
+- [x] Relire les consignes repo, les lessons, la doc architecture/DB existante et les points d'entree schema/runtime utiles
+- [x] Lancer 6 agents en parallele pour cartographier `app-api`, `app-api-ts`, `app-connectors`, les flux inter-apps, les contrats/types partages et l'inventaire documentaire
+- [x] Identifier les zones qui empechent aujourd'hui un nouveau CTO de comprendre vite la base de donnees et les flux de donnees
+- [x] Rediger `todo-cto.md` en francais avec taches priorisees, livrables documentaires et schemas visuels a produire
+- [x] Verifier le contenu final et consigner la review de cette passe
+
+### Review
+
+- Verdict:
+  - `GO` pour le livrable documentaire demande: `todo-cto.md` existe maintenant a la racine avec une feuille de route priorisee, en francais, focalisee sur la decouverte de la base de donnees et des flux de donnees.
+- Contenu principal livre:
+  - priorites `P0/P1/P2` pour rendre la base decouvrable, cartographier le schema reel, expliciter les flux inter-apps, clarifier la source de verite connecteurs, unifier contrats/types et poser des garde-fous anti-derive.
+  - liste explicite des diagrammes a produire: carte systeme, ERD global et par domaine, sequences front/API et integrations, lineage medallion, schemas des contrats/DecisionOps.
+  - points de vigilance deja remontes dans le todo: derives doc-vers-code, ambiguite legacy vs runtime actif, ecart `integration_*` vs snapshot runtime `app-connectors`, hierarchie documentaire a clarifier.
+- Verification effectuee:
+  - lecture complete de `todo-cto.md`
+  - verification du diff `git` sur `todo-cto.md` et `tasks/todo.md`
+  - controle que le plan de passe courant est bien trace en tete de `tasks/todo.md`
+- Limites de cette passe:
+  - aucun schema Mermaid ni doc `docs/cto/*` n'a encore ete produit; cette passe livre la feuille de route, pas encore l'execution du chantier.
+
 # Current Pass - 2026-03-21 - Commit And Push Hook Closure
 
 ### Plan
@@ -133,8 +3297,8 @@
   - le theme email `infra/auth/themes/praedixa/email/` porte maintenant un sujet, un corps et des CTA plus clairs pour l'invitation client, avec templates `html/executeActions.ftl` et `text/executeActions.ftl`, plus bundles `messages.properties`, `messages_en.properties` et `messages_fr.properties`.
   - `infra/auth/Dockerfile.scaleway` copie bien ce theme dans l'image Keycloak et renomme maintenant l'export importe en `praedixa-realm.json`, tandis que `infra/auth/realm-praedixa.json` garde `emailTheme=praedixa`.
   - `scripts/lib/keycloak.sh` cree maintenant un `kcadm --config` isole par execution, pour eliminer les locks et collisions sur `~/.keycloak/kcadm.config`.
-  - `scripts/keycloak-ensure-email-config.sh` pousse maintenant le bloc SMTP complet par l'admin REST Keycloak, y compris le secret Resend, puis reverifie `smtpServer.from` et `fromDisplayName`.
-  - `scripts/keycloak-ensure-email-theme.sh` recale bien `emailTheme=praedixa`.
+  - `scripts/keycloak/keycloak-ensure-email-config.sh` pousse maintenant le bloc SMTP complet par l'admin REST Keycloak, y compris le secret Resend, puis reverifie `smtpServer.from` et `fromDisplayName`.
+  - `scripts/keycloak/keycloak-ensure-email-theme.sh` recale bien `emailTheme=praedixa`.
   - un redeploy correctif de l'image auth a ete prepare et relance pour rendre l'import du realm durable au prochain restart; en attendant sa prise en compte complete, le realm `praedixa` a ete restaure en live depuis `infra/auth/realm-praedixa.json`, puis le SMTP Resend et le theme email ont ete reappliques sur le realm restaure.
 - Application live effectuee:
   - realm `praedixa` restaure en production sous `https://auth.praedixa.com`.
@@ -148,9 +3312,9 @@
   - `tasks/lessons.md`
   - `AGENTS.md`
 - Verification:
-  - `bash -n scripts/keycloak-ensure-email-config.sh scripts/keycloak-ensure-email-theme.sh`
+  - `bash -n scripts/keycloak/keycloak-ensure-email-config.sh scripts/keycloak/keycloak-ensure-email-theme.sh`
   - `python3` smoke sur `infra/auth/themes/praedixa/email/messages/*` et `executeActions.ftl`
-  - `git diff --check -- infra/auth/themes/praedixa/email scripts/keycloak-ensure-email-config.sh scripts/keycloak-ensure-email-theme.sh scripts/lib/keycloak.sh infra/auth/README.md scripts/README.md tasks/todo.md tasks/lessons.md AGENTS.md`
+  - `git diff --check -- infra/auth/themes/praedixa/email scripts/keycloak/keycloak-ensure-email-config.sh scripts/keycloak/keycloak-ensure-email-theme.sh scripts/lib/keycloak.sh infra/auth/README.md scripts/README.md tasks/todo.md tasks/lessons.md AGENTS.md`
   - drift live du container `auth-prod` constate via `scw container container get ...` (`updated_at=2026-03-21T02:51:00.323341Z`) puis realm restaure en direct
   - `curl https://auth.praedixa.com/realms/praedixa/.well-known/openid-configuration` de nouveau `200`
   - lecture live admin du realm `praedixa`: `emailTheme=praedixa`, `smtpServer.from=hello@praedixa.com`, `smtpServer.host=smtp.resend.com`, `smtpServer.port=587`, `smtpServer.user=resend`, `smtpServer.auth=true`, `smtpServer.starttls=true`, `smtpServer.ssl=false`
@@ -167,13 +3331,13 @@
 ### Review
 
 - Correctifs appliques:
-  - `scripts/scw-configure-auth-env.sh` cable maintenant un chemin concret `Resend -> Keycloak`: par defaut `smtp.resend.com:587`, `user=resend`, `from=hello@praedixa.com`, `starttls=true`, `ssl=false`, avec fallback sur `RESEND_API_KEY`, `RESEND_FROM_EMAIL` et `RESEND_REPLY_TO_EMAIL` s'ils existent deja dans les `.env.local`.
-  - le script sync maintenant aussi `KEYCLOAK_SMTP_*` dans la config/secrets `auth-prod`, puis reapplique le realm live via `scripts/keycloak-ensure-email-config.sh` apres la mise a jour du container.
+  - `scripts/scw/scw-configure-auth-env.sh` cable maintenant un chemin concret `Resend -> Keycloak`: par defaut `smtp.resend.com:587`, `user=resend`, `from=hello@praedixa.com`, `starttls=true`, `ssl=false`, avec fallback sur `RESEND_API_KEY`, `RESEND_FROM_EMAIL` et `RESEND_REPLY_TO_EMAIL` s'ils existent deja dans les `.env.local`.
+  - le script sync maintenant aussi `KEYCLOAK_SMTP_*` dans la config/secrets `auth-prod`, puis reapplique le realm live via `scripts/keycloak/keycloak-ensure-email-config.sh` apres la mise a jour du container.
   - `scripts/lib/local-env.sh` sait maintenant recharger `RESEND_API_KEY`, `RESEND_FROM_EMAIL` et `RESEND_REPLY_TO_EMAIL`.
   - `docs/deployment/runtime-secrets-inventory.json` et `docs/deployment/environment-secrets-owners-matrix.md` versionnent maintenant la presence de `KEYCLOAK_SMTP_PASSWORD` et des variables `KEYCLOAK_SMTP_*` cote auth.
 - Application live effectuee:
-  - le realm `praedixa` sur `https://auth.praedixa.com` a ete mis a jour directement via `scripts/keycloak-ensure-email-config.sh`, avec `from=hello@praedixa.com`, `host=smtp.resend.com`, puis finalement la variante Resend qui passe en live: `port=587`, `user=resend`, `auth=true`, `starttls=true`, `ssl=false`.
-  - le wrapper complet `scripts/scw-configure-auth-env.sh` n'a pas ete execute pour cette passe live car le container `auth-prod` courant n'expose pas encore les variables `KC_DB_*` requises localement pour rejouer ce chemin sans risque.
+  - le realm `praedixa` sur `https://auth.praedixa.com` a ete mis a jour directement via `scripts/keycloak/keycloak-ensure-email-config.sh`, avec `from=hello@praedixa.com`, `host=smtp.resend.com`, puis finalement la variante Resend qui passe en live: `port=587`, `user=resend`, `auth=true`, `starttls=true`, `ssl=false`.
+  - le wrapper complet `scripts/scw/scw-configure-auth-env.sh` n'a pas ete execute pour cette passe live car le container `auth-prod` courant n'expose pas encore les variables `KC_DB_*` requises localement pour rejouer ce chemin sans risque.
   - un test d'envoi reel `execute-actions-email` vers `steven.poivre@outlook.com` a d'abord expose un deuxieme probleme: en live, la variante `465/SSL` repondait encore `500` / timeout cote Keycloak malgre le sender configure.
   - le realm live a donc ete bascule de facon operative vers la variante Resend `587/STARTTLS` (`port=587`, `starttls=true`, `ssl=false`), puis le meme `execute-actions-email` a reussi en `204`.
 - Documentation alignee:
@@ -181,7 +3345,7 @@
   - `scripts/README.md`
   - `infra/auth/README.md`
 - Verification:
-  - `bash -n scripts/scw-configure-auth-env.sh scripts/keycloak-ensure-email-config.sh scripts/lib/local-env.sh`
+  - `bash -n scripts/scw/scw-configure-auth-env.sh scripts/keycloak/keycloak-ensure-email-config.sh scripts/lib/local-env.sh`
   - `jq -e '.smtpServer.from == "hello@praedixa.com" and .smtpServer.fromDisplayName == "Praedixa"' infra/auth/realm-praedixa.json`
   - lecture live du realm `praedixa` via `kcadm`: `smtpServer.from=hello@praedixa.com`, `smtpServer.host=smtp.resend.com`, `smtpServer.port=587`, `smtpServer.user=resend`, `smtpServer.auth=true`, `smtpServer.starttls=true`, `smtpServer.ssl=false`
   - test live admin REST `execute-actions-email` sur l'utilisateur `063a4d63-93d3-4ab3-88d5-f6b327cc0311` (`steven.poivre@outlook.com`) : HTTP `204`
@@ -202,7 +3366,7 @@
   - le service TS `keycloak-admin-identity.ts` laissait remonter ce message SMTP brut, ce qui n'aidait ni le debug local ni le runbook ops.
 - Correctifs appliques:
   - `infra/auth/realm-praedixa.json` porte maintenant une baseline sender explicite avec `smtpServer.from=hello@praedixa.com` et `fromDisplayName=Praedixa`.
-  - `scripts/keycloak-ensure-email-config.sh` permet maintenant de reconciler le realm live via `kcadm`, en imposant au minimum `smtpServer.from` et `fromDisplayName`, et en poussant aussi les champs SMTP fournis explicitement (`host`, `port`, `user`, `password`, `starttls`, `ssl`, `replyTo`).
+  - `scripts/keycloak/keycloak-ensure-email-config.sh` permet maintenant de reconciler le realm live via `kcadm`, en imposant au minimum `smtpServer.from` et `fromDisplayName`, et en poussant aussi les champs SMTP fournis explicitement (`host`, `port`, `user`, `password`, `starttls`, `ssl`, `replyTo`).
   - `app-api-ts/src/services/keycloak-admin-identity.ts` transforme maintenant l'erreur Keycloak `Invalid sender address 'null'` en fail-close explicite `IDENTITY_EMAIL_NOT_CONFIGURED` avec un message actionnable.
   - `app-api-ts/src/__tests__/keycloak-admin-identity.test.ts` couvre cette erreur actionnable.
 - Documentation alignee:
@@ -212,7 +3376,7 @@
 - Verification:
   - `pnpm --dir app-api-ts exec vitest run src/__tests__/keycloak-admin-identity.test.ts`
   - `pnpm --dir app-api-ts exec tsc -p tsconfig.json --noEmit`
-  - `bash -n scripts/keycloak-ensure-email-config.sh`
+  - `bash -n scripts/keycloak/keycloak-ensure-email-config.sh`
   - `jq -e '.smtpServer.from == "hello@praedixa.com" and .smtpServer.fromDisplayName == "Praedixa"' infra/auth/realm-praedixa.json`
   - `git diff --check -- ...`
 
@@ -496,16 +3660,16 @@
   - `lib/blog/types.ts` et `lib/blog/posts.ts` supportent maintenant les champs frontmatter optionnels `answerSummary`, `keyPoints` et `sources`.
   - `BlogPostPage.tsx` privilegie ces champs quand ils sont presents; sinon il garde un fallback derive du corps MDX pour construire le bloc answer-first.
   - le schema `BlogPosting` embarque aussi les URLs de `sources` via `citation`.
-  - un modele editorial versionne existe maintenant dans `content/blog/article-template.mdx` pour que les prochains articles sortent directement avec un contrat GEO/citation-first propre.
-  - un premier article public `content/blog/decision-log-ops-daf-template.mdx` materialise ce contrat dans le corpus FR, et `content/internal-links.json` le rend deja reachable comme cible de maillage interne.
+  - un modele editorial versionne existe maintenant dans `marketing/content/blog/article-template.mdx` pour que les prochains articles sortent directement avec un contrat GEO/citation-first propre.
+  - un premier article public `marketing/content/blog/decision-log-ops-daf-template.mdx` materialise ce contrat dans le corpus FR, et `marketing/content/internal-links.json` le rend deja reachable comme cible de maillage interne.
 - Gain GEO vise:
   - les futurs posts n'auront plus besoin d'un retro-fit pour sortir un resume citable, des points cles hors contexte et des sources explicites.
   - le contrat editorial et le rendu detail sont maintenant alignes: ce qui est saisi dans le frontmatter se retrouve directement dans l'experience de lecture, dans le schema et dans le sitemap public.
 - Documentation alignee:
   - `app-landing/components/blog/README.md`
   - `app-landing/lib/blog/README.md`
-  - `content/blog/README.md`
-  - `content/blog/TODO-POST.md`
+  - `marketing/content/blog/README.md`
+  - `marketing/content/blog/TODO-POST.md`
 - Verification:
   - `pnpm --dir app-landing test -- components/blog/__tests__/BlogPostPage.test.tsx components/blog/__tests__/BlogIndexPage.test.tsx components/shared/__tests__/GeoSummaryPanel.test.tsx 'app/[locale]/blog/[slug]/__tests__/page.test.tsx' lib/blog/__tests__/posts.test.ts __tests__/proxy.test.ts app/__tests__/robots.test.ts app/__tests__/llms.test.ts lib/security/__tests__/exposure-policy.test.ts`
   - `pnpm --dir app-landing test -- components/blog/__tests__/BlogPostPage.test.tsx components/blog/__tests__/BlogIndexPage.test.tsx components/shared/__tests__/GeoSummaryPanel.test.tsx 'app/[locale]/blog/[slug]/__tests__/page.test.tsx' 'app/[locale]/blog/__tests__/page.test.tsx' app/__tests__/sitemap.test.ts app/__tests__/llms.test.ts lib/blog/__tests__/posts.test.ts lib/blog/__tests__/internal-links.test.ts __tests__/proxy.test.ts app/__tests__/robots.test.ts lib/security/__tests__/exposure-policy.test.ts`
@@ -1270,7 +4434,7 @@
 - `llms.txt` et `llms-full.txt` sont de nouveau optimises pour la decouverte GEO des pages publiques canoniques, tandis que `robots.ts` autorise explicitement les crawlers LLM sur ce perimetre public.
 - Les assets SEO de `ressources/[slug]` ne sortent plus via une URL stable: `GET /api/resource-asset` impose un acces meme-origine, rate-limite, puis delivre une URL signee courte; `/:locale/ressources/:slug/asset` refuse tout acces sans signature valide.
 - `app-api-ts` porte maintenant sa propre `exposure-policy.ts`; `server.ts` ajoute `X-Robots-Tag` sur la surface JSON et echoue fail-close si une route matchee n'a pas de policy d'exposition resolvable.
-- Les docs de proximite et de deploiement ont ete alignees, y compris l'inventaire secrets/runtime et `scripts/scw-configure-landing-env.sh` avec le nouveau secret `LANDING_ASSET_SIGNING_SECRET`.
+- Les docs de proximite et de deploiement ont ete alignees, y compris l'inventaire secrets/runtime et `scripts/scw/scw-configure-landing-env.sh` avec le nouveau secret `LANDING_ASSET_SIGNING_SECRET`.
 - Verifications executees:
   - `pnpm --dir app-landing test -- __tests__/proxy.test.ts app/__tests__/robots.test.ts app/__tests__/llms.test.ts lib/security/__tests__/exposure-policy.test.ts 'app/[locale]/ressources/[slug]/asset/__tests__/route.test.ts' app/api/resource-asset/__tests__/route.test.ts`
   - `pnpm --dir app-landing exec tsc -p tsconfig.json --noEmit`
@@ -1449,14 +4613,14 @@
   - en local, `pnpm dev:api` rechargeait uniquement `DATABASE_URL`; il laissait `KEYCLOAK_ADMIN_USERNAME` et `KEYCLOAK_ADMIN_PASSWORD` absents du process `tsx`, meme quand le secret existait deja dans les `.env.local` standards du repo.
   - `app-api-ts` peut demarrer en developpement sans `AUTH_ISSUER_URL` explicite grace a son defaut de config, mais pas sans credentials admin Keycloak si on veut creer/inviter/supprimer des comptes.
 - Correctif applique:
-  - `scripts/dev-api-run.sh` recharge maintenant aussi `KEYCLOAK_ADMIN_USERNAME` et `KEYCLOAK_ADMIN_PASSWORD` avant de lancer `pnpm --dir app-api-ts dev`.
+  - `scripts/dev/dev-api-run.sh` recharge maintenant aussi `KEYCLOAK_ADMIN_USERNAME` et `KEYCLOAK_ADMIN_PASSWORD` avant de lancer `pnpm --dir app-api-ts dev`.
   - `scripts/lib/local-env.sh` expose un chemin commun `default_keycloak_admin_local_env_files(...)`, relit les credentials depuis les env locaux API + front + racine, exporte bien les variables au process enfant, et force `KEYCLOAK_ADMIN_USERNAME=kcadmin` si aucun username n'est fourni.
   - documentation distribuee alignee dans `scripts/README.md`, `scripts/lib/README.md` et `app-api-ts/README.md`.
   - garde-fou ajoute dans `AGENTS.md`, plus lesson dediee dans `tasks/lessons.md`.
 - Verification:
-  - `bash -n scripts/dev-api-run.sh scripts/lib/local-env.sh`
+  - `bash -n scripts/dev/dev-api-run.sh scripts/lib/local-env.sh`
   - `env -i ... bash -lc 'source scripts/lib/local-env.sh; autofill_keycloak_admin_username_from_local_env "$PWD"; autofill_keycloak_admin_password_from_local_env "$PWD"; ...'` -> `username=kcadmin`, `password=set`
-  - execution de `scripts/dev-api-run.sh` avec un binaire `pnpm` stubbe: le process enfant recevait bien `KEYCLOAK_ADMIN_USERNAME=kcadmin`, `KEYCLOAK_ADMIN_PASSWORD` et `DATABASE_URL`
+  - execution de `scripts/dev/dev-api-run.sh` avec un binaire `pnpm` stubbe: le process enfant recevait bien `KEYCLOAK_ADMIN_USERNAME=kcadmin`, `KEYCLOAK_ADMIN_PASSWORD` et `DATABASE_URL`
 
 # Current Pass - 2026-03-19 - Landing FR ROI Proof Messaging
 
@@ -1498,7 +4662,7 @@
   - activation du namespace `greekia-prod` et du conteneur `greekia-prospect` sur Scaleway Functions/Containers.
   - configuration des secrets runtime `BASIC_AUTH_USERNAME` et `BASIC_AUTH_PASSWORD` sur le conteneur Greekia, sans ecrire ces secrets dans le repo.
   - correction du build deploiement: le header Greekia n'importe plus le logo Praedixa depuis `packages/ui` hors du contexte de build isole, mais depuis une copie synchronisee locale destinee au mini-site autonome.
-  - durcissement de `scripts/scw-bootstrap-greekia.sh` avec un mode par defaut `SCW_BOOTSTRAP_DNS_MODE=external-pending`, pour les cas ou le DNS public de `praedixa.com` est gere hors Scaleway.
+  - durcissement de `scripts/scw/scw-bootstrap-greekia.sh` avec un mode par defaut `SCW_BOOTSTRAP_DNS_MODE=external-pending`, pour les cas ou le DNS public de `praedixa.com` est gere hors Scaleway.
   - documentation alignee dans `greekia/README.md`, `scripts/README.md` et ajout d'une garde-fou dediee dans `AGENTS.md`.
 - Etat runtime verifie:
   - conteneur `greekia-prospect` en statut `ready`.
@@ -1512,7 +4676,7 @@
   - `npm run lint` dans `greekia/`
   - `npm run test` dans `greekia/`
   - `npm run build` dans `greekia/`
-  - `bash -n scripts/scw-bootstrap-greekia.sh`
+  - `bash -n scripts/scw/scw-bootstrap-greekia.sh`
   - verification runtime via `curl` sur l'URL Scaleway native avec et sans Basic Auth
   - verification runtime via `curl` sur `https://greekia.praedixa.com` avec et sans Basic Auth
   - inspection `scw container container get` et `scw container domain list`
@@ -1575,9 +4739,9 @@
 ### Review
 
 - Correctif applique:
-  - remplacement du parcours commercial dans [greekiaMessaging.ts](/Users/steven/Programmation/praedixa/greekia/src/content/greekiaMessaging.ts): `audit 5 jours -> abonnement`, y compris hero, stats, section offre, CTA et agenda.
+  - remplacement du parcours commercial dans [greekiaMessaging.ts](/Users/steven/Programmation/praedixa/marketing/presentations-clients/greekia/src/content/greekiaMessaging.ts): `audit 5 jours -> abonnement`, y compris hero, stats, section offre, CTA et agenda.
   - remplacement du wording visible `Pilote` par `Offre` dans le header et harmonisation du hero (`Ce que l'audit apporte`, `Demander l'audit 5 jours`).
-  - documentation alignee dans [README.md](/Users/steven/Programmation/praedixa/greekia/README.md) et [2026-03-19-greekia-research-brief.md](/Users/steven/Programmation/praedixa/greekia/docs/2026-03-19-greekia-research-brief.md).
+  - documentation alignee dans [README.md](/Users/steven/Programmation/praedixa/marketing/presentations-clients/greekia/README.md) et [2026-03-19-greekia-research-brief.md](/Users/steven/Programmation/praedixa/marketing/presentations-clients/greekia/docs/2026-03-19-greekia-research-brief.md).
   - tests mis a jour pour verrouiller le nouveau framing audit-to-subscription.
 - Verification:
   - `npm run test`
@@ -1596,15 +4760,15 @@
 ### Review
 
 - Correctif applique:
-  - ajout des scripts `scripts/scw-bootstrap-greekia.sh`, `scripts/scw-configure-greekia-env.sh` et `scripts/scw-deploy-greekia.sh` sur le meme pattern que `skolae`.
+  - ajout des scripts `scripts/scw/scw-bootstrap-greekia.sh`, `scripts/scw/scw-configure-greekia-env.sh` et `scripts/scw/scw-deploy-greekia.sh` sur le meme pattern que `skolae`.
   - ajout des entrees root `scw:bootstrap:greekia`, `scw:configure:greekia` et `scw:deploy:greekia` dans `package.json`.
   - documentation du workflow d'identifiants Basic Auth et du sous-domaine `greekia.praedixa.com` dans `greekia/README.md`.
   - mise a jour de `scripts/README.md` pour lister Greekia au meme niveau que les autres one-pagers proteges.
 - Verification:
   - `rg` cible pour confirmer la presence des nouvelles commandes et variables
-  - `bash -n scripts/scw-bootstrap-greekia.sh`
-  - `bash -n scripts/scw-configure-greekia-env.sh`
-  - `bash -n scripts/scw-deploy-greekia.sh`
+  - `bash -n scripts/scw/scw-bootstrap-greekia.sh`
+  - `bash -n scripts/scw/scw-configure-greekia-env.sh`
+  - `bash -n scripts/scw/scw-deploy-greekia.sh`
 
 # Current Pass - 2026-03-19 - Landing Production Deployment
 
@@ -1621,7 +4785,7 @@
 - `pnpm --filter @praedixa/landing build` passe localement sur le repo principal.
 - Le chemin de release supporte pour la landing est bien Scaleway via `release:build` -> `release:manifest:create` -> `release:deploy`, pas Cloudflare et pas le script legacy.
 - Le registry prod cible de `landing` est `rg.fr-par.scw.cloud/funcscwlandingprodudkuskg8`, avec le container `landing-web` deja present et `ready`.
-- Le preflight `./scripts/scw-preflight-deploy.sh prod` est rouge au niveau environnement global, et cote landing il remonte au minimum des secrets/runtime manquants (`RATE_LIMIT_STORAGE_URI`, `CONTACT_FORM_CHALLENGE_SECRET`, `LANDING_TRUST_PROXY_IP_HEADERS`).
+- Le preflight `./scripts/scw/scw-preflight-deploy.sh prod` est rouge au niveau environnement global, et cote landing il remonte au minimum des secrets/runtime manquants (`RATE_LIMIT_STORAGE_URI`, `CONTACT_FORM_CHALLENGE_SECRET`, `LANDING_TRUST_PROXY_IP_HEADERS`).
 - Le gate signe du worktree principal ne peut pas servir de preuve de release: il tombe sur du WIP backend non lie a la landing (`app-api-ts` lint/tests).
 - Le clone propre du SHA `a572077d324cba3511a02e76d3e940b7b381a874` ne passe pas non plus le gate exhaustif versionne: la baseline release reste rouge sur le commit publie lui-meme (notamment lint `app-landing` et tests `app-api-ts` observes pendant le run).
 - Conclusion: deploiement prod non execute, faute de base `release green` honnete pour generer un manifest signe conforme au process versionne.
@@ -1904,18 +5068,18 @@
   - `app-api-ts/src/index.ts` laisse maintenant monter l'API meme si l'initialisation eager Camunda echoue, tout en journalisant explicitement le probleme; les routes onboarding restent ensuite fail-close.
   - nouveau garde-fou `app-api-ts/src/__tests__/index.startup.test.ts` pour empecher qu'un Camunda indisponible ne refasse tomber tout le boot.
   - `scripts/lib/process-tree.sh` expose maintenant aussi `is_tcp_port_open`.
-  - `scripts/dev-api-start|stop|status.sh` et `scripts/dev-admin-start|stop|status.sh` verifient l'ecoute reelle du port, nettoient les PID files stales et terminent l'arbre complet `pnpm -> tsx/next`.
+  - `scripts/dev/dev-api-start|stop|status.sh` et `scripts/dev/dev-admin-start|stop|status.sh` verifient l'ecoute reelle du port, nettoient les PID files stales et terminent l'arbre complet `pnpm -> tsx/next`.
   - documentation shell/API mise a jour (`scripts/README.md`, `scripts/lib/README.md`, `app-api-ts/README.md`, `app-api-ts/src/README.md`, `app-api-ts/src/__tests__/README.md`).
 - Verification:
   - `pnpm --dir app-api-ts test -- 'src/__tests__/index.startup.test.ts'`
   - `pnpm --dir app-api-ts exec tsc -p tsconfig.json --noEmit`
-  - `bash -n scripts/lib/process-tree.sh scripts/dev-api-start.sh scripts/dev-api-stop.sh scripts/dev-api-status.sh scripts/dev-admin-start.sh scripts/dev-admin-stop.sh scripts/dev-admin-status.sh`
+  - `bash -n scripts/lib/process-tree.sh scripts/dev/dev-api-start.sh scripts/dev/dev-api-stop.sh scripts/dev/dev-api-status.sh scripts/dev/dev-admin-start.sh scripts/dev/dev-admin-stop.sh scripts/dev/dev-admin-status.sh`
   - cycle reel valide dans un seul shell:
-    - `bash ./scripts/dev-api-start.sh`
-    - `bash ./scripts/dev-api-status.sh`
+    - `bash ./scripts/dev/dev-api-start.sh`
+    - `bash ./scripts/dev/dev-api-status.sh`
     - `curl -fsS http://127.0.0.1:8000/api/v1/health`
-    - `bash ./scripts/dev-api-stop.sh`
-    - `bash ./scripts/dev-api-status.sh` => `not running`
+    - `bash ./scripts/dev/dev-api-stop.sh`
+    - `bash ./scripts/dev/dev-api-status.sh` => `not running`
 
 ## Current Pass - 2026-03-18 - Local Dev Logs Back To Terminal
 
@@ -1929,7 +5093,7 @@
 ### Review
 
 - Cause racine etablie:
-  - `pnpm dev:admin` et `pnpm dev:api` pointaient vers `scripts/dev-admin-start.sh` et `scripts/dev-api-start.sh`, qui demarrent les serveurs en background avec redirection complete vers `.tools/dev-logs/admin.log` et `.tools/dev-logs/api.log`.
+  - `pnpm dev:admin` et `pnpm dev:api` pointaient vers `scripts/dev/dev-admin-start.sh` et `scripts/dev/dev-api-start.sh`, qui demarrent les serveurs en background avec redirection complete vers `.tools/dev-logs/admin.log` et `.tools/dev-logs/api.log`.
   - une fois le wrapper termine, le terminal local ne pouvait donc plus afficher aucun log runtime en direct; il fallait tailer les fichiers a part, ce qui cassait le debug immediat attendu par l'utilisateur.
 - Correctif applique:
   - `package.json` remet `dev:admin` et `dev:api` en mode terminal-attache.
@@ -1938,7 +5102,7 @@
 - Verification:
   - `pnpm --dir app-admin exec tsc -p tsconfig.json --noEmit`
   - `pnpm --dir app-api-ts exec tsc -p tsconfig.json --noEmit`
-  - revue des scripts/package: les commandes par defaut ne redirigent plus stdout/stderr vers des fichiers, alors que `:bg` conserve bien les wrappers `scripts/dev-admin-start.sh` et `scripts/dev-api-start.sh`
+  - revue des scripts/package: les commandes par defaut ne redirigent plus stdout/stderr vers des fichiers, alors que `:bg` conserve bien les wrappers `scripts/dev/dev-admin-start.sh` et `scripts/dev/dev-api-start.sh`
 
 ## Current Pass - 2026-03-18 - Admin Runtime Repro And Missing Logs
 
@@ -2033,13 +5197,13 @@
   - la route admin `GET /api/v1/admin/monitoring/platform` etait deja branchee sur une lecture persistante, donc le message ne venait pas d'une route encore en stub.
   - le vrai probleme etait le demarrage local de `app-api-ts`: le wrapper dev de l'API TS lancait le runtime sans `DATABASE_URL`, alors que la source locale existait deja dans `app-api/.env`.
 - Correctif applique:
-  - nouveau bootstrap unique `scripts/dev-api-run.sh` pour tous les demarrages dev de l'API TS
+  - nouveau bootstrap unique `scripts/dev/dev-api-run.sh` pour tous les demarrages dev de l'API TS
   - autoload `DATABASE_URL` ajoute dans `scripts/lib/local-env.sh` avec priorite `app-api-ts/.env.local` -> `app-api/.env.local` -> `app-api/.env` -> `.env.local`
-  - `scripts/dev-api-start.sh` et `package.json` pointent maintenant sur ce bootstrap unique
+  - `scripts/dev/dev-api-start.sh` et `package.json` pointent maintenant sur ce bootstrap unique
   - docs et garde-fou repo mis a jour (`scripts/README.md`, `scripts/lib/README.md`, `app-api-ts/README.md`, `AGENTS.md`)
 - Verification:
-  - `bash -n scripts/dev-api-run.sh scripts/dev-api-start.sh scripts/lib/local-env.sh`
-  - `env -u DATABASE_URL PORT=8011 bash ./scripts/dev-api-run.sh`
+  - `bash -n scripts/dev/dev-api-run.sh scripts/dev/dev-api-start.sh scripts/lib/local-env.sh`
+  - `env -u DATABASE_URL PORT=8011 bash ./scripts/dev/dev-api-run.sh`
   - verification observee: le bootstrap logue `Loaded DATABASE_URL from app-api/.env` sans afficher la valeur du secret
 
 ## Current Pass - 2026-03-18 - Camunda 8 End-to-End Onboarding Runtime
@@ -2056,7 +5220,7 @@
 ### Review
 
 - Runtime Camunda 8 livre:
-  - `scripts/camunda-dev.sh` pilote maintenant le quickstart officiel Camunda 8 self-managed epingle
+  - `scripts/dev/camunda-dev.sh` pilote maintenant le quickstart officiel Camunda 8 self-managed epingle
   - `app-api-ts` parse et valide le runtime `CAMUNDA_*`, deploie `client-onboarding-v1` et orchestre creation/lecture/completion des user tasks via REST
   - la persistence onboarding est verrouillee sur `workflow_provider = camunda` avec la migration `029_onboarding_camunda_only.py`
 - Control plane onboarding recable:
@@ -2064,7 +5228,7 @@
   - `app-admin` peut maintenant completer une tache actionnable via `POST /api/v1/admin/organizations/:orgId/onboarding/cases/:caseId/tasks/:taskId/complete`
   - le workspace admin reste une UI Praedixa; aucune dependance directe a Tasklist n'est exposee au front
 - Verification reelle:
-  - `bash ./scripts/camunda-dev.sh status`
+  - `bash ./scripts/dev/camunda-dev.sh status`
   - `curl -sS -X POST http://127.0.0.1:8088/v2/process-definitions/search -H 'Content-Type: application/json' -d '{}'`
   - `cd app-api && uv run --active alembic upgrade head`
   - `pnpm --dir app-api-ts exec tsc -p tsconfig.json --noEmit`
@@ -2268,9 +5432,9 @@
   - le realm/versioned export et le script de recale `keycloak-ensure-api-access-contract.sh` couvraient `role`, `organization_id`, `site_id` et `permissions`, mais pas `amr`, ce qui laissait le drift revenir.
 - Correctif applique:
   - ajout du mapper versionne `claim-amr` (`oidc-amr-mapper`) dans `infra/auth/realm-praedixa.json`
-  - extension du script `scripts/keycloak-ensure-api-access-contract.sh` pour recaler aussi `claim-amr` sur `praedixa-admin`
+  - extension du script `scripts/keycloak/keycloak-ensure-api-access-contract.sh` pour recaler aussi `claim-amr` sur `praedixa-admin`
   - durcissement du validateur `scripts/verify-admin-mfa-readiness-lib.mjs` et de son test pour exiger ce mapper
-  - recale live execute avec `KEYCLOAK_CLIENT_IDS=praedixa-admin ./scripts/keycloak-ensure-api-access-contract.sh`
+  - recale live execute avec `KEYCLOAK_CLIENT_IDS=praedixa-admin ./scripts/keycloak/keycloak-ensure-api-access-contract.sh`
 - Verification:
   - `node --test scripts/__tests__/verify-admin-mfa-readiness.test.mjs`
   - `node scripts/verify-admin-mfa-readiness.mjs`
@@ -2293,10 +5457,10 @@
   - manifest signe genere et verifie: `.release/rel-landing-20260317-ef3244f/manifest.json`
   - container prod mis a jour: `landing-web` (`2588461d-1fdb-40f3-9e2c-84a8e969979c`) avec image active `rg.fr-par.scw.cloud/funcscwlandingprodudkuskg8/landing:rel-landing-20260317-ef3244f`
 - Verification production reelle:
-  - `./scripts/scw-post-deploy-smoke.sh --env prod --services landing --landing-url https://www.praedixa.com/fr`
+  - `./scripts/scw/scw-post-deploy-smoke.sh --env prod --services landing --landing-url https://www.praedixa.com/fr`
   - smoke public vert avec `GET /fr -> 200` sur `https://www.praedixa.com/fr`
 - Reserve explicite conservee:
-  - `./scripts/scw-preflight-deploy.sh prod` n'a pas pu lister les records DNS de `praedixa.com` depuis le contexte CLI courant, donc le preflight DNS reste incomplet meme si le deploy container et le smoke public sont OK.
+  - `./scripts/scw/scw-preflight-deploy.sh prod` n'a pas pu lister les records DNS de `praedixa.com` depuis le contexte CLI courant, donc le preflight DNS reste incomplet meme si le deploy container et le smoke public sont OK.
 - Etat du gate attache au release:
   - report: `.git/gate-reports/ef3244fee20849cc0b3ddc3f9ccd30e4b582f139.json`
   - synthese: `26` checks, `3` echec `low`, `0` echec bloquant
@@ -2352,7 +5516,7 @@
 ### Review
 
 - Real admin bootstrap completed:
-  - `scripts/keycloak-ensure-super-admin.sh` created `admin@praedixa.com` in the live `praedixa` realm and enforced the `super_admin` realm role.
+  - `scripts/keycloak/keycloak-ensure-super-admin.sh` created `admin@praedixa.com` in the live `praedixa` realm and enforced the `super_admin` realm role.
   - the script also set the canonical token attributes `role=super_admin` and `permissions=admin:console:access`, and enforced the Keycloak required action `CONFIGURE_TOTP`.
   - verification at `2026-03-17 19:32:59 CET` confirmed the user exists, is enabled, is email-verified, carries `CONFIGURE_TOTP`, and has realm roles `default-roles-praedixa` + `super_admin`.
 - Operator decision applied as requested:
@@ -2380,7 +5544,7 @@
 - Persistence verification completed from the data plane reachable on this machine:
   - the accessible local PostgreSQL (`localhost:5433/praedixa`) had `0` rows matching those emails or Keycloak user ids, so there was no linked local `users.auth_user_id` record to clean up after the realm deletion
 - Important operational consequence:
-  - the `praedixa` realm now has no remaining app users, so `app-admin` cannot be used until a real super admin is bootstrapped again through `scripts/keycloak-ensure-super-admin.sh` or an equivalent controlled provisioning path
+  - the `praedixa` realm now has no remaining app users, so `app-admin` cannot be used until a real super admin is bootstrapped again through `scripts/keycloak/keycloak-ensure-super-admin.sh` or an equivalent controlled provisioning path
 
 ## Current Pass - 2026-03-17 - Admin-Driven Account Provisioning Without Fake Client Accounts
 
@@ -2402,13 +5566,13 @@
   - the legacy Python `app-api/app/services/admin_users.py` invite path now fails closed instead of minting placeholder `pending-*` identities.
   - the admin route contract fixture email in `app-api-ts/src/__tests__/routes.contracts.test.ts` now uses a generic client email instead of `ops.client@praedixa.com`.
 - Runtime ops aligned:
-  - `scripts/scw-configure-api-env.sh`, `docs/deployment/scaleway-container.md`, `docs/deployment/environment-secrets-owners-matrix.md`, and `docs/deployment/runtime-secrets-inventory.json` now declare and synchronize `KEYCLOAK_ADMIN_USERNAME` / `KEYCLOAK_ADMIN_PASSWORD` for API-side account provisioning.
+  - `scripts/scw/scw-configure-api-env.sh`, `docs/deployment/scaleway-container.md`, `docs/deployment/environment-secrets-owners-matrix.md`, and `docs/deployment/runtime-secrets-inventory.json` now declare and synchronize `KEYCLOAK_ADMIN_USERNAME` / `KEYCLOAK_ADMIN_PASSWORD` for API-side account provisioning.
 - Verification completed:
   - `pnpm --dir app-api-ts test -- src/__tests__/keycloak-admin-identity.test.ts src/__tests__/admin-backoffice-users.test.ts`
   - `pnpm --dir app-api-ts exec tsc -p tsconfig.json --noEmit`
   - `pnpm --dir app-admin test -- 'app/(admin)/clients/[orgId]/equipe/__tests__/page.test.tsx'`
   - `pnpm --dir app-admin exec tsc -p tsconfig.json --noEmit`
-  - `bash -n scripts/scw-configure-api-env.sh`
+  - `bash -n scripts/scw/scw-configure-api-env.sh`
   - `node ./scripts/validate-runtime-secret-inventory.mjs`
   - `python3 -m py_compile app-api/app/services/admin_users.py`
 - Remaining operational cleanup:
@@ -2427,7 +5591,7 @@
 
 - `scripts/lib/local-env.sh` centralise maintenant le chargement des `.env.local` standards du repo pour `KEYCLOAK_ADMIN_PASSWORD`, et les scripts Keycloak/Scaleway shell ne demandent plus de reexport manuel quand le secret local est deja en place.
 - `infra/auth/realm-praedixa.json` a ete aligne sur le contrat live exact des protocol mappers (`userinfo.token.claim=false` et `introspection.token.claim=true` la ou Keycloak les attend), ce qui a permis de faire converger le live sans faux drift.
-- Le run live `env -u KEYCLOAK_ADMIN_PASSWORD -u KC_BOOTSTRAP_ADMIN_PASSWORD ./scripts/keycloak-ensure-api-access-contract.sh` recharge maintenant le secret depuis `app-landing/.env.local` et a cree/realigne `claim-role` sur `praedixa-webapp` et `praedixa-admin`.
+- Le run live `env -u KEYCLOAK_ADMIN_PASSWORD -u KC_BOOTSTRAP_ADMIN_PASSWORD ./scripts/keycloak/keycloak-ensure-api-access-contract.sh` recharge maintenant le secret depuis `app-landing/.env.local` et a cree/realigne `claim-role` sur `praedixa-webapp` et `praedixa-admin`.
 - Le selector `jq` de derivation du role canonique a aussi ete corrige pour ne plus promouvoir a tort tous les users sur la premiere priorite (`super_admin`).
 
 ## Current Pass - 2026-03-17 - Landing Contact Email Semantic Validation
@@ -2472,17 +5636,17 @@
   - `/auth/callback` redirects to `/login?error=auth_claims_invalid` before API compatibility checks whenever `userFromAccessToken(...)` cannot extract the canonical top-level claims.
   - The webapp intentionally rejects legacy aliases and requires `sub`, `email`, `role`, `organization_id` and `site_id` according to role scope.
 - Structural drifts fixed in the repo:
-  - `scripts/keycloak-ensure-api-access-contract.sh` previously converged only `audience`, `organization_id` and `site_id`; it now reconciles protocol mappers directly from `infra/auth/realm-praedixa.json`, including `claim-role` and admin-only `claim-permissions`.
+  - `scripts/keycloak/keycloak-ensure-api-access-contract.sh` previously converged only `audience`, `organization_id` and `site_id`; it now reconciles protocol mappers directly from `infra/auth/realm-praedixa.json`, including `claim-role` and admin-only `claim-permissions`.
   - The same script can now sync a target user's canonical `role`, `organization_id`, `site_id`, and optional `permissions`, deriving `role` from the highest-priority known realm role when `TARGET_ROLE` is not supplied.
-  - `scripts/keycloak-ensure-super-admin.sh` now also provisions the canonical user attributes `role=super_admin` and `permissions=admin:console:access`, instead of relying on a realm role alone.
+  - `scripts/keycloak/keycloak-ensure-super-admin.sh` now also provisions the canonical user attributes `role=super_admin` and `permissions=admin:console:access`, instead of relying on a realm role alone.
 - Diagnostics/UX fixed:
   - the webapp login page now explains `auth_claims_invalid` explicitly and mentions the canonical claims contract instead of falling back to the generic "La connexion a echoue" message.
   - the callback now appends a minimal `token_reason` (`missing_role`, `missing_email`, `missing_exp`, etc.) when it rejects a token as `auth_claims_invalid`, and the login page displays that detail without exposing the bearer token.
 - Docs updated in the same pass:
   - `README.md`, `scripts/README.md`, `infra/auth/README.md`, and `docs/deployment/scaleway-container.md` now describe the canonical-claims requirement and the updated convergence/provisioning path.
 - Verification completed:
-  - `bash -n scripts/keycloak-ensure-api-access-contract.sh`
-  - `bash -n scripts/keycloak-ensure-super-admin.sh`
+  - `bash -n scripts/keycloak/keycloak-ensure-api-access-contract.sh`
+  - `bash -n scripts/keycloak/keycloak-ensure-super-admin.sh`
   - `pnpm --dir app-webapp test -- 'app/(auth)/login/__tests__/page.test.tsx' 'lib/auth/__tests__/oidc.test.ts' 'app/auth/callback/__tests__/route.test.ts'`
   - `pnpm --dir app-admin test -- 'lib/auth/__tests__/oidc.test.ts' 'app/auth/callback/__tests__/route.test.ts'`
 - Live-apply blocker:
@@ -2511,10 +5675,10 @@
   - manifest verification passed via `pnpm release:manifest:verify --manifest .release/rel-landing-20260317-93c835c/manifest.json`
 - Production rollout result:
   - `pnpm release:deploy --manifest .release/rel-landing-20260317-93c835c/manifest.json --env prod --services landing`
-  - `./scripts/scw-post-deploy-smoke.sh --env prod --services landing --landing-url https://www.praedixa.com/fr`
+  - `./scripts/scw/scw-post-deploy-smoke.sh --env prod --services landing --landing-url https://www.praedixa.com/fr`
   - smoke passed with `HTTP 200 -> https://www.praedixa.com/fr`
 - Release-flow defect fixed during this pass:
-  - `scripts/scw-release-deploy.sh` now retries with the signed tag derived from the manifest when the Scaleway Container API rejects a digest-qualified `registry-image@sha256` reference
+  - `scripts/scw/scw-release-deploy.sh` now retries with the signed tag derived from the manifest when the Scaleway Container API rejects a digest-qualified `registry-image@sha256` reference
   - supporting docs updated in `scripts/README.md`, `docs/release-runner.md`, and `docs/deployment/scaleway-container.md`
 - Important runtime caveats still present on prod landing:
   - `https://www.praedixa.com/api/contact/challenge` still returns `503`
@@ -2818,8 +5982,8 @@
 
 - Added the missing root script `pnpm performance:validate-budgets` in `package.json`, aligned with the already versioned validator `scripts/validate-performance-budgets.mjs`.
 - Wired the validator into the local blocking paths:
-  - `scripts/gate-prepush-deep.sh`
-  - `scripts/gate-exhaustive-local.sh`
+  - `scripts/gates/gate-prepush-deep.sh`
+  - `scripts/gates/gate-exhaustive-local.sh`
 - Wired the same validator into the remote required workflows:
   - `.github/workflows/ci-api.yml`
   - `.github/workflows/ci-admin.yml`
@@ -3163,8 +6327,8 @@
   - the targeted regression proof now passes with `PW_SERVER_TARGETS=landing PW_REUSE_SERVER=1 pnpm exec playwright test testing/e2e/landing/navigation.spec.ts --project=landing --workers=1 --grep 'navbar hides on downward scroll' --reporter=list`
 - Fixed one additional test-drift blocker in the landing unit suite by aligning `app-landing/components/homepage/__tests__/HeroSection.test.tsx` with the current approved French hero copy (`Prédisez 3 à 14 jours plus tôt`) instead of the stale legacy wording.
 - Scaleway deployment remains blocked by infrastructure preflight, not by the application build:
-  - `./scripts/scw-preflight-deploy.sh staging` fails because the DNS zone is not active in the current account context, staging namespaces/containers are missing, and several required DB/Redis/bucket resources are absent
-  - `DNS_DELEGATION_MODE=transitional SCW_DEFAULT_PROJECT_ID=6551109e-86d0-414a-8b8d-4078d70f9155 ./scripts/scw-preflight-deploy.sh prod` still fails because `webapp-prod`, `admin-prod`, and `api-prod` are missing, the DNS records are not active in Scaleway, and `landing-web` itself still lacks required runtime secrets/config such as `RATE_LIMIT_STORAGE_URI`, `CONTACT_FORM_CHALLENGE_SECRET`, and `LANDING_TRUST_PROXY_IP_HEADERS`
+  - `./scripts/scw/scw-preflight-deploy.sh staging` fails because the DNS zone is not active in the current account context, staging namespaces/containers are missing, and several required DB/Redis/bucket resources are absent
+  - `DNS_DELEGATION_MODE=transitional SCW_DEFAULT_PROJECT_ID=6551109e-86d0-414a-8b8d-4078d70f9155 ./scripts/scw/scw-preflight-deploy.sh prod` still fails because `webapp-prod`, `admin-prod`, and `api-prod` are missing, the DNS records are not active in Scaleway, and `landing-web` itself still lacks required runtime secrets/config such as `RATE_LIMIT_STORAGE_URI`, `CONTACT_FORM_CHALLENGE_SECRET`, and `LANDING_TRUST_PROXY_IP_HEADERS`
 - Result: the repo is in a verified commit-ready state locally, but the signed Scaleway deployment path must stay blocked until the infra/runtime preflight turns green.
 
 ## Current Pass - 2026-03-16 - Gate And Release Hardening Continuation
@@ -3466,3 +6630,269 @@
   - `pnpm --dir app-admin exec vitest run 'app/(admin)/clients/[orgId]/dashboard/__tests__/page.test.tsx'`
   - `pnpm --dir app-api-ts exec tsc -p tsconfig.json --noEmit`
   - `pnpm --dir app-admin exec tsc -p tsconfig.json --noEmit`
+
+## Current Pass - 2026-03-21 - Config Sonar Cleanup
+
+### Plan
+
+- [x] Confirmer la cause racine des findings Sonar dans `integrations-section-tables.tsx` et `integrations-section-ops.tsx`
+- [x] Sortir le ternaire imbrique et clarifier le JSX du label checkbox
+- [x] Verifier par `eslint` cible et consigner le resultat
+
+### Review
+
+- Cause racine etablie:
+  - `integrations-section-tables.tsx` gardait encore un rendu `loading/error/data` en ternaire imbrique dans `InlineTableBlock`, ce qui alimentait directement `typescript:S3358`.
+  - `integrations-section-ops.tsx` laissait le texte du label checkbox comme noeud texte brut juste apres `<input />`, une forme JSX valide mais suffisamment ambigue pour faire remonter `typescript:S6772`.
+- Correctif applique:
+  - `InlineTableBlock` calcule maintenant `content` via des branches `if / else if`, puis rend ce resultat dans le bloc.
+  - le libelle `Forcer une full sync sur ce run` est maintenant encapsule dans un `<span>` explicite apres l'`input`.
+  - la documentation `config/README.md` a ete alignee sur ces conventions.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'app/(admin)/clients/[orgId]/config/integrations-section-tables.tsx' 'app/(admin)/clients/[orgId]/config/integrations-section-ops.tsx'`
+
+## Current Pass - 2026-03-21 - Decision Config Prop Usage Cleanup
+
+### Plan
+
+- [x] Confirmer pourquoi Sonar considere `orgId`, `selectedSiteId` et `canManageConfig` comme inutilises dans `decision-config-section.tsx`
+- [x] Consommer explicitement les props au niveau du composant sans changer le contrat fonctionnel
+- [x] Verifier par `eslint` cible et consigner le resultat
+
+### Review
+
+- Cause racine etablie:
+  - les props `orgId`, `selectedSiteId` et `canManageConfig` restaient bien necessaires au model du composant, mais `DecisionConfigSection` relayait `props` en bloc vers `useDecisionConfigSectionModel(...)`.
+  - Sonar traitait alors ces champs comme non consommes au niveau du composant public et remontait `typescript:S6767` malgre leur usage effectif plus bas.
+- Correctif applique:
+  - `DecisionConfigSection` desctructure maintenant explicitement toutes les props qu'il transmet a son model, puis reconstruit l'objet passe au hook.
+  - le contrat de props reste identique cote appelant; seul le mode de consommation est rendu explicite pour l'analyse statique.
+  - la documentation `config/README.md` a ete alignee.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'app/(admin)/clients/[orgId]/config/decision-config-section.tsx'`
+
+- Ajustement complementaire:
+  - `DecisionConfigPrimaryContent` utilise maintenant un type de props dedie `DecisionConfigPrimaryContentProps` avec `Readonly`, au lieu d'une annotation inline `{ model: ReturnType<...> }`, pour fermer le faux positif Sonar restant sur `S6759`.
+
+## Current Pass - 2026-03-21 - Integrations View Sonar JSX Cleanup
+
+### Plan
+
+- [x] Identifier pourquoi Sonar desynchronise son parsing dans `integrations-section-view.tsx`
+- [x] Simplifier la signature de props et le JSX du body pour supprimer les faux positifs `S6766` et `S6747`
+- [x] Verifier par `eslint` cible et consigner le resultat
+
+### Review
+
+- Cause racine etablie:
+  - Sonar desynchronisait son parsing TSX sur la signature multi-ligne `AsyncTableState<IntegrationIssueIngestCredentialResult["credential"]>` dans `IntegrationsContentProps`.
+  - une fois le parseur decale, il interpretait ensuite du JSX valide comme un `>` HTML non echappe puis tronquait une `className`, d'ou `S6766` et `S6747`.
+- Correctif applique:
+  - creation de l'alias `IntegrationCredentialTableState` pour aplatir ce generique dans l'interface de props.
+  - `IntegrationsCardBody` rend maintenant son contenu dans un conteneur `<div className="space-y-4">` explicite au lieu d'un fragment court.
+  - documentation `config/README.md` alignee sur cette convention.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'app/(admin)/clients/[orgId]/config/integrations-section-view.tsx'`
+
+## Current Pass - 2026-03-21 - Contrats Sonar Cleanup
+
+### Plan
+
+- [x] Inventorier les fichiers du dossier contrats et relever les patterns Sonar probables
+- [x] Appliquer les refactors minimaux et explicites dans les fichiers concernes
+- [x] Mettre a jour la documentation locale et verifier avec eslint cible
+
+### Review
+
+- Cause racine etablie:
+  - le dossier `contrats/` reutilisait les memes patterns qui avaient deja fait remonter Sonar dans `config/`: props de composants annotees inline, `ReturnType<...>` directement dans des signatures React, fragments courts servant juste d'enveloppe, `className` conditionnels en template string, texte inline ambigu avant/apres un tag, et `void` dans des handlers UI.
+  - `contract-studio-shared.ts` gardait aussi un helper de slug en `replace(.../g, ...)` alors que le remplacement global etait explicitement voulu.
+- Correctif applique:
+  - `page.tsx`, `contract-studio-create-panel.tsx`, `contract-studio-mutation-panel.tsx`, `contract-studio-detail-column.tsx`, `contract-studio-page-sections.tsx` et `contract-studio-panels.tsx` utilisent maintenant des contrats de props explicites en `Readonly<...>` pour les composants publics et internes.
+  - les signatures React qui s'appuyaient sur des annotations inline ou sur `ReturnType<...>` ont ete remontees dans des alias de props dedies.
+  - plusieurs fragments courts ont ete remplaces par des conteneurs explicites (`div.space-y-*`) et plusieurs `className` conditionnels ont ete calcules avant le `return`.
+  - les wrappers `void` des actions de creation/mutation ont ete retires en branchant directement les callbacks du controller.
+  - `buildContractSlug(...)` utilise maintenant `replaceAll(...)` pour les remplacements regex globaux.
+  - `contrats/README.md` a ete alignee sur ces conventions.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint $(rg --files 'app-admin/app/(admin)/clients/[orgId]/contrats' -g '!**/README.md' | sed 's#^app-admin/##' | tr '\n' ' ')`
+
+## Current Pass - 2026-03-21 - Dashboard Sonar Cleanup
+
+### Plan
+
+- [x] Inventorier les fichiers du dossier dashboard et relever les patterns Sonar probables
+- [x] Appliquer les refactors minimaux et explicites dans les fichiers concernes
+- [x] Mettre a jour la documentation locale et verifier avec eslint cible
+
+### Review
+
+- Cause racine etablie:
+  - `dashboard/` presentait les memes familles de signaux que les dossiers deja traites: signatures de props inline, fragments courts servant juste d'enveloppe, ternaires directement dans des props JSX, conditions negatives longues dans `disabled`, et texte inline melange a des tags qui peut desynchroniser Sonar sur du TSX valide.
+- Correctif applique:
+  - `dashboard-sections.tsx` declare maintenant des types de props dedies en `Readonly<...>` pour les composants exportes et internes.
+  - les props sensibles comme `variant`, les valeurs de facturation, les notices de permission et l'etat `disabled` de suppression sont maintenant derives dans des variables intermediaires explicites.
+  - `DashboardBottomSection` rend son contenu dans un conteneur `div.space-y-4` explicite au lieu d'un fragment court.
+  - `test-client-deletion-card.tsx` passe lui aussi sur des props `Readonly` et derive le libelle du bouton avant le JSX.
+  - `page.tsx` expose maintenant son rendu final via une variable `dashboardContent` pour garder un `return` de page simple et stable pour les analyseurs.
+  - `dashboard/README.md` a ete alignee sur ces conventions.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint $(rg --files 'app-admin/app/(admin)/clients/[orgId]/dashboard' -g '!**/README.md' | sed 's#^app-admin/##' | tr '\n' ' ')`
+
+## Current Pass - 2026-03-21 - Donnees Sonar Cleanup
+
+### Plan
+
+- [x] Inventorier les fichiers du dossier donnees et relever les patterns Sonar probables
+- [x] Appliquer les refactors minimaux et explicites dans les fichiers concernes
+- [x] Mettre a jour la documentation locale et verifier avec eslint cible
+
+### Review
+
+- Cause racine etablie:
+  - `donnees/` reutilisait les memes familles de patterns que les autres dossiers admin: props de composants non explicitement immuables, ternaires JSX imbriques pour `loading/error/unavailable`, fragment purement structurel dans l'explorateur Gold, et classes conditionnelles/guards inline dans les colonnes de table.
+- Correctif applique:
+  - `donnees-sections.tsx` passe maintenant sur des props `Readonly<...>` et calcule ses contenus de section via des variables `content` explicites pour les surfaces `medallion`, `qualite`, `explorateur Gold`, `donnees consolidees` et `journal d'ingestion`.
+  - `donnees-gold-explorer-card.tsx` decompose ses sous-composants avec de vrais types de props `Readonly`, remplace le fragment de stats par un conteneur explicite, et derive `featureCount` une seule fois.
+  - `donnees-page-model.tsx` derive les `className` de statut/rejets dans des variables nommees et rend explicites les gardes `effectiveDatasetId != null` sur les fetchs dependants.
+  - `donnees/README.md` a ete alignee sur ces conventions.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint $(rg --files 'app-admin/app/(admin)/clients/[orgId]/donnees' -g '!**/README.md' | sed 's#^app-admin/##' | tr '\n' ' ')`
+
+## Current Pass - 2026-03-21 - Equipe Sonar Cleanup
+
+### Plan
+
+- [x] Inventorier les fichiers du dossier equipe et relever les patterns Sonar probables
+- [x] Appliquer les refactors minimaux et explicites dans les fichiers concernes
+- [x] Mettre a jour la documentation locale et verifier avec eslint cible
+
+### Review
+
+- Cause racine etablie:
+  - `equipe/` presentait les memes familles de signaux que les autres dossiers admin: props inline non immuables, `className` conditionnels derives directement dans le JSX, conditions negatives longues dans `disabled`, et wrapper `void` sur l'action d'invitation.
+- Correctif applique:
+  - `equipe-sections.tsx` utilise maintenant des types de props explicites en `Readonly<...>` pour ses composants.
+  - les badges role, la derniere connexion, le message de permission lecture seule et la logique `disabled` du bouton `Creer` passent maintenant par des variables nommees ou des boolens positifs.
+  - `page.tsx` branche l'invitation via un handler async dedie et sort aussi le rendu `usersTableContent` en statement explicite.
+  - `equipe/README.md` a ete alignee sur ces conventions.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint $(rg --files 'app-admin/app/(admin)/clients/[orgId]/equipe' -g '!**/README.md' | sed 's#^app-admin/##' | tr '\n' ' ')`
+
+## Current Pass - 2026-03-21 - Onboarding Sonar Cleanup
+
+### Plan
+
+- [x] Inventorier les fichiers du dossier onboarding et relever les patterns Sonar probables
+- [x] Appliquer les refactors minimaux et explicites dans les fichiers concernes
+- [x] Mettre a jour la documentation locale et verifier avec eslint cible
+
+### Review
+
+- Cause racine etablie:
+  - `onboarding/` concentrait les memes familles de findings que les autres dossiers admin: props inline non immuables, labels de formulaires non relies explicitement aux controles, fragments ou ternaires JSX susceptibles de desynchroniser Sonar, wrappers `void` sur des handlers async, et `new Error(...)` utilises comme garde d'exhaustivite.
+- Correctif applique:
+  - `task-action-form-fields.tsx` utilise maintenant des types de props dedies en `Readonly<...>` et relie tous ses labels a leurs controles via `id/htmlFor`.
+  - `task-action-card.tsx` derive ses etats (`disabled`, messages, dernier brouillon enregistre) dans des variables explicites et branche ses actions async via des handlers dedies sans `void`.
+  - `access-model-task-sections.tsx` relie explicitement les labels des champs/checkboxes aux controles, remplace le fragment de `AccessModelSecurityFields` par un conteneur explicite et derive les etats d'ajout / readiness dans des variables.
+  - `access-model-task-fields.tsx` passe ses props en `Readonly` et remplace ses `new Error(...)` d'exhaustivite par des `TypeError(...)`.
+  - `case-list-card.tsx`, `case-workspace-sections.tsx`, `create-case-card.tsx` et `page.tsx` rendent plus explicites leurs `className`, contrôles lifecycle/pagination et formulaires pour stabiliser l'analyse statique.
+  - `onboarding/README.md` a ete alignee sur ces conventions.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint $(rg --files 'app-admin/app/(admin)/clients/[orgId]/onboarding' -g '!**/README.md' | sed 's#^app-admin/##' | tr '\n' ' ')`
+
+## Current Pass - 2026-03-21 - Ledger Detail Sonar Cleanup
+
+### Plan
+
+- [x] Inventorier les fichiers du dossier ledgers/[ledgerId] et relever les patterns Sonar probables
+- [x] Appliquer les refactors minimaux et explicites dans les fichiers concernes
+- [x] Mettre a jour la documentation locale et verifier avec eslint cible
+
+### Review
+
+- Cause racine etablie:
+  - `rapports/ledgers/[ledgerId]` reutilisait les memes familles de signaux que les autres dossiers admin: props inline non immuables, texte inline JSX melange a des `span`, labels de formulaire non relies explicitement, derivees conditionnelles dans les props, et callbacks async de decisions branches sans contrat coherent entre logique et UI.
+- Correctif applique:
+  - `page.tsx`, `ledger-panels.tsx` et `ledger-panel-sections.tsx` utilisent maintenant des props explicites en `Readonly<...>` sur les sous-composants concernes.
+  - le champ commentaire de decision est relie a son `textarea` via `htmlFor/id`.
+  - les callbacks d'actions ledger sont maintenant modeles comme async jusqu'au wrapper bouton, qui garde une frontiere UI sync compatible avec lint/React.
+  - plusieurs morceaux de JSX texte/tag et derives conditionnels ont ete rendus plus explicites pour stabiliser Sonar (`selectionSuffix`, `blockersSuffix`, snapshots, validation/ROI).
+  - `README.md` a ete alignee sur ces conventions.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint $(rg --files 'app-admin/app/(admin)/clients/[orgId]/rapports/ledgers/[ledgerId]' -g '!**/README.md' | sed 's#^app-admin/##' | tr '\n' ' ')`
+
+# Current Pass - 2026-03-21 - Admin Components Sonar Cleanup
+
+### Plan
+
+- [x] Inspecter les composants autorises sous `app-admin/components` pour isoler les patterns Sonar classiques
+- [x] Rendre les props explicitement `Readonly` et sortir les rendus/négations/ternaires imbriques hors du JSX dans les fichiers autorises
+- [x] Mettre a jour la documentation locale `app-admin/components/README.md`
+- [x] Verifier les fichiers modifies avec un lint cible
+
+### Review
+
+- Correctifs appliques:
+  - `admin-shell.tsx` et `admin-shell-sections.tsx` utilisent maintenant des contrats de props `Readonly`, des contenus derives hors du JSX et des guards explicites plutot que des ternaires imbriques.
+  - `admin-sidebar.tsx` et `admin-topbar.tsx` ont ete alignes sur les memes conventions, avec des guards positifs pour `collapsed`, `profileMenuOpen`, `permissions` et les boutons de session.
+  - `client-tabs-nav.tsx`, `site-tree.tsx`, `org-header.tsx`, `route-progress-bar.tsx`, `system-health-bar.tsx` et `unread-messages-card.tsx` ont ete limes sur les motifs recurrent du repo: props `Readonly`, `globalThis`, conditions positives, contenus intermediaires et clés stables.
+- Documentation alignee:
+  - `app-admin/components/README.md`
+- Verification:
+  - `pnpm --filter @praedixa/admin exec eslint 'components/admin-shell.tsx' 'components/admin-shell-sections.tsx' 'components/admin-sidebar.tsx' 'components/admin-topbar.tsx' 'components/client-tabs-nav.tsx' 'components/site-tree.tsx' 'components/org-header.tsx' 'components/route-progress-bar.tsx' 'components/system-health-bar.tsx' 'components/unread-messages-card.tsx'`
+
+# Current Pass - 2026-03-21 - Landing Tailwind v4 Migration
+
+### Plan
+
+- [x] Auditer la config Tailwind/PostCSS actuelle de `app-landing` et les contraintes de monorepo
+- [x] Migrer `app-landing` vers Tailwind v4 en mode CSS-first (`@import`, `@theme`, `@source`)
+- [x] Mettre a jour la doc et valider `install`, `lint`, `typecheck` et `build` sur la landing
+
+### Review
+
+- Migration effectuee sur `app-landing` uniquement, sans forcer `app-admin` ni `app-webapp` a quitter Tailwind 3 dans ce meme pass.
+- Configuration v4 appliquee:
+  - `app-landing/app/globals.css` remplace `@tailwind base/components/utilities` par `@import "tailwindcss"`.
+  - les tokens utilitaires historiquement portes par `tailwind.config.js` (`ink`, `surface`, `v2-border`, `neutral`, `brass`, `rounded-card`, `shadow-1`, `max-w-content`, etc.) sont maintenant exposes via `@theme inline`.
+  - `app-landing/postcss.config.mjs` utilise `@tailwindcss/postcss`.
+  - `app-landing/tailwind.config.js` a ete supprime pour eviter une configuration v3/v4 mixte.
+- Monorepo:
+  - l'override racine qui forcait `tailwindcss` en `3.4.19` a ete retire, ce qui permet a `app-landing` d'installer `tailwindcss@4.2.2` tout en laissant les autres apps sur `3.4.19`.
+  - `pnpm-lock.yaml` reference maintenant a la fois `tailwindcss@3.4.19` et `tailwindcss@4.2.2`, plus `@tailwindcss/postcss@4.2.2`.
+- Documentation alignee:
+  - `app-landing/README.md`
+
+### Verification
+
+- `pnpm install`
+- `pnpm --filter @praedixa/landing lint`
+- `pnpm --filter @praedixa/landing build`
+- `pnpm --filter @praedixa/landing typecheck`
+- note: le premier `typecheck` a echoue avant build a cause de `.next/types` absents; un build Next a regenere ces types puis le `typecheck` est repasse vert.
+
+# Current Pass - 2026-03-22 - Medallion Scalar Coercion Sonar Cleanup
+
+### Plan
+
+- [ ] Split the scalar coercion helpers in `medallion_pipeline_base.py` to lower Sonar cognitive complexity on `to_float` and `coerce_scalar`
+- [ ] Add focused tests for numeric, boolean and date coercion edge cases
+- [ ] Update the `scripts` and `tests` READMEs for the new helper coverage
+- [ ] Run targeted Python verification for the refactor
+
+## Current Pass - 2026-03-22 - Onboarding Hook Clean-Code Pass
+
+### Plan
+
+- [x] Extract small pure helpers from `app-admin/app/(admin)/clients/[orgId]/onboarding/use-onboarding-page-model.ts` to reduce density without changing behavior
+- [x] Keep the hook return contract and mutation flow untouched, and update the onboarding README if the local orchestration note needs to stay accurate
+- [x] Run a targeted `tsc` check for `app-admin` and record the result
+
+### Review
+
+- `use-onboarding-page-model.ts` is now flatter: the selected-case sync, effective-users derivation, create-case validation, create-case payload assembly, and integration-option mapping each live in a small pure helper.
+- The hook return contract is unchanged; the same fields and handlers are still exposed to `page.tsx`, and the mutation flow still routes through `use-onboarding-case-actions.ts`.
+- `onboarding/README.md` now mentions the local pure helpers so the doc matches the current orchestration shape.
+- Verification:
+  - `pnpm --filter @praedixa/admin exec tsc -p tsconfig.json --noEmit`

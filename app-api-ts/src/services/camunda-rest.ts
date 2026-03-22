@@ -105,7 +105,7 @@ async function parseErrorBody(
   response: Response,
 ): Promise<Record<string, unknown>> {
   try {
-    const parsed = (await response.json()) as unknown;
+    const parsed = await response.json();
     return asRecord(parsed) ?? {};
   } catch {
     return {};
@@ -215,9 +215,9 @@ export class CamundaRestClient {
     if (!response.ok) {
       const details = await parseErrorBody(response);
       throw new CamundaApiError(
-        String(details.message ?? `Camunda request failed for ${path}`),
+        String(details["message"] ?? `Camunda request failed for ${path}`),
         response.status,
-        String(details.code ?? "CAMUNDA_REQUEST_FAILED"),
+        String(details["code"] ?? "CAMUNDA_REQUEST_FAILED"),
         details,
       );
     }
@@ -279,9 +279,9 @@ export class CamundaRestClient {
     if (!response.ok) {
       const details = await parseErrorBody(response);
       throw new CamundaApiError(
-        String(details.message ?? "Camunda deployment failed."),
+        String(details["message"] ?? "Camunda deployment failed."),
         response.status,
-        String(details.code ?? "CAMUNDA_DEPLOY_FAILED"),
+        String(details["code"] ?? "CAMUNDA_DEPLOY_FAILED"),
         details,
       );
     }

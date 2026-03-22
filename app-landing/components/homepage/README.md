@@ -65,3 +65,5 @@ La homepage doit garder un passage `answer-first` visible, court et canoniquemen
 Le comparatif homepage doit opposer Praedixa a des categories d'outils (`ERP`, `BI`, `planning`, `Excel/comites`), jamais a des marques nommees.
 Sur la homepage FR, preferer le wording visible `preuve de ROI`; reserver `preuve sur historique` au slug et a la page detaillee quand il faut expliquer la methode de preuve.
 Quand la homepage oppose Praedixa aux ERP, rendre explicite la difference de methode (`Data Science + Machine Learning + IA` vs pilotage par moyennes) au lieu de rester sur un comparatif trop abstrait.
+Le rail de confiance du hero ne doit pas afficher de placeholders repetes ou de pseudo-logos textuels au-dessus de la ligne de flottaison.
+Si un composant legacy de trust bar est conserve hors parcours actif, il doit lui aussi rester borne a des logos verifies; ne jamais y laisser de faux wordmarks ou de placeholders de preuve sociale.

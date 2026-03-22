@@ -40,10 +40,10 @@ export type VerifyContactChallengeResult =
     };
 
 function resolveChallengeSecret(): string | null {
-  const explicit = process.env.CONTACT_FORM_CHALLENGE_SECRET?.trim();
+  const explicit = process.env["CONTACT_FORM_CHALLENGE_SECRET"]?.trim();
   if (explicit) return explicit;
 
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env["NODE_ENV"] !== "production") {
     return "praedixa-local-contact-challenge-secret";
   }
 

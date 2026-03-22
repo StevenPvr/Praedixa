@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { resolveAccessibleAdminPath } from "@/lib/auth/route-access";
+import { resolveAccessibleAdminPath } from "@/lib/auth/admin-route-policies";
 import { canAccessAdminConsole } from "@/lib/auth/permissions";
 import {
   LOGIN_NEXT_COOKIE,
@@ -54,9 +54,26 @@ function applyRateLimitHeaders(
   response.headers.set("X-RateLimit-Limit", String(limit));
   response.headers.set("X-RateLimit-Remaining", String(rate.remaining));
   response.headers.set("X-RateLimit-Reset", String(rate.resetAtEpochSeconds));
-  if (!rate.allowed) {
+  if (rate.allowed === false) {
     response.headers.set("Retry-After", String(rate.retryAfterSeconds));
   }
+}
+
+function hasValidCallbackState(args: {
+  code: string | null;
+  returnedState: string | null;
+  expectedState: string;
+  verifier: string;
+}): boolean {
+  return (
+    typeof args.code === "string" &&
+    args.code.length > 0 &&
+    typeof args.returnedState === "string" &&
+    args.returnedState.length > 0 &&
+    args.expectedState.length > 0 &&
+    args.verifier.length > 0 &&
+    timingSafeEqual(args.returnedState, args.expectedState)
+  );
 }
 
 export async function GET(request: NextRequest) {
@@ -81,7 +98,7 @@ export async function GET(request: NextRequest) {
     return response;
   }
 
-  if (!rate.allowed) {
+  if (rate.allowed === false) {
     const redirect = createNoStoreRedirect(
       `${appOrigin}/login?error=rate_limited`,
     );
@@ -99,12 +116,23 @@ export async function GET(request: NextRequest) {
   const safeNext = sanitizeNextPath(nextCookie, "/");
 
   if (
-    !code ||
-    !returnedState ||
-    !expectedState ||
-    !timingSafeEqual(returnedState, expectedState) ||
-    !verifier
+    hasValidCallbackState({
+      code,
+      returnedState,
+      expectedState,
+      verifier,
+    }) === false
   ) {
+    const redirect = createNoStoreRedirect(
+      `${appOrigin}/login?error=auth_callback_failed`,
+    );
+    applyRateLimitHeaders(redirect, maxAttempts, rate);
+    clearAuthCookies(redirect);
+    clearLoginFlowCookies(redirect);
+    return redirect;
+  }
+
+  if (typeof code !== "string" || code.length === 0) {
     const redirect = createNoStoreRedirect(
       `${appOrigin}/login?error=auth_callback_failed`,
     );
@@ -125,7 +153,7 @@ export async function GET(request: NextRequest) {
       codeVerifier: verifier,
     });
 
-    if (!tokenPayload?.access_token) {
+    if (tokenPayload === null) {
       const redirect = createNoStoreRedirect(
         `${appOrigin}/login?error=auth_callback_failed`,
       );
@@ -135,7 +163,17 @@ export async function GET(request: NextRequest) {
       return redirect;
     }
 
-    const accessToken = tokenPayload.access_token;
+    const accessToken = tokenPayload.access_token ?? null;
+    if (typeof accessToken !== "string" || accessToken.length === 0) {
+      const redirect = createNoStoreRedirect(
+        `${appOrigin}/login?error=auth_callback_failed`,
+      );
+      applyRateLimitHeaders(redirect, maxAttempts, rate);
+      clearAuthCookies(redirect);
+      clearLoginFlowCookies(redirect);
+      return redirect;
+    }
+
     if (!isAccessTokenCompatible(accessToken, { issuerUrl, clientId })) {
       const redirect = createNoStoreRedirect(
         `${appOrigin}/login?error=auth_callback_failed`,
@@ -158,7 +196,12 @@ export async function GET(request: NextRequest) {
 
     const user = userFromAccessToken(accessToken, clientId);
     const exp = getTokenExp(accessToken);
-    if (!user || !exp || !canAccessAdminConsole(user.role, user.permissions)) {
+    const hasAdminConsoleAccess =
+      user !== null &&
+      exp !== null &&
+      canAccessAdminConsole(user.role, user.permissions);
+
+    if (hasAdminConsoleAccess === false) {
       const redirect = createNoStoreRedirect(`${appOrigin}/unauthorized`);
       applyRateLimitHeaders(redirect, maxAttempts, rate);
       clearAuthCookies(redirect);

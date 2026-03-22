@@ -36,8 +36,8 @@ Le monorepo n'est pas pret pour un cycle de developpement feature serieux. Les p
 - [ ] Remettre Camunda onboarding dans un etat vraiment operationnel
       Problem: la brique d'orchestration critique pour l'onboarding n'est pas exploitable localement, donc le workflow admin associe n'est pas verifiable.
       Preuve: `pnpm camunda:status` retourne `orchestration ... Up ... (unhealthy)`; `pnpm test:camunda:onboarding` echoue avec `PersistenceError: Camunda onboarding runtime failed.`; `pnpm dev:api` ne fait que monter le HTTP avec un warning fail-close sur Camunda indisponible.
-      Correctif exact: reparer le stack lightweight Camunda epingle par `scripts/camunda-dev.sh`, verifier les dependances necessaires au service `orchestration`, et remettre `app-api-ts` dans une situation ou `initializeOnboardingCamundaRuntime` et `ensureProcessDeployed` passent reellement contre le stack versionne.
-      Fichiers/scripts concernes: `scripts/camunda-dev.sh`, `infra/camunda/README.md`, `app-api-ts/src/services/admin-onboarding-camunda.ts`, `app-api-ts/src/__tests__/admin-onboarding.camunda.integration.test.ts`.
+      Correctif exact: reparer le stack lightweight Camunda epingle par `scripts/dev/camunda-dev.sh`, verifier les dependances necessaires au service `orchestration`, et remettre `app-api-ts` dans une situation ou `initializeOnboardingCamundaRuntime` et `ensureProcessDeployed` passent reellement contre le stack versionne.
+      Fichiers/scripts concernes: `scripts/dev/camunda-dev.sh`, `infra/camunda/README.md`, `app-api-ts/src/services/admin-onboarding-camunda.ts`, `app-api-ts/src/__tests__/admin-onboarding.camunda.integration.test.ts`.
       Commande de validation: `pnpm camunda:up && pnpm camunda:status && pnpm test:camunda:onboarding`
       Resultat attendu: le runtime Camunda passe en `healthy` et le smoke onboarding reussit sans skip ni `503`.
       Dependance eventuelle a un autre item: la base locale doit etre disponible et migree.
@@ -46,7 +46,7 @@ Le monorepo n'est pas pret pour un cycle de developpement feature serieux. Les p
       Problem: le socle cloud versionne n'est pas coherent avec le runtime observe; staging est incomplet et `auth-prod` lui-meme manque encore des prerequis critiques.
       Preuve: `pnpm scw:preflight:staging` echoue avec `38` erreurs et `3` warnings; namespaces `landing-staging`, `webapp-staging`, `admin-staging`, `api-staging` absents; `auth-prod` manque `KC_DB`, `KC_DB_URL_HOST`, `KC_DB_URL_PORT`, `KC_DB_URL_DATABASE`, `KC_DB_USERNAME`, `KC_DB_PASSWORD`, `KEYCLOAK_SMTP_PASSWORD` et le private network; plusieurs RDB, Redis, buckets et DNS attendus sont manquants.
       Correctif exact: soit creer les assets cloud attendus par le preflight versionne, soit nettoyer `docs/deployment/runtime-secrets-inventory.json` et les scripts `scw-*` pour qu'ils n'affirment plus un etat non provisionne; en parallele, reappliquer la configuration `auth-prod` via les scripts `scw-configure-auth-env.sh` et la synchro Secret Manager avec l'inventaire exact.
-      Fichiers/scripts concernes: `scripts/scw-preflight-deploy.sh`, `scripts/scw-bootstrap-frontends.sh`, `scripts/scw-bootstrap-api.sh`, `scripts/scw-bootstrap-auth.sh`, `scripts/scw-configure-auth-env.sh`, `scripts/scw-configure-api-env.sh`, `scripts/scw-configure-frontend-env.sh`, `docs/deployment/runtime-secrets-inventory.json`, `docs/deployment/environment-secrets-owners-matrix.md`.
+      Fichiers/scripts concernes: `scripts/scw/scw-preflight-deploy.sh`, `scripts/scw/scw-bootstrap-frontends.sh`, `scripts/scw/scw-bootstrap-api.sh`, `scripts/scw/scw-bootstrap-auth.sh`, `scripts/scw/scw-configure-auth-env.sh`, `scripts/scw/scw-configure-api-env.sh`, `scripts/scw/scw-configure-frontend-env.sh`, `docs/deployment/runtime-secrets-inventory.json`, `docs/deployment/environment-secrets-owners-matrix.md`.
       Commande de validation: `pnpm scw:preflight:staging`
       Resultat attendu: `0` erreur bloquante; les namespaces, containers, secrets, reseaux et services manques sont soit provisionnes, soit retires proprement du contrat versionne.
       Dependance eventuelle a un autre item: `Rendre l'image Docker app-api-ts buildable depuis le Dockerfile versionne`.
@@ -66,8 +66,8 @@ Le monorepo n'est pas pret pour un cycle de developpement feature serieux. Les p
       Problem: les prerequis sont documentes mais pas enforcees, ce qui laisse tourner le repo sur des toolchains differentes de celles ciblees.
       Preuve: la machine d'audit execute `node v25.2.1` et `Python 3.14.3`, alors que le repo annonce `Node.js 22+` et `Python 3.12+`; aucune commande racine n'a bloque ou averti explicitement.
       Correctif exact: ajouter un mecanisme versionne type `.nvmrc` ou Volta pour Node, plus une version Python epinglee (`.python-version` ou equivalent uv), et brancher un check fail-fast dans le bootstrap ou les scripts `dev:*`.
-      Fichiers/scripts concernes: `README.md`, `package.json`, `app-api/pyproject.toml`, `scripts/dev-setup.sh`, eventuels fichiers `.nvmrc` / `.python-version`.
-      Commande de validation: `node -v && python3 --version && ./scripts/dev-setup.sh`
+      Fichiers/scripts concernes: `README.md`, `package.json`, `app-api/pyproject.toml`, `scripts/dev/dev-setup.sh`, eventuels fichiers `.nvmrc` / `.python-version`.
+      Commande de validation: `node -v && python3 --version && ./scripts/dev/dev-setup.sh`
       Resultat attendu: une machine fraiche est soit alignee automatiquement, soit arretee tot avec un message clair de version supportee.
       Dependance eventuelle a un autre item: aucune.
 
@@ -124,7 +124,7 @@ Le monorepo n'est pas pret pour un cycle de developpement feature serieux. Les p
       Problem: le back-office et l'orchestration restent les deux surfaces les plus susceptibles de bloquer un cycle feature.
       Preuve: `pnpm test:e2e:admin` echoue avec 14 fails; `pnpm test:camunda:onboarding` echoue; `pnpm camunda:status` est unhealthy.
       Correctif exact: fermer ensuite `Stabiliser pnpm test:e2e:admin` et `Remettre Camunda onboarding dans un etat vraiment operationnel`.
-      Fichiers/scripts concernes: `app-admin/**`, `testing/e2e/admin/**`, `scripts/camunda-dev.sh`, `app-api-ts/src/services/admin-onboarding-camunda.ts`.
+      Fichiers/scripts concernes: `app-admin/**`, `testing/e2e/admin/**`, `scripts/dev/camunda-dev.sh`, `app-api-ts/src/services/admin-onboarding-camunda.ts`.
       Commande de validation: `pnpm test:e2e:admin && pnpm camunda:status && pnpm test:camunda:onboarding`
       Resultat attendu: l'operabilite admin locale et l'onboarding BPM sont prouvables, pas seulement documentes.
       Dependance eventuelle a un autre item: `Ordre 1 - Reparrer la verite des gates avant toute autre fermeture`.
@@ -133,7 +133,7 @@ Le monorepo n'est pas pret pour un cycle de developpement feature serieux. Les p
       Problem: corriger le preflight avant d'avoir des images et des services fiables ferait converger l'infra vers un artefact encore instable.
       Preuve: `pnpm scw:preflight:staging` est massivement rouge et depend des images/services precedents.
       Correctif exact: fermer enfin `Ramener le preflight Scaleway staging a un etat deployable`.
-      Fichiers/scripts concernes: `scripts/scw-*.sh`, `docs/deployment/**`.
+      Fichiers/scripts concernes: `scripts/scw/scw-*.sh`, `docs/deployment/**`.
       Commande de validation: `pnpm scw:preflight:staging`
       Resultat attendu: le staging devient un vrai environnement de validation pour le cycle feature.
       Dependance eventuelle a un autre item: `Ordre 2 - Rendre l'API deployable avant de reparer le cloud`, `Ordre 3 - Remettre l'admin et Camunda dans un etat testable`.
@@ -162,7 +162,7 @@ Le monorepo n'est pas pret pour un cycle de developpement feature serieux. Les p
       Problem: l'equipe doit pouvoir prouver le bootstrap local des services critiques avant d'empiler des features dessus.
       Preuve: aujourd'hui, la DB n'est pas montee par defaut, Camunda est unhealthy, et le smoke onboarding echoue.
       Correctif exact: garantir un chemin local documente et fiable pour Postgres, API TS, admin et Camunda.
-      Fichiers/scripts concernes: `infra/docker-compose.yml`, `scripts/dev-api-run.sh`, `scripts/camunda-dev.sh`, `app-api/alembic/**`, `app-api-ts/src/services/admin-onboarding-camunda.ts`.
+      Fichiers/scripts concernes: `infra/docker-compose.yml`, `scripts/dev/dev-api-run.sh`, `scripts/dev/camunda-dev.sh`, `app-api/alembic/**`, `app-api-ts/src/services/admin-onboarding-camunda.ts`.
       Commande de validation: `docker compose -f infra/docker-compose.yml up -d postgres && cd app-api && uv run --active alembic upgrade head && cd .. && pnpm dev:api & sleep 5 && curl -fsS http://127.0.0.1:8000/api/v1/health && pnpm camunda:status && pnpm test:camunda:onboarding`
       Resultat attendu: API health `200`, DB migree, Camunda healthy et smoke onboarding vert.
       Dependance eventuelle a un autre item: `Remettre Camunda onboarding dans un etat vraiment operationnel`.
@@ -171,7 +171,7 @@ Le monorepo n'est pas pret pour un cycle de developpement feature serieux. Les p
       Problem: un environnement de validation feature doit exister et etre reconcilie avec le contrat repo.
       Preuve: `pnpm scw:preflight:staging` remonte aujourd'hui `38` erreurs et `3` warnings.
       Correctif exact: provisionner ou nettoyer tous les assets declares jusqu'a obtenir un preflight propre.
-      Fichiers/scripts concernes: `scripts/scw-preflight-deploy.sh`, `scripts/scw-bootstrap-*.sh`, `scripts/scw-configure-*.sh`, `docs/deployment/runtime-secrets-inventory.json`, `docs/deployment/environment-secrets-owners-matrix.md`.
+      Fichiers/scripts concernes: `scripts/scw/scw-preflight-deploy.sh`, `scripts/scw/scw-bootstrap-*.sh`, `scripts/scw/scw-configure-*.sh`, `docs/deployment/runtime-secrets-inventory.json`, `docs/deployment/environment-secrets-owners-matrix.md`.
       Commande de validation: `pnpm scw:preflight:staging`
       Resultat attendu: `0` erreur bloquante et un etat staging coherent avec le contrat versionne.
       Dependance eventuelle a un autre item: `Ramener le preflight Scaleway staging a un etat deployable`.

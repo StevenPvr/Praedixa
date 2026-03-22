@@ -34,7 +34,7 @@ export function logSecurityEvent(
   event: string,
   details: Record<string, SecurityLogPrimitive>,
 ): void {
-  if (process.env.NODE_ENV === "test") return;
+  if (process.env["NODE_ENV"] === "test") return;
   // eslint-disable-next-line no-console -- centralized security logging sink
   console.warn(`[landing-security] ${event}`, details);
 }

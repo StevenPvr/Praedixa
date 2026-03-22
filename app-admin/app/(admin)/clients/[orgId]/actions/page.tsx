@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { useClientContext } from "../client-context";
 import { useApiGet } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
@@ -111,6 +111,55 @@ export default function ActionsPage() {
     () => scenarioList.filter((item) => item.status !== "completed"),
     [scenarioList],
   );
+  let alertsContent: ReactNode;
+
+  if (alertsLoading) {
+    alertsContent = <SkeletonCard />;
+  } else if (alertsError) {
+    alertsContent = (
+      <ErrorFallback message={alertsError} onRetry={alertsRefetch} />
+    );
+  } else {
+    alertsContent = (
+      <Card className="rounded-2xl shadow-soft">
+        <CardContent className="p-0">
+          <DataTable
+            columns={ALERT_COLUMNS}
+            data={pendingAlerts}
+            getRowKey={(row) => row.id}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  let scenariosContent: ReactNode;
+
+  if (scenariosLoading) {
+    scenariosContent = <SkeletonCard />;
+  } else if (!forecastingEnabled) {
+    scenariosContent = (
+      <ErrorFallback
+        message={featureUnavailableMessage("Les scenarios admin")}
+      />
+    );
+  } else if (scenariosError) {
+    scenariosContent = (
+      <ErrorFallback message={scenariosError} onRetry={scenariosRefetch} />
+    );
+  } else {
+    scenariosContent = (
+      <Card className="rounded-2xl shadow-soft">
+        <CardContent className="p-0">
+          <DataTable
+            columns={SCENARIO_COLUMNS}
+            data={actionableScenarios}
+            getRowKey={(row) => row.id}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -152,49 +201,14 @@ export default function ActionsPage() {
           <h3 className="text-sm font-medium text-ink-secondary">
             File d'alertes
           </h3>
-          {alertsLoading ? (
-            <SkeletonCard />
-          ) : alertsError ? (
-            <ErrorFallback message={alertsError} onRetry={alertsRefetch} />
-          ) : (
-            <Card className="rounded-2xl shadow-soft">
-              <CardContent className="p-0">
-                <DataTable
-                  columns={ALERT_COLUMNS}
-                  data={pendingAlerts}
-                  getRowKey={(row) => row.id}
-                />
-              </CardContent>
-            </Card>
-          )}
+          {alertsContent}
         </div>
 
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-ink-secondary">
             Scenarios proposes
           </h3>
-          {scenariosLoading ? (
-            <SkeletonCard />
-          ) : !forecastingEnabled ? (
-            <ErrorFallback
-              message={featureUnavailableMessage("Les scenarios admin")}
-            />
-          ) : scenariosError ? (
-            <ErrorFallback
-              message={scenariosError}
-              onRetry={scenariosRefetch}
-            />
-          ) : (
-            <Card className="rounded-2xl shadow-soft">
-              <CardContent className="p-0">
-                <DataTable
-                  columns={SCENARIO_COLUMNS}
-                  data={actionableScenarios}
-                  getRowKey={(row) => row.id}
-                />
-              </CardContent>
-            </Card>
-          )}
+          {scenariosContent}
         </div>
       </div>
     </div>

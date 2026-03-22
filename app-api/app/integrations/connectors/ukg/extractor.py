@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from itertools import islice
 from typing import TYPE_CHECKING, Any
 
+from app.integrations.connectors._shared import ingest_provider_event_batches
 from app.integrations.connectors.ukg.client import UkgApiClient
 from app.integrations.connectors.ukg.mapper import (
     build_ukg_requests,
@@ -20,7 +20,6 @@ if TYPE_CHECKING:
         RuntimeProviderAccessContext,
     )
 
-_MAX_PROVIDER_INGEST_BATCH = 200
 _UKG_SCHEMA_VERSION = "ukg.workforce.v1"
 
 
@@ -31,21 +30,6 @@ class UkgPullResult:
     fetched_records: int
     accepted_events: int
     duplicate_events: int
-
-
-def _chunk_events(
-    events: list[dict[str, object]],
-    chunk_size: int = _MAX_PROVIDER_INGEST_BATCH,
-) -> tuple[list[dict[str, object]], ...]:
-    chunks: list[list[dict[str, object]]] = []
-    iterator = iter(events)
-    while True:
-        chunk = list(islice(iterator, chunk_size))
-        if not chunk:
-            break
-        chunks.append(chunk)
-    return tuple(chunks)
-
 
 async def pull_ukg_connection(
     runtime_client: ConnectorsRuntimeClient,
@@ -87,17 +71,15 @@ async def pull_ukg_connection(
                 )
                 for record in records
             ]
-            for chunk in _chunk_events(events):
-                ingest_result = await runtime_client.ingest_provider_events(
-                    claimed_run.organization_id,
-                    claimed_run.connection_id,
-                    sync_run_id=claimed_run.id,
-                    worker_id=worker_id,
-                    schema_version=_UKG_SCHEMA_VERSION,
-                    events=chunk,
-                )
-                accepted_events += int(ingest_result.get("accepted", 0))
-                duplicate_events += int(ingest_result.get("duplicates", 0))
+            ingest_totals = await ingest_provider_event_batches(
+                runtime_client,
+                claimed_run,
+                worker_id=worker_id,
+                schema_version=_UKG_SCHEMA_VERSION,
+                events=events,
+            )
+            accepted_events += ingest_totals.accepted_events
+            duplicate_events += ingest_totals.duplicate_events
     finally:
         await ukg_client.aclose()
 

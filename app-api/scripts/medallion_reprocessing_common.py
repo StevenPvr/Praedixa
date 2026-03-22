@@ -230,4 +230,4 @@ def _window_overlaps(
         return False
     if effective_end < start_date:
         return False
-    return not (effective_start > end_date)
+    return effective_start <= end_date

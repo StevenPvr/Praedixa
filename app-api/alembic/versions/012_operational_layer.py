@@ -23,7 +23,16 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import ENUM as PG_ENUM
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
-from alembic import op
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
+
+NOW_SQL = "now()"
+ON_DELETE_CASCADE = "CASCADE"
+ON_DELETE_RESTRICT = "RESTRICT"
+ON_DELETE_SET_NULL = "SET NULL"
+ORGANIZATIONS_ID_REF = "organizations.id"
+SCENARIO_OPTIONS_ID_REF = "scenario_options.id"
+COVERAGE_ALERTS_ID_REF = "coverage_alerts.id"
+CLIENT_DATASETS_CREATED_AT_DESC = "created_at DESC"
 
 # revision identifiers, used by Alembic.
 revision = "012"
@@ -76,7 +85,9 @@ def upgrade() -> None:
     op.create_table(
         "canonical_records",
         sa.Column("id", UUID(as_uuid=True), primary_key=True),
-        sa.Column("organization_id", UUID(as_uuid=True), nullable=False, index=True),
+        sa.Column(
+            "organization_id", UUID(as_uuid=True), nullable=False, index=True
+        ),
         sa.Column("site_id", sa.String(50), nullable=False),
         sa.Column("date", sa.Date(), nullable=False),
         sa.Column("shift", shifttype, nullable=False),
@@ -91,13 +102,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.UniqueConstraint(
@@ -113,7 +124,9 @@ def upgrade() -> None:
     op.create_table(
         "cost_parameters",
         sa.Column("id", UUID(as_uuid=True), primary_key=True),
-        sa.Column("organization_id", UUID(as_uuid=True), nullable=False, index=True),
+        sa.Column(
+            "organization_id", UUID(as_uuid=True), nullable=False, index=True
+        ),
         sa.Column("site_id", sa.String(50), nullable=True),
         sa.Column("version", sa.Integer(), nullable=False, server_default="1"),
         sa.Column("c_int", sa.Numeric(8, 2), nullable=False),
@@ -141,13 +154,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )
@@ -155,7 +168,9 @@ def upgrade() -> None:
     op.create_table(
         "coverage_alerts",
         sa.Column("id", UUID(as_uuid=True), primary_key=True),
-        sa.Column("organization_id", UUID(as_uuid=True), nullable=False, index=True),
+        sa.Column(
+            "organization_id", UUID(as_uuid=True), nullable=False, index=True
+        ),
         sa.Column("site_id", sa.String(50), nullable=False),
         sa.Column("alert_date", sa.Date(), nullable=False),
         sa.Column("shift", shifttype, nullable=False),
@@ -176,13 +191,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )
@@ -190,17 +205,19 @@ def upgrade() -> None:
     op.create_table(
         "scenario_options",
         sa.Column("id", UUID(as_uuid=True), primary_key=True),
-        sa.Column("organization_id", UUID(as_uuid=True), nullable=False, index=True),
+        sa.Column(
+            "organization_id", UUID(as_uuid=True), nullable=False, index=True
+        ),
         sa.Column(
             "coverage_alert_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("coverage_alerts.id", ondelete="CASCADE"),
+            sa.ForeignKey(COVERAGE_ALERTS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column(
             "cost_parameter_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("cost_parameters.id", ondelete="RESTRICT"),
+            sa.ForeignKey("cost_parameters.id", ondelete=ON_DELETE_RESTRICT),
             nullable=False,
         ),
         sa.Column("option_type", scenariooptiontype, nullable=False),
@@ -224,13 +241,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )
@@ -238,23 +255,25 @@ def upgrade() -> None:
     op.create_table(
         "operational_decisions",
         sa.Column("id", UUID(as_uuid=True), primary_key=True),
-        sa.Column("organization_id", UUID(as_uuid=True), nullable=False, index=True),
+        sa.Column(
+            "organization_id", UUID(as_uuid=True), nullable=False, index=True
+        ),
         sa.Column(
             "coverage_alert_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("coverage_alerts.id", ondelete="CASCADE"),
+            sa.ForeignKey(COVERAGE_ALERTS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column(
             "recommended_option_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("scenario_options.id", ondelete="SET NULL"),
+            sa.ForeignKey(SCENARIO_OPTIONS_ID_REF, ondelete=ON_DELETE_SET_NULL),
             nullable=True,
         ),
         sa.Column(
             "chosen_option_id",
             UUID(as_uuid=True),
-            sa.ForeignKey("scenario_options.id", ondelete="SET NULL"),
+            sa.ForeignKey(SCENARIO_OPTIONS_ID_REF, ondelete=ON_DELETE_SET_NULL),
             nullable=True,
         ),
         sa.Column("site_id", sa.String(50), nullable=False),
@@ -278,13 +297,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )
@@ -292,7 +311,9 @@ def upgrade() -> None:
     op.create_table(
         "proof_records",
         sa.Column("id", UUID(as_uuid=True), primary_key=True),
-        sa.Column("organization_id", UUID(as_uuid=True), nullable=False, index=True),
+        sa.Column(
+            "organization_id", UUID(as_uuid=True), nullable=False, index=True
+        ),
         sa.Column("site_id", sa.String(50), nullable=False),
         sa.Column("month", sa.Date(), nullable=False),
         sa.Column("cout_bau_eur", sa.Numeric(12, 2), nullable=False),
@@ -308,13 +329,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.UniqueConstraint(

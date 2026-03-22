@@ -29,6 +29,31 @@ interface DispatchDecisionAction {
   variant?: "destructive" | "outline";
 }
 
+type DecisionActionButtonsProps = Readonly<{
+  actions: readonly DispatchDecisionAction[];
+  loading: boolean;
+  onAction: (outcome: DispatchDecisionOutcome) => Promise<void>;
+}>;
+
+type DecisionMutationCardProps = Readonly<{
+  actions: readonly DispatchDecisionAction[];
+  comment: string;
+  lastOutcome: string | null;
+  error: string | null;
+  loading: boolean;
+  setComment: (value: string) => void;
+  onAction: (outcome: DispatchDecisionOutcome) => Promise<void>;
+}>;
+
+type DispatchDecisionPanelProps = Readonly<{
+  orgId: string;
+  data: ActionDispatchDetailResponse;
+  canManageDispatch: boolean;
+  contractAllowsWriteback: boolean;
+  missingWritebackPermissions: readonly string[];
+  onDecisionSaved: () => void;
+}>;
+
 const DECISION_PERMISSION_COPY = {
   restrictedTitle: "Action restreinte",
   restrictedMessage:
@@ -76,8 +101,14 @@ function buildDispatchDecisionActions(
           ? { outcome: "canceled", label: "Annuler", variant: "destructive" }
           : null,
       ].filter((value): value is DispatchDecisionAction => value !== null);
-    default:
+    case "dry_run":
+    case "acknowledged":
+    case "canceled":
       return [];
+    default: {
+      const unreachable: never = data.status;
+      throw new Error(`Unhandled dispatch status: ${unreachable}`);
+    }
   }
 }
 
@@ -156,8 +187,8 @@ function useDecisionPanelState({
     const response = await mutation.mutate({
       outcome,
       reasonCode: buildDecisionReasonCode(outcome),
-      comment: trimmedComment.length > 0 ? trimmedComment : undefined,
-      errorCode: outcome === "failed" ? "manual_dispatch_failure" : undefined,
+      ...(trimmedComment.length > 0 ? { comment: trimmedComment } : {}),
+      ...(outcome === "failed" ? { errorCode: "manual_dispatch_failure" } : {}),
     });
     if (!response) {
       return;
@@ -174,11 +205,7 @@ function DecisionActionButtons({
   actions,
   loading,
   onAction,
-}: {
-  actions: readonly DispatchDecisionAction[];
-  loading: boolean;
-  onAction: (outcome: DispatchDecisionOutcome) => void;
-}) {
+}: DecisionActionButtonsProps) {
   return (
     <div className="flex flex-wrap gap-3">
       {actions.map((action) => (
@@ -187,7 +214,9 @@ function DecisionActionButtons({
           size="sm"
           variant={action.variant}
           loading={loading}
-          onClick={() => onAction(action.outcome)}
+          onClick={async () => {
+            await onAction(action.outcome);
+          }}
         >
           {action.label}
         </Button>
@@ -204,15 +233,7 @@ function DecisionMutationCard({
   loading,
   setComment,
   onAction,
-}: {
-  actions: readonly DispatchDecisionAction[];
-  comment: string;
-  lastOutcome: string | null;
-  error: string | null;
-  loading: boolean;
-  setComment: (value: string) => void;
-  onAction: (outcome: DispatchDecisionOutcome) => void;
-}) {
+}: DecisionMutationCardProps) {
   return (
     <MutationPanelShell>
       <MutationPanelHeader
@@ -242,14 +263,7 @@ export function DispatchDecisionPanel({
   contractAllowsWriteback,
   missingWritebackPermissions,
   onDecisionSaved,
-}: {
-  orgId: string;
-  data: ActionDispatchDetailResponse;
-  canManageDispatch: boolean;
-  contractAllowsWriteback: boolean;
-  missingWritebackPermissions: readonly string[];
-  onDecisionSaved: () => void;
-}) {
+}: DispatchDecisionPanelProps) {
   const actions = buildDispatchDecisionActions(data);
   const readOnlyState = buildDecisionReadOnlyState({
     data,
@@ -277,7 +291,9 @@ export function DispatchDecisionPanel({
       error={mutation.error}
       loading={mutation.loading}
       setComment={setComment}
-      onAction={(outcome) => void submitDecision(outcome)}
+      onAction={async (outcome) => {
+        await submitDecision(outcome);
+      }}
     />
   );
 }

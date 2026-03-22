@@ -10,13 +10,18 @@ import { isSameOriginBrowserRequest } from "@/lib/security/same-origin";
 
 type RateLimitSnapshot = Awaited<ReturnType<typeof consumeRateLimit>>;
 
-function unauthorized(clearCookies = true): NextResponse {
-  const response = NextResponse.json(
-    { error: "unauthorized" },
-    { status: 401 },
-  );
+function createNoStoreJsonResponse(
+  body: unknown,
+  status: number,
+): NextResponse {
+  const response = NextResponse.json(body, { status });
   response.headers.set("Cache-Control", "no-store");
   response.headers.set("Pragma", "no-cache");
+  return response;
+}
+
+function unauthorized(clearCookies = true): NextResponse {
+  const response = createNoStoreJsonResponse({ error: "unauthorized" }, 401);
   if (clearCookies) {
     clearAuthCookies(response);
   }
@@ -24,10 +29,7 @@ function unauthorized(clearCookies = true): NextResponse {
 }
 
 function forbidden(): NextResponse {
-  const response = NextResponse.json({ error: "forbidden" }, { status: 403 });
-  response.headers.set("Cache-Control", "no-store");
-  response.headers.set("Pragma", "no-cache");
-  return response;
+  return createNoStoreJsonResponse({ error: "forbidden" }, 403);
 }
 
 function applyRateLimitHeaders(
@@ -57,12 +59,7 @@ export async function GET(request: NextRequest) {
     identifier: signed ? `session:${signed}` : null,
   });
   if (!rate.allowed) {
-    const response = NextResponse.json(
-      { error: "rate_limited" },
-      { status: 429 },
-    );
-    response.headers.set("Cache-Control", "no-store");
-    response.headers.set("Pragma", "no-cache");
+    const response = createNoStoreJsonResponse({ error: "rate_limited" }, 429);
     applyRateLimitHeaders(response, maxAttempts, rate);
     return response;
   }
@@ -81,7 +78,7 @@ export async function GET(request: NextRequest) {
     return unauthorized(resolved.clearCookies);
   }
 
-  const response = NextResponse.json(
+  const response = createNoStoreJsonResponse(
     {
       user: {
         id: resolved.session.sub,
@@ -91,10 +88,8 @@ export async function GET(request: NextRequest) {
         siteId: resolved.session.siteId,
       },
     },
-    { status: 200 },
+    200,
   );
-  response.headers.set("Cache-Control", "no-store");
-  response.headers.set("Pragma", "no-cache");
   applyRateLimitHeaders(response, maxAttempts, rate);
 
   if (resolved.cookieUpdate) {

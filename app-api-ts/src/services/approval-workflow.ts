@@ -107,8 +107,12 @@ function buildApprovalEvent(
     actorId: input.actorId,
     actorRole: input.actorRole,
     occurredAt: input.occurredAt,
-    reasonCode: input.decision?.reasonCode,
-    comment: input.decision?.comment,
+    ...(input.decision?.reasonCode !== undefined
+      ? { reasonCode: input.decision.reasonCode }
+      : {}),
+    ...(input.decision?.comment !== undefined
+      ? { comment: input.decision.comment }
+      : {}),
   };
 }
 
@@ -186,11 +190,16 @@ export function transitionApprovalRecord(
   return {
     ...record,
     status: input.nextStatus,
-    decision: input.decision
+    ...(input.decision
       ? {
-          ...input.decision,
+          decision: {
+            ...input.decision,
+            ...(input.decision.comment !== undefined
+              ? { comment: input.decision.comment }
+              : {}),
+          },
         }
-      : undefined,
+      : {}),
     separationOfDuties: {
       ...record.separationOfDuties,
       requesterActorId,

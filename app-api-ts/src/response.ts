@@ -63,7 +63,7 @@ export function failure(
     error: {
       code,
       message,
-      details,
+      ...(details !== undefined ? { details } : {}),
     },
     timestamp: new Date().toISOString(),
     requestId,

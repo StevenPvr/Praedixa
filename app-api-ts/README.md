@@ -16,6 +16,8 @@ Backend applicatif TypeScript expose aux frontends `app-webapp` et `app-admin`.
 - `src/routes.ts` contient la table de routes applicatives et admin.
 - `src/services/` regroupe la persistance SQL et les services de lecture/ecriture.
 - `migrations/001_decision_engine_config.sql` pose la base SQL du moteur de configuration.
+- `migrations/002_decisionops_runtime_guards.sql` ajoute l'index d'idempotence de `action_dispatches`.
+- `migrations/003_decision_contract_runtime.sql` pose le schema persistant du Contract Studio org-scoped pour le runtime studio.
 
 ## Surfaces documentees
 
@@ -68,6 +70,7 @@ Variables importantes chargees par `src/config.ts`:
 
 La config refuse les URLs non absolues, les wildcards CORS et les schemas non `http(s)`/`postgres`.
 Hors developpement, `DATABASE_URL` est obligatoire et `DEMO_MODE` est refuse pour eviter tout fallback applicatif implicite.
+Le contrat JWT runtime est maintenant strict: `sub` doit etre un UUID applicatif, `organization_id` doit etre un UUID pour tous les roles hors `super_admin`, et `manager` / `hr_manager` restent scopes a un `site_id` explicite. Le parser `Authorization` accepte le schema `Bearer` sans sensibilite a la casse HTTP.
 Sur toutes les vraies routes produit/admin, le runtime fail-close des qu'une implementation persistante manque: aucun payload demo/stub ne doit etre servi comme mode normal.
 Si Camunda onboarding est indisponible au boot local, l'API HTTP monte quand meme maintenant; seules les routes onboarding concernees echouent ensuite explicitement jusqu'au retour du runtime Camunda. Le bootstrap journalise un warning concis avec `baseUrl`, `cause` et le next step local attendu (`pnpm camunda:up` ou `CAMUNDA_ENABLED=false`), sans deverser toute la stack dans le terminal de dev.
 Hors developpement, `CONNECTORS_RUNTIME_URL` doit etre explicite.
@@ -85,7 +88,8 @@ pnpm --filter @praedixa/api-ts lint
 pnpm --filter @praedixa/api-ts typecheck
 ```
 
-Depuis la racine du monorepo, preferer `pnpm dev:api`: ce wrapper autocharge `DATABASE_URL` depuis les fichiers locaux standards (`app-api-ts/.env.local`, `app-api/.env.local`, `app-api/.env`, `.env.local`) quand la variable n'est pas deja exportee, recharge aussi `KEYCLOAK_ADMIN_USERNAME` / `KEYCLOAK_ADMIN_PASSWORD` pour les mutations admin qui provisionnent des identites, et garde les logs attaches au terminal pour le debug local. Si aucun username n'est fourni localement, le wrapper force `kcadmin` pour rester aligne avec le runtime Keycloak repo. Si Camunda local manque, le runtime garde maintenant le boot HTTP et remonte un warning de demarrage actionnable plutot qu'une stack brute. Si un lancement en arriere-plan est vraiment voulu, utiliser `pnpm dev:api:bg`; le process ecrit alors aussi dans `.tools/dev-logs/api.log`.
+Depuis la racine du monorepo, preferer `pnpm dev:api`: ce wrapper autocharge `DATABASE_URL` depuis les fichiers locaux standards (`app-api-ts/.env.local`, `app-api/.env.local`, `app-api/.env`, `.env.local`) quand la variable n'est pas deja exportee, recharge aussi `KEYCLOAK_ADMIN_USERNAME` / `KEYCLOAK_ADMIN_PASSWORD` pour les mutations admin qui provisionnent des identites, et recale maintenant toujours `AUTH_ISSUER_URL` / `AUTH_JWKS_URL` / `AUTH_AUDIENCE` sur le contrat auth local actif du repo. Les fichiers API explicites (`app-api-ts/.env.local`, `app-api/.env.local`) restent prioritaires, puis viennent `app-admin/.env.local` / `app-webapp/.env.local`; l'ancien `app-api/.env` n'est plus qu'un fallback de dernier rang pour eviter qu'une config live stale fasse rejeter les JWT Keycloak locaux apres restart. Si aucun username n'est fourni localement, le wrapper force `kcadmin` pour rester aligne avec le runtime Keycloak repo. Si Camunda local manque, le runtime garde maintenant le boot HTTP et remonte un warning de demarrage actionnable plutot qu'une stack brute. `pnpm dev:api:bg` reutilise le meme bootstrap d'env mais lance maintenant `tsx src/index.ts` sans watcher, car `tsx watch` sous `nohup` tombait silencieusement et donnait de faux "running".
+Le meme bootstrap local demarre maintenant aussi automatiquement `app-connectors` et Camunda quand `CONNECTORS_RUNTIME_URL` / `CAMUNDA_BASE_URL` pointent vers `localhost`, puis force un token control-plane local stable (`CONNECTORS_RUNTIME_TOKEN`) et un `CONNECTORS_SERVICE_TOKENS` derive avec `allowedOrgs=["global:all-orgs"]` tant qu'aucune configuration explicite n'est fournie.
 
 Build:
 

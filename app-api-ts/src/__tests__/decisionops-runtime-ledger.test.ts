@@ -52,7 +52,6 @@ function buildLedger(overrides: Partial<LedgerEntry> = {}): LedgerEntry {
       destination: "wfm.shift",
       lastAttemptAt: "2026-03-13T09:15:00.000Z",
     },
-    actual: undefined,
     counterfactual: {
       method: "forecast_baseline_v2",
     },

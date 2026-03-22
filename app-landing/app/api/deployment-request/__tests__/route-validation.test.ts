@@ -11,7 +11,7 @@ describe("POST /api/deployment-request validation", () => {
   describe("companyName", () => {
     it("rejects a missing companyName", async () => {
       const body = validBody();
-      delete (body as Record<string, unknown>).companyName;
+      delete (body as Record<string, unknown>)["companyName"];
       const res = await POST(makeRequest(body));
       expect(res.status).toBe(400);
       expect(res.body).toEqual({ error: "Nom d'entreprise requis." });
@@ -43,7 +43,7 @@ describe("POST /api/deployment-request validation", () => {
   describe("email", () => {
     it("rejects a missing email", async () => {
       const body = validBody();
-      delete (body as Record<string, unknown>).email;
+      delete (body as Record<string, unknown>)["email"];
       const res = await POST(makeRequest(body));
       expect(res.status).toBe(400);
       expect(res.body).toEqual({ error: "Email requis." });
@@ -96,7 +96,7 @@ describe("POST /api/deployment-request validation", () => {
 
     it("accepts an absent phone", async () => {
       const body = validBody();
-      delete (body as Record<string, unknown>).phone;
+      delete (body as Record<string, unknown>)["phone"];
       const res = await POST(makeRequest(body));
       expect(res.status).toBe(200);
     });
@@ -126,7 +126,7 @@ describe("POST /api/deployment-request validation", () => {
   describe("employeeRange", () => {
     it("rejects a missing employeeRange", async () => {
       const body = validBody();
-      delete (body as Record<string, unknown>).employeeRange;
+      delete (body as Record<string, unknown>)["employeeRange"];
       const res = await POST(makeRequest(body));
       expect(res.status).toBe(400);
       expect(res.body).toEqual({ error: "Effectif requis." });
@@ -162,7 +162,7 @@ describe("POST /api/deployment-request validation", () => {
   describe("sector", () => {
     it("rejects a missing sector", async () => {
       const body = validBody();
-      delete (body as Record<string, unknown>).sector;
+      delete (body as Record<string, unknown>)["sector"];
       const res = await POST(makeRequest(body));
       expect(res.status).toBe(400);
       expect(res.body).toEqual({ error: "Secteur requis." });
@@ -201,7 +201,7 @@ describe("POST /api/deployment-request validation", () => {
   describe("consent", () => {
     it("rejects a missing consent", async () => {
       const body = validBody();
-      delete (body as Record<string, unknown>).consent;
+      delete (body as Record<string, unknown>)["consent"];
       const res = await POST(makeRequest(body));
       expect(res.status).toBe(400);
       expect(res.body).toEqual({ error: "Consentement requis." });

@@ -5,7 +5,7 @@ import type {
 } from "./api/responses.js";
 
 const TEST_BASE_URL = "http://localhost:8000";
-const isProduction = process.env.NODE_ENV === "production";
+const isProduction = process.env["NODE_ENV"] === "production";
 
 function isLoopbackHostname(hostname: string): boolean {
   return (
@@ -14,10 +14,10 @@ function isLoopbackHostname(hostname: string): boolean {
 }
 
 function resolveApiBaseUrl(): string {
-  const configuredBaseUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+  const configuredBaseUrl = process.env["NEXT_PUBLIC_API_URL"]?.trim();
 
   if (!configuredBaseUrl) {
-    if (process.env.NODE_ENV === "test") {
+    if (process.env["NODE_ENV"] === "test") {
       return TEST_BASE_URL;
     }
 
@@ -112,12 +112,18 @@ async function request<T>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(buildUrl(path), {
+  const requestInit: RequestInit = {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
-    signal: options?.signal,
-  });
+  };
+  if (body !== undefined) {
+    requestInit.body = JSON.stringify(body);
+  }
+  if (options?.signal) {
+    requestInit.signal = options.signal;
+  }
+
+  const response = await fetch(buildUrl(path), requestInit);
 
   if (!response.ok) {
     let errorData: ErrorResponse | null = null;

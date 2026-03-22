@@ -14,7 +14,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID
 
-from alembic import op
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
 
 # revision identifiers, used by Alembic.
 revision: str = "015"

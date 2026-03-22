@@ -363,8 +363,9 @@ function clonePayloadHint(
 ): ActionTemplatePayloadSchemaHint {
   return {
     ...hint,
-    allowedValues:
-      hint.allowedValues == null ? undefined : [...hint.allowedValues],
+    ...(hint.allowedValues == null
+      ? {}
+      : { allowedValues: [...hint.allowedValues] }),
   };
 }
 
@@ -388,7 +389,7 @@ function cloneTemplate(template: ActionTemplate): ActionTemplate {
     fallback: {
       ...template.fallback,
     },
-    tags: template.tags == null ? undefined : [...template.tags],
+    ...(template.tags == null ? {} : { tags: [...template.tags] }),
   };
 }
 
@@ -513,7 +514,9 @@ export function resolveActionTemplate(
   const compatible = listActionTemplates({
     actionType: input.actionType,
     destinationType: input.destinationType,
-    includeDeprecated: input.includeDeprecated,
+    ...(input.includeDeprecated !== undefined
+      ? { includeDeprecated: input.includeDeprecated }
+      : {}),
   });
 
   if (compatible.length === 0) {

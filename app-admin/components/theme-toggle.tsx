@@ -6,9 +6,9 @@ import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
 import { cn } from "@praedixa/ui";
 
-interface ThemeToggleProps {
+type ThemeToggleProps = Readonly<{
   className?: string;
-}
+}>;
 
 export function ThemeToggle({ className }: ThemeToggleProps) {
   const { resolvedTheme, setTheme } = useTheme();
@@ -18,11 +18,16 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
+  if (mounted === false) {
     return <div className={cn("h-8 w-8", className)} />;
   }
 
   const isDark = resolvedTheme === "dark";
+  const themeIcon = isDark ? (
+    <Moon className="h-4 w-4" />
+  ) : (
+    <Sun className="h-4 w-4" />
+  );
 
   return (
     <button
@@ -40,7 +45,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
         animate={{ rotate: 0, opacity: 1, scale: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
       >
-        {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+        {themeIcon}
       </motion.div>
     </button>
   );

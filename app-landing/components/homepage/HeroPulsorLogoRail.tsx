@@ -7,51 +7,31 @@ interface HeroPulsorLogoRailProps {
 }
 
 interface LogoItem {
-  type: "logo" | "placeholder";
+  type: "logo";
   name: string;
-  logo?: string;
+  logo: string;
 }
 
-function getLogoItems(placeholderText: string): LogoItem[] {
+function getLogoItems(): LogoItem[] {
   return [
     {
       type: "logo",
       name: "EuraTechnologies",
       logo: "/partners/euratechnologies-logo-black.svg",
     },
-    { type: "placeholder", name: placeholderText },
-    { type: "placeholder", name: placeholderText },
-    { type: "placeholder", name: placeholderText },
-    { type: "placeholder", name: placeholderText },
   ];
 }
 
 function LogoItemCard({ item }: { item: LogoItem }) {
-  if (item.type === "logo" && item.logo) {
-    return (
-      <div className="flex h-[38px] items-center justify-center px-4">
-        <Image
-          src={item.logo}
-          alt={item.name}
-          width={120}
-          height={34}
-          className="h-[30px] w-auto object-contain opacity-60"
-        />
-      </div>
-    );
-  }
-
   return (
-    <div
-      className="flex h-[38px] items-center justify-center rounded-lg border border-dashed px-4"
-      style={{ borderColor: "var(--hero-border-soft)" }}
-    >
-      <p
-        className="text-[11px] font-medium"
-        style={{ color: "var(--hero-muted)" }}
-      >
-        {item.name}
-      </p>
+    <div className="flex h-[38px] items-center justify-center px-4">
+      <Image
+        src={item.logo}
+        alt={item.name}
+        width={120}
+        height={34}
+        className="h-[30px] w-auto object-contain opacity-60"
+      />
     </div>
   );
 }
@@ -61,11 +41,7 @@ export function HeroPulsorLogoRail({ locale }: HeroPulsorLogoRailProps) {
   const caption =
     vp.heroLogoCaption ??
     (locale === "fr" ? "Ils nous font confiance" : "They trust us");
-  const placeholderText =
-    locale === "fr"
-      ? "Soyez les premiers à optimiser votre ROI"
-      : "Be the first to optimize your ROI";
-  const items = getLogoItems(placeholderText);
+  const items = getLogoItems();
 
   return (
     <div className="w-full">

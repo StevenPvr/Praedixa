@@ -1,4 +1,5 @@
 import type { ISODateTimeString, UUID } from "../utils/common.js";
+import type { EmailDeliveryProof } from "./email-delivery-proof.js";
 
 export type OnboardingWorkflowProvider = "camunda";
 
@@ -28,6 +29,16 @@ export type OnboardingActivationMode = "shadow" | "limited" | "full";
 export type OnboardingEnvironmentTarget = "sandbox" | "production";
 
 export type OnboardingSourceMode = "api" | "file" | "sftp";
+export type OnboardingSourceActivationTransport =
+  | "api_pull"
+  | "manual_upload"
+  | "sftp_pull";
+export type OnboardingSourceActivationStatus =
+  | "draft"
+  | "processing"
+  | "ready"
+  | "failed";
+export type OnboardingFileFormat = "csv" | "tsv" | "xlsx";
 
 export type OnboardingReadinessStatus =
   | "not_started"
@@ -53,7 +64,79 @@ export type OnboardingInviteRole =
   | "employee"
   | "viewer";
 
+export type OnboardingSourceType = "api" | "file" | "sftp";
+
+export type OnboardingSourceRunAction =
+  | "probe"
+  | "sync"
+  | "file_import"
+  | "medallion_trigger";
+
+export type OnboardingSourceRunStatus =
+  | "queued"
+  | "running"
+  | "success"
+  | "failed";
+
 export type OnboardingAccessInviteStatus = "draft" | "sent" | "failed";
+
+export interface OnboardingSourceActivationRun {
+  status: "pending" | "success" | "failed";
+  triggeredAt: ISODateTimeString;
+  completedAt?: ISODateTimeString | null;
+  bronzeFiles?: number | null;
+  silverRows?: number | null;
+  goldRows?: number | null;
+  quarantinedFiles?: number | null;
+  errorMessage?: string | null;
+}
+
+export interface OnboardingSourceActivationBase {
+  id: string;
+  label: string;
+  sourceMode: OnboardingSourceMode;
+  transport: OnboardingSourceActivationTransport;
+  datasetKey: string;
+  domain: string;
+  importProfile: string;
+  replayStrategy?: string | null;
+  status: OnboardingSourceActivationStatus;
+  lastError?: string | null;
+  lastRun?: OnboardingSourceActivationRun | null;
+}
+
+export interface OnboardingFileSourceActivation extends OnboardingSourceActivationBase {
+  sourceMode: "file" | "sftp";
+  transport: "manual_upload" | "sftp_pull";
+  fileName: string;
+  fileFormat: OnboardingFileFormat;
+  storedRelativePath: string;
+  uploadedAt: ISODateTimeString;
+}
+
+export interface OnboardingApiSourceActivation extends OnboardingSourceActivationBase {
+  sourceMode: "api";
+  transport: "api_pull";
+  connectionId: string;
+  vendor: string;
+  displayName: string;
+  probeStatus: "pending" | "success" | "failed";
+  syncStatus: "pending" | "queued" | "running" | "success" | "failed";
+}
+
+export type OnboardingSourceActivation =
+  | OnboardingFileSourceActivation
+  | OnboardingApiSourceActivation;
+
+export interface OnboardingFileSourceUploadResult {
+  activation: OnboardingFileSourceActivation;
+  bundle: OnboardingCaseBundle;
+}
+
+export interface OnboardingApiSourceActivationResult {
+  activation: OnboardingApiSourceActivation;
+  bundle: OnboardingCaseBundle;
+}
 
 export interface OnboardingAccessInviteRecipient {
   email: string;
@@ -66,7 +149,27 @@ export interface OnboardingAccessInviteRecipient {
   passwordHandling: "client_sets_password";
   invitedAt?: ISODateTimeString | null;
   invitedUserId?: UUID | null;
+  deliveryProof?: EmailDeliveryProof | null;
   errorMessage?: string | null;
+}
+
+export interface OnboardingSourceRun {
+  id: UUID;
+  caseId: UUID;
+  taskId: UUID;
+  sourceKey: string;
+  sourceType: OnboardingSourceType;
+  action: OnboardingSourceRunAction;
+  status: OnboardingSourceRunStatus;
+  message: string | null;
+  fileName: string | null;
+  fileSizeBytes: number | null;
+  storedPath: string | null;
+  statsJson: Record<string, unknown>;
+  startedAt: ISODateTimeString | null;
+  completedAt: ISODateTimeString | null;
+  createdAt: ISODateTimeString;
+  updatedAt: ISODateTimeString;
 }
 
 export type OnboardingBlockerSeverity = "info" | "warning" | "critical";

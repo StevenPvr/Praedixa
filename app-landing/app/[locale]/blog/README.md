@@ -18,3 +18,8 @@ Fichiers :
 ## Intégration
 
 Ce dossier est consommé par l'application `app-landing` et s'insère dans son flux runtime, build ou test.
+
+## Convention SEO
+
+- Le listing blog reste un hub indexable avec breadcrumb visible, metadata propres et contenu answer-first.
+- Les posts publies doivent garder un seul `H1` effectif dans le rendu final.

@@ -18,6 +18,7 @@ import type {
   AppConfig,
   CompiledRoute,
   HttpMethod,
+  RouteBodyParsing,
   RouteContext,
   RouteRateLimit,
   RouteResult,
@@ -234,10 +235,11 @@ function appendBodyChunk(
   chunks: Buffer[],
   chunk: Buffer | string,
   size: number,
+  maxBodyBytes: number,
 ): number {
   const buffer = typeof chunk === "string" ? Buffer.from(chunk) : chunk;
   const nextSize = size + buffer.length;
-  if (nextSize > MAX_REQUEST_BODY_BYTES) {
+  if (nextSize > maxBodyBytes) {
     throw new BodyReadError(
       "PAYLOAD_TOO_LARGE",
       "Request body exceeds max allowed size",
@@ -248,8 +250,20 @@ function appendBodyChunk(
   return nextSize;
 }
 
-async function readBody(request: IncomingMessage): Promise<unknown> {
-  return await new Promise<unknown>((resolve, reject) => {
+async function readBody(
+  request: IncomingMessage,
+  bodyParsing: RouteBodyParsing,
+  maxBodyBytes: number,
+): Promise<{
+  body: unknown;
+  rawBody: string | null;
+  rawBodyBytes: Buffer | null;
+}> {
+  return await new Promise<{
+    body: unknown;
+    rawBody: string | null;
+    rawBodyBytes: Buffer | null;
+  }>((resolve, reject) => {
     const chunks: Buffer[] = [];
     let size = 0;
     let settled = false;
@@ -262,7 +276,11 @@ async function readBody(request: IncomingMessage): Promise<unknown> {
       reject(error);
     }
 
-    function safeResolve(payload: unknown): void {
+    function safeResolve(payload: {
+      body: unknown;
+      rawBody: string | null;
+      rawBodyBytes: Buffer | null;
+    }): void {
       if (settled) {
         return;
       }
@@ -272,7 +290,7 @@ async function readBody(request: IncomingMessage): Promise<unknown> {
 
     request.on("data", (chunk: Buffer | string) => {
       try {
-        size = appendBodyChunk(chunks, chunk, size);
+        size = appendBodyChunk(chunks, chunk, size, maxBodyBytes);
       } catch (error) {
         request.destroy();
         safeReject(
@@ -288,13 +306,27 @@ async function readBody(request: IncomingMessage): Promise<unknown> {
 
     request.on("end", () => {
       if (chunks.length === 0) {
-        safeResolve(null);
+        safeResolve({ body: null, rawBody: null, rawBodyBytes: null });
         return;
       }
 
-      const text = Buffer.concat(chunks).toString("utf8");
+      const bytes = Buffer.concat(chunks);
+      if (bodyParsing === "binary") {
+        safeResolve({
+          body: null,
+          rawBody: null,
+          rawBodyBytes: bytes,
+        });
+        return;
+      }
+
+      const text = bytes.toString("utf8");
       try {
-        safeResolve(JSON.parse(text));
+        safeResolve({
+          body: JSON.parse(text),
+          rawBody: text,
+          rawBodyBytes: bytes,
+        });
       } catch {
         safeReject(
           new BodyReadError("INVALID_JSON", "Request body must be valid JSON"),
@@ -303,7 +335,7 @@ async function readBody(request: IncomingMessage): Promise<unknown> {
     });
 
     request.on("error", () => {
-      safeResolve(null);
+      safeResolve({ body: null, rawBody: null, rawBodyBytes: null });
     });
   });
 }
@@ -457,7 +489,7 @@ function createStructuredEventLogger(nodeEnv: AppConfig["nodeEnv"]) {
   const logger = createTelemetryLogger({
     service: "api",
     env: nodeEnv,
-    enabled: process.env.NODE_ENV !== "test",
+    enabled: process.env["NODE_ENV"] !== "test",
     write: writeTelemetryStream,
   });
 
@@ -620,106 +652,207 @@ function buildRateLimitKey(
 export function createAppServer(config: AppConfig) {
   const logStructuredEvent = createStructuredEventLogger(config.nodeEnv);
 
-  return createServer(async (request, response) => {
-    const requestId =
-      readHeaderValue(request.headers["x-request-id"]) ?? randomUUID();
-    const clientIp = getClientIp(request, config.trustProxy);
-    const requestOrigin = normalizeOrigin(request.headers.origin);
-    const corsHeaders = resolveCorsHeaders(
-      requestOrigin,
-      config.corsOrigins,
-      config.nodeEnv,
-    );
-    const traceId =
-      readHeaderValue(request.headers["x-trace-id"]) ??
-      extractTraceId(request.headers.traceparent);
-    const requestUrl = new URL(request.url ?? "/", "http://localhost");
-    const startedAt = Date.now();
-    const userAgent =
-      typeof request.headers["user-agent"] === "string"
-        ? request.headers["user-agent"]
-        : Array.isArray(request.headers["user-agent"])
-          ? (request.headers["user-agent"][0] ?? null)
-          : null;
-    let routeTemplate: string | null = null;
-    let userId: string | null = null;
-    let role: string | null = null;
-    let organizationId: string | null = null;
-    let siteId: string | null = null;
-    let exposurePolicyId: string | null = null;
-    let exposureClassification: string | null = null;
-    let exposureAudience: string | null = null;
+  return createServer((request, response) => {
+    (async () => {
+      const requestId =
+        readHeaderValue(request.headers["x-request-id"]) ?? randomUUID();
+      const clientIp = getClientIp(request, config.trustProxy);
+      const requestOrigin = normalizeOrigin(request.headers.origin);
+      const corsHeaders = resolveCorsHeaders(
+        requestOrigin,
+        config.corsOrigins,
+        config.nodeEnv,
+      );
+      const traceId =
+        readHeaderValue(request.headers["x-trace-id"]) ??
+        extractTraceId(request.headers["traceparent"]);
+      const requestUrl = new URL(request.url ?? "/", "http://localhost");
+      const startedAt = Date.now();
+      const userAgent =
+        typeof request.headers["user-agent"] === "string"
+          ? request.headers["user-agent"]
+          : Array.isArray(request.headers["user-agent"])
+            ? (request.headers["user-agent"][0] ?? null)
+            : null;
+      let routeTemplate: string | null = null;
+      let userId: string | null = null;
+      let role: string | null = null;
+      let organizationId: string | null = null;
+      let siteId: string | null = null;
+      let exposurePolicyId: string | null = null;
+      let exposureClassification: string | null = null;
+      let exposureAudience: string | null = null;
 
-    response.setHeader("X-Request-ID", requestId);
-    response.setHeader("X-Trace-ID", traceId ?? requestId);
-    response.once("finish", () => {
-      const statusCode = response.statusCode;
-      logStructuredEvent(
-        statusCode >= 500 ? "error" : "info",
-        statusCode >= 500 ? "http.request.failed" : "http.request.completed",
-        {
+      response.setHeader("X-Request-ID", requestId);
+      response.setHeader("X-Trace-ID", traceId ?? requestId);
+      response.once("finish", () => {
+        const statusCode = response.statusCode;
+        logStructuredEvent(
+          statusCode >= 500 ? "error" : "info",
+          statusCode >= 500 ? "http.request.failed" : "http.request.completed",
+          {
+            requestId,
+            traceId,
+            method: request.method?.toUpperCase() ?? null,
+            path: requestUrl.pathname,
+            route_template: routeTemplate,
+            origin: requestOrigin,
+            clientIp,
+            user_agent: userAgent,
+            user_id: userId,
+            role,
+            organizationId,
+            siteId,
+            exposurePolicyId,
+            exposureClassification,
+            exposureAudience,
+            status:
+              statusCode >= 500
+                ? "failed"
+                : statusCode >= 400
+                  ? "rejected"
+                  : "completed",
+            statusCode,
+            durationMs: Date.now() - startedAt,
+          },
+        );
+      });
+
+      logStructuredEvent("info", "http.request.started", {
+        requestId,
+        traceId,
+        method: request.method?.toUpperCase() ?? null,
+        path: requestUrl.pathname,
+        origin: requestOrigin,
+        clientIp,
+        user_agent: userAgent,
+        exposurePolicyId,
+        exposureClassification,
+        exposureAudience,
+        status: "started",
+      });
+
+      if (request.method?.toUpperCase() === "OPTIONS") {
+        if (
+          requestOrigin != null &&
+          corsHeaders["Access-Control-Allow-Origin"] == null
+        ) {
+          logStructuredEvent("warn", "http.origin_forbidden", {
+            requestId,
+            traceId,
+            method: "OPTIONS",
+            path: request.url ?? "/",
+            origin: requestOrigin,
+            clientIp,
+            errorCode: "FORBIDDEN",
+            status: "rejected",
+            statusCode: 403,
+          });
+          sendResult(
+            response,
+            failure(
+              "FORBIDDEN",
+              "Origin is not allowed by CORS policy",
+              requestId,
+              403,
+              { origin: requestOrigin },
+            ),
+            corsHeaders,
+          );
+          return;
+        }
+
+        response.writeHead(200, {
+          "cache-control": "no-store",
+          ...SECURITY_HEADERS,
+          ...corsHeaders,
+        });
+        response.end();
+        return;
+      }
+
+      const method = normalizeMethod(request.method);
+      if (method == null) {
+        sendResult(
+          response,
+          failure(
+            "METHOD_NOT_ALLOWED",
+            "Unsupported HTTP method",
+            requestId,
+            405,
+          ),
+          corsHeaders,
+        );
+        return;
+      }
+
+      const matched = matchRoute(compiledRoutes, method, requestUrl.pathname);
+      const isMutationRequest = isBodyMethod(method);
+
+      if (matched == null) {
+        sendResult(
+          response,
+          failure("NOT_FOUND", "Route not found", requestId, 404, {
+            path: requestUrl.pathname,
+            method,
+          }),
+          corsHeaders,
+        );
+        return;
+      }
+      routeTemplate = matched.route.template;
+
+      const exposurePolicy = resolveApiExposurePolicy(matched.route.template);
+      if (exposurePolicy == null) {
+        logStructuredEvent("error", "http.exposure_policy_missing", {
           requestId,
           traceId,
-          method: request.method?.toUpperCase() ?? null,
+          method,
           path: requestUrl.pathname,
-          route_template: routeTemplate,
-          origin: requestOrigin,
+          routeTemplate,
           clientIp,
           user_agent: userAgent,
-          user_id: userId,
-          role,
-          organizationId,
-          siteId,
-          exposurePolicyId,
-          exposureClassification,
-          exposureAudience,
-          status:
-            statusCode >= 500
-              ? "failed"
-              : statusCode >= 400
-                ? "rejected"
-                : "completed",
-          statusCode,
-          durationMs: Date.now() - startedAt,
-        },
-      );
-    });
+          status: "failed",
+          statusCode: 500,
+        });
+        sendResult(
+          response,
+          failure(
+            "EXPOSURE_POLICY_MISSING",
+            "Route exposure policy is missing",
+            requestId,
+            500,
+            { routeTemplate: matched.route.template },
+          ),
+          corsHeaders,
+        );
+        return;
+      }
+      exposurePolicyId = exposurePolicy.id;
+      exposureClassification = exposurePolicy.classification;
+      exposureAudience = exposurePolicy.audience;
 
-    logStructuredEvent("info", "http.request.started", {
-      requestId,
-      traceId,
-      method: request.method?.toUpperCase() ?? null,
-      path: requestUrl.pathname,
-      origin: requestOrigin,
-      clientIp,
-      user_agent: userAgent,
-      exposurePolicyId,
-      exposureClassification,
-      exposureAudience,
-      status: "started",
-    });
+      const rateLimitPolicy = resolveRateLimitPolicy(matched.route);
 
-    if (request.method?.toUpperCase() === "OPTIONS") {
       if (
+        isMutationRequest &&
         requestOrigin != null &&
         corsHeaders["Access-Control-Allow-Origin"] == null
       ) {
         logStructuredEvent("warn", "http.origin_forbidden", {
           requestId,
           traceId,
-          method: "OPTIONS",
-          path: request.url ?? "/",
+          method,
+          path: requestUrl.pathname,
+          routeTemplate,
           origin: requestOrigin,
-          clientIp,
-          errorCode: "FORBIDDEN",
-          status: "rejected",
-          statusCode: 403,
+          ip: clientIp,
         });
         sendResult(
           response,
           failure(
             "FORBIDDEN",
-            "Origin is not allowed by CORS policy",
+            "Origin is not allowed for state-changing requests",
             requestId,
             403,
             { origin: requestOrigin },
@@ -729,292 +862,220 @@ export function createAppServer(config: AppConfig) {
         return;
       }
 
-      response.writeHead(200, {
-        "cache-control": "no-store",
-        ...SECURITY_HEADERS,
-        ...corsHeaders,
-      });
-      response.end();
-      return;
-    }
-
-    const method = normalizeMethod(request.method);
-    if (method == null) {
-      sendResult(
-        response,
-        failure(
-          "METHOD_NOT_ALLOWED",
-          "Unsupported HTTP method",
-          requestId,
-          405,
-        ),
-        corsHeaders,
-      );
-      return;
-    }
-
-    const matched = matchRoute(compiledRoutes, method, requestUrl.pathname);
-    const isMutationRequest = isBodyMethod(method);
-
-    if (matched == null) {
-      sendResult(
-        response,
-        failure("NOT_FOUND", "Route not found", requestId, 404, {
-          path: requestUrl.pathname,
-          method,
-        }),
-        corsHeaders,
-      );
-      return;
-    }
-    routeTemplate = matched.route.template;
-
-    const exposurePolicy = resolveApiExposurePolicy(matched.route.template);
-    if (exposurePolicy == null) {
-      logStructuredEvent("error", "http.exposure_policy_missing", {
-        requestId,
-        traceId,
-        method,
-        path: requestUrl.pathname,
-        routeTemplate,
-        clientIp,
-        user_agent: userAgent,
-        status: "failed",
-        statusCode: 500,
-      });
-      sendResult(
-        response,
-        failure(
-          "EXPOSURE_POLICY_MISSING",
-          "Route exposure policy is missing",
-          requestId,
-          500,
-          { routeTemplate: matched.route.template },
-        ),
-        corsHeaders,
-      );
-      return;
-    }
-    exposurePolicyId = exposurePolicy.id;
-    exposureClassification = exposurePolicy.classification;
-    exposureAudience = exposurePolicy.audience;
-
-    const rateLimitPolicy = resolveRateLimitPolicy(matched.route);
-
-    if (
-      isMutationRequest &&
-      requestOrigin != null &&
-      corsHeaders["Access-Control-Allow-Origin"] == null
-    ) {
-      logStructuredEvent("warn", "http.origin_forbidden", {
-        requestId,
-        traceId,
-        method,
-        path: requestUrl.pathname,
-        routeTemplate,
-        origin: requestOrigin,
-        ip: clientIp,
-      });
-      sendResult(
-        response,
-        failure(
-          "FORBIDDEN",
-          "Origin is not allowed for state-changing requests",
-          requestId,
-          403,
-          { origin: requestOrigin },
-        ),
-        corsHeaders,
-      );
-      return;
-    }
-
-    const incomingHasBody = hasRequestBody(request);
-    if (
-      isMutationRequest &&
-      incomingHasBody &&
-      !isJsonContentType(request.headers["content-type"])
-    ) {
-      sendResult(
-        response,
-        failure(
-          "UNSUPPORTED_MEDIA_TYPE",
-          "Request body must use Content-Type application/json",
-          requestId,
-          415,
-        ),
-        corsHeaders,
-      );
-      return;
-    }
-
-    let user = null;
-    if (matched.route.authRequired) {
-      const token = parseBearerToken(request.headers.authorization);
-      if (token == null) {
-        logStructuredEvent("warn", "auth.missing_bearer_token", {
-          requestId,
-          traceId,
-          method,
-          path: requestUrl.pathname,
-          routeTemplate,
-          ip: clientIp,
-          origin: requestOrigin,
-        });
-        sendResult(
-          response,
-          failure("UNAUTHORIZED", "Missing bearer token", requestId, 401),
-          corsHeaders,
-        );
-        return;
-      }
-
-      const decoded = await decodeJwtPayloadDetailed(token, config.jwt);
-      user = decoded.user;
-      if (user == null) {
-        logStructuredEvent("warn", "auth.jwt_rejected", {
-          requestId,
-          traceId,
-          method,
-          path: requestUrl.pathname,
-          routeTemplate,
-          ip: clientIp,
-          origin: requestOrigin,
-          rejectionStage: decoded.failure?.stage ?? "unknown",
-          rejectionReason: decoded.failure?.reason ?? "JWT rejected",
-          tokenSummary: decoded.failure?.tokenSummary ?? null,
-        });
-        sendResult(
-          response,
-          failure("UNAUTHORIZED", "Invalid JWT claims", requestId, 401),
-          corsHeaders,
-        );
-        return;
-      }
-
-      const allowedRoles = matched.route.allowedRoles;
-      if (allowedRoles != null && !allowedRoles.includes(user.role)) {
-        logStructuredEvent("warn", "auth.role_forbidden", {
-          requestId,
-          traceId,
-          method,
-          path: requestUrl.pathname,
-          routeTemplate,
-          ip: clientIp,
-          origin: requestOrigin,
-          userId: user.userId,
-          role: user.role,
-          allowedRoles,
-        });
-        sendResult(
-          response,
-          failure("FORBIDDEN", "Insufficient permissions", requestId, 403, {
-            role: user.role,
-            allowedRoles,
-          }),
-          corsHeaders,
-        );
-        return;
-      }
-
-      const requiredPermissions = matched.route.requiredPermissions;
+      const incomingHasBody = hasRequestBody(request);
       if (
-        requiredPermissions != null &&
-        !hasRequiredPermissions(
-          user.permissions,
-          requiredPermissions,
-          matched.route.permissionMode,
-        )
+        isMutationRequest &&
+        incomingHasBody &&
+        matched.route.bodyParsing !== "binary" &&
+        !isJsonContentType(request.headers["content-type"])
       ) {
-        logStructuredEvent("warn", "auth.permission_forbidden", {
-          requestId,
-          traceId,
-          method,
-          path: requestUrl.pathname,
-          routeTemplate,
-          ip: clientIp,
-          origin: requestOrigin,
-          userId: user.userId,
-          role: user.role,
-          requiredPermissions,
-          permissionMode: matched.route.permissionMode,
-        });
         sendResult(
           response,
-          failure("FORBIDDEN", "Insufficient permissions", requestId, 403, {
-            role: user.role,
-            requiredPermissions,
-            permissionMode: matched.route.permissionMode,
-          }),
+          failure(
+            "UNSUPPORTED_MEDIA_TYPE",
+            "Request body must use Content-Type application/json",
+            requestId,
+            415,
+          ),
           corsHeaders,
         );
         return;
       }
-    }
 
-    if (rateLimitPolicy != null) {
-      const rateLimitResult = consumeRateLimit(
-        buildRateLimitKey(
-          matched.route.template,
-          rateLimitPolicy,
-          clientIp,
-          user?.userId ?? null,
-        ),
-        rateLimitPolicy,
-      );
-
-      if (!rateLimitResult.allowed) {
-        logStructuredEvent("warn", "http.rate_limited", {
-          requestId,
-          traceId,
-          method,
-          path: requestUrl.pathname,
-          routeTemplate: matched.route.template,
-          ip: clientIp,
-          origin: requestOrigin,
-          userId: user?.userId ?? null,
-        });
-        sendResult(
-          response,
-          failure("TOO_MANY_REQUESTS", "Rate limit exceeded", requestId, 429, {
-            retryAfterSeconds: rateLimitResult.retryAfterSeconds,
-          }),
-          corsHeaders,
-          {
-            "retry-after": String(rateLimitResult.retryAfterSeconds),
-          },
-        );
-        return;
-      }
-    }
-
-    let body: unknown = null;
-    if (isMutationRequest && incomingHasBody) {
-      try {
-        body = await readBody(request);
-      } catch (error) {
-        if (
-          error instanceof BodyReadError &&
-          error.code === "PAYLOAD_TOO_LARGE"
-        ) {
+      let user = null;
+      if (matched.route.authRequired) {
+        const token = parseBearerToken(request.headers.authorization);
+        if (token == null) {
+          logStructuredEvent("warn", "auth.missing_bearer_token", {
+            requestId,
+            traceId,
+            method,
+            path: requestUrl.pathname,
+            routeTemplate,
+            ip: clientIp,
+            origin: requestOrigin,
+          });
           sendResult(
             response,
-            failure(
-              "PAYLOAD_TOO_LARGE",
-              "Request body exceeds max allowed size",
-              requestId,
-              413,
-            ),
+            failure("UNAUTHORIZED", "Missing bearer token", requestId, 401),
             corsHeaders,
           );
           return;
         }
-        if (error instanceof BodyReadError && error.code === "INVALID_JSON") {
+
+        const decoded = await decodeJwtPayloadDetailed(token, config.jwt);
+        user = decoded.user;
+        if (user == null) {
+          logStructuredEvent("warn", "auth.jwt_rejected", {
+            requestId,
+            traceId,
+            method,
+            path: requestUrl.pathname,
+            routeTemplate,
+            ip: clientIp,
+            origin: requestOrigin,
+            rejectionStage: decoded.failure?.stage ?? "unknown",
+            rejectionReason: decoded.failure?.reason ?? "JWT rejected",
+            tokenSummary: decoded.failure?.tokenSummary ?? null,
+          });
+          sendResult(
+            response,
+            failure("UNAUTHORIZED", "Invalid JWT claims", requestId, 401),
+            corsHeaders,
+          );
+          return;
+        }
+
+        const allowedRoles = matched.route.allowedRoles;
+        if (allowedRoles != null && !allowedRoles.includes(user.role)) {
+          logStructuredEvent("warn", "auth.role_forbidden", {
+            requestId,
+            traceId,
+            method,
+            path: requestUrl.pathname,
+            routeTemplate,
+            ip: clientIp,
+            origin: requestOrigin,
+            userId: user.userId,
+            role: user.role,
+            allowedRoles,
+          });
+          sendResult(
+            response,
+            failure("FORBIDDEN", "Insufficient permissions", requestId, 403, {
+              role: user.role,
+              allowedRoles,
+            }),
+            corsHeaders,
+          );
+          return;
+        }
+
+        const requiredPermissions = matched.route.requiredPermissions;
+        if (
+          requiredPermissions != null &&
+          !hasRequiredPermissions(
+            user.permissions,
+            requiredPermissions,
+            matched.route.permissionMode,
+          )
+        ) {
+          logStructuredEvent("warn", "auth.permission_forbidden", {
+            requestId,
+            traceId,
+            method,
+            path: requestUrl.pathname,
+            routeTemplate,
+            ip: clientIp,
+            origin: requestOrigin,
+            userId: user.userId,
+            role: user.role,
+            requiredPermissions,
+            permissionMode: matched.route.permissionMode,
+          });
+          sendResult(
+            response,
+            failure("FORBIDDEN", "Insufficient permissions", requestId, 403, {
+              role: user.role,
+              requiredPermissions,
+              permissionMode: matched.route.permissionMode,
+            }),
+            corsHeaders,
+          );
+          return;
+        }
+      }
+
+      if (rateLimitPolicy != null) {
+        const rateLimitResult = consumeRateLimit(
+          buildRateLimitKey(
+            matched.route.template,
+            rateLimitPolicy,
+            clientIp,
+            user?.userId ?? null,
+          ),
+          rateLimitPolicy,
+        );
+
+        if (!rateLimitResult.allowed) {
+          logStructuredEvent("warn", "http.rate_limited", {
+            requestId,
+            traceId,
+            method,
+            path: requestUrl.pathname,
+            routeTemplate: matched.route.template,
+            ip: clientIp,
+            origin: requestOrigin,
+            userId: user?.userId ?? null,
+          });
           sendResult(
             response,
             failure(
-              "INVALID_JSON",
-              "Request body must be valid JSON",
+              "TOO_MANY_REQUESTS",
+              "Rate limit exceeded",
+              requestId,
+              429,
+              {
+                retryAfterSeconds: rateLimitResult.retryAfterSeconds,
+              },
+            ),
+            corsHeaders,
+            {
+              "retry-after": String(rateLimitResult.retryAfterSeconds),
+            },
+          );
+          return;
+        }
+      }
+
+      let body: unknown = null;
+      let rawBody: string | null = null;
+      let rawBodyBytes: Buffer | null = null;
+      if (isMutationRequest && incomingHasBody) {
+        try {
+          const parsedBody = await readBody(
+            request,
+            matched.route.bodyParsing,
+            matched.route.maxBodyBytes ?? MAX_REQUEST_BODY_BYTES,
+          );
+          body = parsedBody.body;
+          rawBody = parsedBody.rawBody;
+          rawBodyBytes = parsedBody.rawBodyBytes;
+        } catch (error) {
+          if (
+            error instanceof BodyReadError &&
+            error.code === "PAYLOAD_TOO_LARGE"
+          ) {
+            sendResult(
+              response,
+              failure(
+                "PAYLOAD_TOO_LARGE",
+                "Request body exceeds max allowed size",
+                requestId,
+                413,
+              ),
+              corsHeaders,
+            );
+            return;
+          }
+          if (error instanceof BodyReadError && error.code === "INVALID_JSON") {
+            sendResult(
+              response,
+              failure(
+                "INVALID_JSON",
+                "Request body must be valid JSON",
+                requestId,
+                400,
+              ),
+              corsHeaders,
+            );
+            return;
+          }
+          sendResult(
+            response,
+            failure(
+              "INVALID_BODY",
+              "Unable to parse request body",
               requestId,
               400,
             ),
@@ -1022,71 +1083,63 @@ export function createAppServer(config: AppConfig) {
           );
           return;
         }
-        sendResult(
-          response,
-          failure(
-            "INVALID_BODY",
-            "Unable to parse request body",
-            requestId,
-            400,
-          ),
-          corsHeaders,
-        );
-        return;
       }
-    }
-    const context: RouteContext = {
-      method,
-      path: requestUrl.pathname,
-      query: requestUrl.searchParams,
-      requestId,
-      telemetry: createTelemetryCorrelation({
-        requestId,
-        traceId,
-        organizationId,
-        siteId,
-      }),
-      clientIp,
-      userAgent,
-      params: matched.params,
-      body,
-      user,
-    };
-    userId = user?.userId ?? null;
-    role = user?.role ?? null;
-    organizationId = user?.organizationId ?? null;
-    siteId = user != null ? resolvePrimarySiteId(user.siteIds) : null;
-
-    try {
-      sendResult(response, await matched.route.handler(context), corsHeaders);
-    } catch (error) {
-      logStructuredEvent("error", "http.unhandled_error", {
-        requestId,
-        traceId,
+      const context: RouteContext = {
         method,
         path: requestUrl.pathname,
-        route_template: routeTemplate,
-        origin: requestOrigin,
+        query: requestUrl.searchParams,
+        requestId,
+        telemetry: createTelemetryCorrelation({
+          requestId,
+          traceId,
+          organizationId,
+          siteId,
+        }),
         clientIp,
-        user_agent: userAgent,
-        user_id: user?.userId ?? null,
-        role: user?.role ?? null,
-        organizationId,
-        siteId,
-        errorName: error instanceof Error ? error.name : "UnknownError",
-        errorMessage:
-          error instanceof Error
-            ? error.message
-            : "Unexpected non-error thrown",
-        errorCode: "INTERNAL_ERROR",
-        status: "failed",
-        statusCode: 500,
-      });
-      sendResult(
-        response,
-        failure("INTERNAL_ERROR", "Unexpected server error", requestId, 500),
-        corsHeaders,
-      );
-    }
+        userAgent,
+        headers: request.headers,
+        params: matched.params,
+        body,
+        rawBody,
+        rawBodyBytes,
+        user,
+      };
+      userId = user?.userId ?? null;
+      role = user?.role ?? null;
+      organizationId = user?.organizationId ?? null;
+      siteId = user != null ? resolvePrimarySiteId(user.siteIds) : null;
+
+      try {
+        sendResult(response, await matched.route.handler(context), corsHeaders);
+      } catch (error) {
+        logStructuredEvent("error", "http.unhandled_error", {
+          requestId,
+          traceId,
+          method,
+          path: requestUrl.pathname,
+          route_template: routeTemplate,
+          origin: requestOrigin,
+          clientIp,
+          user_agent: userAgent,
+          user_id: user?.userId ?? null,
+          role: user?.role ?? null,
+          organizationId,
+          siteId,
+          errorName: error instanceof Error ? error.name : "UnknownError",
+          errorMessage:
+            error instanceof Error
+              ? error.message
+              : "Unexpected non-error thrown",
+          errorCode: "INTERNAL_ERROR",
+          status: "failed",
+          statusCode: 500,
+        });
+        sendResult(
+          response,
+          failure("INTERNAL_ERROR", "Unexpected server error", requestId, 500),
+          corsHeaders,
+        );
+      }
+    })().catch(() => undefined);
   }).listen(config.port);
 }

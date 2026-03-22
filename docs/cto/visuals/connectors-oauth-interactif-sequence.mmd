@@ -1,0 +1,18 @@
+sequenceDiagram
+    participant Admin as app-admin / app-api-ts
+    participant Connectors as app-connectors
+    participant Vendor as Fournisseur OAuth
+    participant Store as Secret store + runtime snapshot
+
+    Admin->>Connectors: creer ou mettre a jour la connexion
+    Admin->>Connectors: authorize/start
+    Connectors->>Store: creer authorizationSession
+    Connectors-->>Admin: authorizationUrl + state + expiresAt
+    Admin->>Vendor: redirection utilisateur
+    Vendor-->>Admin: callback avec code + state
+    Admin->>Connectors: authorize/complete
+    Connectors->>Store: relire authorizationSession
+    Connectors->>Vendor: echange code -> token
+    Vendor-->>Connectors: access/refresh token
+    Connectors->>Store: sceller credentials + mettre a jour snapshot
+    Connectors-->>Admin: connexion autorisee

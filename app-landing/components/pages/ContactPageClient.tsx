@@ -95,7 +95,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
   }, []);
 
   useEffect(() => {
-    void loadCaptchaChallenge();
+    loadCaptchaChallenge().catch(() => undefined);
   }, [loadCaptchaChallenge]);
 
   const handleSubmit = useCallback(
@@ -132,7 +132,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
           setErrorMsg(payload.error ?? copy.unknownError);
           setStatus("error");
           if (payload.error === "Test anti-spam invalide.") {
-            void loadCaptchaChallenge();
+            loadCaptchaChallenge().catch(() => undefined);
           }
           return;
         }

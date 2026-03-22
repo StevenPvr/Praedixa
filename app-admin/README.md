@@ -2,7 +2,7 @@
 
 Application Next.js du back-office Praedixa. Elle expose une console authentifiee par OIDC, un workspace multi-tenant par organisation, un BFF same-origin et un shell pilote par une registry de permissions.
 
-**Stack** : Next.js 16 / React 19 / OIDC PKCE / Tailwind CSS
+**Stack** : Next.js 16 / React 19 / OIDC PKCE / Tailwind CSS v4
 **Port** : `3002`
 **Package** : `@praedixa/admin`
 
@@ -24,11 +24,14 @@ Application Next.js du back-office Praedixa. Elle expose une console authentifie
 
 ```bash
 pnpm install
+pnpm dev:auth
 pnpm dev:api
 pnpm dev:admin
 ```
 
-`pnpm dev:api` et `pnpm dev:admin` restent maintenant attaches au terminal local pour afficher les logs runtime en direct. Si un mode background est prefere, utiliser `pnpm dev:api:bg` ou `pnpm dev:admin:bg`, puis `pnpm dev:api:logs` / `pnpm dev:admin:logs`.
+`pnpm dev:api`, `pnpm dev:auth` et `pnpm dev:admin` restent maintenant attaches au terminal local pour afficher les logs runtime en direct. Si un mode background est prefere, utiliser `pnpm dev:api:bg`, `pnpm dev:auth:bg` ou `pnpm dev:admin:bg`, puis `pnpm dev:api:logs`, `pnpm dev:auth:logs` ou `pnpm dev:admin:logs`.
+
+En local, `app-admin/.env.local` pointe maintenant par defaut sur l'issuer `http://localhost:8081/realms/praedixa`, pas sur `https://auth.praedixa.com`. Redemarrer `pnpm dev:admin` apres tout changement de `.env.local`.
 
 Un utilisateur OIDC `super_admin` avec `admin:console:access` et les permissions de page/admin associees est requis pour les flux reels. `admin:console:access` seul ne suffit pas a ouvrir `/`.
 
@@ -50,6 +53,16 @@ Un utilisateur OIDC `super_admin` avec `admin:console:access` et les permissions
 | `AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS`              | optionnelle                                 | timeout connexion Redis                               |
 | `AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS`              | optionnelle                                 | timeout commande Redis                                |
 | `AUTH_ADMIN_REQUIRED_AMR`                               | requise en production admin                 | preuves MFA (`amr`) exigees avant session super-admin |
+
+## Proxy & CSP
+
+- `proxy.ts` porte le nonce CSP par requete et doit garder un `matcher` exporte comme chaine statique Next-compatible; ne pas reintroduire de `String.raw` ou autre expression non litterale dans `config.matcher`.
+
+## Tailwind v4
+
+- `app/globals.css` pilote maintenant Tailwind en mode CSS-first via `@import "tailwindcss"` en premier, puis `@import "@praedixa/ui/tailwind-theme.css"` et enfin `@theme inline`.
+- Le socle de tokens partages vient de `@praedixa/ui/tailwind-theme.css`; les alias admin specifiques (`sidebar`, `plan`, `shadow-soft`, `h-topbar`, etc.) restent declares localement dans `app/globals.css`.
+- `postcss.config.mjs` doit utiliser `@tailwindcss/postcss`; ne pas reintroduire `tailwind.config.js`, le preset JS historique ou `autoprefixer` pour cette app.
 
 ## Routes reelles
 

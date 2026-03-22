@@ -79,6 +79,17 @@ describe("landing proxy", () => {
     );
   });
 
+  it("canonicalizes www http requests to the public https host instead of the runtime host", async () => {
+    const req = makeRequest("/", {
+      host: "www.praedixa.com",
+      "x-forwarded-proto": "http",
+    });
+    const result = await proxy(req);
+
+    expect(result.status).toBe(301);
+    expect(result.headers.get("location")).toBe("https://www.praedixa.com/fr");
+  });
+
   it("removes trailing slash on localized routes", async () => {
     const req = makeRequest("/fr/");
     const result = await proxy(req);
@@ -126,7 +137,7 @@ describe("landing proxy", () => {
 
     expect(result.status).toBe(301);
     expect(result.headers.get("location")).toBe(
-      "http://localhost:3001/fr/contact?intent=historique&src=brand",
+      "https://www.praedixa.com/fr/contact?intent=historique&src=brand",
     );
   });
 

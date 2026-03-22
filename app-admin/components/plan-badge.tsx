@@ -19,10 +19,10 @@ const PLAN_STYLES = {
 
 export type PlanTier = keyof typeof PLAN_STYLES;
 
-interface PlanBadgeProps {
-  plan: PlanTier | string | null | undefined;
+type PlanBadgeProps = Readonly<{
+  plan: string | null | undefined;
   className?: string;
-}
+}>;
 
 const UNKNOWN_PLAN_STYLE = {
   bg: "bg-surface-sunken",
@@ -37,29 +37,30 @@ const PLAN_ALIASES: Record<string, { tier: PlanTier; label?: string }> = {
 };
 
 function resolvePlanStyle(plan: PlanBadgeProps["plan"]) {
-  if (typeof plan !== "string") {
-    return UNKNOWN_PLAN_STYLE;
-  }
+  if (typeof plan === "string") {
+    const normalized = plan.trim().toLowerCase();
+    if (normalized in PLAN_STYLES) {
+      return PLAN_STYLES[normalized as PlanTier];
+    }
 
-  const normalized = plan.trim().toLowerCase();
-  if (normalized in PLAN_STYLES) {
-    return PLAN_STYLES[normalized as PlanTier];
-  }
+    const alias = PLAN_ALIASES[normalized];
+    if (alias) {
+      const base = PLAN_STYLES[alias.tier];
+      return {
+        ...base,
+        label: alias.label ?? base.label,
+      };
+    }
 
-  const alias = PLAN_ALIASES[normalized];
-  if (alias) {
-    const base = PLAN_STYLES[alias.tier];
+    const fallbackLabel = plan.trim();
     return {
-      ...base,
-      label: alias.label ?? base.label,
+      ...UNKNOWN_PLAN_STYLE,
+      label:
+        fallbackLabel.length > 0 ? fallbackLabel : UNKNOWN_PLAN_STYLE.label,
     };
   }
 
-  const fallbackLabel = plan.trim();
-  return {
-    ...UNKNOWN_PLAN_STYLE,
-    label: fallbackLabel.length > 0 ? fallbackLabel : UNKNOWN_PLAN_STYLE.label,
-  };
+  return UNKNOWN_PLAN_STYLE;
 }
 
 export function PlanBadge({ plan, className }: PlanBadgeProps) {

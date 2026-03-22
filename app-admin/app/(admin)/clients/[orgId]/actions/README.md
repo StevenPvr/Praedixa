@@ -17,3 +17,7 @@ Fichiers :
 ## Intégration
 
 Ce dossier est consommé par l'application `app-admin` et s'insère dans son flux runtime, build ou test.
+
+## Notes runtime
+
+- `page.tsx` isole maintenant les blocs de rendu `alerts` et `scenarios` dans des statements dedies pour eviter les ternaires imbriques et garder les surfaces admin plus lisibles pour les analyseurs statiques.

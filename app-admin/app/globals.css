@@ -1,6 +1,88 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "@praedixa/ui/tailwind-theme.css";
+
+@source "../app";
+@source "../components";
+@source "../lib";
+@source "../node_modules/@tremor";
+@source "../../packages/ui/src";
+
+@theme inline {
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-serif: "DM Serif Display", Georgia, serif;
+
+  --color-sidebar: var(--sidebar-bg);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-text: var(--sidebar-text);
+  --color-sidebar-text-muted: var(--sidebar-text-muted);
+  --color-sidebar-border: var(--sidebar-border);
+
+  --color-admin-primary: var(--brand);
+  --color-admin-surface: var(--sidebar-bg);
+  --color-admin-on-surface: var(--sidebar-text);
+
+  --color-plan-free: var(--ink-tertiary);
+  --color-plan-starter: var(--info);
+  --color-plan-professional: var(--brand);
+  --color-plan-enterprise: var(--brand-700);
+}
+
+@utility w-sidebar {
+  width: var(--sidebar-width);
+}
+
+@utility w-sidebar-collapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+@utility h-topbar {
+  height: var(--topbar-height);
+}
+
+@utility shadow-soft {
+  box-shadow: var(--shadow-raised);
+}
+
+@utility shadow-card {
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.04), 0 1px 2px rgb(0 0 0 / 0.06);
+}
+
+@utility shadow-sidebar {
+  box-shadow: 1px 0 0 rgb(255 255 255 / 0.06);
+}
+
+@keyframes toast-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-slide-out {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@utility animate-toast-in {
+  animation: toast-slide-in 300ms ease-out;
+}
+
+@utility animate-toast-out {
+  animation: toast-slide-out 200ms ease-in forwards;
+}
 
 @layer base {
   :root {

@@ -15,6 +15,12 @@ interface EvaluatedMdxModule {
   default: (props: { components?: Record<string, unknown> }) => ReactElement;
 }
 
+interface RehypeNode {
+  type?: string;
+  tagName?: string;
+  children?: RehypeNode[];
+}
+
 export interface CompiledBlogMdx {
   Content: (props: { components?: Record<string, unknown> }) => ReactElement;
   generatedAutoLinks: string[];
@@ -30,6 +36,26 @@ function buildCacheKey(post: BlogPost): string {
   return `${post.locale}:${post.slug}:${post.dateIso}:${post.disableAutoLinks ? "1" : "0"}`;
 }
 
+function rehypeDemoteDocumentH1() {
+  function visit(node: RehypeNode | undefined): void {
+    if (!node) {
+      return;
+    }
+
+    if (node.type === "element" && node.tagName === "h1") {
+      node.tagName = "h2";
+    }
+
+    for (const child of node.children ?? []) {
+      visit(child);
+    }
+  }
+
+  return (tree: RehypeNode) => {
+    visit(tree);
+  };
+}
+
 async function compilePostContent(post: BlogPost): Promise<CompiledBlogMdx> {
   const generatedAutoLinks = new Set<string>();
   const internalLinkRules = post.disableAutoLinks
@@ -41,6 +67,7 @@ async function compilePostContent(post: BlogPost): Promise<CompiledBlogMdx> {
     baseUrl: import.meta.url,
     development: false,
     rehypePlugins: [
+      rehypeDemoteDocumentH1,
       rehypeSlug,
       [
         rehypeAutolinkHeadings,

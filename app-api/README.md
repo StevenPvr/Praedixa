@@ -102,7 +102,10 @@ Qualite statique:
 cd app-api
 uv run ruff check .
 uv run mypy app
+uv run pyright
 ```
+
+`pyright` tourne maintenant en `strict` sur `app/`, avec `reportMissingImports=true` et un `stubPath` local pour `strictyaml`, sans liste `ignore` residuelle dans `pyrightconfig.json` ni `[tool.pyright]`.
 
 Observabilite:
 

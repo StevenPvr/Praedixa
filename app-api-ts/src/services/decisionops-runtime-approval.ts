@@ -466,9 +466,20 @@ function syncLedgerDecisionState(
     action: {
       ...ledger.action,
       status: action?.status ?? ledger.action.status,
-      targetReference:
-        latestAttempt?.targetReference ?? ledger.action.targetReference,
-      lastAttemptAt: latestAttempt?.dispatchedAt ?? ledger.action.lastAttemptAt,
+      ...((latestAttempt?.targetReference ?? ledger.action.targetReference) !==
+      undefined
+        ? {
+            targetReference:
+              latestAttempt?.targetReference ?? ledger.action.targetReference,
+          }
+        : {}),
+      ...((latestAttempt?.dispatchedAt ?? ledger.action.lastAttemptAt) !==
+      undefined
+        ? {
+            lastAttemptAt:
+              latestAttempt?.dispatchedAt ?? ledger.action.lastAttemptAt,
+          }
+        : {}),
     },
     explanation: {
       ...ledger.explanation,
@@ -518,7 +529,7 @@ function applyApprovalDecision(
         actorUserId: input.actorUserId,
         actorRole: input.actorRole,
         reasonCode: normalizeReasonCode(input.request.reasonCode),
-        comment,
+        ...(comment !== undefined ? { comment } : {}),
         decidedAt: occurredAt,
       },
       justificationRequired,

@@ -18,3 +18,7 @@ Fichiers :
 ## Intégration
 
 Ce dossier est consommé par l'application `app-admin` et s'insère dans son flux runtime, build ou test.
+
+## Conventions locales
+
+- les wrappers de chargement utilisent maintenant `<output aria-busy=\"true\">` plutot que `role=\"status\"`, pour rester alignes avec l'accessibilite attendue par Sonar.

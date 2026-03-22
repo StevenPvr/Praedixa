@@ -16,6 +16,7 @@ import type { TenantEntity } from "../utils/common";
 
 describe("IntegrationVendor", () => {
   it("accepts expected vendor values", () => {
+    assertType<IntegrationVendor>("custom_data");
     assertType<IntegrationVendor>("salesforce");
     assertType<IntegrationVendor>("ukg");
     assertType<IntegrationVendor>("geotab");
@@ -36,6 +37,7 @@ describe("Integration unions", () => {
   });
 
   it("keeps expected domains and statuses", () => {
+    assertType<IntegrationDomain>("custom");
     assertType<IntegrationDomain>("crm");
     assertType<IntegrationConnectionStatus>("active");
     assertType<IntegrationSyncStatus>("success");

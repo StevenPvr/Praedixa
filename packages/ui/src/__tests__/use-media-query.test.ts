@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useMediaQuery, breakpoints } from "../hooks/use-media-query";
+import { useMediaQuery } from "../hooks/use-media-query";
 
 describe("useMediaQuery", () => {
   let addEventListenerSpy: ReturnType<typeof vi.fn>;
@@ -106,19 +106,5 @@ describe("useMediaQuery", () => {
     // Should have removed old and added new
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(1);
     expect(addEventListenerSpy).toHaveBeenCalledTimes(2);
-  });
-});
-
-describe("breakpoints", () => {
-  it("defines standard Tailwind breakpoints", () => {
-    expect(breakpoints.sm).toBe("(min-width: 640px)");
-    expect(breakpoints.md).toBe("(min-width: 768px)");
-    expect(breakpoints.lg).toBe("(min-width: 1024px)");
-    expect(breakpoints.xl).toBe("(min-width: 1280px)");
-    expect(breakpoints["2xl"]).toBe("(min-width: 1536px)");
-  });
-
-  it("has exactly 5 breakpoint keys", () => {
-    expect(Object.keys(breakpoints)).toHaveLength(5);
   });
 });

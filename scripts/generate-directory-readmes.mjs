@@ -7,6 +7,7 @@ import path from "node:path";
 const ROOT = process.cwd();
 
 const SKIP_SEGMENTS = new Set([
+  ".meta",
   ".git",
   "node_modules",
   ".next",
@@ -39,7 +40,7 @@ function getTrackedFiles() {
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean)
-    .filter((file) => !file.startsWith("centaurus/"));
+    .filter((file) => !file.startsWith("marketing/presentations-clients/centaurus/"));
 }
 
 function isDocEligible(parts) {

@@ -5,6 +5,7 @@ import {
   resolveAuthAppOrigin,
   setAuthCookies,
 } from "@/lib/auth/oidc";
+import { isDirectAdminApiMode } from "@/lib/api/client";
 import { resolveRequestSession } from "@/lib/auth/request-session";
 import {
   isSameOriginBrowserRequest,
@@ -72,8 +73,10 @@ function buildSessionBody(session: {
   permissions: string[];
   organizationId: string | null;
   siteId: string | null;
+  accessTokenExp: number;
 }) {
   return {
+    accessTokenExpiresAt: session.accessTokenExp,
     user: {
       id: session.sub,
       email: session.email,
@@ -83,6 +86,14 @@ function buildSessionBody(session: {
       siteId: session.siteId,
     },
   };
+}
+
+function shouldIncludeAccessToken(request: NextRequest): boolean {
+  if (!isDirectAdminApiMode()) {
+    return false;
+  }
+
+  return request.nextUrl.searchParams.get("include_access_token") === "1";
 }
 
 async function resolveSessionRateLimit(
@@ -105,11 +116,23 @@ function createSessionResponse(
     permissions: string[];
     organizationId: string | null;
     siteId: string | null;
+    accessTokenExp: number;
   },
+  accessToken: string,
   rate: RateLimitSnapshot,
   cookieUpdate: Parameters<typeof setAuthCookies>[2] | null,
 ): NextResponse {
-  const response = createJsonResponse(buildSessionBody(session), 200);
+  const responseBody = buildSessionBody(session) as ReturnType<
+    typeof buildSessionBody
+  > & {
+    accessToken?: string;
+  };
+
+  if (shouldIncludeAccessToken(request)) {
+    responseBody.accessToken = accessToken;
+  }
+
+  const response = createJsonResponse(responseBody, 200);
   applyRateLimitHeaders(response, rate);
   if (cookieUpdate) {
     setAuthCookies(response, request, cookieUpdate);
@@ -119,12 +142,12 @@ function createSessionResponse(
 
 export async function GET(request: NextRequest) {
   const expectedOrigin = resolveExpectedOrigin(request, resolveAuthAppOrigin);
-  if (!isSameOriginBrowserRequest(request, expectedOrigin)) {
+  if (isSameOriginBrowserRequest(request, expectedOrigin) === false) {
     return createJsonResponse({ error: "csrf_failed" }, 403);
   }
 
   const rate = await resolveSessionRateLimit(request);
-  if (!rate.allowed) {
+  if (rate.allowed === false) {
     return createRateLimitedResponse(rate);
   }
 
@@ -133,13 +156,14 @@ export async function GET(request: NextRequest) {
     preserveCookiesOnRefreshFailure: true,
   });
 
-  if (!resolved.ok) {
+  if (resolved.ok === false) {
     return createUnauthorizedResponse(resolved.clearCookies);
   }
 
   return createSessionResponse(
     request,
     resolved.session,
+    resolved.accessToken,
     rate,
     resolved.cookieUpdate,
   );

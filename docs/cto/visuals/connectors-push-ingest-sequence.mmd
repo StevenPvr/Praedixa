@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant Admin as app-admin / app-api-ts
+    participant Connectors as app-connectors
+    participant Vendor as Systeme source
+    participant Store as payload store
+    participant Worker as app-api worker
+    participant DB as Postgres / integration_*
+
+    Admin->>Connectors: issue ingest credentials
+    Connectors-->>Admin: ingestUrl + apiKey + signingSecret?
+    Vendor->>Connectors: POST /v1/ingest/:orgId/:connectionId/events
+    Connectors->>Store: persist payload brut
+    Connectors->>Connectors: create raw event summary
+    Worker->>Connectors: claim raw events / read payload
+    Connectors-->>Worker: metadata + payload brut
+    Worker->>DB: ingest dataset/raw + mark processed

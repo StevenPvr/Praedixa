@@ -44,6 +44,130 @@ interface ResolveRequestSessionOptions {
   preserveCookiesOnRefreshFailure?: boolean;
 }
 
+type SessionCookies = Readonly<{
+  accessTokenCookie: string | null;
+  refreshTokenCookie: string | null;
+  signed: string | null;
+}>;
+
+type RefreshedSessionResult = Readonly<{
+  accessToken: string;
+  cookieUpdate: CookieUpdate;
+  refreshToken: string | null;
+  session: AuthSessionData;
+}>;
+
+function readSessionCookies(request: NextRequest): SessionCookies {
+  return {
+    accessTokenCookie: request.cookies.get(ACCESS_TOKEN_COOKIE)?.value ?? null,
+    refreshTokenCookie:
+      request.cookies.get(REFRESH_TOKEN_COOKIE)?.value ?? null,
+    signed: request.cookies.get(SESSION_COOKIE)?.value ?? null,
+  };
+}
+
+function createSessionFailure(
+  clearCookies: boolean,
+): ResolveRequestSessionResult {
+  return {
+    ok: false,
+    clearCookies,
+  };
+}
+
+function canUseVerifiedSession(
+  session: AuthSessionData | null,
+): session is AuthSessionData {
+  return (
+    session !== null && canAccessAdminConsole(session.role, session.permissions)
+  );
+}
+
+async function hasValidTokenBindings(args: {
+  accessToken: string;
+  refreshToken: string | null;
+  session: AuthSessionData;
+}): Promise<boolean> {
+  const accessTokenValid =
+    args.accessToken.length === 0 ||
+    (await doesSessionMatchAccessToken(args.session, args.accessToken));
+
+  if (accessTokenValid === false) {
+    return false;
+  }
+
+  if (args.refreshToken === null || args.refreshToken.length === 0) {
+    return true;
+  }
+
+  return doesSessionMatchRefreshToken(args.session, args.refreshToken);
+}
+
+async function refreshSessionTokens(args: {
+  clientId: string;
+  clientSecret: string;
+  issuerUrl: string;
+  refreshToken: string;
+  sessionSecret: string;
+}): Promise<RefreshedSessionResult | null> {
+  const refreshed = await refreshTokens({
+    issuerUrl: args.issuerUrl,
+    clientId: args.clientId,
+    clientSecret: args.clientSecret,
+    refreshToken: args.refreshToken,
+  });
+
+  const refreshedAccessToken = refreshed?.access_token ?? null;
+  if (
+    typeof refreshedAccessToken !== "string" ||
+    refreshedAccessToken.length === 0
+  ) {
+    return null;
+  }
+
+  if (
+    isAccessTokenCompatible(refreshedAccessToken, {
+      issuerUrl: args.issuerUrl,
+      clientId: args.clientId,
+    }) === false
+  ) {
+    return null;
+  }
+
+  const user = userFromAccessToken(refreshedAccessToken, args.clientId);
+  const exp = getTokenExp(refreshedAccessToken);
+  const hasValidUser =
+    user !== null &&
+    exp !== null &&
+    canAccessAdminConsole(user.role, user.permissions);
+
+  if (hasValidUser === false) {
+    return null;
+  }
+
+  const refreshToken = refreshed?.refresh_token ?? args.refreshToken;
+  const session = await buildSessionData(
+    user,
+    exp,
+    refreshedAccessToken,
+    refreshToken,
+    refreshed?.refresh_expires_in,
+  );
+
+  return {
+    accessToken: refreshedAccessToken,
+    refreshToken,
+    session,
+    cookieUpdate: {
+      accessToken: refreshedAccessToken,
+      refreshToken,
+      sessionToken: await signSession(session, args.sessionSecret),
+      accessTokenMaxAge: refreshed?.expires_in ?? 900,
+      refreshTokenMaxAge: refreshed?.refresh_expires_in ?? 60 * 60 * 24 * 14,
+    },
+  };
+}
+
 export async function resolveRequestSession(
   request: NextRequest,
   options: ResolveRequestSessionOptions = {},
@@ -52,126 +176,77 @@ export async function resolveRequestSession(
   const preserveCookiesOnRefreshFailure =
     options.preserveCookiesOnRefreshFailure ?? false;
 
-  const signed = request.cookies.get(SESSION_COOKIE)?.value ?? null;
-  const accessTokenCookie =
-    request.cookies.get(ACCESS_TOKEN_COOKIE)?.value ?? null;
-  const refreshTokenCookie =
-    request.cookies.get(REFRESH_TOKEN_COOKIE)?.value ?? null;
+  const { signed, accessTokenCookie, refreshTokenCookie } =
+    readSessionCookies(request);
 
-  if (!signed) {
-    return {
-      ok: false,
-      clearCookies: Boolean(accessTokenCookie || refreshTokenCookie),
-    };
+  if (typeof signed !== "string" || signed.length === 0) {
+    return createSessionFailure(
+      Boolean(accessTokenCookie || refreshTokenCookie),
+    );
   }
 
   try {
     const { issuerUrl, clientId, clientSecret, sessionSecret } = getOidcEnv();
-    let session = await verifySession(signed, sessionSecret);
-    if (!session || !canAccessAdminConsole(session.role, session.permissions)) {
-      return { ok: false, clearCookies: true };
+    const verifiedSession = await verifySession(signed, sessionSecret);
+    if (canUseVerifiedSession(verifiedSession) === false) {
+      return createSessionFailure(true);
     }
+    const activeSession = verifiedSession;
 
     let accessToken = accessTokenCookie ?? "";
     let refreshToken = refreshTokenCookie ?? null;
 
-    if (
-      accessToken &&
-      !(await doesSessionMatchAccessToken(session, accessToken))
-    ) {
-      return { ok: false, clearCookies: true };
-    }
-
-    if (
-      refreshToken &&
-      !(await doesSessionMatchRefreshToken(session, refreshToken))
-    ) {
-      return { ok: false, clearCookies: true };
+    const hasValidBindings = await hasValidTokenBindings({
+      accessToken,
+      refreshToken,
+      session: activeSession,
+    });
+    if (hasValidBindings === false) {
+      return createSessionFailure(true);
     }
 
     const needsRefresh =
-      !accessToken || isTokenExpired(accessToken, minTtlSeconds);
+      accessToken.length === 0 || isTokenExpired(accessToken, minTtlSeconds);
     if (needsRefresh) {
-      if (!refreshToken) {
-        return { ok: false, clearCookies: true };
+      if (typeof refreshToken !== "string" || refreshToken.length === 0) {
+        return createSessionFailure(true);
       }
 
-      const refreshed = await refreshTokens({
+      const refreshedSession = await refreshSessionTokens({
         issuerUrl,
         clientId,
         clientSecret,
         refreshToken,
+        sessionSecret,
       });
-
-      if (!refreshed?.access_token) {
-        return {
-          ok: false,
-          clearCookies: !preserveCookiesOnRefreshFailure,
-        };
+      if (refreshedSession === null) {
+        return createSessionFailure(!preserveCookiesOnRefreshFailure);
       }
-
-      if (
-        !isAccessTokenCompatible(refreshed.access_token, {
-          issuerUrl,
-          clientId,
-        })
-      ) {
-        return { ok: false, clearCookies: true };
-      }
-
-      const user = userFromAccessToken(refreshed.access_token, clientId);
-      const exp = getTokenExp(refreshed.access_token);
-      if (
-        !user ||
-        !exp ||
-        !canAccessAdminConsole(user.role, user.permissions)
-      ) {
-        return { ok: false, clearCookies: true };
-      }
-
-      accessToken = refreshed.access_token;
-      refreshToken = refreshed.refresh_token ?? refreshToken;
-      session = await buildSessionData(
-        user,
-        exp,
-        accessToken,
-        refreshToken,
-        refreshed.refresh_expires_in,
-      );
 
       return {
         ok: true,
-        session,
-        accessToken,
-        refreshToken,
-        cookieUpdate: {
-          accessToken,
-          refreshToken,
-          sessionToken: await signSession(session, sessionSecret),
-          accessTokenMaxAge: refreshed.expires_in ?? 900,
-          refreshTokenMaxAge: refreshed.refresh_expires_in ?? 60 * 60 * 24 * 14,
-        },
+        session: refreshedSession.session,
+        accessToken: refreshedSession.accessToken,
+        refreshToken: refreshedSession.refreshToken,
+        cookieUpdate: refreshedSession.cookieUpdate,
       };
     }
 
     if (
-      !accessToken ||
-      !canAccessAdminConsole(session.role, session.permissions)
+      accessToken.length === 0 ||
+      !canAccessAdminConsole(activeSession.role, activeSession.permissions)
     ) {
-      return { ok: false, clearCookies: true };
+      return createSessionFailure(true);
     }
 
     return {
       ok: true,
-      session,
+      session: activeSession,
       accessToken,
       refreshToken,
       cookieUpdate: null,
     };
   } catch {
-    return {
-      ok: false,
-      clearCookies: !preserveCookiesOnRefreshFailure,
-    };
+    return createSessionFailure(!preserveCookiesOnRefreshFailure);
   }
 }

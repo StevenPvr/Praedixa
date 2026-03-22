@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from typing import Any
 
 import httpx
+
+from app.integrations.connectors._shared import require_object, require_record_sequence
 
 
 class GeotabApiClient:
@@ -47,10 +49,10 @@ class GeotabApiClient:
                 "password": password,
             },
         )
-        credentials = result.get("credentials")
-        if not isinstance(credentials, dict):
-            raise TypeError("Geotab Authenticate must return credentials")
-
+        credentials = require_object(
+            result.get("credentials"),
+            field="Geotab Authenticate credentials",
+        )
         normalized = _normalize_credentials(credentials)
         session_id = normalized.get("sessionId")
         if session_id is None:
@@ -139,16 +141,16 @@ class GeotabApiClient:
         )
         response.raise_for_status()
         payload = response.json()
-        if not isinstance(payload, dict):
-            raise TypeError("Geotab RPC response must be an object")
-        error = payload.get("error")
+        payload_object = require_object(payload, field="Geotab RPC response")
+        error = payload_object.get("error")
         if isinstance(error, dict):
-            message = str(error.get("message") or f"Geotab RPC {method} failed")
+            error_object = require_object(error, field="Geotab RPC error")
+            message = str(error_object.get("message") or f"Geotab RPC {method} failed")
             raise TypeError(message)
-        result = payload.get("result")
-        if not isinstance(result, dict):
-            raise TypeError(f"Geotab RPC {method} result must be an object")
-        return result
+        return require_object(
+            payload_object.get("result"),
+            field=f"Geotab RPC {method} result",
+        )
 
 
 def _normalize_credentials(value: Mapping[str, Any]) -> dict[str, str]:
@@ -174,15 +176,8 @@ def _extract_feed_page(
 
 
 def _normalize_records(raw_items: Any) -> list[dict[str, Any]]:
-    if not isinstance(raw_items, Sequence) or isinstance(raw_items, (str, bytes)):
-        raise TypeError("Geotab RPC records must be a list")
-
-    records: list[dict[str, Any]] = []
-    for raw_item in raw_items:
-        if not isinstance(raw_item, dict):
-            raise TypeError("Geotab record must be an object")
-        records.append(dict(raw_item))
-    return records
+    items = require_record_sequence(raw_items, field="Geotab RPC records")
+    return [dict(require_object(raw_item, field="Geotab record")) for raw_item in items]
 
 
 def _required_string(value: Any, field: str) -> str:

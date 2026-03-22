@@ -19,7 +19,7 @@ PY_DB="${WORK_DIR}/py-db"
 JS_OUT="${ARTIFACT_DIR}/codeql-javascript.sarif"
 PY_OUT="${ARTIFACT_DIR}/codeql-python.sarif"
 
-QUERY_REPO_DIR="${ROOT_DIR}/.tools/codeql-queries"
+QUERY_REPO_DIR="${ROOT_DIR}/.meta/.tools/codeql-queries"
 JS_SOURCE_ROOT="${WORK_DIR}/js-source-root"
 
 ensure_local_query_repo() {
@@ -90,12 +90,12 @@ prepare_js_source_root() {
     ".turbo/"
     ".next/"
     ".open-next/"
-    ".lighthouseci/"
+    ".meta/"
     "node_modules/"
     "coverage/"
     "playwright-report/"
     "htmlcov/"
-    "centaurus/"
+    "marketing/presentations-clients/centaurus/"
     "app-api/.venv/"
     "app-landing/.next/"
     "app-landing/.open-next/"

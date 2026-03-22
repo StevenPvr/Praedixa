@@ -1,6 +1,7 @@
 {
   "files": [],
   "references": [
+    { "path": "packages/api-hooks" },
     { "path": "packages/shared-types" },
     { "path": "packages/telemetry" },
     { "path": "app-symphony" },

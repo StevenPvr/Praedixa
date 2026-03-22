@@ -4,35 +4,35 @@ import { AlertTriangle, RefreshCw, WifiOff, Inbox } from "lucide-react";
 
 type ErrorVariant = "network" | "api" | "empty";
 
-interface ErrorFallbackBaseProps {
+type ErrorFallbackBaseProps = Readonly<{
   message?: string;
   onRetry?: () => void;
-}
+  variant?: ErrorVariant;
+}>;
 
-interface NetworkErrorProps extends ErrorFallbackBaseProps {
-  variant: "network";
-}
+type NetworkErrorProps = ErrorFallbackBaseProps &
+  Readonly<{
+    variant: "network";
+  }>;
 
-interface ApiErrorProps extends ErrorFallbackBaseProps {
-  variant: "api";
-  detail?: string;
-}
+type ApiErrorProps = ErrorFallbackBaseProps &
+  Readonly<{
+    variant: "api";
+    detail?: string;
+  }>;
 
-interface EmptyDataProps extends ErrorFallbackBaseProps {
-  variant: "empty";
-  ctaLabel?: string;
-  onAction?: () => void;
-}
-
-interface DefaultErrorProps extends ErrorFallbackBaseProps {
-  variant?: undefined;
-}
+type EmptyDataProps = ErrorFallbackBaseProps &
+  Readonly<{
+    variant: "empty";
+    ctaLabel?: string;
+    onAction?: () => void;
+  }>;
 
 export type ErrorFallbackProps =
   | NetworkErrorProps
   | ApiErrorProps
   | EmptyDataProps
-  | DefaultErrorProps;
+  | ErrorFallbackBaseProps;
 
 const variantConfig: Record<
   ErrorVariant,
@@ -74,6 +74,32 @@ export function ErrorFallback(props: ErrorFallbackProps) {
   const Icon = config.icon;
 
   const message = props.message ?? config.defaultMessage;
+  const detailMessage =
+    variant === "api" && "detail" in props ? (props.detail ?? null) : null;
+  const actionLabel =
+    "ctaLabel" in props && props.ctaLabel ? props.ctaLabel : "Commencer";
+  const canRetry = typeof props.onRetry === "function";
+  const canTakeAction =
+    variant === "empty" &&
+    "onAction" in props &&
+    typeof props.onAction === "function";
+  const retryAction = canRetry ? (
+    <button
+      onClick={props.onRetry}
+      className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-charcoal transition-colors hover:bg-surface-sunken"
+    >
+      <RefreshCw className="h-4 w-4" aria-hidden="true" />
+      Reessayer
+    </button>
+  ) : null;
+  const primaryAction = canTakeAction ? (
+    <button
+      onClick={props.onAction}
+      className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-500"
+    >
+      {actionLabel}
+    </button>
+  ) : null;
 
   return (
     <div className="flex flex-col items-center justify-center rounded-card border border-border bg-card px-6 py-12">
@@ -89,30 +115,14 @@ export function ErrorFallback(props: ErrorFallbackProps) {
         {message}
       </p>
 
-      {variant === "api" && "detail" in props && props.detail && (
+      {detailMessage ? (
         <p className="mt-2 max-w-md rounded-md bg-surface-sunken px-3 py-2 font-mono text-xs text-ink-placeholder">
-          {props.detail}
+          {detailMessage}
         </p>
-      )}
+      ) : null}
 
-      {props.onRetry && (
-        <button
-          onClick={props.onRetry}
-          className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-charcoal transition-colors hover:bg-surface-sunken"
-        >
-          <RefreshCw className="h-4 w-4" aria-hidden="true" />
-          Reessayer
-        </button>
-      )}
-
-      {variant === "empty" && "onAction" in props && props.onAction && (
-        <button
-          onClick={props.onAction}
-          className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-500"
-        >
-          {"ctaLabel" in props && props.ctaLabel ? props.ctaLabel : "Commencer"}
-        </button>
-      )}
+      {retryAction}
+      {primaryAction}
     </div>
   );
 }

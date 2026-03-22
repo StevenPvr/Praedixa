@@ -27,10 +27,12 @@ import json
 import time
 import uuid
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from psycopg import sql
-from sqlalchemy import select, update
+from sqlalchemy import column, select, table, update
+from sqlalchemy import text as sql_text
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.core.config import settings
 from app.core.ddl_connection import ddl_connection
@@ -64,6 +66,19 @@ _TRANSFORM_INSERT_BATCH_SIZE = 1000
 # ── HMAC utilities ───────────────────────────────────────
 
 
+def _require_json_object(value: Any, *, field: str) -> dict[str, Any]:
+    """Narrow dynamic JSONB payloads to plain dicts at trust boundaries."""
+    if not isinstance(value, dict):
+        raise TypeError(f"{field} must be a JSON object")
+    return cast("dict[str, Any]", value)
+
+
+def _result_rowcount(result: object) -> int | None:
+    """Read SQLAlchemy rowcount without depending on backend-specific result types."""
+    rowcount = getattr(result, "rowcount", None)
+    return rowcount if isinstance(rowcount, int) else None
+
+
 def compute_hmac(parameters: dict[str, Any], secret: str) -> str:
     """Compute HMAC-SHA256 for fit parameter integrity verification."""
     payload = json.dumps(parameters, sort_keys=True, default=str)
@@ -79,7 +94,11 @@ def verify_hmac(parameters: dict[str, Any], expected_hmac: str, secret: str) -> 
 def _verify_all_hmacs(fit_params: list[FitParameter], secret: str) -> None:
     """Verify HMAC integrity on all fit parameters. Raises on failure."""
     for fp in fit_params:
-        if fp.hmac_sha256 and not verify_hmac(fp.parameters, fp.hmac_sha256, secret):
+        parameters: dict[str, Any] = _require_json_object(
+            cast("Any", fp).parameters,
+            field="fit_parameters.parameters",
+        )
+        if fp.hmac_sha256 and not verify_hmac(parameters, fp.hmac_sha256, secret):
             msg = (
                 f"HMAC verification failed for fit_parameter "
                 f"{fp.column_name}/{fp.transform_type} v{fp.version}"
@@ -153,22 +172,32 @@ async def run_incremental(
         cutoff = await _get_last_successful_cutoff(dataset_id, session)
 
         # Compute lookback size from pipeline config
-        pipeline_config = sanitize_feature_pipeline_config(dataset.pipeline_config)
+        dataset_pipeline_config: dict[str, Any] = _require_json_object(
+            cast("Any", dataset).pipeline_config,
+            field="client_datasets.pipeline_config",
+        )
+        pipeline_config = sanitize_feature_pipeline_config(dataset_pipeline_config)
         max_lag = max(pipeline_config.get("lags", [1, 7, 30]), default=30)
         max_rolling = max(pipeline_config.get("rolling_windows", [7]), default=7)
         lookback_days = max_lag + max_rolling
 
         # Execute incremental pipeline in sync thread
-        rows_received, rows_transformed = await _execute_pipeline(
-            dataset=dataset,
-            columns=columns,
-            fit_params=fit_params,
-            mode="incremental",
-            cutoff=cutoff,
-            lookback_days=lookback_days,
+        rows_received, rows_transformed = (
+            await _execute_incremental_pipeline_in_session(
+                dataset=dataset,
+                columns=columns,
+                fit_params=fit_params,
+                session=session,
+                cutoff=cutoff,
+                lookback_days=lookback_days,
+            )
         )
 
-        watermark = await _compute_processed_watermark(dataset, cutoff=cutoff)
+        watermark = await _compute_processed_watermark_in_session(
+            session,
+            dataset,
+            cutoff=cutoff,
+        )
         if watermark is None:
             watermark = cutoff
 
@@ -478,6 +507,177 @@ async def _compute_processed_watermark(
     return await asyncio.to_thread(_sync_watermark)
 
 
+def _quote_identifier(identifier: str) -> str:
+    return f'"{identifier}"'
+
+
+def _qualified_table(schema: str, table_name: str) -> str:
+    return f"{_quote_identifier(schema)}.{_quote_identifier(table_name)}"
+
+
+async def _compute_processed_watermark_in_session(
+    session: AsyncSession,
+    dataset: ClientDataset,
+    *,
+    cutoff: datetime | None,
+) -> datetime | None:
+    """Compute the processed watermark inside the caller transaction."""
+
+    schema_data = getattr(dataset, "schema_data", None)
+    table_name = getattr(dataset, "table_name", None)
+    if not isinstance(schema_data, str) or not isinstance(table_name, str):
+        return cutoff
+
+    data_schema = validate_schema_name(schema_data)
+    raw_table_name = validate_identifier(table_name, field="table_name")
+    qualified_table = _qualified_table(data_schema, raw_table_name)
+    if cutoff is not None:
+        query = (
+            f"SELECT MAX({_quote_identifier('_ingested_at')}) "  # noqa: S608
+            f"FROM {qualified_table} "
+            f"WHERE {_quote_identifier('_ingested_at')} > :cutoff"
+        )
+        result = await session.execute(sql_text(query), {"cutoff": cutoff})
+    else:
+        query = (
+            f"SELECT MAX({_quote_identifier('_ingested_at')}) "  # noqa: S608
+            f"FROM {qualified_table}"
+        )
+        result = await session.execute(sql_text(query))
+    value = result.scalar_one_or_none()
+    return value if isinstance(value, datetime) else None
+
+
+async def _execute_incremental_pipeline_in_session(
+    *,
+    dataset: ClientDataset,
+    columns: list[DatasetColumn],
+    fit_params: list[FitParameter],
+    session: AsyncSession,
+    cutoff: datetime | None,
+    lookback_days: int | None,
+) -> tuple[int, int]:
+    """Execute the incremental pipeline inside the caller transaction."""
+
+    del fit_params  # Fit parameters are validated by the caller and reused later.
+
+    data_schema = validate_schema_name(dataset.schema_data)
+    raw_table_name = validate_identifier(dataset.table_name, field="table_name")
+    transformed_table_name = get_transformed_table_name(raw_table_name)
+    temporal_index = validate_identifier(dataset.temporal_index, field="temporal_index")
+    group_by_cols = [
+        validate_identifier(group_by, field="group_by")
+        for group_by in dataset.group_by
+    ]
+    order_cols = [temporal_index, *group_by_cols, "_row_id"]
+    qualified_raw_table = _qualified_table(data_schema, raw_table_name)
+
+    if cutoff is not None:
+        count_query = (
+            f"SELECT COUNT(*) FROM {qualified_raw_table} "  # noqa: S608
+            f"WHERE {_quote_identifier('_ingested_at')} > :cutoff"
+        )
+        count_result = await session.execute(sql_text(count_query), {"cutoff": cutoff})
+        rows_received = int(count_result.scalar_one() or 0)
+
+        effective_lookback = lookback_days or settings.DEFAULT_LOOKBACK_DAYS
+        order_clause = ", ".join(
+            _quote_identifier(column_name) for column_name in order_cols
+        )
+        read_query = (
+            f"SELECT * FROM {qualified_raw_table} "  # noqa: S608
+            f"WHERE {_quote_identifier('_ingested_at')} > "
+            f"(:cutoff - (:lookback || ' days')::interval) "
+            f"ORDER BY {order_clause}"
+        )
+        result = await session.execute(
+            sql_text(read_query),
+            {"cutoff": cutoff, "lookback": effective_lookback},
+        )
+    else:
+        order_clause = ", ".join(
+            _quote_identifier(column_name) for column_name in order_cols
+        )
+        read_query = (
+            f"SELECT * FROM {qualified_raw_table} ORDER BY {order_clause}"  # noqa: S608
+        )
+        result = await session.execute(sql_text(read_query))
+        rows_received = _result_rowcount(result) or 0
+
+    rows = [tuple(row) for row in result.fetchall()]
+    col_names = list(result.keys())
+    if cutoff is None:
+        rows_received = len(rows)
+    if not rows:
+        return (rows_received, 0)
+
+    rows_to_insert = rows
+    if cutoff is not None:
+        rows_to_insert = _filter_incremental_rows(rows, col_names, cutoff)
+
+    dataset_pipeline_config: dict[str, Any] = _require_json_object(
+        cast("Any", dataset).pipeline_config,
+        field="client_datasets.pipeline_config",
+    )
+    feature_cols = resolve_transformed_columns(columns, dataset_pipeline_config)
+    rows_transformed = await _insert_transformed_rows_in_session(
+        session,
+        data_schema,
+        transformed_table_name,
+        rows_to_insert,
+        col_names,
+        columns,
+        feature_cols,
+    )
+    return (rows_received, rows_transformed)
+
+
+async def _insert_transformed_rows_in_session(
+    session: AsyncSession,
+    schema: str,
+    table_name: str,
+    rows: list[tuple[Any, ...]],
+    col_names: list[str],
+    columns: list[DatasetColumn],
+    feature_cols: list[tuple[str, str]],
+) -> int:
+    """Insert transformed rows through the caller AsyncSession transaction."""
+
+    if not rows:
+        return 0
+
+    orig_col_names = [column_def.name for column_def in columns]
+    feature_col_names = [feature_column[0] for feature_column in feature_cols]
+    insert_cols = ["_row_id", "_pipeline_version", *orig_col_names, *feature_col_names]
+    insert_table_columns = [cast("Any", column(col_name)) for col_name in insert_cols]
+    table_clause = table(
+        table_name,
+        *insert_table_columns,
+        schema=schema,
+    )
+    stmt = pg_insert(table_clause).on_conflict_do_nothing(index_elements=["_row_id"])
+
+    inserted = 0
+    for batch_start in range(0, len(rows), _TRANSFORM_INSERT_BATCH_SIZE):
+        batch = rows[batch_start : batch_start + _TRANSFORM_INSERT_BATCH_SIZE]
+        params_list: list[dict[str, Any]] = []
+        for row in batch:
+            row_dict = dict(zip(col_names, row, strict=False))
+            payload: dict[str, Any] = {
+                "_row_id": row_dict.get("_row_id", uuid.uuid4()),
+                "_pipeline_version": 1,
+            }
+            for column_name in orig_col_names:
+                payload[column_name] = row_dict.get(column_name)
+            for feature_column_name in feature_col_names:
+                payload[feature_column_name] = None
+            params_list.append(payload)
+        result = await session.execute(stmt, params_list)
+        inserted += _result_rowcount(result) or len(params_list)
+
+    return inserted
+
+
 async def _execute_pipeline(  # pragma: no cover
     dataset: ClientDataset,
     columns: list[DatasetColumn],
@@ -527,7 +727,7 @@ async def _execute_pipeline(  # pragma: no cover
                     ),
                     (cutoff,),
                 )
-                new_count = cur.fetchone()[0]  # type: ignore[index]
+                new_count = int(cur.fetchone()[0])  # type: ignore[index]
 
                 # Read with lookback context for lag/rolling calculation
                 effective_lookback = lookback_days or settings.DEFAULT_LOOKBACK_DAYS
@@ -576,7 +776,11 @@ async def _execute_pipeline(  # pragma: no cover
             # (pandas-based) will be filled in by the ML team.
 
             # Build feature column definitions
-            feature_cols = resolve_transformed_columns(columns, dataset.pipeline_config)
+            pipeline_config: dict[str, Any] = _require_json_object(
+                cast("Any", dataset).pipeline_config,
+                field="client_datasets.pipeline_config",
+            )
+            feature_cols = resolve_transformed_columns(columns, pipeline_config)
 
             # For incremental mode with existing data, insert
             # transformed rows into the existing table.

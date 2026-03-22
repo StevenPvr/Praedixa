@@ -42,6 +42,10 @@ describe("parseBearerToken", () => {
   it("extracts token for Bearer header", () => {
     expect(parseBearerToken("Bearer token-value")).toBe("token-value");
   });
+
+  it("accepts bearer scheme case-insensitively", () => {
+    expect(parseBearerToken("bearer token-value")).toBe("token-value");
+  });
 });
 
 describe("normalizeJwtClaims", () => {
@@ -152,6 +156,19 @@ describe("normalizeJwtClaims", () => {
           email: "manager@praedixa.com",
           role: "manager",
           organization_id: "org-6",
+        }),
+      ),
+    ).toBeNull();
+  });
+
+  it("rejects JWTs whose organization_id is blank for non super-admin roles", () => {
+    expect(
+      normalizeJwtClaims(
+        withRequiredJwtClaims({
+          sub: "user-6b",
+          email: "manager@praedixa.com",
+          role: "org_admin",
+          organization_id: "   ",
         }),
       ),
     ).toBeNull();
@@ -307,6 +324,33 @@ describe("decodeJwtPayload", () => {
     });
   });
 
+  it("returns detailed claim failure information for blank organization_id values", async () => {
+    mockJwtVerify.mockResolvedValue({
+      payload: withRequiredJwtClaims({
+        sub: "user-11b",
+        email: "admin@praedixa.com",
+        role: "org_admin",
+        organization_id: "   ",
+      }),
+    });
+
+    await expect(
+      decodeJwtPayloadDetailed("verified-but-blank-organization", JWT_CONFIG),
+    ).resolves.toMatchObject({
+      user: null,
+      failure: {
+        stage: "claims",
+        reason: "JWT organization_id must be a non-empty string",
+        tokenSummary: expect.objectContaining({
+          hasUserId: true,
+          hasCanonicalUserId: true,
+          hasOrganizationId: false,
+          hasCanonicalOrganizationId: false,
+        }),
+      },
+    });
+  });
+
   it("returns detailed verification failure information", async () => {
     mockJwtVerify.mockRejectedValue(new Error('unexpected "aud" claim value'));
 
@@ -424,5 +468,19 @@ describe("public OpenAPI auth contract", () => {
       expect(route?.template).toContain(":orgId");
       expect(publicPaths.has(template)).toBe(false);
     }
+  });
+
+  it("keeps the delivery webhook outside the public OpenAPI contract while leaving it unauthenticated", () => {
+    const document = loadPublicOpenApiDocument();
+    const publicPaths = new Set(Object.keys(document.paths ?? {}));
+    const route = routes.find(
+      (entry) => entry.template === "/api/v1/webhooks/resend/email-delivery",
+    );
+
+    expect(route).toBeDefined();
+    expect(route?.authRequired).toBe(false);
+    expect(publicPaths.has("/api/v1/webhooks/resend/email-delivery")).toBe(
+      false,
+    );
   });
 });

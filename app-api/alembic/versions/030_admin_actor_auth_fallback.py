@@ -8,8 +8,8 @@ Create Date: 2026-03-19 02:05:00.000000
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-from alembic import op
 
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
 
 # revision identifiers, used by Alembic.
 revision: str = "030_admin_actor_auth_fallback"
@@ -74,9 +74,10 @@ def downgrade() -> None:
             FROM admin_audit_log
             WHERE admin_user_id IS NULL
               AND admin_auth_user_id IS NOT NULL
-          ) THEN
+            ) THEN
             RAISE EXCEPTION
-              'Cannot downgrade 030_admin_actor_auth_fallback while admin_audit_log contains auth-only actors';
+              'Cannot downgrade 030_admin_actor_auth_fallback while '
+              'admin_audit_log contains auth-only actors';
           END IF;
         END $$;
         """
@@ -90,9 +91,10 @@ def downgrade() -> None:
             FROM plan_change_history
             WHERE changed_by IS NULL
               AND changed_by_auth_user_id IS NOT NULL
-          ) THEN
+            ) THEN
             RAISE EXCEPTION
-              'Cannot downgrade 030_admin_actor_auth_fallback while plan_change_history contains auth-only actors';
+              'Cannot downgrade 030_admin_actor_auth_fallback while '
+              'plan_change_history contains auth-only actors';
           END IF;
         END $$;
         """

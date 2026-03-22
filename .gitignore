@@ -13,7 +13,7 @@
 # AI tooling (Codex, Claude, etc.)
 # -----------------------------------------------------------------------------
 .codex/
-.tools/
+.meta/.tools/
 !.env.example
 
 # -----------------------------------------------------------------------------
@@ -46,9 +46,11 @@ venv/
 ENV/
 .uv/
 .pytest_cache/
-.mypy_cache/
-.ruff_cache/
+.meta/.mypy_cache/
+.meta/.ruff_cache/
+.meta/.hypothesis/
 .hypothesis/
+app-api/.hypothesis/
 htmlcov/
 .coverage
 coverage.xml
@@ -74,8 +76,8 @@ next-env.d.ts
 # -----------------------------------------------------------------------------
 .idea/
 .vscode/
-.tmp/
-/centaurus/
+.meta/.tmp/
+/marketing/presentations-clients/centaurus/
 *.swp
 *.swo
 *~
@@ -102,7 +104,9 @@ coverage/
 playwright-report/
 test-results/
 e2e-coverage/
+.meta/.lighthouseci/
 .lighthouseci/
+.meta/.release/
 .git/gate-work/
 tmp-preview-screen*.png
 
@@ -121,7 +125,7 @@ mlruns/
 mlartifacts/
 
 # Assets export lourds
-linkedin_banners/*.png
+marketing/linkedin_banners/*.png
 
 # -----------------------------------------------------------------------------
 # Infrastructure

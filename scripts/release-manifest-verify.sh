@@ -101,6 +101,34 @@ if [[ -z "$GATE_REPORT_PATH" || -z "$GATE_REPORT_SHA" ]]; then
 fi
 verify_json_digest "gate report" "$GATE_REPORT_PATH" "$GATE_REPORT_SHA"
 
+GATE_REPORT_SCHEMA_VERSION="$(jq -r '.schema_version // empty' "$GATE_REPORT_PATH")"
+if [[ "$GATE_REPORT_SCHEMA_VERSION" != "2" ]]; then
+  echo "Unsupported gate report schema_version: ${GATE_REPORT_SCHEMA_VERSION:-<empty>}" >&2
+  exit 1
+fi
+
+GATE_REPORT_STATUS="$(jq -r '.summary.status // empty' "$GATE_REPORT_PATH")"
+if [[ "$GATE_REPORT_STATUS" != "pass" ]]; then
+  echo "Gate report status must be pass, got: ${GATE_REPORT_STATUS:-<empty>}" >&2
+  exit 1
+fi
+
+GATE_REPORT_BLOCKING_FAILED="$(jq -r '.summary.blocking_failed_checks // empty' "$GATE_REPORT_PATH")"
+if [[ -z "$GATE_REPORT_BLOCKING_FAILED" ]]; then
+  echo "Gate report missing summary.blocking_failed_checks" >&2
+  exit 1
+fi
+if [[ "$GATE_REPORT_BLOCKING_FAILED" != "0" ]]; then
+  echo "Gate report blocking_failed_checks must be 0, got: ${GATE_REPORT_BLOCKING_FAILED}" >&2
+  exit 1
+fi
+
+GATE_REPORT_DRY_RUN="$(jq -r '.dry_run // false' "$GATE_REPORT_PATH")"
+if [[ "$GATE_REPORT_DRY_RUN" == "true" ]]; then
+  echo "Gate report dry_run=true is not valid for release manifests" >&2
+  exit 1
+fi
+
 verify_evidence_array() {
   local label="$1"
   local manifest="$2"

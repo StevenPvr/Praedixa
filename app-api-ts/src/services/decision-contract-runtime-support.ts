@@ -102,7 +102,10 @@ function applyActorToDraft(
   workspaceId?: string | null,
 ): DecisionContract {
   const next = cloneValue(contract);
-  next.workspaceId = normalizeOptionalText(workspaceId) ?? next.workspaceId;
+  const normalizedWorkspaceId = normalizeOptionalText(workspaceId);
+  if (normalizedWorkspaceId !== null) {
+    next.workspaceId = normalizedWorkspaceId;
+  }
   next.status = "draft";
   next.audit = {
     ...next.audit,
@@ -122,7 +125,9 @@ export function prepareNewDraftContract(
 ): DecisionContract {
   const next = applyActorToDraft(contract, actor, workspaceId);
   next.organizationId = organizationId;
-  next.workspaceId = workspaceId ?? undefined;
+  if (workspaceId !== null) {
+    next.workspaceId = workspaceId;
+  }
   next.audit = {
     ...next.audit,
     createdBy: actor.userId,
@@ -223,16 +228,24 @@ export function normalizeScopeOverrides(
               : [],
           }
         : scopeOverrides.selector.mode === "query"
-          ? {
+          ? ({
               mode: "query" as const,
-              query: scopeOverrides.selector.query,
-            }
+              ...(scopeOverrides.selector.query !== undefined
+                ? { query: scopeOverrides.selector.query }
+                : {}),
+            } as const)
           : { mode: "all" as const };
 
   return {
-    entityType: scopeOverrides.entityType,
-    selector,
-    horizonId: scopeOverrides.horizonId,
-    dimensions: scopeOverrides.dimensions,
+    ...(scopeOverrides.entityType !== undefined
+      ? { entityType: scopeOverrides.entityType }
+      : {}),
+    ...(selector !== undefined ? { selector } : {}),
+    ...(scopeOverrides.horizonId !== undefined
+      ? { horizonId: scopeOverrides.horizonId }
+      : {}),
+    ...(scopeOverrides.dimensions !== undefined
+      ? { dimensions: scopeOverrides.dimensions }
+      : {}),
   };
 }

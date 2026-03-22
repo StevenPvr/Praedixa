@@ -62,7 +62,9 @@ export function ScopingCallForm({
           id="booking-company"
           label={copy.company}
           value={form.companyName}
-          error={fieldErrors.companyName}
+          {...(fieldErrors.companyName
+            ? { error: fieldErrors.companyName }
+            : {})}
           autoComplete="organization"
           maxLength={100}
           onChange={(value) => update("companyName", value)}
@@ -72,7 +74,7 @@ export function ScopingCallForm({
           type="email"
           label={copy.email}
           value={form.email}
-          error={fieldErrors.email}
+          {...(fieldErrors.email ? { error: fieldErrors.email } : {})}
           autoComplete="email"
           maxLength={254}
           onChange={(value) => update("email", value)}
@@ -118,19 +120,19 @@ export function ScopingCallForm({
           <p className="mt-1 text-xs text-neutral-500">{copy.slotsHint}</p>
           <div className="mt-3 grid grid-cols-1 gap-3">
             <ScopingSlotField
-              error={fieldErrors.slots}
+              {...(fieldErrors.slots ? { error: fieldErrors.slots } : {})}
               label={isFr ? "Créneau 1" : "Slot 1"}
               value={form.slot1}
               onChange={(value) => update("slot1", value)}
             />
             <ScopingSlotField
-              error={fieldErrors.slots}
+              {...(fieldErrors.slots ? { error: fieldErrors.slots } : {})}
               label={isFr ? "Créneau 2" : "Slot 2"}
               value={form.slot2}
               onChange={(value) => update("slot2", value)}
             />
             <ScopingSlotField
-              error={fieldErrors.slots}
+              {...(fieldErrors.slots ? { error: fieldErrors.slots } : {})}
               label={isFr ? "Créneau 3" : "Slot 3"}
               value={form.slot3}
               onChange={(value) => update("slot3", value)}
@@ -227,7 +229,7 @@ function ScopingTextField({
         className={getFieldClass(Boolean(error))}
         autoComplete={autoComplete}
         aria-invalid={error ? "true" : "false"}
-        aria-describedby={error ? errorId : undefined}
+        {...(error ? { "aria-describedby": errorId } : {})}
       />
       {error ? (
         <p id={errorId} className={ERROR_CLASS}>

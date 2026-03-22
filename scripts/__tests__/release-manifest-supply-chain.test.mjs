@@ -16,6 +16,7 @@ const repoRoot = process.cwd();
 const createScriptPath = path.join(
   repoRoot,
   "scripts",
+  "scw",
   "scw-release-manifest-create.sh",
 );
 const verifyScriptPath = path.join(
@@ -108,7 +109,21 @@ test("release manifest carries and verifies supply-chain evidence", () => {
 
     writeFileSync(
       gateReportPath,
-      JSON.stringify({ commit_sha: "placeholder", status: "pass" }, null, 2),
+      JSON.stringify(
+        {
+          schema_version: "2",
+          commit_sha: "placeholder",
+          timestamp_epoch: Math.floor(Date.now() / 1000),
+          dry_run: false,
+          summary: {
+            status: "pass",
+            blocking_failed_checks: 0,
+            low_failed_checks: 0,
+          },
+        },
+        null,
+        2,
+      ),
     );
 
     const createResult = runScript(createScriptPath, [
@@ -154,7 +169,21 @@ test("release manifest carries and verifies supply-chain evidence", () => {
 
     writeFileSync(
       gateReportPath,
-      JSON.stringify({ commit_sha: "placeholder", status: "fail" }, null, 2),
+      JSON.stringify(
+        {
+          schema_version: "2",
+          commit_sha: "placeholder",
+          timestamp_epoch: Math.floor(Date.now() / 1000),
+          dry_run: false,
+          summary: {
+            status: "fail",
+            blocking_failed_checks: 1,
+            low_failed_checks: 0,
+          },
+        },
+        null,
+        2,
+      ),
     );
 
     const tamperedGateReportVerify = runScript(verifyScriptPath, [
@@ -171,7 +200,21 @@ test("release manifest carries and verifies supply-chain evidence", () => {
 
     writeFileSync(
       gateReportPath,
-      JSON.stringify({ commit_sha: "placeholder", status: "pass" }, null, 2),
+      JSON.stringify(
+        {
+          schema_version: "2",
+          commit_sha: "placeholder",
+          timestamp_epoch: Math.floor(Date.now() / 1000),
+          dry_run: false,
+          summary: {
+            status: "pass",
+            blocking_failed_checks: 0,
+            low_failed_checks: 0,
+          },
+        },
+        null,
+        2,
+      ),
     );
 
     writeFileSync(

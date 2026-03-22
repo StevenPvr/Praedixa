@@ -13,7 +13,18 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-from alembic import op
+from alembic import op  # pyright: ignore[reportAttributeAccessIssue]
+
+NOW_SQL = "now()"
+ON_DELETE_CASCADE = "CASCADE"
+ON_DELETE_RESTRICT = "RESTRICT"
+ON_DELETE_SET_NULL = "SET NULL"
+ORGANIZATIONS_ID_REF = "organizations.id"
+SITES_ID_REF = "sites.id"
+DEPARTMENTS_ID_REF = "departments.id"
+USERS_ID_REF = "users.id"
+EMPLOYEES_ID_REF = "employees.id"
+FORECAST_RUNS_ID_REF = "forecast_runs.id"
 
 # revision identifiers, used by Alembic.
 revision: str = "001"
@@ -91,13 +102,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )
@@ -110,7 +121,7 @@ def upgrade() -> None:
         sa.Column(
             "organization_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("organizations.id", ondelete="CASCADE"),
+            sa.ForeignKey(ORGANIZATIONS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column("name", sa.String(255), nullable=False),
@@ -123,13 +134,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )
@@ -142,18 +153,18 @@ def upgrade() -> None:
         sa.Column(
             "organization_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("organizations.id", ondelete="CASCADE"),
+            sa.ForeignKey(ORGANIZATIONS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column(
             "site_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("sites.id", ondelete="SET NULL"),
+            sa.ForeignKey(SITES_ID_REF, ondelete=ON_DELETE_SET_NULL),
         ),
         sa.Column(
             "parent_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("departments.id", ondelete="SET NULL"),
+            sa.ForeignKey(DEPARTMENTS_ID_REF, ondelete=ON_DELETE_SET_NULL),
         ),
         sa.Column("manager_id", postgresql.UUID(as_uuid=True)),
         sa.Column("name", sa.String(255), nullable=False),
@@ -165,13 +176,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )
@@ -187,7 +198,7 @@ def upgrade() -> None:
         sa.Column(
             "organization_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("organizations.id", ondelete="CASCADE"),
+            sa.ForeignKey(ORGANIZATIONS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column("supabase_user_id", sa.String(255), unique=True, nullable=False),
@@ -221,13 +232,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )
@@ -242,29 +253,29 @@ def upgrade() -> None:
         sa.Column(
             "organization_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("organizations.id", ondelete="CASCADE"),
+            sa.ForeignKey(ORGANIZATIONS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column(
             "department_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("departments.id", ondelete="RESTRICT"),
+            sa.ForeignKey(DEPARTMENTS_ID_REF, ondelete=ON_DELETE_RESTRICT),
             nullable=False,
         ),
         sa.Column(
             "site_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("sites.id", ondelete="SET NULL"),
+            sa.ForeignKey(SITES_ID_REF, ondelete=ON_DELETE_SET_NULL),
         ),
         sa.Column(
             "user_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            sa.ForeignKey(USERS_ID_REF, ondelete=ON_DELETE_SET_NULL),
         ),
         sa.Column(
             "manager_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("employees.id", ondelete="SET NULL"),
+            sa.ForeignKey(EMPLOYEES_ID_REF, ondelete=ON_DELETE_SET_NULL),
         ),
         sa.Column("employee_number", sa.String(50), nullable=False),
         sa.Column("first_name", sa.String(100), nullable=False),
@@ -327,13 +338,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )
@@ -350,13 +361,13 @@ def upgrade() -> None:
         sa.Column(
             "organization_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("organizations.id", ondelete="CASCADE"),
+            sa.ForeignKey(ORGANIZATIONS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column(
             "employee_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("employees.id", ondelete="CASCADE"),
+            sa.ForeignKey(EMPLOYEES_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column(
@@ -426,7 +437,7 @@ def upgrade() -> None:
         sa.Column(
             "approver_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            sa.ForeignKey(USERS_ID_REF, ondelete=ON_DELETE_SET_NULL),
         ),
         sa.Column("decision_at", sa.DateTime(timezone=True)),
         sa.Column(
@@ -442,7 +453,7 @@ def upgrade() -> None:
         sa.Column(
             "replacement_employee_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("employees.id", ondelete="SET NULL"),
+            sa.ForeignKey(EMPLOYEES_ID_REF, ondelete=ON_DELETE_SET_NULL),
         ),
         sa.Column("source_system", sa.String(100)),
         sa.Column("external_id", sa.String(255)),
@@ -450,13 +461,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )
@@ -472,7 +483,7 @@ def upgrade() -> None:
         sa.Column(
             "organization_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("organizations.id", ondelete="CASCADE"),
+            sa.ForeignKey(ORGANIZATIONS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column(
@@ -508,7 +519,7 @@ def upgrade() -> None:
         sa.Column(
             "department_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("departments.id", ondelete="SET NULL"),
+            sa.ForeignKey(DEPARTMENTS_ID_REF, ondelete=ON_DELETE_SET_NULL),
         ),
         sa.Column(
             "config",
@@ -519,13 +530,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )
@@ -545,19 +556,19 @@ def upgrade() -> None:
         sa.Column(
             "organization_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("organizations.id", ondelete="CASCADE"),
+            sa.ForeignKey(ORGANIZATIONS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column(
             "forecast_run_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("forecast_runs.id", ondelete="CASCADE"),
+            sa.ForeignKey(FORECAST_RUNS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column(
             "department_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("departments.id", ondelete="SET NULL"),
+            sa.ForeignKey(DEPARTMENTS_ID_REF, ondelete=ON_DELETE_SET_NULL),
         ),
         sa.Column("forecast_date", sa.Date, nullable=False),
         sa.Column(
@@ -580,13 +591,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )
@@ -618,18 +629,18 @@ def upgrade() -> None:
         sa.Column(
             "organization_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("organizations.id", ondelete="CASCADE"),
+            sa.ForeignKey(ORGANIZATIONS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column(
             "forecast_run_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("forecast_runs.id", ondelete="SET NULL"),
+            sa.ForeignKey(FORECAST_RUNS_ID_REF, ondelete=ON_DELETE_SET_NULL),
         ),
         sa.Column(
             "department_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("departments.id", ondelete="RESTRICT"),
+            sa.ForeignKey(DEPARTMENTS_ID_REF, ondelete=ON_DELETE_RESTRICT),
             nullable=False,
         ),
         sa.Column("target_period", postgresql.JSONB, nullable=False),
@@ -682,17 +693,17 @@ def upgrade() -> None:
         sa.Column(
             "related_employee_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("employees.id", ondelete="SET NULL"),
+            sa.ForeignKey(EMPLOYEES_ID_REF, ondelete=ON_DELETE_SET_NULL),
         ),
         sa.Column(
             "suggested_replacement_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("employees.id", ondelete="SET NULL"),
+            sa.ForeignKey(EMPLOYEES_ID_REF, ondelete=ON_DELETE_SET_NULL),
         ),
         sa.Column(
             "reviewed_by",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            sa.ForeignKey(USERS_ID_REF, ondelete=ON_DELETE_SET_NULL),
         ),
         sa.Column("reviewed_at", sa.DateTime(timezone=True)),
         sa.Column("manager_notes", sa.Text),
@@ -700,20 +711,20 @@ def upgrade() -> None:
         sa.Column(
             "implemented_by",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            sa.ForeignKey(USERS_ID_REF, ondelete=ON_DELETE_SET_NULL),
         ),
         sa.Column("implemented_at", sa.DateTime(timezone=True)),
         sa.Column("outcome", postgresql.JSONB),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )
@@ -727,7 +738,7 @@ def upgrade() -> None:
         sa.Column(
             "organization_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("organizations.id", ondelete="CASCADE"),
+            sa.ForeignKey(ORGANIZATIONS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column(
@@ -768,13 +779,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )
@@ -791,7 +802,7 @@ def upgrade() -> None:
         sa.Column(
             "organization_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("organizations.id", ondelete="CASCADE"),
+            sa.ForeignKey(ORGANIZATIONS_ID_REF, ondelete=ON_DELETE_CASCADE),
             nullable=False,
         ),
         sa.Column("name", sa.String(255), nullable=False),
@@ -828,25 +839,25 @@ def upgrade() -> None:
         sa.Column(
             "created_by",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            sa.ForeignKey(USERS_ID_REF, ondelete=ON_DELETE_SET_NULL),
             nullable=False,
         ),
         sa.Column(
             "approved_by",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            sa.ForeignKey(USERS_ID_REF, ondelete=ON_DELETE_SET_NULL),
         ),
         sa.Column("approved_at", sa.DateTime(timezone=True)),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.text(NOW_SQL),
             nullable=False,
         ),
     )

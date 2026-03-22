@@ -142,12 +142,12 @@ Le smoke front ne se limite plus a verifier que `/login` repond. Pour `webapp` e
 Exemples:
 
 ```bash
-./scripts/scw-post-deploy-smoke.sh \
+./scripts/scw/scw-post-deploy-smoke.sh \
   --env staging \
   --services webapp,admin \
   --auth-url https://<staging-auth-explicite>
 
-./scripts/scw-post-deploy-smoke.sh \
+./scripts/scw/scw-post-deploy-smoke.sh \
   --env prod \
   --services webapp,admin,auth
 ```

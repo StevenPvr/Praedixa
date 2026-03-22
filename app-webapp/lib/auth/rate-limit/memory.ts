@@ -32,7 +32,11 @@ function pruneBucketsIfNeeded(): void {
   );
 
   for (let i = 0; i < toDrop && i < entries.length; i += 1) {
-    buckets.delete(entries[i][0]);
+    const entry = entries[i];
+    if (!entry) {
+      continue;
+    }
+    buckets.delete(entry[0]);
   }
 }
 

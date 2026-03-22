@@ -18,14 +18,13 @@ type TestClientDeletionCardProps = {
   onDelete: () => void;
 };
 
-export function TestClientDeletionCard({
-  organizationSlug,
-  form,
-  disabled,
-  loading,
-  onChange,
-  onDelete,
-}: TestClientDeletionCardProps) {
+export function TestClientDeletionCard(
+  props: Readonly<TestClientDeletionCardProps>,
+) {
+  const { organizationSlug, form, disabled, loading, onChange, onDelete } =
+    props;
+  const buttonLabel = loading ? "Suppression..." : "Supprimer definitivement";
+
   return (
     <Card className="rounded-2xl border-rose-200 shadow-soft">
       <CardContent className="space-y-4 p-5">
@@ -88,7 +87,7 @@ export function TestClientDeletionCard({
 
         <div className="flex items-center justify-end">
           <Button variant="outline" onClick={onDelete} disabled={disabled}>
-            {loading ? "Suppression..." : "Supprimer definitivement"}
+            {buttonLabel}
           </Button>
         </div>
       </CardContent>

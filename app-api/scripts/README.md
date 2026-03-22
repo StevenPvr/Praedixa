@@ -10,12 +10,27 @@ Ce dossier regroupe les points d'entree batch du moteur Python.
   - run unique Bronze -> Silver -> Gold
   - watch local par polling
   - enrichissements calendrier, meteo, vacances, features temporelles
+  - la detection Bronze couvre maintenant les sources `csv`, `tsv` et `xlsx` a partir de `data/<client>/<domain>/`
   - rejette desormais les datasets Bronze legacy `mock_*` et toute colonne runtime Gold `mock_*` au lieu de les remapper silencieusement
+  - facade CLI qui re-exporte la logique repartie dans `medallion_pipeline_base.py`, `medallion_pipeline_bronze.py`, `medallion_pipeline_quality.py` et `medallion_pipeline_features.py`
+  - les donnees externes (meteo, vacances scolaires, calendrier) sont maintenant chargees via des helpers dedies pour garder le coeur du pipeline lisible.
+  - les helpers scalaires partages (`to_float`, `coerce_scalar`) restent dans `medallion_pipeline_base.py`, tandis que la construction Silver, la classification des valeurs manquantes et le ridge causal sont decoupes dans `medallion_pipeline_quality.py`.
+
+- `medallion_pipeline_quality.py`
+  - regroupe les helpers Silver/quality pour lissage, imputation et features selectives
+  - les boucles de construction Silver, de ridge causal et de clamp outlier sont scindees en petits helpers pour rester lisibles et garder les attrapeurs Sonar sous la limite
+  - s'appuie sur `numpy_helpers.py` pour exposer des symboles locaux plus lisibles par Pylance
+
+- `medallion_pipeline_features.py`
+  - regroupe les features externes, les helpers de calendrier et l'export Gold
+  - les features externes, les intervalles de vacances scolaires et les stats glissantes sont maintenant decoupes en petits helpers
+  - les stats glissantes s'appuient sur `numpy_helpers.py` pour garder des symboles locaux compatibles avec Pylance
 
 - `medallion_orchestrator.py`
   - boucle de prod
   - lock mono-instance
   - retries, heartbeat, alerting webhook
+  - le chargement de config isole maintenant la normalisation des chemins, nombres et alertes dans des helpers plus petits pour rester lisible.
 
 - `integration_sync_worker.py`
   - claim des `sync runs` queues depuis `app-connectors`
@@ -30,6 +45,7 @@ Ce dossier regroupe les points d'entree batch du moteur Python.
 - `medallion_replay.py`
   - replay explicite des sources mises en quarantaine
   - reapplique le pipeline standard avec `allow_reprocess=True`
+  - s'appuie sur un helper de recouvrement de fenetre partage pour garder les bornes temporelles explicites
 
 - `medallion_backfill.py`
   - backfill d'une fenetre temporelle explicite
@@ -37,16 +53,15 @@ Ce dossier regroupe les points d'entree batch du moteur Python.
 
 - `ingest_file.py`
   - ingestion unitaire/outil operateur
+  - les warnings de parsing et de mapping sont volontairement ignores ici: le script echoue sur les erreurs bloqueantes et ne conserve pas de branches no-op.
 
 - `run_inference_job.py`
   - lancement ponctuel des jobs d'inference/model registry
 
-- `seed_demo_data.py`
-  - seed simple de donnees de demo/dev
-
 - `seed_full_demo.py`
   - rebranche d'abord les etapes persistantes 1-4 via `app/services/organization_foundation.py`
   - ajoute ensuite uniquement les artefacts operationnels de demo (forecasts, alerts, scenarios, decisions, proof)
+  - demande un `--org-id` explicite pour cibler le tenant a rebrancher
 
 ## Invariants de securite/data contract
 
@@ -66,7 +81,7 @@ uv run python -m scripts.integration_sync_worker --watch --poll-seconds 30
 uv run python -m scripts.medallion_quarantine --json
 uv run python -m scripts.medallion_replay --client-slug acme --dataset workforce_daily
 uv run python -m scripts.medallion_backfill --client-slug acme --start-date 2026-03-01 --end-date 2026-03-31
-uv run python -m scripts.seed_full_demo
+uv run python -m scripts.seed_full_demo --org-id <uuid>
 ```
 
 ## Entrees/sorties importantes

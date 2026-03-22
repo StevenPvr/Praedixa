@@ -16,6 +16,7 @@ Security notes:
 
 import uuid
 from datetime import UTC, datetime
+from typing import Any, cast
 
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,6 +34,10 @@ from app.models.organization import (
 from app.services.org_provisioning import provision_new_organization
 
 _MAX_STEP = 5
+
+
+def _empty_step_records() -> list[dict[str, Any]]:
+    return []
 
 
 async def create_onboarding(
@@ -161,11 +166,7 @@ async def complete_step(
     onboarding = await get_onboarding(session, onboarding_id)
 
     # Validate onboarding is in progress
-    current_status = (
-        onboarding.status
-        if isinstance(onboarding.status, str)
-        else onboarding.status.value
-    )
+    current_status = onboarding.status.value
     if current_status != OnboardingStatus.IN_PROGRESS.value:
         raise ConflictError(f"Onboarding is '{current_status}', cannot complete steps")
 
@@ -182,7 +183,13 @@ async def complete_step(
     now = datetime.now(UTC)
 
     # Record step completion
-    steps_completed = list(onboarding.steps_completed or [])
+    raw_steps_completed = cast("Any", onboarding).steps_completed
+    steps_completed = list(
+        cast(
+            "list[dict[str, Any]]",
+            raw_steps_completed or _empty_step_records(),
+        )
+    )
     steps_completed.append(
         {
             "step": step,

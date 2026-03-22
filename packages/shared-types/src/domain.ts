@@ -22,5 +22,4 @@ export * from "./domain/action-dispatch.js";
 export * from "./domain/action-template.js";
 export * from "./domain/ledger.js";
 export * from "./domain/dataset-health.js";
-export * from "./domain/decision-audit.js";
 export * from "./domain/mapping-studio.js";

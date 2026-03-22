@@ -11,7 +11,6 @@ Les services ici encapsulent la logique metier Python: transformations, bootstra
   - `alerts.py`
   - `forecasts.py`
   - `datasets.py`
-  - `decisions.py`
   - `decision_log_service.py`
   - `cost_parameter_service.py`
   - `proof_service.py`
@@ -58,7 +57,7 @@ Les services ici encapsulent la logique metier Python: transformations, bootstra
 
 - `app/core/` pour config, securite, DB et exceptions.
 - `app/models/` pour la persistance.
-- `app/services/quality/` pour la qualite de donnees Silver.
+- `app/services/quality/` pour la qualite de donnees Silver; c'est maintenant l'unique point d'entree du pipeline de qualite, le shim legacy `data_quality.py` ayant ete retire.
 - `medallion_reprocessing.py` porte les interfaces append-only de quarantaine/replay/backfill (`quarantine/_manifests/*.json`, `reports/reprocessing/*.json`) et doit rester disjoint du control plane TS.
 - `app-connectors` via les workers d'integration runtime, les routes internes `provider access-context` / `provider-events` et la queue `sync_runs`.
 - `integration_sync_queue_worker.py` orchestre la consommation batch de `sync_runs` en s'appuyant sur `integration_runtime_worker.py`, et `scripts/integration_sync_worker.py` expose ce worker comme point d'entree batch.
@@ -74,6 +73,18 @@ Les services ici encapsulent la logique metier Python: transformations, bootstra
 - `file_parser.py`, `proof_pack_pdf_service.py` et `integration_runtime_worker.py` doivent rester compatibles `mypy` strict: ces services sont executes dans les hooks qualite et servent de frontieres de confiance.
 - `file_parser.py` est une frontiere de confiance stricte: seuls les fichiers explicitement suffixes en `csv`, `tsv` ou `xlsx` sont acceptes; les fichiers sans extension, `xls`, `xlsm` et `xlsb` doivent echouer ferme meme si un appelant tente de forcer `format_hint="xlsx"`.
 - `integration_runtime_worker.py` ne doit plus laisser une queue `sync_runs` purement declarative: toute nouvelle evolution de `triggerSync(...)` doit rester compatible avec `integration_sync_queue_worker.py` et `scripts/integration_sync_worker.py`.
+- `integration_runtime_worker.py` reporte maintenant l'ack `raw-event.processed` apres le `session.commit()` du sync run standard; toute nouvelle evolution doit conserver cet ordre pour eviter d'accuser reception d'un lot encore rollbackable.
+- `integration_runtime_worker.py` doit conserver integralement le contrat runtime des claims `sync-runs` (`sourceWindowStart`, `sourceWindowEnd`, `forceFullSync`) jusqu'aux adaptateurs provider; ne jamais reconstruire un `RuntimeClaimedSyncRun` en perdant ces champs.
+- `integration_sync_queue_worker.py` doit relayer ces memes champs (`source_window_start`, `source_window_end`, `force_full_sync`) quand il rebind un `RuntimeClaimedSyncRun` dans une session tenant isolee; sinon les backfills ou full syncs demandes par le control plane deviennent silencieusement des syncs standards.
+- `integration_runtime_worker.py` et `integration_event_ingestor.py` doivent router les mappings dataset par `sourceObject` quand une connexion couvre plusieurs objets. Un unique `datasetMapping` n'est acceptable que pour une connexion mono-source ou un batch mono-source non ambigu; sinon le worker doit echouer ferme.
+- `transform_engine.py` doit executer le chemin incremental sur la transaction SQLAlchemy appelante quand il suit immediatement une insertion raw (`integration_event_ingestor.py`, `integration_dataset_file_ingestor.py`); `ddl_connection()` reste reserve aux chemins DDL / refit ou aux lectures deja commit.
+- `transform_engine.py` et les workers d'ingestion/runtime restent des cibles prioritaires du durcissement `pyright` strict: les JSONB, resultats SQLAlchemy et attributs d'erreur dynamiques doivent y etre retrecis via helpers explicites avant usage.
+- `admin_billing.py`, `admin_orgs.py`, `arbitrage.py`, `canonical_data_service.py`, `column_mapper.py`, `medallion_reprocessing.py`, `medical_masking.py`, `quality/types.py`, `raw_inserter.py` et `rgpd_erasure.py` sont maintenant sortis de la liste `pyright` ignoree; toute nouvelle evolution doit y conserver des collections et frontieres dynamiques explicitement typees.
+- `admin_onboarding.py`, `datasets.py`, `file_parser.py`, `integration_sync_queue_worker.py`, `model_registry.py` et `proof_service.py` sont maintenant eux aussi sortis de la liste `pyright` ignoree; toute nouvelle evolution doit y garder des snapshots JSONB, row payloads, preuves et helpers inter-workers explicitement bornes pour rester compatibles `strict`.
+- `integration_event_ingestor.py`, `integration_sftp_runtime_worker.py` et `schema_manager.py` sont maintenant eux aussi sortis de la liste `pyright` ignoree; les chemins `sourceObject`, les metadata SFTP optionnelles et les DDL dynamiques doivent donc continuer a passer par des helpers de narrowing explicites au lieu de propager du `Any`.
+- `mock_forecast_service.py`, `model_inference_jobs.py` et `scenario_engine_service.py` sont maintenant eux aussi sortis de la liste `pyright` ignoree; les listes de blueprints et les `scope_json` MLOps doivent y rester explicitement types avant tout calcul ou persistance.
+- `gold_live_data.py` et `organization_foundation.py` sont maintenant eux aussi sortis de la liste `pyright` ignoree; les projections Gold, caches locaux et snapshots JSON de bootstrap doivent rester resserres via helpers explicites avant tout acces dictionnaire ou hydration de config.
+- `integration_runtime_worker.py` est maintenant lui aussi sorti de la liste `pyright` ignoree; tout nouveau parsing des claims `sync-runs`, `access-context` et payloads runtime doit passer par des helpers locaux de narrowing avant d'alimenter l'ingestion dataset ou les adaptateurs provider.
 - `integration_runtime_worker.py` porte maintenant deux chemins runtime distincts:
   - `provider pull` pour les adaptateurs vendor-specifiques (`Salesforce`, `UKG`, `Toast`, `Geotab`, `Olo`, `Fourth`, `Oracle TM`, `SAP TM`, `Manhattan`, `Blue Yonder`, `NCR Aloha`, `CDK`, `Reynolds`) via `app/integrations/provider_sync.py` et `app/integrations/connectors/<vendor>/`
   - `sftpPull` pour les imports fichiers orchestrés par `integration_sftp_runtime_worker.py`

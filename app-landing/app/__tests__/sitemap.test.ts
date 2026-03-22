@@ -80,7 +80,10 @@ describe("sitemap()", () => {
     );
 
     expect(blogArticleUrls).toEqual([
+      "https://www.praedixa.com/fr/blog/comite-ops-finance-prouver-roi-decision",
       "https://www.praedixa.com/fr/blog/decision-log-ops-daf-template",
+      "https://www.praedixa.com/fr/blog/ops-finance-heures-sup-ou-renfort-comment-trancher",
+      "https://www.praedixa.com/fr/blog/cout-sous-couverture-multi-sites-modele-simple",
     ]);
   });
 

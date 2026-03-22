@@ -15,7 +15,7 @@ Ce groupe contient les 5 pages authentifiees du workspace client. Le fichier `la
 ## Shell et patterns communs
 
 - `layout.tsx` monte `AppShell`, pas de providers metier supplementaires dans la route elle-meme.
-- `AppShell` gere la sidebar, les breadcrumbs, le menu profil, le logout, l'i18n et le `SiteScopeProvider`.
+- `AppShell` compose la sidebar, la topbar, le menu profil, le logout, l'i18n et le `SiteScopeProvider`, avec des helpers et sous-composants locaux dans `components/app-shell-*`.
 - Pour `manager` et `hr_manager`, le site est verrouille au `siteId` de la session.
 - Chaque page a son `loading.tsx`; il n'y a pas de couche de fallback generique dediee a ce groupe en dehors du `RuntimeErrorShield` global.
 

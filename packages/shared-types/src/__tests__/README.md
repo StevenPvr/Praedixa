@@ -13,6 +13,7 @@ Sous-dossiers :
 Fichiers :
 
 - `api-client.test.ts`
+- `oidc-discovery.test.ts`
 - `canonical.test.ts`
 - `cost-parameter.test.ts`
 - `coverage-alert.test.ts`

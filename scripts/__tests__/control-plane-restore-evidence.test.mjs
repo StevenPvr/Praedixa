@@ -27,6 +27,7 @@ const inventoryPath = path.join(
 const createScriptPath = path.join(
   repoRoot,
   "scripts",
+  "scw",
   "scw-release-manifest-create.sh",
 );
 const verifyScriptPath = path.join(
@@ -216,7 +217,21 @@ test("release manifest verification enforces typed restore evidence", () => {
 
     writeFileSync(
       gateReportPath,
-      JSON.stringify({ commit_sha: "placeholder", status: "pass" }, null, 2),
+      JSON.stringify(
+        {
+          schema_version: "2",
+          commit_sha: "placeholder",
+          timestamp_epoch: Math.floor(Date.now() / 1000),
+          dry_run: false,
+          summary: {
+            status: "pass",
+            blocking_failed_checks: 0,
+            low_failed_checks: 0,
+          },
+        },
+        null,
+        2,
+      ),
     );
 
     const createResult = runScript(createScriptPath, [

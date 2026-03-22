@@ -45,10 +45,10 @@ const VARIANT_STYLES: Record<
 
 const DEFAULT_DURATION = 4000;
 
-interface ToastItemProps {
+type ToastItemProps = Readonly<{
   toast: ToastData;
   onDismiss: (id: string) => void;
-}
+}>;
 
 function ToastItem({ toast, onDismiss }: ToastItemProps) {
   const [exiting, setExiting] = useState(false);
@@ -99,10 +99,10 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
   );
 }
 
-interface ToastContainerProps {
+type ToastContainerProps = Readonly<{
   toasts: ToastData[];
   onDismiss: (id: string) => void;
-}
+}>;
 
 export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
   if (toasts.length === 0) return null;

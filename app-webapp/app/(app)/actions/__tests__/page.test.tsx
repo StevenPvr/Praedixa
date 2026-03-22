@@ -287,10 +287,6 @@ describe("ActionsPage", () => {
     expect(useApiGetUrls).toContain("/api/v1/live/decision-workspace/a1");
     expect(mockUseDecisionConfig).toHaveBeenCalledWith(null);
 
-    expect(mockUseApiGetPaginated).toHaveBeenCalledWith(
-      "/api/v1/decisions?sort_by=created_at&sort_order=desc",
-      1,
-      20,
-    );
+    expect(mockUseApiGetPaginated).toHaveBeenCalledWith(null, 1, 20);
   });
 });

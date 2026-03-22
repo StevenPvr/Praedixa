@@ -25,11 +25,13 @@ interface OrgDetail {
   sites: SiteHierarchy[];
 }
 
+type ClientWorkspaceLayoutProps = Readonly<{
+  children: React.ReactNode;
+}>;
+
 export default function ClientWorkspaceLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+}: ClientWorkspaceLayoutProps) {
   const params = useParams<{ orgId: string }>();
   const orgId = params.orgId;
   const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null);

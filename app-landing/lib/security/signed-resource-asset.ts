@@ -13,12 +13,12 @@ type VerificationReason =
   | "signature_mismatch";
 
 function resolveAssetSigningSecret(): string | null {
-  const configuredSecret = process.env.LANDING_ASSET_SIGNING_SECRET?.trim();
+  const configuredSecret = process.env["LANDING_ASSET_SIGNING_SECRET"]?.trim();
   if (configuredSecret) {
     return configuredSecret;
   }
 
-  if (process.env.NODE_ENV === "production") {
+  if (process.env["NODE_ENV"] === "production") {
     return null;
   }
 

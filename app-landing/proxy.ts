@@ -64,12 +64,13 @@ function enforceCanonicalHost(
 ): boolean {
   let shouldRedirect = false;
   const shouldForceHttps =
-    requestHost === "praedixa.com" || forwardedProto === "http";
+    target.protocol !== "https:" || forwardedProto === "http";
   if (shouldForceHttps && target.protocol !== "https:") {
     target.protocol = "https:";
     shouldRedirect = true;
   }
-  if (requestHost === "praedixa.com") {
+
+  if (target.hostname !== CANONICAL_HOST || requestHost === "praedixa.com") {
     target.hostname = CANONICAL_HOST;
     target.port = "";
     shouldRedirect = true;

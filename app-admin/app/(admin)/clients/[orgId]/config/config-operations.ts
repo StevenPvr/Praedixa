@@ -10,6 +10,8 @@ import { getValidAccessToken } from "@/lib/auth/client";
 
 import type {
   ConfigActionHandlers,
+  CreateIntegrationConnectionPayload,
+  IntegrationCatalogItem,
   DecisionConfigActionBody,
   DecisionConfigRecomputeResponse,
   IntegrationConnectionTestResult,
@@ -19,6 +21,10 @@ import type {
   IntegrationSyncTrigger,
   ScheduleVersionRequestBody,
 } from "./config-types";
+
+const CONFIG_WRITE_PERMISSION_MESSAGE = "Permission requise: admin:org:write";
+const INTEGRATIONS_WRITE_PERMISSION_MESSAGE =
+  "Permission requise: admin:integrations:write";
 
 export function toLocalDateTimeInputValue(date: Date): string {
   const year = date.getFullYear();
@@ -48,7 +54,7 @@ export function normalizeOptionalDateTimeInput(value: string): string | null {
 
   const parsed = new Date(normalized);
   if (Number.isNaN(parsed.getTime())) {
-    throw new Error("invalid datetime");
+    throw new TypeError("invalid datetime");
   }
 
   return parsed.toISOString();
@@ -85,6 +91,30 @@ async function postAuthorizedAction<T>({
   }
 }
 
+async function runManagedAction<T>({
+  actionKey,
+  handlers,
+  prepare,
+  execute,
+}: {
+  actionKey: string;
+  handlers: Pick<
+    ConfigActionHandlers,
+    "setActionLoading" | "setActionError" | "setActionSuccess"
+  >;
+  prepare?: () => void;
+  execute: () => Promise<T | null>;
+}): Promise<T | null> {
+  handlers.setActionLoading(actionKey);
+  handlers.setActionError(null);
+  handlers.setActionSuccess(null);
+  prepare?.();
+
+  const result = await execute();
+  handlers.setActionLoading(null);
+  return result;
+}
+
 interface DecisionConfigOperationsArgs extends ConfigActionHandlers {
   orgId: string;
   selectedSiteId: string | null;
@@ -101,7 +131,16 @@ interface DecisionConfigOperationsArgs extends ConfigActionHandlers {
 
 interface IntegrationOperationsArgs extends ConfigActionHandlers {
   orgId: string;
+  catalog: IntegrationCatalogItem[];
   effectiveIntegrationId: string | null;
+  createVendor: string;
+  createDisplayName: string;
+  createAuthMode: string;
+  createSourceObjectsInput: string;
+  createRuntimeEnvironment: "production" | "sandbox";
+  createBaseUrlInput: string;
+  createConfigJsonInput: string;
+  createCredentialsJsonInput: string;
   ingestCredentialLabel: string;
   syncTriggerType: IntegrationSyncTrigger;
   syncForceFull: boolean;
@@ -111,6 +150,12 @@ interface IntegrationOperationsArgs extends ConfigActionHandlers {
   setIssuedCredential: (
     value: IntegrationIssueIngestCredentialResult | null,
   ) => void;
+  setCreateDisplayName: (value: string) => void;
+  setCreateAuthMode: (value: string) => void;
+  setCreateSourceObjectsInput: (value: string) => void;
+  setCreateBaseUrlInput: (value: string) => void;
+  setCreateConfigJsonInput: (value: string) => void;
+  setCreateCredentialsJsonInput: (value: string) => void;
   setConnectionTestResult: (
     value: IntegrationConnectionTestResult | null,
   ) => void;
@@ -156,7 +201,7 @@ function parseDecisionConfigPayload({
   try {
     const parsed = JSON.parse(payloadDraft) as unknown;
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-      throw new Error("invalid payload");
+      throw new TypeError("invalid payload");
     }
     return parsed as DecisionEngineConfigPayload;
   } catch {
@@ -189,6 +234,123 @@ function resolveSyncWindow(args: IntegrationOperationsArgs) {
   }
 }
 
+function requireSelectedIntegrationId(
+  args: Pick<
+    IntegrationOperationsArgs,
+    "effectiveIntegrationId" | "setActionError"
+  >,
+) {
+  if (!args.effectiveIntegrationId) {
+    args.setActionError("Aucune connexion d'integration selectionnee.");
+    return null;
+  }
+
+  return args.effectiveIntegrationId;
+}
+
+function parseJsonObjectInput(
+  rawValue: string,
+  label: string,
+): Record<string, unknown> | null {
+  const trimmed = rawValue.trim();
+  if (trimmed.length === 0) {
+    return {};
+  }
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new TypeError("invalid object");
+    }
+    return parsed as Record<string, unknown>;
+  } catch {
+    throw new TypeError(`${label} doit etre un objet JSON valide.`);
+  }
+}
+
+function buildCreateConnectionPayload(
+  args: IntegrationOperationsArgs,
+): CreateIntegrationConnectionPayload {
+  const selectedCatalogItem = args.catalog.find(
+    (item) => item.vendor === args.createVendor,
+  );
+  if (!selectedCatalogItem) {
+    throw new TypeError("Selectionne un type de source valide.");
+  }
+  const displayName = args.createDisplayName.trim();
+  if (displayName.length < 3) {
+    throw new TypeError(
+      "Le nom de la source doit contenir au moins 3 caracteres.",
+    );
+  }
+  if (!selectedCatalogItem.authModes.includes(args.createAuthMode)) {
+    throw new TypeError(
+      "Le mode d'authentification ne correspond pas au vendor choisi.",
+    );
+  }
+
+  const sourceObjects = Array.from(
+    new Set(
+      args.createSourceObjectsInput
+        .split(/[\n,;]+/u)
+        .map((entry) => entry.trim())
+        .filter((entry) => entry.length > 0),
+    ),
+  );
+  const config =
+    parseJsonObjectInput(args.createConfigJsonInput, "La config") ?? {};
+  const credentials = parseJsonObjectInput(
+    args.createCredentialsJsonInput,
+    "Les credentials",
+  );
+
+  return {
+    vendor: args.createVendor,
+    displayName,
+    authMode: args.createAuthMode,
+    runtimeEnvironment: args.createRuntimeEnvironment,
+    baseUrl: args.createBaseUrlInput.trim() || null,
+    config,
+    ...(sourceObjects.length > 0 ? { sourceObjects } : {}),
+    ...(credentials != null && Object.keys(credentials).length > 0
+      ? { credentials }
+      : {}),
+  };
+}
+
+function postDecisionConfigAction<T>(
+  args: Pick<
+    DecisionConfigOperationsArgs,
+    "canManageConfig" | "setActionError"
+  >,
+  url: string,
+  body: unknown,
+) {
+  return postAuthorizedAction<T>({
+    url,
+    body,
+    allowed: args.canManageConfig,
+    missingPermissionMessage: CONFIG_WRITE_PERMISSION_MESSAGE,
+    setActionError: args.setActionError,
+  });
+}
+
+function postIntegrationAction<T>(
+  args: Pick<
+    IntegrationOperationsArgs,
+    "canManageIntegrations" | "setActionError"
+  >,
+  url: string,
+  body: unknown,
+) {
+  return postAuthorizedAction<T>({
+    url,
+    body,
+    allowed: args.canManageIntegrations,
+    missingPermissionMessage: INTEGRATIONS_WRITE_PERMISSION_MESSAGE,
+    setActionError: args.setActionError,
+  });
+}
+
 function buildScheduleVersionFromCurrentConfig(
   args: DecisionConfigOperationsArgs,
 ) {
@@ -206,24 +368,23 @@ function buildScheduleVersionFromCurrentConfig(
       return;
     }
 
-    args.setActionLoading("schedule");
-    args.setActionError(null);
-    args.setActionSuccess(null);
-
-    const created = await postAuthorizedAction<DecisionEngineConfigVersion>({
-      url: ADMIN_ENDPOINTS.orgDecisionConfigVersions(args.orgId),
-      body: {
-        siteId: args.selectedSiteId,
-        effectiveAt: effectiveAt.toISOString(),
-        payload,
-        reason: args.changeReason.trim() || undefined,
-      } satisfies ScheduleVersionRequestBody,
-      allowed: args.canManageConfig,
-      missingPermissionMessage: "Permission requise: admin:org:write",
-      setActionError: args.setActionError,
+    const created = await runManagedAction({
+      actionKey: "schedule",
+      handlers: args,
+      execute: () =>
+        postDecisionConfigAction<DecisionEngineConfigVersion>(
+          args,
+          ADMIN_ENDPOINTS.orgDecisionConfigVersions(args.orgId),
+          {
+            siteId: args.selectedSiteId,
+            effectiveAt: effectiveAt.toISOString(),
+            payload,
+            ...(args.changeReason.trim()
+              ? { reason: args.changeReason.trim() }
+              : {}),
+          } satisfies ScheduleVersionRequestBody,
+        ),
     });
-
-    args.setActionLoading(null);
     if (!created) return;
 
     args.setActionSuccess(
@@ -237,24 +398,23 @@ function buildCancelScheduledVersion(args: DecisionConfigOperationsArgs) {
   return async function cancelScheduledVersion(
     version: DecisionEngineConfigVersion,
   ) {
-    args.setActionLoading(`cancel-${version.id}`);
-    args.setActionError(null);
-    args.setActionSuccess(null);
-
-    const cancelled = await postAuthorizedAction<DecisionEngineConfigVersion>({
-      url: ADMIN_ENDPOINTS.orgDecisionConfigVersionCancel(
-        args.orgId,
-        version.id,
-      ),
-      body: {
-        reason: args.changeReason.trim() || undefined,
-      } satisfies DecisionConfigActionBody,
-      allowed: args.canManageConfig,
-      missingPermissionMessage: "Permission requise: admin:org:write",
-      setActionError: args.setActionError,
+    const cancelled = await runManagedAction({
+      actionKey: `cancel-${version.id}`,
+      handlers: args,
+      execute: () =>
+        postDecisionConfigAction<DecisionEngineConfigVersion>(
+          args,
+          ADMIN_ENDPOINTS.orgDecisionConfigVersionCancel(
+            args.orgId,
+            version.id,
+          ),
+          {
+            ...(args.changeReason.trim()
+              ? { reason: args.changeReason.trim() }
+              : {}),
+          } satisfies DecisionConfigActionBody,
+        ),
     });
-
-    args.setActionLoading(null);
     if (!cancelled) return;
 
     args.setActionSuccess(`Version ${compactVersionId(version.id)} annulee.`);
@@ -264,24 +424,23 @@ function buildCancelScheduledVersion(args: DecisionConfigOperationsArgs) {
 
 function buildRollbackVersion(args: DecisionConfigOperationsArgs) {
   return async function rollbackVersion(version: DecisionEngineConfigVersion) {
-    args.setActionLoading(`rollback-${version.id}`);
-    args.setActionError(null);
-    args.setActionSuccess(null);
-
-    const rollback = await postAuthorizedAction<DecisionEngineConfigVersion>({
-      url: ADMIN_ENDPOINTS.orgDecisionConfigVersionRollback(
-        args.orgId,
-        version.id,
-      ),
-      body: {
-        reason: args.changeReason.trim() || undefined,
-      } satisfies DecisionConfigActionBody,
-      allowed: args.canManageConfig,
-      missingPermissionMessage: "Permission requise: admin:org:write",
-      setActionError: args.setActionError,
+    const rollback = await runManagedAction({
+      actionKey: `rollback-${version.id}`,
+      handlers: args,
+      execute: () =>
+        postDecisionConfigAction<DecisionEngineConfigVersion>(
+          args,
+          ADMIN_ENDPOINTS.orgDecisionConfigVersionRollback(
+            args.orgId,
+            version.id,
+          ),
+          {
+            ...(args.changeReason.trim()
+              ? { reason: args.changeReason.trim() }
+              : {}),
+          } satisfies DecisionConfigActionBody,
+        ),
     });
-
-    args.setActionLoading(null);
     if (!rollback) return;
 
     args.setActionSuccess(
@@ -299,20 +458,16 @@ function buildRecomputeScenario(args: DecisionConfigOperationsArgs) {
       return;
     }
 
-    args.setActionLoading("recompute");
-    args.setActionError(null);
-    args.setActionSuccess(null);
-
-    const recompute =
-      await postAuthorizedAction<DecisionConfigRecomputeResponse>({
-        url: ADMIN_ENDPOINTS.orgAlertScenarioRecompute(args.orgId, alertId),
-        body: {},
-        allowed: args.canManageConfig,
-        missingPermissionMessage: "Permission requise: admin:org:write",
-        setActionError: args.setActionError,
-      });
-
-    args.setActionLoading(null);
+    const recompute = await runManagedAction({
+      actionKey: "recompute",
+      handlers: args,
+      execute: () =>
+        postDecisionConfigAction<DecisionConfigRecomputeResponse>(
+          args,
+          ADMIN_ENDPOINTS.orgAlertScenarioRecompute(args.orgId, alertId),
+          {},
+        ),
+    });
     if (!recompute) return;
 
     args.setLastRecompute(recompute);
@@ -322,33 +477,28 @@ function buildRecomputeScenario(args: DecisionConfigOperationsArgs) {
 
 function buildIssueIngestCredential(args: IntegrationOperationsArgs) {
   return async function issueIngestCredential() {
-    if (!args.effectiveIntegrationId) {
-      args.setActionError("Aucune connexion d'integration selectionnee.");
+    const integrationId = requireSelectedIntegrationId(args);
+    if (!integrationId) {
       return;
     }
 
-    args.setActionLoading("issue-ingest-credential");
-    args.setActionError(null);
-    args.setActionSuccess(null);
-    args.setIssuedCredential(null);
-
-    const issued =
-      await postAuthorizedAction<IntegrationIssueIngestCredentialResult>({
-        url: ADMIN_ENDPOINTS.orgIntegrationIngestCredentials(
-          args.orgId,
-          args.effectiveIntegrationId,
+    const issued = await runManagedAction({
+      actionKey: "issue-ingest-credential",
+      handlers: args,
+      prepare: () => args.setIssuedCredential(null),
+      execute: () =>
+        postIntegrationAction<IntegrationIssueIngestCredentialResult>(
+          args,
+          ADMIN_ENDPOINTS.orgIntegrationIngestCredentials(
+            args.orgId,
+            integrationId,
+          ),
+          {
+            label: args.ingestCredentialLabel.trim() || "Client outbound",
+            requireSignature: true,
+          },
         ),
-        body: {
-          label: args.ingestCredentialLabel.trim() || "Client outbound",
-          requireSignature: true,
-        },
-        allowed: args.canManageIntegrations,
-        missingPermissionMessage:
-          "Permission requise: admin:integrations:write",
-        setActionError: args.setActionError,
-      });
-
-    args.setActionLoading(null);
+    });
     if (!issued) return;
 
     args.setIssuedCredential(issued);
@@ -359,30 +509,66 @@ function buildIssueIngestCredential(args: IntegrationOperationsArgs) {
   };
 }
 
-function buildRevokeIngestCredential(args: IntegrationOperationsArgs) {
-  return async function revokeIngestCredential(credentialId: string) {
-    if (!args.effectiveIntegrationId) {
-      args.setActionError("Aucune connexion d'integration selectionnee.");
+function buildCreateIntegrationConnectionAction(
+  args: IntegrationOperationsArgs,
+) {
+  return async function createIntegrationConnectionAction() {
+    let payload: CreateIntegrationConnectionPayload;
+    try {
+      payload = buildCreateConnectionPayload(args);
+    } catch (error) {
+      args.setActionError(
+        error instanceof Error
+          ? error.message
+          : "La source ne peut pas etre creee.",
+      );
       return;
     }
 
-    args.setActionLoading(`revoke-ingest-${credentialId}`);
-    args.setActionError(null);
-    args.setActionSuccess(null);
-
-    const revoked = await postAuthorizedAction<IntegrationIngestCredential>({
-      url: ADMIN_ENDPOINTS.orgIntegrationIngestCredentialRevoke(
-        args.orgId,
-        args.effectiveIntegrationId,
-        credentialId,
-      ),
-      body: {},
-      allowed: args.canManageIntegrations,
-      missingPermissionMessage: "Permission requise: admin:integrations:write",
-      setActionError: args.setActionError,
+    const created = await runManagedAction({
+      actionKey: "integration-create",
+      handlers: args,
+      prepare: () => args.setIssuedCredential(null),
+      execute: () =>
+        postIntegrationAction<{ id: string; displayName: string }>(
+          args,
+          ADMIN_ENDPOINTS.orgIntegrationConnections(args.orgId),
+          payload,
+        ),
     });
+    if (!created) return;
 
-    args.setActionLoading(null);
+    args.setCreateDisplayName("");
+    args.setCreateSourceObjectsInput("");
+    args.setCreateBaseUrlInput("");
+    args.setCreateConfigJsonInput('{\n  "datasetMappings": {}\n}');
+    args.setCreateCredentialsJsonInput('{\n  "apiKey": ""\n}');
+    args.setActionSuccess(`Source ${created.displayName} creee.`);
+    refreshIntegrationViews(args);
+  };
+}
+
+function buildRevokeIngestCredential(args: IntegrationOperationsArgs) {
+  return async function revokeIngestCredential(credentialId: string) {
+    const integrationId = requireSelectedIntegrationId(args);
+    if (!integrationId) {
+      return;
+    }
+
+    const revoked = await runManagedAction({
+      actionKey: `revoke-ingest-${credentialId}`,
+      handlers: args,
+      execute: () =>
+        postIntegrationAction<IntegrationIngestCredential>(
+          args,
+          ADMIN_ENDPOINTS.orgIntegrationIngestCredentialRevoke(
+            args.orgId,
+            integrationId,
+            credentialId,
+          ),
+          {},
+        ),
+    });
     if (!revoked) return;
 
     args.setActionSuccess(`Cle ${revoked.label} revoquee.`);
@@ -392,28 +578,25 @@ function buildRevokeIngestCredential(args: IntegrationOperationsArgs) {
 
 function buildTestIntegrationConnectionAction(args: IntegrationOperationsArgs) {
   return async function testIntegrationConnectionAction() {
-    if (!args.effectiveIntegrationId) {
-      args.setActionError("Aucune connexion d'integration selectionnee.");
+    const integrationId = requireSelectedIntegrationId(args);
+    if (!integrationId) {
       return;
     }
 
-    args.setActionLoading("integration-test");
-    args.setActionError(null);
-    args.setActionSuccess(null);
-    args.setConnectionTestResult(null);
-
-    const result = await postAuthorizedAction<IntegrationConnectionTestResult>({
-      url: ADMIN_ENDPOINTS.orgIntegrationConnectionTest(
-        args.orgId,
-        args.effectiveIntegrationId,
-      ),
-      body: {},
-      allowed: args.canManageIntegrations,
-      missingPermissionMessage: "Permission requise: admin:integrations:write",
-      setActionError: args.setActionError,
+    const result = await runManagedAction({
+      actionKey: "integration-test",
+      handlers: args,
+      prepare: () => args.setConnectionTestResult(null),
+      execute: () =>
+        postIntegrationAction<IntegrationConnectionTestResult>(
+          args,
+          ADMIN_ENDPOINTS.orgIntegrationConnectionTest(
+            args.orgId,
+            integrationId,
+          ),
+          {},
+        ),
     });
-
-    args.setActionLoading(null);
     if (!result) return;
 
     args.setConnectionTestResult(result);
@@ -424,8 +607,8 @@ function buildTestIntegrationConnectionAction(args: IntegrationOperationsArgs) {
 
 function buildTriggerIntegrationSyncAction(args: IntegrationOperationsArgs) {
   return async function triggerIntegrationSyncAction() {
-    if (!args.effectiveIntegrationId) {
-      args.setActionError("Aucune connexion d'integration selectionnee.");
+    const integrationId = requireSelectedIntegrationId(args);
+    if (!integrationId) {
       return;
     }
 
@@ -434,27 +617,21 @@ function buildTriggerIntegrationSyncAction(args: IntegrationOperationsArgs) {
       return;
     }
 
-    args.setActionLoading("integration-sync");
-    args.setActionError(null);
-    args.setActionSuccess(null);
-
-    const run = await postAuthorizedAction<IntegrationSyncRun>({
-      url: ADMIN_ENDPOINTS.orgIntegrationSync(
-        args.orgId,
-        args.effectiveIntegrationId,
-      ),
-      body: {
-        triggerType: args.syncTriggerType,
-        forceFullSync: args.syncForceFull,
-        sourceWindowStart: syncWindow.sourceWindowStart,
-        sourceWindowEnd: syncWindow.sourceWindowEnd,
-      },
-      allowed: args.canManageIntegrations,
-      missingPermissionMessage: "Permission requise: admin:integrations:write",
-      setActionError: args.setActionError,
+    const run = await runManagedAction({
+      actionKey: "integration-sync",
+      handlers: args,
+      execute: () =>
+        postIntegrationAction<IntegrationSyncRun>(
+          args,
+          ADMIN_ENDPOINTS.orgIntegrationSync(args.orgId, integrationId),
+          {
+            triggerType: args.syncTriggerType,
+            forceFullSync: args.syncForceFull,
+            sourceWindowStart: syncWindow.sourceWindowStart,
+            sourceWindowEnd: syncWindow.sourceWindowEnd,
+          },
+        ),
     });
-
-    args.setActionLoading(null);
     if (!run) return;
 
     args.setActionSuccess(
@@ -478,6 +655,8 @@ export function createDecisionConfigOperations(
 
 export function createIntegrationOperations(args: IntegrationOperationsArgs) {
   return {
+    createIntegrationConnectionAction:
+      buildCreateIntegrationConnectionAction(args),
     issueIngestCredential: buildIssueIngestCredential(args),
     revokeIngestCredential: buildRevokeIngestCredential(args),
     testIntegrationConnectionAction: buildTestIntegrationConnectionAction(args),

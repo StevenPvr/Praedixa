@@ -177,6 +177,14 @@ const PROBE_KIND_BY_MODE = {
 } as const satisfies Record<ConnectorAuthMode, ConnectorProbeKind>;
 
 export const CONNECTOR_CERTIFICATION_FIXTURES = {
+  custom_data: fixture(
+    "custom_data",
+    ["push_api"],
+    [authExpectation("api_key", ["apiKey"])],
+    activationReadinessExpectation("api_key", ["datasetMappings"]),
+    probeExpectation("api_key", "dataset", ["datasetMappings"]),
+    replayExpectation(24),
+  ),
   salesforce: fixture(
     "salesforce",
     ["interactive_oauth", "managed_service_account", "push_api"],

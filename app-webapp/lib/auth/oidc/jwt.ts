@@ -10,6 +10,8 @@ import {
   type OidcUser,
 } from "./types";
 
+const BASE64_URL_SEGMENT_PATTERN = /^[A-Za-z0-9_-]+$/;
+
 function isSafeObjectKey(key: string): boolean {
   return key.length > 0 && !FORBIDDEN_OBJECT_KEYS.has(key);
 }
@@ -33,15 +35,28 @@ export function base64UrlEncode(input: Uint8Array): string {
 }
 
 export function base64UrlDecode(input: string): string {
+  if (
+    input.length === 0 ||
+    !BASE64_URL_SEGMENT_PATTERN.test(input) ||
+    input.length % 4 === 1
+  ) {
+    return "";
+  }
+
   const normalized = input.replace(/-/g, "+").replace(/_/g, "/");
   const padding =
     normalized.length % 4 === 0 ? "" : "=".repeat(4 - (normalized.length % 4));
-  const binary = atob(`${normalized}${padding}`);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i += 1) {
-    bytes[i] = binary.charCodeAt(i);
+
+  try {
+    const binary = atob(`${normalized}${padding}`);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return new TextDecoder().decode(bytes);
+  } catch {
+    return "";
   }
-  return new TextDecoder().decode(bytes);
 }
 
 export function parseJsonObject(value: string): JwtPayload | null {
@@ -78,12 +93,16 @@ export function normalizeKnownRole(role: string): string {
 export function decodeJwtPayload(token: string): JwtPayload | null {
   const segments = token.split(".");
   if (segments.length !== 3) return null;
-  return parseJsonObject(base64UrlDecode(segments[1]));
+  const payloadSegment = segments[1];
+  if (!payloadSegment) {
+    return null;
+  }
+  return parseJsonObject(base64UrlDecode(payloadSegment));
 }
 
 export function getTokenExp(token: string): number | null {
   const payload = decodeJwtPayload(token);
-  const exp = payload?.exp;
+  const exp = payload?.["exp"];
   return typeof exp === "number" ? exp : null;
 }
 
@@ -112,7 +131,7 @@ export function getAccessTokenClaimsIssue(
     return "invalid_role";
   }
 
-  if (typeof payload.exp !== "number") {
+  if (typeof payload["exp"] !== "number") {
     return "missing_exp";
   }
 
@@ -130,7 +149,6 @@ export function userFromAccessToken(
   token: string,
   _clientId: string,
 ): OidcUser | null {
-  void _clientId;
   const payload = decodeJwtPayload(token);
   if (!payload) return null;
 

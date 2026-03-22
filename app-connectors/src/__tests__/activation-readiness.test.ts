@@ -61,24 +61,33 @@ function buildConnectionConfig(
   const config: Record<string, unknown> = {};
   for (const field of requiredConfigFields) {
     if (field === "tokenEndpoint") {
-      config.tokenEndpoint = "https://oauth.vendor.example.test/token";
+      config["tokenEndpoint"] = "https://oauth.vendor.example.test/token";
       continue;
     }
     if (field === "authorizationEndpoint") {
-      config.authorizationEndpoint =
+      config["authorizationEndpoint"] =
         "https://oauth.vendor.example.test/authorize";
       continue;
     }
     if (field === "testEndpoint") {
-      config.testEndpoint = "https://api.vendor.example.test/ping";
+      config["testEndpoint"] = "https://api.vendor.example.test/ping";
       continue;
     }
     if (field === "globalTenantId") {
-      config.globalTenantId = "tenant-123";
+      config["globalTenantId"] = "tenant-123";
+      continue;
+    }
+    if (field === "datasetMappings") {
+      config["datasetMappings"] = {
+        Orders: {
+          dataset: "ventes_horaires",
+          domain: "operations",
+        },
+      };
       continue;
     }
     if (field === "ukgEndpoints") {
-      config.ukgEndpoints = {
+      config["ukgEndpoints"] = {
         Employees: {
           path: "/api/v1/employees",
         },
@@ -86,11 +95,11 @@ function buildConnectionConfig(
       continue;
     }
     if (field === "toastRestaurantExternalId") {
-      config.toastRestaurantExternalId = "restaurant-ext-123";
+      config["toastRestaurantExternalId"] = "restaurant-ext-123";
       continue;
     }
     if (field === "toastEndpoints") {
-      config.toastEndpoints = {
+      config["toastEndpoints"] = {
         Orders: {
           path: "/api/orders/v1/orders",
         },
@@ -98,7 +107,7 @@ function buildConnectionConfig(
       continue;
     }
     if (field === "oloEndpoints") {
-      config.oloEndpoints = {
+      config["oloEndpoints"] = {
         Orders: {
           path: "/api/orders",
         },
@@ -106,7 +115,7 @@ function buildConnectionConfig(
       continue;
     }
     if (field === "cdkEndpoints") {
-      config.cdkEndpoints = {
+      config["cdkEndpoints"] = {
         ServiceOrders: {
           path: "/api/service-orders",
         },
@@ -114,7 +123,7 @@ function buildConnectionConfig(
       continue;
     }
     if (field === "reynoldsEndpoints") {
-      config.reynoldsEndpoints = {
+      config["reynoldsEndpoints"] = {
         RepairOrder: {
           path: "/api/repair-orders",
         },
@@ -122,7 +131,7 @@ function buildConnectionConfig(
       continue;
     }
     if (field === "geotabFeeds") {
-      config.geotabFeeds = {
+      config["geotabFeeds"] = {
         Trip: {
           typeName: "Trip",
           search: {
@@ -133,7 +142,7 @@ function buildConnectionConfig(
       continue;
     }
     if (field === "fourthEndpoints") {
-      config.fourthEndpoints = {
+      config["fourthEndpoints"] = {
         Employees: {
           path: "/api/employees",
         },
@@ -141,7 +150,7 @@ function buildConnectionConfig(
       continue;
     }
     if (field === "oracleTmEndpoints") {
-      config.oracleTmEndpoints = {
+      config["oracleTmEndpoints"] = {
         Shipment: {
           path: "/rest/v1/shipments",
         },
@@ -149,7 +158,7 @@ function buildConnectionConfig(
       continue;
     }
     if (field === "sapTmEndpoints") {
-      config.sapTmEndpoints = {
+      config["sapTmEndpoints"] = {
         FreightOrder: {
           path: "/sap/opu/odata/freight-orders",
         },
@@ -157,7 +166,7 @@ function buildConnectionConfig(
       continue;
     }
     if (field === "blueYonderEndpoints") {
-      config.blueYonderEndpoints = {
+      config["blueYonderEndpoints"] = {
         DemandPlan: {
           path: "/api/demand-plans",
         },
@@ -165,7 +174,7 @@ function buildConnectionConfig(
       continue;
     }
     if (field === "manhattanEndpoints") {
-      config.manhattanEndpoints = {
+      config["manhattanEndpoints"] = {
         Wave: {
           path: "/api/waves",
         },
@@ -173,7 +182,7 @@ function buildConnectionConfig(
       continue;
     }
     if (field === "alohaEndpoints") {
-      config.alohaEndpoints = {
+      config["alohaEndpoints"] = {
         Check: {
           path: "/api/checks",
         },
@@ -181,12 +190,12 @@ function buildConnectionConfig(
       continue;
     }
   }
-  if (authMode === "oauth2" && config.authorizationEndpoint == null) {
-    config.authorizationEndpoint =
+  if (authMode === "oauth2" && config["authorizationEndpoint"] == null) {
+    config["authorizationEndpoint"] =
       "https://oauth.vendor.example.test/authorize";
   }
-  if (authMode === "oauth2" && config.tokenEndpoint == null) {
-    config.tokenEndpoint = "https://oauth.vendor.example.test/token";
+  if (authMode === "oauth2" && config["tokenEndpoint"] == null) {
+    config["tokenEndpoint"] = "https://oauth.vendor.example.test/token";
   }
   return config;
 }

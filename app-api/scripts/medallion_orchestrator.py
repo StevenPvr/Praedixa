@@ -23,7 +23,7 @@ import urllib.request
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -73,11 +73,58 @@ def load_orchestrator_config(path: Path) -> OrchestratorConfig:
         return base
 
     config_dir = path.parent.resolve()
-    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload = _load_config_payload(path)
     if not isinstance(payload, dict):
         return base
 
+    cfg = replace(
+        base,
+        **_build_config_updates(payload, config_dir=config_dir),
+    )
+    return _normalize_config(cast("OrchestratorConfig", cfg))
+
+
+def _normalize_config(config: OrchestratorConfig) -> OrchestratorConfig:
+    return cast(
+        "OrchestratorConfig",
+        replace(
+            config,
+            poll_seconds=max(5, config.poll_seconds),
+            max_retries=max(0, config.max_retries),
+            retry_base_seconds=max(1, config.retry_base_seconds),
+            retry_max_seconds=max(1, config.retry_max_seconds),
+            alert_webhook_url=_validate_alert_webhook_url(
+                config.alert_webhook_url,
+                allowed_hosts=config.alert_webhook_allowed_hosts,
+            ),
+            alert_timeout_seconds=max(1, config.alert_timeout_seconds),
+        ),
+    )
+
+
+def _load_config_payload(path: Path) -> Any:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _build_config_updates(
+    payload: dict[str, Any],
+    *,
+    config_dir: Path,
+) -> dict[str, Any]:
     updates: dict[str, Any] = {}
+    _update_path_fields(payload, updates, config_dir=config_dir)
+    _update_integer_fields(payload, updates)
+    _update_boolean_fields(payload, updates)
+    _update_alert_fields(payload, updates)
+    return updates
+
+
+def _update_path_fields(
+    payload: dict[str, Any],
+    updates: dict[str, Any],
+    *,
+    config_dir: Path,
+) -> None:
     for key in (
         "data_root",
         "output_root",
@@ -85,13 +132,13 @@ def load_orchestrator_config(path: Path) -> OrchestratorConfig:
         "lock_file",
         "heartbeat_file",
     ):
-        if key in payload and isinstance(payload[key], str):
-            raw_path = Path(payload[key]).expanduser()
-            if raw_path.is_absolute():
-                updates[key] = raw_path
-            else:
-                updates[key] = config_dir / raw_path
+        raw_value = payload.get(key)
+        if isinstance(raw_value, str):
+            raw_path = Path(raw_value).expanduser()
+            updates[key] = raw_path if raw_path.is_absolute() else config_dir / raw_path
 
+
+def _update_integer_fields(payload: dict[str, Any], updates: dict[str, Any]) -> None:
     for key in (
         "poll_seconds",
         "max_retries",
@@ -99,54 +146,43 @@ def load_orchestrator_config(path: Path) -> OrchestratorConfig:
         "retry_max_seconds",
         "alert_timeout_seconds",
     ):
-        if key in payload:
-            with contextlib.suppress(TypeError, ValueError):
-                updates[key] = int(payload[key])
+        raw_value = payload.get(key)
+        if raw_value is None:
+            continue
+        with contextlib.suppress(TypeError, ValueError):
+            updates[key] = int(raw_value)
 
+
+def _update_boolean_fields(payload: dict[str, Any], updates: dict[str, Any]) -> None:
     for key in ("allow_reprocess", "force_rebuild_on_start"):
-        if key in payload and isinstance(payload[key], bool):
-            updates[key] = payload[key]
+        raw_value = payload.get(key)
+        if isinstance(raw_value, bool):
+            updates[key] = raw_value
 
-    if "alert_webhook_url" in payload:
-        raw = payload["alert_webhook_url"]
-        updates["alert_webhook_url"] = raw if isinstance(raw, str) and raw else None
-    if "alert_webhook_allowed_hosts" in payload and isinstance(
-        payload["alert_webhook_allowed_hosts"], list
-    ):
+
+def _update_alert_fields(payload: dict[str, Any], updates: dict[str, Any]) -> None:
+    raw_url = payload.get("alert_webhook_url")
+    if raw_url is not None:
+        updates["alert_webhook_url"] = (
+            raw_url if isinstance(raw_url, str) and raw_url else None
+        )
+
+    raw_hosts = payload.get("alert_webhook_allowed_hosts")
+    if isinstance(raw_hosts, list):
         updates["alert_webhook_allowed_hosts"] = tuple(
             str(value).strip().lower()
-            for value in payload["alert_webhook_allowed_hosts"]
+            for value in raw_hosts
             if str(value).strip()
         )
 
-    cfg = replace(base, **updates)
-    return _normalize_config(cfg)
 
-
-def _normalize_config(config: OrchestratorConfig) -> OrchestratorConfig:
-    webhook_url = config.alert_webhook_url
-    if webhook_url:
-        webhook_url = _validate_alert_webhook_url(
-            webhook_url,
-            allowed_hosts=config.alert_webhook_allowed_hosts,
-        )
-
-    return replace(
-        config,
-        poll_seconds=max(5, config.poll_seconds),
-        max_retries=max(0, config.max_retries),
-        retry_base_seconds=max(1, config.retry_base_seconds),
-        retry_max_seconds=max(1, config.retry_max_seconds),
-        alert_webhook_url=webhook_url,
-        alert_timeout_seconds=max(1, config.alert_timeout_seconds),
-    )
-
-
-def _validate_alert_webhook_url(
-    url: str,
+def _normalize_alert_webhook_url(
+    url: str | None,
     *,
     allowed_hosts: tuple[str, ...],
-) -> str:
+) -> str | None:
+    if url is None:
+        return None
     if not allowed_hosts:
         raise ValueError(
             "alert_webhook_allowed_hosts must be configured when alerts are enabled"
@@ -182,6 +218,14 @@ def _validate_alert_webhook_url(
         raise ValueError("alert_webhook_url host is not on the allowlist")
 
     return url.strip()
+
+
+def _validate_alert_webhook_url(
+    url: str | None,
+    *,
+    allowed_hosts: tuple[str, ...],
+) -> str | None:
+    return _normalize_alert_webhook_url(url, allowed_hosts=allowed_hosts)
 
 
 def compute_retry_delay(

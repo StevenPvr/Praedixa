@@ -4,16 +4,29 @@ import {
   localizedSlugs,
   type Locale,
 } from "../../lib/i18n/config";
+import { buildBlogPostPath, getPublishedBlogPosts } from "../../lib/blog/posts";
 import {
   getKnowledgePage,
   type KnowledgePageKey,
 } from "../../lib/content/knowledge-pages";
+import {
+  getSectorPageHref,
+  listSectorPages,
+} from "../../lib/content/sector-pages";
+import { serpResourceTargetsFr } from "../../lib/content/serp-resources-fr";
 import { getValuePropContent } from "../../lib/content/value-prop";
 import { CorePageJsonLd } from "../seo/CorePageJsonLd";
 import { BreadcrumbTrail } from "../shared/BreadcrumbTrail";
 import { GeoSummaryPanel } from "../shared/GeoSummaryPanel";
 import { Kicker } from "../shared/Kicker";
 import { SectionShell } from "../shared/SectionShell";
+
+interface ResourceHubCard {
+  eyebrow: string;
+  href: string;
+  label: string;
+  description: string;
+}
 
 function buildSectionAnchors(page: ReturnType<typeof getKnowledgePage>) {
   return page.sections.map((section) => {
@@ -156,6 +169,99 @@ function KnowledgeRelatedContent({
   );
 }
 
+function dedupeResourceHubCards(cards: ResourceHubCard[]): ResourceHubCard[] {
+  const seen = new Set<string>();
+
+  return cards.filter((card) => {
+    if (seen.has(card.href)) {
+      return false;
+    }
+
+    seen.add(card.href);
+    return true;
+  });
+}
+
+function buildResourceHubCards(locale: Locale) {
+  const sectors = dedupeResourceHubCards(
+    listSectorPages(locale).map((entry) => ({
+      eyebrow: locale === "fr" ? "Secteur" : "Industry",
+      href: getSectorPageHref(locale, entry.id),
+      label: entry.shortLabel,
+      description: entry.homepageProblem,
+    })),
+  ).slice(0, 6);
+
+  const blogPosts = dedupeResourceHubCards(
+    getPublishedBlogPosts()
+      .filter((post) => post.locale === locale)
+      .map((post) => ({
+        eyebrow: "Blog",
+        href: buildBlogPostPath(locale, post.slug),
+        label: post.title,
+        description: post.description,
+      })),
+  ).slice(0, 4);
+
+  const seoResources =
+    locale === "fr"
+      ? dedupeResourceHubCards(
+          serpResourceTargetsFr.map((entry) => ({
+            eyebrow: "SEO",
+            href: `/fr/ressources/${entry.slug}`,
+            label: entry.title,
+            description: entry.description,
+          })),
+        ).slice(0, 6)
+      : [];
+
+  return {
+    sectors,
+    blogPosts,
+    seoResources,
+  };
+}
+
+function KnowledgeResourceHubSection({
+  cards,
+  description,
+  title,
+}: {
+  cards: ResourceHubCard[];
+  description: string;
+  title: string;
+}) {
+  if (!cards.length) {
+    return null;
+  }
+
+  return (
+    <section className="mt-12 border-t border-border-subtle pt-8">
+      <h2 className="text-lg font-semibold tracking-tight text-ink">{title}</h2>
+      <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-neutral-500">
+        {description}
+      </p>
+      <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {cards.map((card) => (
+          <Link
+            key={card.href}
+            href={card.href}
+            className="rounded-xl border border-border-subtle bg-white p-4 text-sm no-underline transition-colors hover:border-amber-300 hover:bg-amber-50/30"
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-400">
+              {card.eyebrow}
+            </p>
+            <p className="mt-2 font-semibold text-ink">{card.label}</p>
+            <p className="mt-2 leading-relaxed text-neutral-500">
+              {card.description}
+            </p>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function KnowledgePageActions({
   locale,
   page,
@@ -243,6 +349,8 @@ export function KnowledgePage({
       label: page.title,
     },
   ] as const;
+  const resourceHubCards =
+    pageKey === "resources" ? buildResourceHubCards(locale) : null;
 
   return (
     <SectionShell className="py-16 md:py-24">
@@ -280,6 +388,49 @@ export function KnowledgePage({
           />
 
           <KnowledgeSections anchors={sectionAnchors} page={page} />
+          {resourceHubCards ? (
+            <>
+              <KnowledgeResourceHubSection
+                cards={resourceHubCards.sectors}
+                title={
+                  locale === "fr"
+                    ? "Pages sectorielles a explorer"
+                    : "Industry pages to explore"
+                }
+                description={
+                  locale === "fr"
+                    ? "Chaque verticale cible un contexte business précis avec ses arbitrages, ses signaux et ses preuves."
+                    : "Each industry page targets a specific business context with its own trade-offs, signals, and proof points."
+                }
+              />
+              <KnowledgeResourceHubSection
+                cards={resourceHubCards.blogPosts}
+                title={
+                  locale === "fr"
+                    ? "Articles recents a relayer"
+                    : "Recent articles to review"
+                }
+                description={
+                  locale === "fr"
+                    ? "Le blog complete les pages piliers avec des formats answer-first, des cadres de decision et des contenus Ops/Finance actionnables."
+                    : "The blog extends the pillar pages with answer-first formats, decision frameworks, and actionable Ops/Finance content."
+                }
+              />
+              <KnowledgeResourceHubSection
+                cards={resourceHubCards.seoResources}
+                title={
+                  locale === "fr"
+                    ? "Ressources SEO a forte intention"
+                    : "High-intent SEO resources"
+                }
+                description={
+                  locale === "fr"
+                    ? "Ces pages repondent a des requetes plus specifiques et poussent vers l'offre ou la preuve quand l'intention se precise."
+                    : "These pages answer narrower search intents and route visitors toward the offer or proof once intent becomes sharper."
+                }
+              />
+            </>
+          ) : null}
           <KnowledgeRelatedContent links={page.links ?? []} locale={locale} />
           <KnowledgePageActions
             locale={locale}

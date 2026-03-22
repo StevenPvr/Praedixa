@@ -1,4 +1,4 @@
-import { Pool } from "pg";
+import { Pool, type PoolClient } from "pg";
 
 import { InMemoryConnectorStore } from "./store.js";
 import type {
@@ -26,6 +26,8 @@ type PersistedSnapshot = {
 };
 
 const SNAPSHOT_ROW_ID = "default";
+const CONNECTOR_RUNTIME_LOCK_CLASS_ID = 7_101;
+const CONNECTOR_RUNTIME_LOCK_OBJECT_ID = 1;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -39,6 +41,7 @@ export class PostgresBackedConnectorStore extends InMemoryConnectorStore {
   private readonly pool: Pool;
   private readonly readyPromise: Promise<void>;
   private flushPromise: Promise<void> = Promise.resolve();
+  private lockClient: PoolClient | null = null;
 
   constructor(databaseUrl: string) {
     super();
@@ -53,6 +56,14 @@ export class PostgresBackedConnectorStore extends InMemoryConnectorStore {
 
   async close(): Promise<void> {
     await this.ready();
+    if (this.lockClient != null) {
+      await this.lockClient.query("SELECT pg_advisory_unlock($1, $2)", [
+        CONNECTOR_RUNTIME_LOCK_CLASS_ID,
+        CONNECTOR_RUNTIME_LOCK_OBJECT_ID,
+      ]);
+      this.lockClient.release();
+      this.lockClient = null;
+    }
     await this.pool.end();
   }
 
@@ -74,6 +85,31 @@ export class PostgresBackedConnectorStore extends InMemoryConnectorStore {
       )
     `);
 
+    if (typeof this.pool.connect === "function") {
+      const lockClient = await this.pool.connect();
+      const lockResult = await lockClient.query<{ locked: boolean }>(
+        "SELECT pg_try_advisory_lock($1, $2) AS locked",
+        [CONNECTOR_RUNTIME_LOCK_CLASS_ID, CONNECTOR_RUNTIME_LOCK_OBJECT_ID],
+      );
+      if (lockResult.rows[0]?.locked !== true) {
+        lockClient.release();
+        throw new Error(
+          "Another app-connectors runtime instance already owns the persistent store lock",
+        );
+      }
+      this.lockClient = lockClient;
+    } else {
+      const lockResult = await this.pool.query<{ locked: boolean }>(
+        "SELECT pg_try_advisory_lock($1, $2) AS locked",
+        [CONNECTOR_RUNTIME_LOCK_CLASS_ID, CONNECTOR_RUNTIME_LOCK_OBJECT_ID],
+      );
+      if (lockResult.rows.length > 0 && lockResult.rows[0]?.locked !== true) {
+        throw new Error(
+          "Another app-connectors runtime instance already owns the persistent store lock",
+        );
+      }
+    }
+
     const result = await this.pool.query<{ payload: unknown }>(
       "SELECT payload FROM connector_runtime_snapshots WHERE id = $1",
       [SNAPSHOT_ROW_ID],
@@ -84,18 +120,20 @@ export class PostgresBackedConnectorStore extends InMemoryConnectorStore {
     }
 
     this.hydrate({
-      auditEvents: asArray<ConnectorAuditEvent>(payload.auditEvents),
+      auditEvents: asArray<ConnectorAuditEvent>(payload["auditEvents"]),
       authorizationSessions: asArray<AuthorizationSession>(
-        payload.authorizationSessions,
+        payload["authorizationSessions"],
       ),
-      connections: asArray<ConnectorConnection>(payload.connections),
-      ingestCredentials: asArray<IngestCredential>(payload.ingestCredentials),
-      latestSecretRefs: asArray<[string, string]>(payload.latestSecretRefs),
-      rawEventIndex: asArray<[string, string]>(payload.rawEventIndex),
-      rawEvents: asArray<IngestRawEvent>(payload.rawEvents),
-      runs: asArray<SyncRun>(payload.runs),
-      syncStates: asArray<ConnectionSyncState>(payload.syncStates),
-      syncReplayIndex: asArray<[string, string]>(payload.syncReplayIndex),
+      connections: asArray<ConnectorConnection>(payload["connections"]),
+      ingestCredentials: asArray<IngestCredential>(
+        payload["ingestCredentials"],
+      ),
+      latestSecretRefs: asArray<[string, string]>(payload["latestSecretRefs"]),
+      rawEventIndex: asArray<[string, string]>(payload["rawEventIndex"]),
+      rawEvents: asArray<IngestRawEvent>(payload["rawEvents"]),
+      runs: asArray<SyncRun>(payload["runs"]),
+      syncStates: asArray<ConnectionSyncState>(payload["syncStates"]),
+      syncReplayIndex: asArray<[string, string]>(payload["syncReplayIndex"]),
     });
 
     const secretResult = await this.pool.query<{ payload: StoredSecretRecord }>(
@@ -332,12 +370,14 @@ export class PostgresBackedConnectorStore extends InMemoryConnectorStore {
     connectionId: string,
     workerId: string,
     limit: number,
+    claimTokenFactory?: (() => string) | null,
   ): IngestRawEvent[] {
     const claimed = super.claimRawEvents(
       organizationId,
       connectionId,
       workerId,
       limit,
+      claimTokenFactory,
     );
     if (claimed.length > 0) {
       this.scheduleFlush();
@@ -370,12 +410,14 @@ export class PostgresBackedConnectorStore extends InMemoryConnectorStore {
     workerId: string,
     limit: number,
     leaseSeconds: number,
+    lockTokenFactory?: (() => string) | null,
   ): SyncRun[] {
     const claimed = super.claimSyncRuns(
       organizationIds,
       workerId,
       limit,
       leaseSeconds,
+      lockTokenFactory,
     );
     if (claimed.length > 0) {
       this.scheduleFlush();

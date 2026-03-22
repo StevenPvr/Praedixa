@@ -14,15 +14,15 @@ vi.mock("next/server", () => ({
 describe("GET /apple-touch-icon-precomposed.png", () => {
   it("redirects to the canonical apple touch icon asset", async () => {
     const { GET } = await import("../route");
-    const response = (await GET(
+    const response = GET(
       new Request("http://localhost:3000/apple-touch-icon-precomposed.png"),
-    )) as unknown as {
+    ) as unknown as {
       status: number;
       headers: Record<string, string>;
     };
 
     expect(response.status).toBe(308);
-    expect(response.headers.Location).toBe(
+    expect(response.headers["Location"]).toBe(
       "http://localhost:3000/apple-touch-icon.png",
     );
   });

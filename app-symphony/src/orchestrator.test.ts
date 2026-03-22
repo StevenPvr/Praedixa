@@ -46,8 +46,8 @@ function createConfig(): ServiceConfig {
       intervalMs: 30_000,
     },
     workspace: {
-      root: ".tools/symphony-workspaces",
-      absoluteRoot: "/tmp/praedixa/.tools/symphony-workspaces",
+      root: ".meta/.tools/symphony-workspaces",
+      absoluteRoot: "/tmp/praedixa/.meta/.tools/symphony-workspaces",
     },
     hooks: {
       afterCreate: null,
@@ -141,14 +141,14 @@ describe("SymphonyOrchestrator", () => {
     const workspaceManager = {
       updateConfig: vi.fn(),
       ensureWorkspace: vi.fn(async () => ({
-        path: "/tmp/praedixa/.tools/symphony-workspaces/PRA-5",
+        path: "/tmp/praedixa/.meta/.tools/symphony-workspaces/PRA-5",
         workspaceKey: "PRA-5",
         createdNow: false,
         reservedPorts: [],
         branchName: null,
         copiedFiles: [],
         manifestPath:
-          "/tmp/praedixa/.tools/symphony-workspaces/PRA-5/.symphony/workspace.json",
+          "/tmp/praedixa/.meta/.tools/symphony-workspaces/PRA-5/.symphony/workspace.json",
       })),
       runHook: vi.fn(async () => undefined),
       removeWorkspace: vi.fn(async () => undefined),
@@ -220,14 +220,14 @@ describe("SymphonyOrchestrator", () => {
     const workspaceManager = {
       updateConfig: vi.fn(),
       ensureWorkspace: vi.fn(async () => ({
-        path: "/tmp/praedixa/.tools/symphony-workspaces/PRA-5",
+        path: "/tmp/praedixa/.meta/.tools/symphony-workspaces/PRA-5",
         workspaceKey: "PRA-5",
         createdNow: true,
         reservedPorts: [],
         branchName: null,
         copiedFiles: [],
         manifestPath:
-          "/tmp/praedixa/.tools/symphony-workspaces/PRA-5/.symphony/workspace.json",
+          "/tmp/praedixa/.meta/.tools/symphony-workspaces/PRA-5/.symphony/workspace.json",
       })),
       runHook: vi
         .fn()

@@ -61,7 +61,7 @@ function collectAllowedHosts(): Set<string> {
     // siteConfig.url is static and controlled; keep fallback defaults.
   }
 
-  const extraOrigins = process.env.ALLOWED_FORM_ORIGINS?.split(",") ?? [];
+  const extraOrigins = process.env["ALLOWED_FORM_ORIGINS"]?.split(",") ?? [];
   for (const candidate of extraOrigins) {
     const trimmed = candidate.trim();
     if (!trimmed) continue;

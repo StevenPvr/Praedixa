@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
+from app.integrations.connectors._shared import require_object
+
 if TYPE_CHECKING:
     from app.services.integration_runtime_worker import RuntimeClaimedSyncRun
 
@@ -48,23 +50,21 @@ def build_fourth_requests(
     source_objects: tuple[str, ...],
     claimed_run: RuntimeClaimedSyncRun,
 ) -> tuple[FourthObjectRequest, ...]:
-    config = connection.get("config", {})
-    if not isinstance(config, dict):
-        raise TypeError("Fourth connection config must be an object")
+    config = require_object(connection.get("config", {}), field="connection config")
 
-    raw_endpoints = config.get("fourthEndpoints")
-    if not isinstance(raw_endpoints, dict):
-        raise TypeError("Fourth config.fourthEndpoints must be configured")
+    raw_endpoints = require_object(
+        config.get("fourthEndpoints"),
+        field="config.fourthEndpoints",
+    )
 
     requests: list[FourthObjectRequest] = []
     for source_object in source_objects:
         if source_object not in _SUPPORTED_SOURCE_OBJECTS:
             raise ValueError(f"Unsupported Fourth source object: {source_object}")
-        raw_endpoint = raw_endpoints.get(source_object)
-        if not isinstance(raw_endpoint, dict):
-            raise TypeError(
-                f"Fourth config.fourthEndpoints.{source_object} must be configured"
-            )
+        raw_endpoint = require_object(
+            raw_endpoints.get(source_object),
+            field=f"config.fourthEndpoints.{source_object}",
+        )
 
         path = _required_string(raw_endpoint.get("path"), f"{source_object}.path")
         params = _build_request_params(raw_endpoint, claimed_run)
@@ -162,14 +162,13 @@ def _build_request_params(
 def _normalize_string_map(value: Any, field: str) -> dict[str, str]:
     if value is None:
         return {}
-    if not isinstance(value, dict):
-        raise TypeError(f"Fourth endpoint {field} must be an object")
 
+    mapping = require_object(value, field=f"endpoint {field}")
     normalized: dict[str, str] = {}
-    for raw_key, raw_value in value.items():
+    for raw_key, raw_value in mapping.items():
         key = str(raw_key).strip()
         if not key:
-            raise ValueError(f"Fourth endpoint {field} contains an empty key")
+            raise ValueError(f"endpoint {field} contains an empty key")
         if isinstance(raw_value, bool):
             normalized[key] = "true" if raw_value else "false"
             continue
@@ -179,7 +178,7 @@ def _normalize_string_map(value: Any, field: str) -> dict[str, str]:
         text_value = _optional_string(raw_value)
         if text_value is None:
             raise ValueError(
-                f"Fourth endpoint {field}.{key} must be a string, number or boolean"
+                f"endpoint {field}.{key} must be a string, number or boolean"
             )
         normalized[key] = text_value
     return normalized
@@ -194,8 +193,6 @@ def _resolve_record_value(
         (explicit_field,) if explicit_field is not None else fallback_fields
     )
     for field in candidate_fields:
-        if field is None:
-            continue
         raw_value = record.get(field)
         if raw_value is None:
             continue

@@ -8,9 +8,9 @@ Appliquer une rigueur "Apple-like" sur l'exécution locale des contrôles de sé
 
 1. Couche A (pre-commit, bloquante)
 
-- `./scripts/gate-precommit-blocking.sh`
+- `./scripts/gates/gate-precommit-blocking.sh`
 - Garde-fous securite:
-  - `./scripts/gate-precommit-delta.sh`
+  - `./scripts/gates/gate-precommit-delta.sh`
   - Formatage Prettier sur les fichiers stages
   - Secrets sur diff stage (`gitleaks --staged`)
   - SAST diff (`semgrep` + regles custom critiques)
@@ -18,8 +18,8 @@ Appliquer une rigueur "Apple-like" sur l'exécution locale des contrôles de sé
   - Check config prod sur fichiers stages
   - Validation stricte des exceptions
 - Suites de tests obligatoires:
-  - `./scripts/gate-precommit-tests.sh`
-  - `./scripts/gate-sensitive-security-tests.sh`
+  - `./scripts/gates/gate-precommit-tests.sh`
+  - `./scripts/gates/gate-sensitive-security-tests.sh`
   - Python (inclut les unitaires): `uv run pytest`
   - Next.js unit: `pnpm vitest run --project default --project admin`
   - E2E: `pnpm test:e2e`
@@ -27,20 +27,20 @@ Appliquer une rigueur "Apple-like" sur l'exécution locale des contrôles de sé
 Hook associe:
 
 - `commit-msg`
-  - `./scripts/check-commit-message.sh`
+  - `./scripts/gates/check-commit-message.sh`
   - format Conventional Commits obligatoire pour garder l'historique, les releases et les audits coherents
 
 2. Couche B (pre-push, deep, bloquante)
 
-- `./scripts/gate-prepush-deep.sh`
+- `./scripts/gates/gate-prepush-deep.sh`
 - SAST élargi repo
 - SCA JS/Python + OSV
 - IaC / misconfig (`trivy`, `checkov`)
 - SBOM + scan supply-chain (`syft`, `grype`)
 - CodeQL `security-extended` sur snapshot source epure des artefacts generes et depots imbriques
-- Qualite statique monorepo (`./scripts/gate-quality-static.sh`: lint ESLint sans warnings, typecheck, Ruff, MyPy)
+- Qualite statique monorepo (`./scripts/gates/gate-quality-static.sh`: lint ESLint sans warnings, typecheck, Ruff, MyPy)
 - Complexite Python gardee sous controle par baseline versionnee: aucune nouvelle violation Xenon ni aggravation d'une violation existante
-- Invariants + abuse scenarios (tests ciblés), dont `./scripts/gate-sensitive-security-tests.sh`
+- Invariants + abuse scenarios (tests ciblés), dont `./scripts/gates/gate-sensitive-security-tests.sh`
 - Checks prod complets
 
 3. Couche C (exhaustive, preuve signée)
@@ -109,9 +109,9 @@ Règles:
 ## Commandes opérationnelles
 
 ```bash
-./scripts/gate-precommit-blocking.sh
-./scripts/gate-prepush-deep.sh
-./scripts/check-commit-message.sh .git/COMMIT_EDITMSG
+./scripts/gates/gate-precommit-blocking.sh
+./scripts/gates/gate-prepush-deep.sh
+./scripts/gates/check-commit-message.sh .git/COMMIT_EDITMSG
 pnpm gate:exhaustive
 pnpm gate:verify
 pnpm gate:prepush

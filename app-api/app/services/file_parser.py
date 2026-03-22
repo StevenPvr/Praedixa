@@ -34,6 +34,10 @@ logger = logging.getLogger(__name__)
 
 __all__ = ["ParseResult", "parse_file", "FileParseError"]
 
+
+def _empty_warnings() -> list[str]:
+    return []
+
 # ── Constants ────────────────────────────────────────────
 
 # Strict encoding allowlist — any detection outside this set is rejected.
@@ -152,7 +156,7 @@ class ParseResult:
     source_columns: list[str]
     detected_format: str  # "csv" | "xlsx" | "lucca" | "payfit"
     detected_encoding: str
-    warnings: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=_empty_warnings)
     row_count: int = 0
 
 

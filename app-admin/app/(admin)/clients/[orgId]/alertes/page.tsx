@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useClientContext } from "../client-context";
 import { useApiGet } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
@@ -24,6 +25,18 @@ interface AlertItem {
   departmentName?: string;
   status: string;
   message?: string;
+}
+
+function getAlertStatusClassName(status: string): string {
+  if (status === "resolved") {
+    return "text-success";
+  }
+
+  if (status === "acknowledged") {
+    return "text-primary";
+  }
+
+  return "text-ink-tertiary";
 }
 
 export default function AlertesPage() {
@@ -82,20 +95,32 @@ export default function AlertesPage() {
       key: "status",
       label: "Statut",
       render: (row) => (
-        <span
-          className={
-            row.status === "resolved"
-              ? "text-success"
-              : row.status === "acknowledged"
-                ? "text-primary"
-                : "text-ink-tertiary"
-          }
-        >
+        <span className={getAlertStatusClassName(row.status)}>
           {row.status}
         </span>
       ),
     },
   ];
+
+  let alertsTableContent: ReactNode;
+
+  if (loading) {
+    alertsTableContent = <SkeletonCard />;
+  } else if (error) {
+    alertsTableContent = <ErrorFallback message={error} onRetry={refetch} />;
+  } else {
+    alertsTableContent = (
+      <Card className="rounded-2xl shadow-soft">
+        <CardContent className="p-0">
+          <DataTable
+            columns={columns}
+            data={alertList}
+            getRowKey={(row) => row.id}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -130,21 +155,7 @@ export default function AlertesPage() {
       )}
 
       {/* Alerts table */}
-      {loading ? (
-        <SkeletonCard />
-      ) : error ? (
-        <ErrorFallback message={error} onRetry={refetch} />
-      ) : (
-        <Card className="rounded-2xl shadow-soft">
-          <CardContent className="p-0">
-            <DataTable
-              columns={columns}
-              data={alertList}
-              getRowKey={(row) => row.id}
-            />
-          </CardContent>
-        </Card>
-      )}
+      {alertsTableContent}
     </div>
   );
 }

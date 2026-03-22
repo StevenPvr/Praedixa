@@ -18,7 +18,49 @@ const ROW_GAP = 8;
 const LABEL_WIDTH = 120;
 const VALUE_WIDTH = 80;
 const CHART_LEFT = LABEL_WIDTH + 8;
+const CHART_WIDTH = 300;
 const CONNECTOR_STROKE = "var(--chart-grid)";
+
+type ComputedWaterfallItem = WaterfallItem & {
+  barStart: number;
+  barEnd: number;
+};
+
+function buildComputedItems(items: WaterfallItem[]): ComputedWaterfallItem[] {
+  let runningTotal = 0;
+  return items.map((item) => {
+    let barStart: number;
+    let barEnd: number;
+
+    if (item.type === "total") {
+      barStart = 0;
+      barEnd = item.value;
+      runningTotal = item.value;
+    } else {
+      barStart = runningTotal;
+      barEnd = runningTotal + item.value;
+      runningTotal = barEnd;
+    }
+
+    return { ...item, barStart, barEnd };
+  });
+}
+
+function getChartDomain(items: ComputedWaterfallItem[]) {
+  const allValues = items.flatMap((item) => [item.barStart, item.barEnd]);
+  const minVal = Math.min(0, ...allValues);
+  const maxVal = Math.max(0, ...allValues);
+  return {
+    minVal,
+    range: maxVal - minVal || 1,
+  };
+}
+
+function getBarColor(type: WaterfallItem["type"]): string {
+  if (type === "positive") return "var(--success)";
+  if (type === "negative") return "var(--danger)";
+  return "var(--chart-1)";
+}
 
 const WaterfallChart = React.forwardRef<HTMLDivElement, WaterfallChartProps>(
   ({ items, formatValue = (v) => String(v), className, ...props }, ref) => {
@@ -34,44 +76,14 @@ const WaterfallChart = React.forwardRef<HTMLDivElement, WaterfallChartProps>(
       );
     }
 
-    // Compute running positions
-    let runningTotal = 0;
-    const computed = items.map((item) => {
-      let barStart: number;
-      let barEnd: number;
-
-      if (item.type === "total") {
-        barStart = 0;
-        barEnd = item.value;
-        runningTotal = item.value;
-      } else {
-        barStart = runningTotal;
-        barEnd = runningTotal + item.value;
-        runningTotal = barEnd;
-      }
-
-      return { ...item, barStart, barEnd };
-    });
-
-    // Determine scale
-    const allValues = computed.flatMap((c) => [c.barStart, c.barEnd]);
-    const minVal = Math.min(0, ...allValues);
-    const maxVal = Math.max(0, ...allValues);
-    const range = maxVal - minVal || 1;
-
-    const chartWidth = 300;
-    const totalWidth = CHART_LEFT + chartWidth + VALUE_WIDTH;
+    const computed = buildComputedItems(items);
+    const { minVal, range } = getChartDomain(computed);
+    const totalWidth = CHART_LEFT + CHART_WIDTH + VALUE_WIDTH;
     const totalHeight =
       items.length * (BAR_HEIGHT + ROW_GAP) - ROW_GAP + ROW_GAP;
 
     function xPos(val: number): number {
-      return CHART_LEFT + ((val - minVal) / range) * chartWidth;
-    }
-
-    function barColor(type: "positive" | "negative" | "total"): string {
-      if (type === "positive") return "var(--success)";
-      if (type === "negative") return "var(--danger)";
-      return "var(--chart-1)";
+      return CHART_LEFT + ((val - minVal) / range) * CHART_WIDTH;
     }
 
     return (
@@ -114,13 +126,13 @@ const WaterfallChart = React.forwardRef<HTMLDivElement, WaterfallChartProps>(
                   width={barWidth}
                   height={BAR_HEIGHT - 4}
                   rx={4}
-                  fill={barColor(item.type)}
+                  fill={getBarColor(item.type)}
                   data-testid={`waterfall-bar-${i}`}
                 />
 
                 {/* Value */}
                 <text
-                  x={CHART_LEFT + chartWidth + 8}
+                  x={CHART_LEFT + CHART_WIDTH + 8}
                   y={y + BAR_HEIGHT / 2}
                   textAnchor="start"
                   dominantBaseline="central"

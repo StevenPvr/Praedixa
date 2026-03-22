@@ -80,12 +80,20 @@ function getRole(raw: JwtClaims): UserRole | null {
 }
 
 function getOrganizationId(raw: JwtClaims): string | null {
-  return raw.organization_id?.trim() || null;
+  const organizationId = raw.organization_id?.trim() || null;
+  return organizationId != null && organizationId.length > 0
+    ? organizationId
+    : null;
 }
 
 function getSiteIds(raw: JwtClaims): string[] {
   const siteId = raw.site_id?.trim() || "";
   return siteId.length > 0 ? [siteId] : [];
+}
+
+function getUserId(raw: JwtClaims): string | null {
+  const userId = raw.sub?.trim() || null;
+  return userId != null && userId.length > 0 ? userId : null;
 }
 
 function normalizePermission(permission: string): string {
@@ -128,25 +136,27 @@ function summarizeUnknownToken(token: string): Record<string, unknown> {
       Buffer.from(payloadSegment, "base64url").toString("utf8"),
     ) as Record<string, unknown>;
 
-    const aud = payload.aud;
+    const aud = payload["aud"];
     return {
       parseable: true,
-      iss: typeof payload.iss === "string" ? payload.iss : null,
-      azp: typeof payload.azp === "string" ? payload.azp : null,
+      iss: typeof payload["iss"] === "string" ? payload["iss"] : null,
+      azp: typeof payload["azp"] === "string" ? payload["azp"] : null,
       aud:
         typeof aud === "string"
           ? [aud]
           : Array.isArray(aud)
             ? aud.filter((value): value is string => typeof value === "string")
             : [],
-      hasSub: typeof payload.sub === "string" && payload.sub.length > 0,
-      hasEmail: typeof payload.email === "string" && payload.email.length > 0,
-      hasRole: typeof payload.role === "string" && payload.role.length > 0,
-      hasOrganizationId: typeof payload.organization_id === "string",
-      hasSiteId: typeof payload.site_id === "string",
-      hasPermissions: Array.isArray(payload.permissions),
-      hasIat: typeof payload.iat === "number",
-      hasExp: typeof payload.exp === "number",
+      hasSub: typeof payload["sub"] === "string" && payload["sub"].length > 0,
+      hasEmail:
+        typeof payload["email"] === "string" && payload["email"].length > 0,
+      hasRole:
+        typeof payload["role"] === "string" && payload["role"].length > 0,
+      hasOrganizationId: typeof payload["organization_id"] === "string",
+      hasSiteId: typeof payload["site_id"] === "string",
+      hasPermissions: Array.isArray(payload["permissions"]),
+      hasIat: typeof payload["iat"] === "number",
+      hasExp: typeof payload["exp"] === "number",
     };
   } catch {
     return { parseable: false };
@@ -166,23 +176,27 @@ function explainInvalidClaims(unknownPayload: unknown): JwtDecodeFailure {
   const payload = parsed.data;
   const role = getRole(payload);
   const organizationId = getOrganizationId(payload);
-  const userId = payload.sub?.trim() || null;
-  const email = payload.email?.trim() || null;
+  const userId = getUserId(payload);
+  const email = payload["email"]?.trim() || null;
   const siteIds = getSiteIds(payload);
 
   let reason = "JWT claims are incompatible with the API contract";
-  if (userId == null) {
+  if (payload["sub"] == null || payload["sub"].trim().length === 0) {
     reason = "JWT is missing sub";
   } else if (email == null) {
     reason = "JWT is missing email";
-  } else if (payload.role == null) {
+  } else if (payload["role"] == null) {
     reason = "JWT is missing role";
   } else if (role == null) {
     reason = "JWT role must use a canonical top-level value";
   } else if (!hasValidJwtLifetime(payload)) {
     reason = "JWT is missing a valid exp/iat lifetime";
-  } else if (role !== "super_admin" && organizationId == null) {
+  } else if (userId == null) {
+    reason = "JWT sub must be a non-empty string";
+  } else if (role !== "super_admin" && payload["organization_id"] == null) {
     reason = "JWT is missing organization_id";
+  } else if (role !== "super_admin" && organizationId == null) {
+    reason = "JWT organization_id must be a non-empty string";
   } else if (requiresSiteId(role) && siteIds.length === 0) {
     reason = "JWT is missing site_id for a scoped manager role";
   }
@@ -193,12 +207,16 @@ function explainInvalidClaims(unknownPayload: unknown): JwtDecodeFailure {
     tokenSummary: {
       parseableClaims: true,
       derivedRole: role,
-      hasUserId: userId != null,
+      hasUserId: payload["sub"] != null && payload["sub"].trim().length > 0,
+      hasCanonicalUserId: userId != null,
       hasEmail: email != null,
-      hasRole: payload.role != null,
-      hasOrganizationId: organizationId != null,
-      hasIat: payload.iat != null,
-      hasExp: payload.exp != null,
+      hasRole: payload["role"] != null,
+      hasOrganizationId:
+        payload["organization_id"] != null &&
+        payload["organization_id"].trim().length > 0,
+      hasCanonicalOrganizationId: organizationId != null,
+      hasIat: payload["iat"] != null,
+      hasExp: payload["exp"] != null,
       siteIdCount: siteIds.length,
     },
   };
@@ -206,7 +224,9 @@ function explainInvalidClaims(unknownPayload: unknown): JwtDecodeFailure {
 
 function hasValidJwtLifetime(payload: JwtClaims): boolean {
   return (
-    payload.exp != null && payload.iat != null && payload.exp > payload.iat
+    payload["exp"] != null &&
+    payload["iat"] != null &&
+    payload["exp"] > payload["iat"]
   );
 }
 
@@ -218,7 +238,7 @@ export function parseBearerToken(
   }
 
   const [scheme, ...rest] = authorization.trim().split(/\s+/);
-  if (scheme !== "Bearer" || rest.length !== 1) {
+  if ((scheme ?? "").toLowerCase() !== "bearer" || rest.length !== 1) {
     return null;
   }
 
@@ -239,8 +259,8 @@ export function normalizeJwtClaims(unknownPayload: unknown): JWTPayload | null {
   const payload = parsed.data;
   const role = getRole(payload);
   const organizationId = getOrganizationId(payload);
-  const userId = payload.sub?.trim() || null;
-  const email = payload.email?.trim() || null;
+  const userId = getUserId(payload);
+  const email = payload["email"]?.trim() || null;
   const siteIds = getSiteIds(payload);
 
   if (
@@ -266,7 +286,7 @@ export function normalizeJwtClaims(unknownPayload: unknown): JWTPayload | null {
     role,
     organizationId: organizationId ?? SUPER_ADMIN_ORGANIZATION_ID,
     siteIds,
-    permissions: normalizePermissions(payload.permissions ?? [], role),
+    permissions: normalizePermissions(payload["permissions"] ?? [], role),
   };
 }
 

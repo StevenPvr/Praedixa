@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import uuid
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -361,14 +361,18 @@ async def update_dataset_config(
 
     # Load current columns for snapshot
     columns = await get_dataset_columns(dataset_id, tenant, session)
-    columns_snapshot = [
-        {"name": c.name, "rules_override": c.rules_override} for c in columns
+    columns_snapshot: list[dict[str, Any]] = [
+        {
+            "name": c.name,
+            "rules_override": cast("Any", c).rules_override,
+        }
+        for c in columns
     ]
 
     # Record history
     history = PipelineConfigHistory(
         dataset_id=dataset_id,
-        config_snapshot=dataset.pipeline_config,
+        config_snapshot=cast("dict[str, Any]", cast("Any", dataset).pipeline_config),
         columns_snapshot=columns_snapshot,
         changed_by=uuid.UUID(user_id),
         change_reason=(
@@ -444,7 +448,7 @@ async def get_dataset_data(
                         psql.Identifier(table_name),
                     )
                 )
-                total = cur.fetchone()[0]  # type: ignore[index]
+                total = int(cur.fetchone()[0])  # type: ignore[index]
 
                 # Fetch page ordered by temporal index
                 cur.execute(
@@ -466,14 +470,14 @@ async def get_dataset_data(
                 # Convert to dicts, excluding system columns
                 result_rows: list[dict[str, Any]] = []
                 for row in rows:
-                    row_dict = {}
+                    row_dict: dict[str, Any] = {}
                     for col_name, value in zip(col_names, row, strict=False):
                         if col_name.startswith("_"):
                             continue
                         row_dict[col_name] = value
                     result_rows.append(row_dict)
 
-                return result_rows, total, visible_col_names
+                return result_rows, int(total), visible_col_names
         except (
             psycopg.errors.UndefinedTable,
             psycopg.errors.InvalidSchemaName,
@@ -524,7 +528,7 @@ async def get_features_data(
                         psql.Identifier(table_name),
                     )
                 )
-                total = cur.fetchone()[0]  # type: ignore[index]
+                total = int(cur.fetchone()[0])  # type: ignore[index]
 
                 # Fetch page ordered by temporal index
                 cur.execute(
@@ -546,14 +550,14 @@ async def get_features_data(
                 # Convert to dicts, excluding system columns
                 result_rows: list[dict[str, Any]] = []
                 for row in rows:
-                    row_dict = {}
+                    row_dict: dict[str, Any] = {}
                     for col_name, value in zip(col_names, row, strict=False):
                         if col_name.startswith("_"):
                             continue
                         row_dict[col_name] = value
                     result_rows.append(row_dict)
 
-                return result_rows, total, visible_col_names
+                return result_rows, int(total), visible_col_names
         except (
             psycopg.errors.UndefinedTable,
             psycopg.errors.InvalidSchemaName,

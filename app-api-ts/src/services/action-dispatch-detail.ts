@@ -104,7 +104,7 @@ export function buildActionDispatchDedupeInsight(
   );
   const relatedActionIds = sortUnique(
     related.map((candidate) => candidate.actionId),
-  ) as ActionDispatchRecord["actionId"][];
+  );
 
   return {
     key: record.idempotencyKey,
@@ -175,8 +175,10 @@ export function evaluateActionDispatchRetryEligibility(
     eligible,
     blockedBy: [...blockedBy],
     remainingAttempts: getRemainingAttempts(record),
-    nextAttemptNumber: eligible ? record.attempts.length + 1 : undefined,
-    retryableErrorCode: lastErrorCode,
+    ...(eligible ? { nextAttemptNumber: record.attempts.length + 1 } : {}),
+    ...(lastErrorCode !== undefined
+      ? { retryableErrorCode: lastErrorCode }
+      : {}),
   };
 }
 
@@ -213,11 +215,21 @@ export function buildActionDispatchFallbackSummary(
     supported: true,
     status: fallback.status,
     channel: fallback.channel,
-    reference: fallback.reference,
-    preparedAt: fallback.preparedAt,
-    executedAt: fallback.executedAt,
-    activatedBy: fallback.activatedBy,
-    activationReason: fallback.activationReason,
+    ...(fallback.reference !== undefined
+      ? { reference: fallback.reference }
+      : {}),
+    ...(fallback.preparedAt !== undefined
+      ? { preparedAt: fallback.preparedAt }
+      : {}),
+    ...(fallback.executedAt !== undefined
+      ? { executedAt: fallback.executedAt }
+      : {}),
+    ...(fallback.activatedBy !== undefined
+      ? { activatedBy: fallback.activatedBy }
+      : {}),
+    ...(fallback.activationReason !== undefined
+      ? { activationReason: fallback.activationReason }
+      : {}),
     humanRequired: fallback.humanRequired ?? false,
     nextStep,
   };
@@ -250,10 +262,11 @@ function buildTerminalReasonMessage(
       return "Human fallback has been prepared and awaits execution.";
     case "human_fallback_executed":
       return "Human fallback has been executed.";
+    default: {
+      const unreachable: never = code;
+      throw new Error(`Unhandled terminal reason code: ${unreachable}`);
+    }
   }
-
-  const unreachable: never = code;
-  return unreachable;
 }
 
 export function buildActionDispatchTerminalReason(
@@ -352,8 +365,12 @@ function buildAttemptTimelineEntries(
     label: `Attempt ${attempt.attemptNumber} ${attempt.status}`,
     status: attempt.status,
     attemptNumber: attempt.attemptNumber,
-    errorCode: attempt.errorCode,
-    errorMessage: attempt.errorMessage,
+    ...(attempt.errorCode !== undefined
+      ? { errorCode: attempt.errorCode }
+      : {}),
+    ...(attempt.errorMessage !== undefined
+      ? { errorMessage: attempt.errorMessage }
+      : {}),
   }));
 }
 
@@ -466,16 +483,22 @@ export function resolveActionDispatchDetail(
     contractId: record.contractId,
     contractVersion: record.contractVersion,
     recommendationId: record.recommendationId,
-    approvalId: record.approvalId,
+    ...(record.approvalId !== undefined
+      ? { approvalId: record.approvalId }
+      : {}),
     status: record.status,
     dispatchMode: record.dispatchMode,
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
     destination: {
       system: record.destination.system,
-      connectorId: record.destination.connectorId,
+      ...(record.destination.connectorId !== undefined
+        ? { connectorId: record.destination.connectorId }
+        : {}),
       targetResourceType: record.destination.targetResourceType,
-      targetResourceId: record.destination.targetResourceId,
+      ...(record.destination.targetResourceId !== undefined
+        ? { targetResourceId: record.destination.targetResourceId }
+        : {}),
       sandbox: record.destination.sandbox ?? false,
       capabilities: record.destination.capabilities,
     },

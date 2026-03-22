@@ -11,22 +11,16 @@ import { redactSensitive } from "./security.js";
 import type {
   AuthorizationCompleteInput,
   AuthorizationStartInput,
-  ClaimSyncRunsInput,
   ConnectorAuthMode,
   ConnectorVendor,
-  CompleteSyncRunInput,
   CreateConnectionInput,
-  FailSyncRunInput,
-  GetSyncRunExecutionPlanInput,
   IngestAuthContext,
   IngestEventsInput,
   IssueIngestCredentialInput,
-  ProviderEventsIngestInput,
   RouteContext,
   RouteDefinition,
   SyncTriggerType,
   TriggerSyncInput,
-  UpsertSyncStateInput,
   UpdateConnectionInput,
 } from "./types.js";
 
@@ -112,23 +106,22 @@ const triggerSyncSchema = z.object({
 });
 
 const claimSyncRunsSchema = z.object({
-  workerId: z.string().min(3).max(120),
   limit: z.number().int().min(1).max(200).optional().default(25),
   leaseSeconds: z.number().int().min(30).max(900).optional().default(120),
 });
 
 const syncRunExecutionPlanSchema = z.object({
-  workerId: z.string().min(3).max(120),
+  lockToken: z.string().min(16).max(255),
 });
 
 const completeSyncRunSchema = z.object({
-  workerId: z.string().min(3).max(120),
+  lockToken: z.string().min(16).max(255),
   recordsFetched: z.number().int().min(0).max(1_000_000),
   recordsWritten: z.number().int().min(0).max(1_000_000),
 });
 
 const failSyncRunSchema = z.object({
-  workerId: z.string().min(3).max(120),
+  lockToken: z.string().min(16).max(255),
   errorMessage: z.string().min(3).max(400),
   errorClass: z.string().min(1).max(80).optional().nullable(),
   retryable: z.boolean().optional().default(false),
@@ -136,7 +129,7 @@ const failSyncRunSchema = z.object({
 });
 
 const syncStateUpdateSchema = z.object({
-  workerId: z.string().min(3).max(120),
+  lockToken: z.string().min(16).max(255),
   sourceObject: z.string().min(1).max(120),
   watermarkText: z.string().min(1).max(255).optional().nullable(),
   watermarkAt: z.string().datetime().optional().nullable(),
@@ -176,22 +169,26 @@ const ingestEventsSchema = z.object({
 
 const providerEventsIngestSchema = z.object({
   syncRunId: z.string().min(3).max(120),
-  workerId: z.string().min(3).max(120),
+  lockToken: z.string().min(16).max(255),
   schemaVersion: z.string().min(1).max(64),
   events: z.array(ingestEventSchema).min(1).max(500),
 });
 
 const claimRawEventsSchema = z.object({
-  workerId: z.string().min(3).max(120),
   limit: z.number().int().min(1).max(200).optional().default(50),
 });
 
 const rawEventProcessingSchema = z.object({
-  workerId: z.string().min(3).max(120),
+  claimToken: z.string().min(16).max(255),
 });
 
 const rawEventFailureSchema = rawEventProcessingSchema.extend({
   errorMessage: z.string().min(3).max(400),
+});
+
+const providerRuntimeAccessContextSchema = z.object({
+  syncRunId: z.string().min(3).max(120),
+  lockToken: z.string().min(16).max(255),
 });
 
 function parseBody<T>(
@@ -345,9 +342,61 @@ async function runServiceAction<T>(
   }
 }
 
+async function runParsedServiceAction<T, TResult>(
+  ctx: RouteContext,
+  schema: z.ZodType<T>,
+  options: ServiceActionOptions,
+  action: (
+    service: Awaited<ReturnType<typeof getService>>,
+    input: T,
+  ) => Promise<TResult> | TResult,
+) {
+  const parsed = parseBody<T>(schema, ctx);
+  if (!parsed.ok) {
+    return parsed.response;
+  }
+
+  return await runServiceAction(ctx, options, (service) =>
+    action(service, parsed.data),
+  );
+}
+
+function getOrgId(ctx: RouteContext): string {
+  return ctx.params["orgId"] ?? "";
+}
+
+function getConnectionId(ctx: RouteContext): string {
+  return ctx.params["connectionId"] ?? "";
+}
+
+function getCredentialId(ctx: RouteContext): string {
+  return ctx.params["credentialId"] ?? "";
+}
+
+function getEventId(ctx: RouteContext): string {
+  return ctx.params["eventId"] ?? "";
+}
+
+function getRawEventId(ctx: RouteContext): string {
+  return ctx.params["rawEventId"] ?? "";
+}
+
+function getRunId(ctx: RouteContext): string {
+  return ctx.params["runId"] ?? "";
+}
+
+function bindConnectorRunId(
+  ctx: RouteContext,
+  connectorRunId: string | null | undefined,
+): void {
+  bindRouteCorrelation(ctx, {
+    ...(connectorRunId !== undefined ? { connectorRunId } : {}),
+  });
+}
+
 function buildIngestAuthContext(ctx: RouteContext): IngestAuthContext {
   return {
-    authorizationHeader: getSingleHeader(ctx.headers.authorization),
+    authorizationHeader: getSingleHeader(ctx.headers["authorization"]),
     keyIdHeader: getSingleHeader(ctx.headers["x-praedixa-key-id"]),
     timestampHeader: getSingleHeader(ctx.headers["x-praedixa-timestamp"]),
     signatureHeader: getSingleHeader(ctx.headers["x-praedixa-signature"]),
@@ -399,7 +448,7 @@ export const routes: RouteDefinition[] = [
     async (ctx) =>
       success(
         (await getService()).listConnections(
-          ctx.params.orgId ?? "",
+          ctx.params["orgId"] ?? "",
           ctx.query.get("vendor"),
         ),
         ctx.requestId,
@@ -412,8 +461,8 @@ export const routes: RouteDefinition[] = [
     async (ctx) => {
       const service = await getService();
       const connection = service.getConnection(
-        ctx.params.orgId ?? "",
-        ctx.params.connectionId ?? "",
+        ctx.params["orgId"] ?? "",
+        ctx.params["connectionId"] ?? "",
       );
       if (connection == null) {
         return failure("NOT_FOUND", "Connection not found", ctx.requestId, 404);
@@ -423,22 +472,34 @@ export const routes: RouteDefinition[] = [
     { requiredCapabilities: ["connections:read"] },
   ),
   route(
-    "GET",
+    "POST",
     "/v1/runtime/organizations/:orgId/connections/:connectionId/access-context",
     async (ctx) =>
-      await runServiceAction(
+      await runParsedServiceAction<
+        {
+          syncRunId: string;
+          lockToken: string;
+        },
+        unknown
+      >(
         ctx,
+        providerRuntimeAccessContextSchema as z.ZodType<{
+          syncRunId: string;
+          lockToken: string;
+        }>,
         {
           errorCode: "PROVIDER_ACCESS_CONTEXT_FAILED",
           errorMessage: "Unable to load provider runtime access context",
+          successMessage: "Provider runtime access context loaded",
         },
-        async (service) =>
-          await service.getProviderRuntimeAccessContext(
-            ctx.params.orgId ?? "",
-            ctx.params.connectionId ?? "",
+        async (service, input) =>
+          await service.getProviderRuntimeAccessContextForRun(
+            getOrgId(ctx),
+            getConnectionId(ctx),
+            input,
           ),
       ),
-    { requiredCapabilities: ["provider_runtime:read"] },
+    { requiredCapabilities: ["provider_runtime:write"] },
   ),
   route(
     "GET",
@@ -446,8 +507,8 @@ export const routes: RouteDefinition[] = [
     async (ctx) =>
       success(
         (await getService()).listIngestCredentials(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
+          getOrgId(ctx),
+          getConnectionId(ctx),
         ),
         ctx.requestId,
       ),
@@ -456,31 +517,24 @@ export const routes: RouteDefinition[] = [
   route(
     "POST",
     "/v1/organizations/:orgId/connections/:connectionId/ingest-credentials",
-    async (ctx) => {
-      const parsed = parseBody<IssueIngestCredentialInput>(
+    async (ctx) =>
+      await runParsedServiceAction<IssueIngestCredentialInput, unknown>(
+        ctx,
         issueIngestCredentialSchema as z.ZodType<IssueIngestCredentialInput>,
-        ctx,
-      );
-      if (!parsed.ok) {
-        return parsed.response;
-      }
-      return await runServiceAction(
-        ctx,
         {
           errorCode: "INGEST_CREDENTIAL_ISSUE_FAILED",
           errorMessage: "Unable to issue ingestion credential",
           successMessage: "Ingestion credential issued",
           successStatusCode: 201,
         },
-        (service) =>
+        (service, input) =>
           service.issueIngestCredential(
-            ctx.params.orgId ?? "",
-            ctx.params.connectionId ?? "",
-            parsed.data,
+            getOrgId(ctx),
+            getConnectionId(ctx),
+            input,
             buildAuditContext(ctx),
           ),
-      );
-    },
+      ),
     { requiredCapabilities: ["ingest_credentials:write"] },
   ),
   route(
@@ -496,9 +550,9 @@ export const routes: RouteDefinition[] = [
         },
         (service) =>
           service.revokeIngestCredential(
-            ctx.params.orgId ?? "",
-            ctx.params.connectionId ?? "",
-            ctx.params.credentialId ?? "",
+            getOrgId(ctx),
+            getConnectionId(ctx),
+            getCredentialId(ctx),
             buildAuditContext(ctx),
           ),
       ),
@@ -510,8 +564,8 @@ export const routes: RouteDefinition[] = [
     async (ctx) =>
       success(
         (await getService()).listRawEventSummaries(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
+          getOrgId(ctx),
+          getConnectionId(ctx),
         ),
         ctx.requestId,
       ),
@@ -530,9 +584,9 @@ export const routes: RouteDefinition[] = [
         },
         (service) =>
           service.getRawEventPayload(
-            ctx.params.orgId ?? "",
-            ctx.params.connectionId ?? "",
-            ctx.params.eventId ?? "",
+            getOrgId(ctx),
+            getConnectionId(ctx),
+            getEventId(ctx),
           ),
       ),
     { requiredCapabilities: ["raw_events_runtime:write"] },
@@ -540,240 +594,204 @@ export const routes: RouteDefinition[] = [
   route(
     "POST",
     "/v1/runtime/organizations/:orgId/connections/:connectionId/provider-events",
-    async (ctx) => {
-      const parsed = parseBody<ProviderEventsIngestInput>(
-        providerEventsIngestSchema as z.ZodType<ProviderEventsIngestInput>,
+    async (ctx) =>
+      await runParsedServiceAction<
+        {
+          syncRunId: string;
+          lockToken: string;
+          schemaVersion: string;
+          events: IngestEventsInput["events"];
+        },
+        unknown
+      >(
         ctx,
-      );
-      if (!parsed.ok) {
-        return parsed.response;
-      }
-      return await runServiceAction(
-        ctx,
+        providerEventsIngestSchema as z.ZodType<{
+          syncRunId: string;
+          lockToken: string;
+          schemaVersion: string;
+          events: IngestEventsInput["events"];
+        }>,
         {
           errorCode: "PROVIDER_EVENTS_INGEST_FAILED",
           errorMessage: "Unable to ingest provider events",
           successMessage: "Provider events ingested",
         },
-        async (service) =>
+        async (service, input) =>
           await service.ingestProviderEvents(
-            ctx.params.orgId ?? "",
-            ctx.params.connectionId ?? "",
-            parsed.data,
+            getOrgId(ctx),
+            getConnectionId(ctx),
+            {
+              syncRunId: input.syncRunId,
+              workerId: input.lockToken,
+              schemaVersion: input.schemaVersion,
+              events: input.events,
+            },
             buildAuditContext(ctx),
           ),
-      );
-    },
+      ),
     { requiredCapabilities: ["provider_runtime:write"] },
   ),
   route(
     "POST",
     "/v1/organizations/:orgId/connections/:connectionId/raw-events/claim",
-    async (ctx) => {
-      const parsed = parseBody<{ workerId: string; limit: number }>(
-        claimRawEventsSchema as z.ZodType<{ workerId: string; limit: number }>,
+    async (ctx) =>
+      await runParsedServiceAction<{ limit: number }, unknown>(
         ctx,
-      );
-      if (!parsed.ok) {
-        return parsed.response;
-      }
-      return await runServiceAction(
-        ctx,
+        claimRawEventsSchema as z.ZodType<{ limit: number }>,
         {
           errorCode: "RAW_EVENTS_CLAIM_FAILED",
           errorMessage: "Unable to claim raw events",
           successMessage: "Raw events claimed",
         },
-        (service) =>
-          service.claimRawEvents(
-            ctx.params.orgId ?? "",
-            ctx.params.connectionId ?? "",
-            parsed.data.workerId,
-            parsed.data.limit,
+        (service, input) =>
+          service.claimRawEventsWithOpaqueClaims(
+            getOrgId(ctx),
+            getConnectionId(ctx),
+            input.limit,
             buildAuditContext(ctx),
           ),
-      );
-    },
+      ),
     { requiredCapabilities: ["raw_events_runtime:write"] },
   ),
   route(
     "POST",
     "/v1/organizations/:orgId/connections/:connectionId/raw-events/:rawEventId/processed",
-    async (ctx) => {
-      const parsed = parseBody<{ workerId: string }>(
-        rawEventProcessingSchema as z.ZodType<{ workerId: string }>,
+    async (ctx) =>
+      await runParsedServiceAction<{ claimToken: string }, unknown>(
         ctx,
-      );
-      if (!parsed.ok) {
-        return parsed.response;
-      }
-      return await runServiceAction(
-        ctx,
+        rawEventProcessingSchema as z.ZodType<{ claimToken: string }>,
         {
           errorCode: "RAW_EVENT_PROCESS_FAILED",
           errorMessage: "Unable to mark raw event as processed",
           successMessage: "Raw event marked as processed",
         },
-        (service) =>
+        (service, input) =>
           service.markRawEventProcessed(
-            ctx.params.orgId ?? "",
-            ctx.params.connectionId ?? "",
-            ctx.params.rawEventId ?? "",
-            parsed.data.workerId,
+            getOrgId(ctx),
+            getConnectionId(ctx),
+            getRawEventId(ctx),
+            input.claimToken,
             buildAuditContext(ctx),
           ),
-      );
-    },
+      ),
     { requiredCapabilities: ["raw_events_runtime:write"] },
   ),
   route(
     "POST",
     "/v1/organizations/:orgId/connections/:connectionId/raw-events/:rawEventId/failed",
-    async (ctx) => {
-      const parsed = parseBody<{ workerId: string; errorMessage: string }>(
+    async (ctx) =>
+      await runParsedServiceAction<
+        { claimToken: string; errorMessage: string },
+        unknown
+      >(
+        ctx,
         rawEventFailureSchema as z.ZodType<{
-          workerId: string;
+          claimToken: string;
           errorMessage: string;
         }>,
-        ctx,
-      );
-      if (!parsed.ok) {
-        return parsed.response;
-      }
-      return await runServiceAction(
-        ctx,
         {
           errorCode: "RAW_EVENT_FAIL_FAILED",
           errorMessage: "Unable to mark raw event as failed",
           successMessage: "Raw event marked as failed",
         },
-        (service) =>
+        (service, input) =>
           service.markRawEventFailed(
-            ctx.params.orgId ?? "",
-            ctx.params.connectionId ?? "",
-            ctx.params.rawEventId ?? "",
-            parsed.data.workerId,
-            parsed.data.errorMessage,
+            getOrgId(ctx),
+            getConnectionId(ctx),
+            getRawEventId(ctx),
+            input.claimToken,
+            input.errorMessage,
             buildAuditContext(ctx),
           ),
-      );
-    },
+      ),
     { requiredCapabilities: ["raw_events_runtime:write"] },
   ),
   route(
     "POST",
     "/v1/organizations/:orgId/connections",
-    async (ctx) => {
-      const parsed = parseBody<CreateConnectionInput>(
+    async (ctx) =>
+      await runParsedServiceAction<CreateConnectionInput, unknown>(
+        ctx,
         createConnectionSchema as z.ZodType<CreateConnectionInput>,
-        ctx,
-      );
-      if (!parsed.ok) {
-        return parsed.response;
-      }
-      return await runServiceAction(
-        ctx,
         {
           errorCode: "CONNECTION_CREATE_FAILED",
           errorMessage: "Unable to create connection",
           successMessage: "Connection created",
           successStatusCode: 201,
         },
-        (service) =>
+        (service, input) =>
           service.createConnection(
-            ctx.params.orgId ?? "",
-            parsed.data,
+            getOrgId(ctx),
+            input,
             buildAuditContext(ctx),
           ),
-      );
-    },
+      ),
     { requiredCapabilities: ["connections:write"] },
   ),
   route(
     "PATCH",
     "/v1/organizations/:orgId/connections/:connectionId",
-    async (ctx) => {
-      const parsed = parseBody<UpdateConnectionInput>(
+    async (ctx) =>
+      await runParsedServiceAction<UpdateConnectionInput, unknown>(
+        ctx,
         updateConnectionSchema as z.ZodType<UpdateConnectionInput>,
-        ctx,
-      );
-      if (!parsed.ok) {
-        return parsed.response;
-      }
-      return await runServiceAction(
-        ctx,
         {
           errorCode: "CONNECTION_UPDATE_FAILED",
           errorMessage: "Unable to update connection",
           successMessage: "Connection updated",
         },
-        (service) =>
+        (service, input) =>
           service.updateConnection(
-            ctx.params.orgId ?? "",
-            ctx.params.connectionId ?? "",
-            parsed.data,
+            getOrgId(ctx),
+            getConnectionId(ctx),
+            input,
             buildAuditContext(ctx),
           ),
-      );
-    },
+      ),
     { requiredCapabilities: ["connections:write"] },
   ),
   route(
     "POST",
     "/v1/organizations/:orgId/connections/:connectionId/authorize/start",
-    async (ctx) => {
-      const parsed = parseBody<AuthorizationStartInput>(
+    async (ctx) =>
+      await runParsedServiceAction<AuthorizationStartInput, unknown>(
+        ctx,
         authorizationStartSchema as z.ZodType<AuthorizationStartInput>,
-        ctx,
-      );
-      if (!parsed.ok) {
-        return parsed.response;
-      }
-      return await runServiceAction(
-        ctx,
         {
           errorCode: "AUTHORIZATION_START_FAILED",
           errorMessage: "Unable to start authorization",
           successMessage: "Authorization URL generated",
         },
-        (service) =>
+        (service, input) =>
           service.startAuthorization(
-            ctx.params.orgId ?? "",
-            ctx.params.connectionId ?? "",
-            parsed.data,
+            getOrgId(ctx),
+            getConnectionId(ctx),
+            input,
             buildAuditContext(ctx),
           ),
-      );
-    },
+      ),
     { requiredCapabilities: ["oauth:write"] },
   ),
   route(
     "POST",
     "/v1/organizations/:orgId/connections/:connectionId/authorize/complete",
-    async (ctx) => {
-      const parsed = parseBody<AuthorizationCompleteInput>(
+    async (ctx) =>
+      await runParsedServiceAction<AuthorizationCompleteInput, unknown>(
+        ctx,
         authorizationCompleteSchema as z.ZodType<AuthorizationCompleteInput>,
-        ctx,
-      );
-      if (!parsed.ok) {
-        return parsed.response;
-      }
-      return await runServiceAction(
-        ctx,
         {
           errorCode: "AUTHORIZATION_COMPLETE_FAILED",
           errorMessage: "Unable to complete authorization",
           successMessage: "Authorization completed",
         },
-        async (service) =>
+        async (service, input) =>
           await service.completeAuthorization(
-            ctx.params.orgId ?? "",
-            ctx.params.connectionId ?? "",
-            parsed.data,
+            getOrgId(ctx),
+            getConnectionId(ctx),
+            input,
             buildAuditContext(ctx),
           ),
-      );
-    },
+      ),
     { requiredCapabilities: ["oauth:write"] },
   ),
   route(
@@ -788,8 +806,8 @@ export const routes: RouteDefinition[] = [
         },
         async (service) =>
           await service.testConnection(
-            ctx.params.orgId ?? "",
-            ctx.params.connectionId ?? "",
+            getOrgId(ctx),
+            getConnectionId(ctx),
             buildAuditContext(ctx),
           ),
       ),
@@ -823,8 +841,8 @@ export const routes: RouteDefinition[] = [
         const run = await (
           await getService()
         ).triggerSync(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
+          getOrgId(ctx),
+          getConnectionId(ctx),
           parsed.data,
           idempotencyKey.value,
           buildAuditContext(ctx),
@@ -855,8 +873,11 @@ export const routes: RouteDefinition[] = [
     "POST",
     "/v1/runtime/sync-runs/claim",
     async (ctx) => {
-      const parsed = parseBody<ClaimSyncRunsInput>(
-        claimSyncRunsSchema as z.ZodType<ClaimSyncRunsInput>,
+      const parsed = parseBody<{ limit: number; leaseSeconds: number }>(
+        claimSyncRunsSchema as z.ZodType<{
+          limit: number;
+          leaseSeconds: number;
+        }>,
         ctx,
       );
       if (!parsed.ok) {
@@ -871,7 +892,7 @@ export const routes: RouteDefinition[] = [
           successMessage: "Sync runs claimed",
         },
         (service) =>
-          service.claimSyncRuns(
+          service.claimSyncRunsWithOpaqueLocks(
             ctx.principal?.allowedOrgs ?? [],
             parsed.data,
             buildAuditContext(ctx),
@@ -886,7 +907,7 @@ export const routes: RouteDefinition[] = [
     async (ctx) =>
       success(
         (await getService()).listSyncRuns(
-          ctx.params.orgId ?? "",
+          getOrgId(ctx),
           ctx.query.get("connectionId"),
         ),
         ctx.requestId,
@@ -897,13 +918,8 @@ export const routes: RouteDefinition[] = [
     "GET",
     "/v1/organizations/:orgId/sync-runs/:runId",
     async (ctx) => {
-      bindRouteCorrelation(ctx, {
-        connectorRunId: ctx.params.runId ?? null,
-      });
-      const run = (await getService()).getSyncRun(
-        ctx.params.orgId ?? "",
-        ctx.params.runId ?? "",
-      );
+      bindConnectorRunId(ctx, getRunId(ctx));
+      const run = (await getService()).getSyncRun(getOrgId(ctx), getRunId(ctx));
       if (run == null) {
         return failure("NOT_FOUND", "Sync run not found", ctx.requestId, 404);
       }
@@ -915,16 +931,14 @@ export const routes: RouteDefinition[] = [
     "POST",
     "/v1/organizations/:orgId/sync-runs/:runId/execution-plan",
     async (ctx) => {
-      const parsed = parseBody<GetSyncRunExecutionPlanInput>(
-        syncRunExecutionPlanSchema as z.ZodType<GetSyncRunExecutionPlanInput>,
+      const parsed = parseBody<{ lockToken: string }>(
+        syncRunExecutionPlanSchema as z.ZodType<{ lockToken: string }>,
         ctx,
       );
       if (!parsed.ok) {
         return parsed.response;
       }
-      bindRouteCorrelation(ctx, {
-        connectorRunId: ctx.params.runId ?? null,
-      });
+      bindConnectorRunId(ctx, getRunId(ctx));
       return await runServiceAction(
         ctx,
         {
@@ -934,9 +948,11 @@ export const routes: RouteDefinition[] = [
         },
         (service) =>
           service.getSyncRunExecutionPlan(
-            ctx.params.orgId ?? "",
-            ctx.params.runId ?? "",
-            parsed.data,
+            getOrgId(ctx),
+            getRunId(ctx),
+            {
+              workerId: parsed.data.lockToken,
+            },
             buildAuditContext(ctx),
           ),
       );
@@ -947,16 +963,22 @@ export const routes: RouteDefinition[] = [
     "POST",
     "/v1/organizations/:orgId/sync-runs/:runId/completed",
     async (ctx) => {
-      const parsed = parseBody<CompleteSyncRunInput>(
-        completeSyncRunSchema as z.ZodType<CompleteSyncRunInput>,
+      const parsed = parseBody<{
+        lockToken: string;
+        recordsFetched: number;
+        recordsWritten: number;
+      }>(
+        completeSyncRunSchema as z.ZodType<{
+          lockToken: string;
+          recordsFetched: number;
+          recordsWritten: number;
+        }>,
         ctx,
       );
       if (!parsed.ok) {
         return parsed.response;
       }
-      bindRouteCorrelation(ctx, {
-        connectorRunId: ctx.params.runId ?? null,
-      });
+      bindConnectorRunId(ctx, getRunId(ctx));
       return await runServiceAction(
         ctx,
         {
@@ -966,9 +988,13 @@ export const routes: RouteDefinition[] = [
         },
         (service) =>
           service.markSyncRunCompleted(
-            ctx.params.orgId ?? "",
-            ctx.params.runId ?? "",
-            parsed.data,
+            getOrgId(ctx),
+            getRunId(ctx),
+            {
+              workerId: parsed.data.lockToken,
+              recordsFetched: parsed.data.recordsFetched,
+              recordsWritten: parsed.data.recordsWritten,
+            },
             buildAuditContext(ctx),
           ),
       );
@@ -979,16 +1005,26 @@ export const routes: RouteDefinition[] = [
     "POST",
     "/v1/organizations/:orgId/sync-runs/:runId/sync-state",
     async (ctx) => {
-      const parsed = parseBody<UpsertSyncStateInput>(
-        syncStateUpdateSchema as z.ZodType<UpsertSyncStateInput>,
+      const parsed = parseBody<{
+        lockToken: string;
+        sourceObject: string;
+        watermarkText?: string | null;
+        watermarkAt?: string | null;
+        cursorJson?: Record<string, unknown> | null;
+      }>(
+        syncStateUpdateSchema as z.ZodType<{
+          lockToken: string;
+          sourceObject: string;
+          watermarkText?: string | null;
+          watermarkAt?: string | null;
+          cursorJson?: Record<string, unknown> | null;
+        }>,
         ctx,
       );
       if (!parsed.ok) {
         return parsed.response;
       }
-      bindRouteCorrelation(ctx, {
-        connectorRunId: ctx.params.runId ?? null,
-      });
+      bindConnectorRunId(ctx, getRunId(ctx));
       return await runServiceAction(
         ctx,
         {
@@ -998,9 +1034,21 @@ export const routes: RouteDefinition[] = [
         },
         (service) =>
           service.upsertSyncStateForRun(
-            ctx.params.orgId ?? "",
-            ctx.params.runId ?? "",
-            parsed.data,
+            getOrgId(ctx),
+            getRunId(ctx),
+            {
+              workerId: parsed.data.lockToken,
+              sourceObject: parsed.data.sourceObject,
+              ...(parsed.data.watermarkText !== undefined
+                ? { watermarkText: parsed.data.watermarkText }
+                : {}),
+              ...(parsed.data.watermarkAt !== undefined
+                ? { watermarkAt: parsed.data.watermarkAt }
+                : {}),
+              ...(parsed.data.cursorJson !== undefined
+                ? { cursorJson: parsed.data.cursorJson }
+                : {}),
+            },
             buildAuditContext(ctx),
           ),
       );
@@ -1011,16 +1059,26 @@ export const routes: RouteDefinition[] = [
     "POST",
     "/v1/organizations/:orgId/sync-runs/:runId/failed",
     async (ctx) => {
-      const parsed = parseBody<FailSyncRunInput>(
-        failSyncRunSchema as z.ZodType<FailSyncRunInput>,
+      const parsed = parseBody<{
+        lockToken: string;
+        errorMessage: string;
+        errorClass?: string | null;
+        retryable?: boolean;
+        retryDelaySeconds?: number | null;
+      }>(
+        failSyncRunSchema as z.ZodType<{
+          lockToken: string;
+          errorMessage: string;
+          errorClass?: string | null;
+          retryable?: boolean;
+          retryDelaySeconds?: number | null;
+        }>,
         ctx,
       );
       if (!parsed.ok) {
         return parsed.response;
       }
-      bindRouteCorrelation(ctx, {
-        connectorRunId: ctx.params.runId ?? null,
-      });
+      bindConnectorRunId(ctx, getRunId(ctx));
       return await runServiceAction(
         ctx,
         {
@@ -1030,9 +1088,21 @@ export const routes: RouteDefinition[] = [
         },
         (service) =>
           service.markSyncRunFailed(
-            ctx.params.orgId ?? "",
-            ctx.params.runId ?? "",
-            parsed.data,
+            getOrgId(ctx),
+            getRunId(ctx),
+            {
+              workerId: parsed.data.lockToken,
+              errorMessage: parsed.data.errorMessage,
+              ...(parsed.data.errorClass !== undefined
+                ? { errorClass: parsed.data.errorClass }
+                : {}),
+              ...(parsed.data.retryable !== undefined
+                ? { retryable: parsed.data.retryable }
+                : {}),
+              ...(parsed.data.retryDelaySeconds !== undefined
+                ? { retryDelaySeconds: parsed.data.retryDelaySeconds }
+                : {}),
+            },
             buildAuditContext(ctx),
           ),
       );
@@ -1045,7 +1115,7 @@ export const routes: RouteDefinition[] = [
     async (ctx) =>
       success(
         (await getService()).listAuditEvents(
-          ctx.params.orgId ?? "",
+          getOrgId(ctx),
           ctx.query.get("connectionId"),
         ),
         ctx.requestId,
@@ -1080,8 +1150,8 @@ export const routes: RouteDefinition[] = [
         const result = await (
           await getService()
         ).ingestEvents(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
+          getOrgId(ctx),
+          getConnectionId(ctx),
           parsed.data,
           buildIngestAuthContext(ctx),
           idempotencyKey.value,
@@ -1093,8 +1163,8 @@ export const routes: RouteDefinition[] = [
       } catch (error) {
         if (error instanceof IngestAuthenticationError) {
           logIngestSecurityEvent("connectors.ingest.auth_failed", ctx, {
-            organizationId: ctx.params.orgId ?? "",
-            connectionId: ctx.params.connectionId ?? "",
+            organizationId: getOrgId(ctx),
+            connectionId: getConnectionId(ctx),
             reason: error.reason,
           });
           return failure(

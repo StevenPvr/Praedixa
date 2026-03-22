@@ -7,6 +7,7 @@ Infrastructure Alembic du schema SQLAlchemy Python.
 ## Fichiers
 
 - `env.py` : integration Alembic / metadata SQLAlchemy
+  - importe `alembic.context` explicitement pour garder Pylance tranquille sur les symboles Alembic runtime
 - `script.py.mako` : template des revisions
 - `versions/` : historique versionne des migrations
 

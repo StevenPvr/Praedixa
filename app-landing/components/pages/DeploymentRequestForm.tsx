@@ -178,7 +178,9 @@ function DeploymentOrganisationFields({
           id="deployment-companyName"
           label={`${field("companyName").label} *`}
           maxLength={200}
-          placeholder={field("companyName").placeholder}
+          {...(field("companyName").placeholder !== undefined
+            ? { placeholder: field("companyName").placeholder }
+            : {})}
           value={form.companyName}
           onChange={(value) => update("companyName", value)}
         />
@@ -262,7 +264,9 @@ function DeploymentContactFields({
           type="email"
           label={`${field("email").label} *`}
           maxLength={254}
-          placeholder={field("email").placeholder}
+          {...(field("email").placeholder !== undefined
+            ? { placeholder: field("email").placeholder }
+            : {})}
           value={form.email}
           onChange={(value) => update("email", value)}
         />
@@ -271,7 +275,9 @@ function DeploymentContactFields({
           type="tel"
           label={field("phone").label}
           maxLength={30}
-          placeholder={field("phone").placeholder}
+          {...(field("phone").placeholder !== undefined
+            ? { placeholder: field("phone").placeholder }
+            : {})}
           value={form.phone}
           onChange={(value) => update("phone", value)}
         />
@@ -305,7 +311,9 @@ function DeploymentChallengeFields({
         id="deployment-currentStack"
         label={field("currentStack").label}
         maxLength={300}
-        placeholder={field("currentStack").placeholder}
+        {...(field("currentStack").placeholder !== undefined
+          ? { placeholder: field("currentStack").placeholder }
+          : {})}
         value={form.currentStack}
         onChange={(value) => update("currentStack", value)}
       />
@@ -356,7 +364,7 @@ function DeploymentTextField({
         id={id}
         type={type}
         maxLength={maxLength}
-        placeholder={placeholder}
+        {...(placeholder !== undefined ? { placeholder } : {})}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className={INPUT_CLASS}
