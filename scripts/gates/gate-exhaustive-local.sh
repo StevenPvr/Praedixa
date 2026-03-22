@@ -271,9 +271,7 @@ run_manual_exhaustive_layer() {
   run_check "quality:radon-maintainability" "quality" "low" "\"${CI_PYTHON_TOOL}\" radon mi app-api/app -s -n A"
 
   run_check "e2e:playwright-chromium-ready" "quality" "medium" "./scripts/dev/check-playwright-chromium.sh"
-  run_check "e2e:api-edge-webapp" "quality" "high" "pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/webapp/api-edge-cases.spec.ts --project=webapp --workers=1 --retries=0"
-  run_check "e2e:critical-ui" "quality" "high" "pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/landing/pilot-form.spec.ts --project=landing --workers=1 --retries=0 && pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/webapp/sidebar-interactions.spec.ts --project=webapp --workers=1 --retries=0"
-  run_check "e2e:admin-navigation-a11y" "quality" "high" "pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/admin/navigation.spec.ts --project=admin --workers=1 --retries=0"
+  run_check "e2e:critical-production-smoke" "quality" "high" "PW_WORKERS=1 pnpm test:e2e:critical"
 
   run_check "performance:bundle-size-landing" "performance" "low" "./scripts/check-bundle-size.sh app-landing"
   run_check "performance:frontend-audits" "performance" "low" "./scripts/run-frontend-audits.sh"

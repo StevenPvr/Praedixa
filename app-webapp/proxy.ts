@@ -15,6 +15,7 @@ export async function proxy(request: NextRequest) {
   // Pass nonce to Server Components via request header
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", cspHeader);
 
   // Run auth middleware
   const response = await updateSession(request, requestHeaders);

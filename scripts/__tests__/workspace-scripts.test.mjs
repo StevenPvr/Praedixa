@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
@@ -12,6 +13,9 @@ import {
 
 const repoRoot = process.cwd();
 const scriptPath = path.join(repoRoot, "scripts", "check-workspace-scripts.mjs");
+const rootPackageJson = JSON.parse(
+  readFileSync(path.join(repoRoot, "package.json"), "utf8"),
+);
 
 function runScript(args) {
   return spawnSync("node", [scriptPath, ...args], {
@@ -59,4 +63,27 @@ test("workspace script guard validates critical test workspaces", () => {
 
   assert.equal(result.status, 0, result.stderr || result.stdout);
   assert.match(result.stdout, /\[workspace-scripts\] OK/);
+});
+
+test("root test entrypoint validates workspace test policy before running suites", () => {
+  assert.match(
+    rootPackageJson.scripts.test,
+    /\bpnpm workspaces:check:critical-tests\b/,
+  );
+});
+
+test("root Playwright scripts use the repo-local binary", () => {
+  const e2eScripts = Object.entries(rootPackageJson.scripts).filter(([name]) =>
+    name.startsWith("test:e2e"),
+  );
+
+  assert.ok(e2eScripts.length > 0);
+
+  for (const [name, command] of e2eScripts) {
+    assert.match(
+      command,
+      /\bpnpm exec playwright\b/,
+      `${name} must use pnpm exec playwright`,
+    );
+  }
 });

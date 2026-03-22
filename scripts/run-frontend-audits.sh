@@ -65,6 +65,7 @@ start_standalone_app() {
   local port="$2"
   local log_path="$3"
   local server_path="${ROOT_DIR}/${app_dir}/.next/standalone/${app_dir}/server.js"
+  local runner_path="${ROOT_DIR}/scripts/dev/run-next-standalone.sh"
 
   if [[ ! -f "$server_path" ]]; then
     echo "[frontend-audits] Missing standalone server for ${app_dir}: ${server_path}" >&2
@@ -72,10 +73,13 @@ start_standalone_app() {
     exit 1
   fi
 
+  if [[ ! -x "$runner_path" ]]; then
+    echo "[frontend-audits] Missing standalone runner: ${runner_path}" >&2
+    exit 1
+  fi
+
   (
-    cd "${ROOT_DIR}/${app_dir}"
-    exec env HOSTNAME="127.0.0.1" PORT="$port" \
-      node ".next/standalone/${app_dir}/server.js" >"$log_path" 2>&1
+    exec "${runner_path}" "${app_dir}" "${port}" >"$log_path" 2>&1
   ) &
   STARTED_PID="$!"
 }

@@ -21,11 +21,13 @@ echo "[ci-authoritative] Signed report verification..."
 
 echo "[ci-authoritative] Runtime secret contract..."
 node scripts/validate-runtime-secret-inventory.mjs
+node scripts/validate-runtime-env-inventory.mjs
 node scripts/validate-runtime-env-contracts.mjs
 
 echo "[ci-authoritative] Durable release-contract tests..."
 node --test \
   scripts/__tests__/runtime-env-contracts.test.mjs \
+  scripts/__tests__/validate-runtime-env-inventory.test.mjs \
   scripts/__tests__/validate-runtime-secret-inventory.test.mjs \
   scripts/__tests__/release-manifest-gate-report.test.mjs \
   scripts/__tests__/release-manifest-logging.test.mjs \

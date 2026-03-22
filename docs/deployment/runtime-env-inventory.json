@@ -1,0 +1,154 @@
+{
+  "inventory_type": "runtime-env",
+  "schema_version": "1",
+  "services": [
+    {
+      "service_id": "landing-staging",
+      "environment": "staging",
+      "service": "landing",
+      "env_groups": []
+    },
+    {
+      "service_id": "landing-prod",
+      "environment": "prod",
+      "service": "landing",
+      "env_groups": []
+    },
+    {
+      "service_id": "webapp-staging",
+      "environment": "staging",
+      "service": "webapp",
+      "env_groups": [
+        {
+          "mode": "all_of",
+          "required_in_runtime": true,
+          "keys": [
+            "NEXT_PUBLIC_API_URL",
+            "AUTH_OIDC_ISSUER_URL",
+            "AUTH_OIDC_CLIENT_ID",
+            "AUTH_OIDC_SCOPE"
+          ],
+          "purpose": "webapp upstream API and OIDC bootstrap"
+        },
+        {
+          "mode": "all_of",
+          "required_in_runtime": false,
+          "keys": [
+            "AUTH_TRUST_X_FORWARDED_FOR",
+            "AUTH_RATE_LIMIT_KEY_PREFIX",
+            "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+            "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS"
+          ],
+          "purpose": "webapp trusted proxy and auth rate-limit tuning"
+        }
+      ]
+    },
+    {
+      "service_id": "webapp-prod",
+      "environment": "prod",
+      "service": "webapp",
+      "env_groups": [
+        {
+          "mode": "all_of",
+          "required_in_runtime": true,
+          "keys": [
+            "NEXT_PUBLIC_API_URL",
+            "AUTH_OIDC_ISSUER_URL",
+            "AUTH_OIDC_CLIENT_ID",
+            "AUTH_OIDC_SCOPE"
+          ],
+          "purpose": "webapp upstream API and OIDC bootstrap"
+        },
+        {
+          "mode": "all_of",
+          "required_in_runtime": false,
+          "keys": [
+            "AUTH_TRUST_X_FORWARDED_FOR",
+            "AUTH_RATE_LIMIT_KEY_PREFIX",
+            "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+            "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS"
+          ],
+          "purpose": "webapp trusted proxy and auth rate-limit tuning"
+        }
+      ]
+    },
+    {
+      "service_id": "admin-staging",
+      "environment": "staging",
+      "service": "admin",
+      "env_groups": [
+        {
+          "mode": "all_of",
+          "required_in_runtime": true,
+          "keys": [
+            "NEXT_PUBLIC_API_URL",
+            "AUTH_OIDC_ISSUER_URL",
+            "AUTH_OIDC_CLIENT_ID",
+            "AUTH_OIDC_SCOPE"
+          ],
+          "purpose": "admin upstream API and OIDC bootstrap"
+        },
+        {
+          "mode": "all_of",
+          "required_in_runtime": false,
+          "keys": [
+            "AUTH_TRUST_X_FORWARDED_FOR",
+            "AUTH_RATE_LIMIT_KEY_PREFIX",
+            "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+            "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+            "AUTH_ADMIN_REQUIRED_AMR"
+          ],
+          "purpose": "admin trusted proxy, auth rate-limit tuning and MFA policy"
+        }
+      ]
+    },
+    {
+      "service_id": "admin-prod",
+      "environment": "prod",
+      "service": "admin",
+      "env_groups": [
+        {
+          "mode": "all_of",
+          "required_in_runtime": true,
+          "keys": [
+            "NEXT_PUBLIC_API_URL",
+            "AUTH_OIDC_ISSUER_URL",
+            "AUTH_OIDC_CLIENT_ID",
+            "AUTH_OIDC_SCOPE"
+          ],
+          "purpose": "admin upstream API and OIDC bootstrap"
+        },
+        {
+          "mode": "all_of",
+          "required_in_runtime": false,
+          "keys": [
+            "AUTH_TRUST_X_FORWARDED_FOR",
+            "AUTH_RATE_LIMIT_KEY_PREFIX",
+            "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+            "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+            "AUTH_ADMIN_REQUIRED_AMR"
+          ],
+          "purpose": "admin trusted proxy, auth rate-limit tuning and MFA policy"
+        }
+      ]
+    },
+    {
+      "service_id": "api-staging",
+      "environment": "staging",
+      "service": "api",
+      "env_groups": []
+    },
+    {
+      "service_id": "api-prod",
+      "environment": "prod",
+      "service": "api",
+      "env_groups": []
+    },
+    {
+      "service_id": "auth-prod",
+      "environment": "prod",
+      "service": "auth",
+      "env_groups": []
+    }
+  ]
+}

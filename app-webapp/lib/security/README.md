@@ -12,7 +12,8 @@ Ce dossier regroupe les protections transverses du webapp hors auth OIDC stricte
 
 ## Usage
 
-- `proxy.ts` s'appuie sur `csp.ts` pour injecter le nonce.
+- `proxy.ts` s'appuie sur `csp.ts` pour injecter le nonce et recopier la CSP complete dans les headers de requete avant rendu, afin que Next.js applique bien le nonce aux scripts framework et aux flux streames en production.
+- Les ecrans proteges sous `app/(app)` restent en rendu dynamique (`dynamic = "force-dynamic"`), car une page prerendue ne peut pas recevoir un nonce CSP request-scoped sans casser l'hydratation Next.js.
 - Les route handlers `app/auth/*` et `app/api/v1/*` utilisent `same-origin.ts`.
 - `next.config.ts` importe `headers.ts` pour les headers generaux.
 - Les handlers JSON comme `/auth/session` et `/api/v1/*` restent stricts; seule une route qui passe `allowNavigate: true` peut accepter un navigateur sans header `Origin`.

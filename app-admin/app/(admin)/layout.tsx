@@ -5,6 +5,8 @@ type AdminLayoutProps = Readonly<{
   children: ReactNode;
 }>;
 
+export const dynamic = "force-dynamic";
+
 export default function AdminLayout({ children }: AdminLayoutProps) {
   return <AdminShell>{children}</AdminShell>;
 }

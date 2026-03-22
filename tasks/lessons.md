@@ -1,7 +1,10 @@
 # Lessons
 
+- 2026-03-22: Quand un repo versionne `@playwright/test`, lancer toujours les scripts et gates E2E via `pnpm exec playwright`; un binaire global plus vieux peut casser toutes les specs avec un faux symptome de config.
+- 2026-03-22: Quand un pack Playwright large devient heterogene ou en drift, ne pas le laisser bloquer tous les commits; faire du lot bloquant une suite critique reduite et production-like (`next start` apres build), puis garder le sweep complet en manuel jusqu'a realignement.
 - 2026-03-22: Quand une surface webapp est reouverte par un drapeau runtime (`messagingWorkspace`, `userPreferencesPersistence`), rerun tout de suite les E2E de la page concernee; les unit tests mockes ne suffisent pas a prouver que le runtime reel est encore ouvert.
 - 2026-03-22: Quand un monorepo TypeScript a plusieurs apps et packages, ne pas se contenter d'un unique `tsc --build` cache dans un gate profond; ajouter un agregateur de typecheck par projet au `pre-push` pour remonter toutes les erreurs de type d'un coup.
+- 2026-03-22: Quand on versionne un contrat runtime genere, ne pas le limiter aux secrets et a l'origin frontend; inclure aussi les variables runtime non secretes obligatoires (`NEXT_PUBLIC_API_URL`, OIDC issuer/client/scope, reglages auth front), sinon un drift de deploiement reste invisible.
 - 2026-03-22: Quand l'utilisateur demande explicitement une grosse passe `clean-code` avec plusieurs agents en parallele, lancer tout de suite des sous-taches focalisees par zones de responsabilite au lieu de garder toute la passe sur un seul thread.
 - 2026-03-22: Quand un workflow d'onboarding expose plusieurs familles d'actions metier, ne pas forcer un format cockpit unique; si l'operateur doit avancer pas a pas, le bon paradigme est un assistant par etapes et non une grande colonne de panneaux.
 - 2026-03-22: Quand un ecran operateur melange lancement, selection et execution dans la meme densite visuelle, le probleme n'est pas du polish mais de l'architecture d'information; il faut separer explicitement ces zones avant d'ajouter du style.
@@ -99,6 +102,7 @@
 - Quand un downgrade Alembic re-copie la meme logique de policies plusieurs fois, extraire d'abord un helper de restauration partage pour garder le corps de `downgrade()` sous la limite de complexite sans changer la politique RLS.
 - Quand une migration BPM repete `now()` et des JSONB vides `'"'"'{}'"'"'::jsonb`, introduire des constantes locales pour les defaults de colonne plutot que de laisser les literals se disperser dans chaque `sa.Column`.
 - Quand le Keycloak local tourne en `dev-file`, forcer aussi `KC_CACHE=local` dans `infra/docker-compose.yml`; sinon un reboot peut partir en pseudo-cluster `jdbc-ping`, retarder la discovery OIDC et recreer des `fetch failed` cote admin.
+- Quand une app Next applique une CSP a nonce, garder les ecrans App Router proteges en rendu dynamique; un prerender `○` casse l'hydratation car les scripts et flux inline ne peuvent pas recevoir un nonce scope par requete.
 - Quand un flux client depend de `execute-actions-email`, verifier que le realm versionne et le realm live enregistrent vraiment la required action `UPDATE_PASSWORD`; avoir `requiredActions=["UPDATE_PASSWORD"]` sur l'utilisateur ne suffit pas si le provider n'existe pas dans le realm.
 - Quand l'utilisateur corrige le contenu exact qu'il a soumis a un jury ou a un tiers, re-evaluer immediatement sur l'artefact reel soumis et non sur le document le plus proche ou le plus complet present dans le repo.
 - Quand un hook monorepo lance des commandes Next.js, restaurer explicitement les `next-env.d.ts` generes avant de sortir; un gate vert qui laisse ces fichiers modifies peut bloquer le `push` sans rapport avec le vrai code applicatif.

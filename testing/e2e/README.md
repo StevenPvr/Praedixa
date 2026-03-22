@@ -13,6 +13,7 @@ La config est definie dans `playwright.config.ts` a la racine. Par defaut, les t
 Les web servers Playwright doivent demarrer via les binaires app-locaux `./node_modules/.bin/next` avec `cwd` dedie, pas via des wrappers `pnpm`, pour que le teardown des hooks puisse tuer le vrai processus serveur sans rester suspendu.
 En local, le repo force maintenant `1` worker Playwright par defaut; utilise `PW_WORKERS=<n>` seulement si tu veux volontairement remonter la parallelisation.
 La suite `pnpm test:e2e:admin` demarre maintenant `admin` et `webapp`, parce qu'elle inclut la verification de session croisee `cross-app-session-isolation`.
+Les gates autoritaires du repo utilisent `pnpm test:e2e:critical`, qui rebuild les trois apps puis lance un sous-ensemble critique sur les serveurs standalone via `scripts/dev/run-next-standalone.sh`. Ce helper rehydrate aussi `.next/static` et `public` dans le runtime standalone local pour coller au plus pres du comportement de production. `pnpm test:e2e` reste le pack de regression large et manuel.
 
 ## Lancer les suites
 
@@ -24,13 +25,14 @@ pnpm test:e2e:webapp
 pnpm test:e2e:admin
 pnpm test:e2e:admin:cross-app
 pnpm test:e2e:smoke
+pnpm test:e2e:critical
 ```
 
 Pour une spec ciblee:
 
 ```bash
 pnpm e2e:ports:free
-PW_SERVER_TARGETS=webapp playwright test testing/e2e/webapp/dashboard.spec.ts --project=webapp
+PW_SERVER_TARGETS=webapp pnpm exec playwright test testing/e2e/webapp/dashboard.spec.ts --project=webapp
 ```
 
 ## Conventions

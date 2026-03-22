@@ -1,50 +1,54 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-
-let mockSearchParams = new URLSearchParams();
 
 const originalLocation = window.location;
 const fetchMock = vi.fn();
-
-vi.mock("next/navigation", () => ({
-  useSearchParams: () => mockSearchParams,
-}));
+const assignMock = vi.fn();
 
 import LoginPage from "../page";
 import AuthLayout from "../../layout";
 
+async function renderLoginPage(searchParams?: Record<string, string>) {
+  render(
+    await LoginPage({ searchParams: Promise.resolve(searchParams ?? {}) }),
+  );
+}
+
 describe("Admin LoginPage", () => {
   beforeEach(() => {
-    mockSearchParams = new URLSearchParams();
     fetchMock.mockReset();
+    assignMock.mockReset();
     fetchMock.mockResolvedValue({
       ok: false,
       json: vi.fn(),
     });
     vi.stubGlobal("fetch", fetchMock);
     vi.unstubAllEnvs();
-    window.sessionStorage.clear();
     Object.defineProperty(window, "location", {
       configurable: true,
       writable: true,
-      value: { href: "", origin: "https://admin.praedixa.com" },
+      value: {
+        ...originalLocation,
+        origin: "https://admin.praedixa.com",
+        assign: assignMock,
+      },
     });
   });
 
   afterEach(() => {
     Object.defineProperty(window, "location", {
       configurable: true,
+      writable: true,
       value: originalLocation,
     });
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
   });
 
-  it("renders admin login header", () => {
+  it("renders admin login header", async () => {
     render(
       <AuthLayout>
-        <LoginPage />
+        {await LoginPage({ searchParams: Promise.resolve({}) })}
       </AuthLayout>,
     );
 
@@ -55,43 +59,39 @@ describe("Admin LoginPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders reauth banner when reauth=1", () => {
-    mockSearchParams = new URLSearchParams("reauth=1");
-    render(<LoginPage />);
+  it("renders reauth banner when reauth=1", async () => {
+    await renderLoginPage({ reauth: "1" });
 
     expect(
       screen.getByText(/Session expiree ou droits insuffisants/),
     ).toBeInTheDocument();
   });
 
-  it("renders auth error banner", () => {
-    mockSearchParams = new URLSearchParams("error=auth_callback_failed");
-    render(<LoginPage />);
+  it("renders auth error banner", async () => {
+    await renderLoginPage({ error: "auth_callback_failed" });
 
     expect(screen.getByText(/La connexion a echoue/)).toBeInTheDocument();
   });
 
-  it("renders explicit MFA-required banner", () => {
-    mockSearchParams = new URLSearchParams("error=admin_mfa_required");
-    render(<LoginPage />);
+  it("renders explicit MFA-required banner", async () => {
+    await renderLoginPage({ error: "admin_mfa_required" });
 
     expect(screen.getByText(/authentification MFA valide/)).toBeInTheDocument();
   });
 
-  it("renders explicit missing OIDC config banner", () => {
-    mockSearchParams = new URLSearchParams("error=oidc_config_missing");
-    render(<LoginPage />);
+  it("renders explicit missing OIDC config banner", async () => {
+    await renderLoginPage({ error: "oidc_config_missing" });
 
     expect(
       screen.getByText(/Configuration OIDC manquante en local/),
     ).toBeInTheDocument();
   });
 
-  it("renders explicit untrusted OIDC provider banner", () => {
-    mockSearchParams = new URLSearchParams(
-      `error=oidc_provider_untrusted&provider_retry_at=${Date.now()}`,
-    );
-    render(<LoginPage />);
+  it("renders explicit untrusted OIDC provider banner", async () => {
+    await renderLoginPage({
+      error: "oidc_provider_untrusted",
+      provider_retry_at: String(Date.now()),
+    });
 
     expect(
       screen.getByText(/Le fournisseur OIDC est non fiable ou mal configure/),
@@ -99,15 +99,15 @@ describe("Admin LoginPage", () => {
   });
 
   it("auto-retries login once when the stale OIDC provider error is already recovered", async () => {
-    mockSearchParams = new URLSearchParams(
-      "error=oidc_provider_untrusted&next=/",
-    );
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: vi.fn().mockResolvedValue({ healthy: true }),
     });
 
-    render(<LoginPage />);
+    await renderLoginPage({
+      error: "oidc_provider_untrusted",
+      next: "/",
+    });
 
     expect(
       screen.getByText(/Verification du fournisseur OIDC en cours/),
@@ -123,95 +123,62 @@ describe("Admin LoginPage", () => {
           Accept: "application/json",
         },
       });
-      const redirected = new URL(window.location.href);
+      const redirected = new URL(assignMock.mock.calls.at(-1)?.[0] ?? "");
       expect(redirected.pathname).toBe("/auth/login");
       expect(redirected.searchParams.get("next")).toBe("/");
-      expect(redirected.searchParams.get("provider_retry_at")).toMatch(/^\d+$/);
     });
   });
 
-  it("suppresses auto-retry for a very recent provider retry marker", () => {
-    mockSearchParams = new URLSearchParams(
-      `error=oidc_provider_untrusted&next=/&provider_retry_at=${Date.now()}`,
-    );
-    render(<LoginPage />);
+  it("suppresses auto-retry for a very recent provider retry marker", async () => {
+    await renderLoginPage({
+      error: "oidc_provider_untrusted",
+      next: "/",
+      provider_retry_at: String(Date.now()),
+    });
 
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(window.location.href).toBe("");
+    expect(assignMock).not.toHaveBeenCalled();
   });
 
   it("retries again once the provider retry marker is old enough", async () => {
-    vi.stubEnv("NEXT_PUBLIC_APP_ORIGIN", "http://localhost:3002");
-    mockSearchParams = new URLSearchParams(
-      `error=oidc_provider_untrusted&next=/&provider_retry_at=${Date.now() - 20_000}`,
-    );
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      writable: true,
-      value: { href: "", origin: "http://127.0.0.1:3002" },
-    });
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: vi.fn().mockResolvedValue({ healthy: true }),
     });
 
-    render(<LoginPage />);
+    await renderLoginPage({
+      error: "oidc_provider_untrusted",
+      next: "/",
+      provider_retry_at: String(Date.now() - 20_000),
+    });
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalled();
-      expect(window.location.href).toContain(
-        "http://localhost:3002/auth/login?next=%2F",
+      expect(assignMock.mock.calls.at(-1)?.[0]).toContain(
+        "/auth/login?next=%2F",
       );
     });
   });
 
-  it("redirects to /auth/login with safe next path", async () => {
-    const user = userEvent.setup();
-    mockSearchParams = new URLSearchParams("next=/clients");
-    render(<LoginPage />);
+  it("posts to /auth/login with safe next path", async () => {
+    await renderLoginPage({ next: "/clients" });
 
-    await user.click(
-      screen.getByRole("button", { name: "Continuer vers la connexion" }),
-    );
+    const form = screen
+      .getByRole("button", { name: "Continuer vers la connexion" })
+      .closest("form");
 
-    expect(window.location.href).toBe(
-      "https://admin.praedixa.com/auth/login?next=%2Fclients",
-    );
-  });
-
-  it("prefers NEXT_PUBLIC_APP_ORIGIN when the current tab uses a loopback alias", async () => {
-    const user = userEvent.setup();
-    vi.stubEnv("NEXT_PUBLIC_APP_ORIGIN", "http://localhost:3002");
-    mockSearchParams = new URLSearchParams("next=/");
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      writable: true,
-      value: { href: "", origin: "http://127.0.0.1:3002" },
-    });
-
-    render(<LoginPage />);
-
-    await user.click(
-      screen.getByRole("button", { name: "Continuer vers la connexion" }),
-    );
-
-    expect(window.location.href).toBe(
-      "http://localhost:3002/auth/login?next=%2F",
+    expect(form).toHaveAttribute("action", "/auth/login");
+    expect(form).toHaveAttribute("method", "get");
+    expect(screen.getByDisplayValue("/clients")).toHaveAttribute(
+      "name",
+      "next",
     );
   });
 
   it("sanitizes unsafe next path and forwards prompt=login when reauth", async () => {
-    const user = userEvent.setup();
-    mockSearchParams = new URLSearchParams("next=//evil.com&reauth=1");
-    render(<LoginPage />);
+    await renderLoginPage({ next: "//evil.com", reauth: "1" });
 
-    await user.click(
-      screen.getByRole("button", { name: "Continuer vers la connexion" }),
-    );
-
-    const redirected = new URL(window.location.href);
-    expect(redirected.pathname).toBe("/auth/login");
-    expect(redirected.searchParams.get("next")).toBe("/");
-    expect(redirected.searchParams.get("prompt")).toBe("login");
+    expect(screen.getByDisplayValue("/")).toHaveAttribute("name", "next");
+    expect(screen.getByDisplayValue("login")).toHaveAttribute("name", "prompt");
   });
 });

@@ -39,6 +39,11 @@ pnpm lint
 echo "[gate-quality-static] Workspace typecheck..."
 ./scripts/gates/gate-typecheck-all.sh
 
+echo "[gate-quality-static] Runtime deployment contracts..."
+node scripts/validate-runtime-secret-inventory.mjs
+node scripts/validate-runtime-env-inventory.mjs
+node scripts/validate-runtime-env-contracts.mjs
+
 echo "[gate-quality-static] Python static analysis..."
 (
   cd app-api

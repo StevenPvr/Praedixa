@@ -14,7 +14,7 @@ async function redirectToReauth(
   error?: { code?: string; requestId?: string },
 ): Promise<void> {
   router.replace(buildReauthUrl(error));
-  await clearAuthSession();
+  void clearAuthSession();
 }
 
 const hooks = createApiHooks({

@@ -1,36 +1,17 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-
-let mockSearchParams = new URLSearchParams();
-
-const originalLocation = window.location;
-
-vi.mock("next/navigation", () => ({
-  useSearchParams: () => mockSearchParams,
-}));
 
 import LoginPage from "../page";
 
+async function renderLoginPage(searchParams?: Record<string, string>) {
+  render(
+    await LoginPage({ searchParams: Promise.resolve(searchParams ?? {}) }),
+  );
+}
+
 describe("LoginPage", () => {
-  beforeEach(() => {
-    mockSearchParams = new URLSearchParams();
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      writable: true,
-      value: { href: "", origin: "https://app.praedixa.com" },
-    });
-  });
-
-  afterEach(() => {
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      value: originalLocation,
-    });
-  });
-
-  it("renders OIDC login content", () => {
-    render(<LoginPage />);
+  it("renders OIDC login content", async () => {
+    await renderLoginPage();
 
     expect(screen.getByText("Client access")).toBeInTheDocument();
     expect(screen.getByText("Connexion securisee")).toBeInTheDocument();
@@ -39,20 +20,21 @@ describe("LoginPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders reauth banner when reauth=1", () => {
-    mockSearchParams = new URLSearchParams("reauth=1");
-    render(<LoginPage />);
+  it("renders reauth banner when reauth=1", async () => {
+    await renderLoginPage({ reauth: "1" });
 
     expect(
       screen.getByText(/Session expiree ou droits insuffisants/),
     ).toBeInTheDocument();
   });
 
-  it("renders API reauth context and support reference", () => {
-    mockSearchParams = new URLSearchParams(
-      "reauth=1&reason=api_unauthorized&error_code=UNAUTHORIZED&request_id=req-1234",
-    );
-    render(<LoginPage />);
+  it("renders API reauth context and support reference", async () => {
+    await renderLoginPage({
+      reauth: "1",
+      reason: "api_unauthorized",
+      error_code: "UNAUTHORIZED",
+      request_id: "req-1234",
+    });
 
     expect(
       screen.getByText(/l'API a refuse ce token\. Veuillez vous reconnecter\./),
@@ -62,20 +44,19 @@ describe("LoginPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders auth error banner", () => {
-    mockSearchParams = new URLSearchParams("error=wrong_role");
-    render(<LoginPage />);
+  it("renders auth error banner", async () => {
+    await renderLoginPage({ error: "wrong_role" });
 
     expect(
       screen.getByText(/Ce compte super admin doit utiliser la console admin/),
     ).toBeInTheDocument();
   });
 
-  it("renders explicit invalid claims banner", () => {
-    mockSearchParams = new URLSearchParams(
-      "error=auth_claims_invalid&token_reason=missing_role",
-    );
-    render(<LoginPage />);
+  it("renders explicit invalid claims banner", async () => {
+    await renderLoginPage({
+      error: "auth_claims_invalid",
+      token_reason: "missing_role",
+    });
 
     expect(
       screen.getByText(
@@ -86,59 +67,52 @@ describe("LoginPage", () => {
     expect(screen.getByText(/missing_role/)).toBeInTheDocument();
   });
 
-  it("renders explicit missing OIDC config banner", () => {
-    mockSearchParams = new URLSearchParams("error=oidc_config_missing");
-    render(<LoginPage />);
+  it("renders explicit missing OIDC config banner", async () => {
+    await renderLoginPage({ error: "oidc_config_missing" });
 
     expect(
       screen.getByText(/Configuration OIDC invalide\./),
     ).toBeInTheDocument();
   });
 
-  it("renders explicit untrusted OIDC provider banner", () => {
-    mockSearchParams = new URLSearchParams("error=oidc_provider_untrusted");
-    render(<LoginPage />);
+  it("renders explicit untrusted OIDC provider banner", async () => {
+    await renderLoginPage({ error: "oidc_provider_untrusted" });
 
     expect(
       screen.getByText(/Le fournisseur OIDC est non fiable ou mal configure/),
     ).toBeInTheDocument();
   });
 
-  it("renders explicit insecure OIDC session secret banner", () => {
-    mockSearchParams = new URLSearchParams("error=oidc_config_insecure");
-    render(<LoginPage />);
+  it("renders explicit insecure OIDC session secret banner", async () => {
+    await renderLoginPage({ error: "oidc_config_insecure" });
 
     expect(
       screen.getByText(/Le secret de session OIDC est trop faible/),
     ).toBeInTheDocument();
   });
 
-  it("redirects to /auth/login with explicit safe next path", async () => {
-    const user = userEvent.setup();
-    mockSearchParams = new URLSearchParams("next=/previsions");
-    render(<LoginPage />);
+  it("posts to /auth/login with explicit safe next path", async () => {
+    await renderLoginPage({ next: "/previsions" });
 
-    await user.click(
-      screen.getByRole("button", { name: "Continuer vers la connexion" }),
-    );
+    const form = screen
+      .getByRole("button", { name: "Continuer vers la connexion" })
+      .closest("form");
 
-    expect(window.location.href).toBe(
-      "https://app.praedixa.com/auth/login?next=%2Fprevisions",
+    expect(form).toHaveAttribute("action", "/auth/login");
+    expect(form).toHaveAttribute("method", "get");
+    expect(screen.getByDisplayValue("/previsions")).toHaveAttribute(
+      "name",
+      "next",
     );
   });
 
   it("sanitizes unsafe next path and appends prompt=login when reauth", async () => {
-    const user = userEvent.setup();
-    mockSearchParams = new URLSearchParams("next=//evil.com&reauth=1");
-    render(<LoginPage />);
+    await renderLoginPage({ next: "//evil.com", reauth: "1" });
 
-    await user.click(
-      screen.getByRole("button", { name: "Continuer vers la connexion" }),
+    expect(screen.getByDisplayValue("/dashboard")).toHaveAttribute(
+      "name",
+      "next",
     );
-
-    const redirected = new URL(window.location.href);
-    expect(redirected.pathname).toBe("/auth/login");
-    expect(redirected.searchParams.get("next")).toBe("/dashboard");
-    expect(redirected.searchParams.get("prompt")).toBe("login");
+    expect(screen.getByDisplayValue("login")).toHaveAttribute("name", "prompt");
   });
 });

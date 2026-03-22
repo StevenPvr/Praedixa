@@ -18,6 +18,8 @@ const EXPECT_TIMEOUT_MS = process.env.CI ? 12_000 : 10_000;
 const ACTION_TIMEOUT_MS = 10_000;
 const NAVIGATION_TIMEOUT_MS = 20_000;
 const REUSE_EXISTING_SERVERS = process.env.PW_REUSE_SERVER === "1";
+const SERVER_MODE =
+  process.env.PW_SERVER_MODE === "production" ? "production" : "development";
 type PlaywrightWebServer = NonNullable<
   NonNullable<Parameters<typeof defineConfig>[0]["webServer"]>[number]
 >;
@@ -57,11 +59,28 @@ function shouldStartServer(target: ServerTarget): boolean {
   );
 }
 
+function resolveNextServerCommand(args: {
+  appName: string;
+  appPort: number;
+  enableTurbopack?: boolean;
+}): string {
+  const baseCommand = "./node_modules/.bin/next";
+
+  if (SERVER_MODE === "production") {
+    return `bash ../scripts/dev/run-next-standalone.sh ${args.appName} ${args.appPort}`;
+  }
+
+  const turbopackFlag = args.enableTurbopack ? " --turbopack" : "";
+  return `${baseCommand} dev${turbopackFlag} --hostname 127.0.0.1 --port ${args.appPort}`;
+}
+
 const webServers = [
   shouldStartServer("landing")
     ? {
-        command:
-          "./node_modules/.bin/next dev --hostname 127.0.0.1 --port 3000",
+        command: resolveNextServerCommand({
+          appName: "app-landing",
+          appPort: 3000,
+        }),
         cwd: "app-landing",
         url: "http://localhost:3000",
         reuseExistingServer: REUSE_EXISTING_SERVERS,
@@ -70,8 +89,11 @@ const webServers = [
     : null,
   shouldStartServer("webapp")
     ? {
-        command:
-          "./node_modules/.bin/next dev --turbopack --hostname 127.0.0.1 --port 3001",
+        command: resolveNextServerCommand({
+          appName: "app-webapp",
+          appPort: 3001,
+          enableTurbopack: true,
+        }),
         cwd: "app-webapp",
         url: "http://localhost:3001",
         reuseExistingServer: REUSE_EXISTING_SERVERS,
@@ -88,8 +110,11 @@ const webServers = [
     : null,
   shouldStartServer("admin")
     ? {
-        command:
-          "./node_modules/.bin/next dev --turbopack --hostname 127.0.0.1 --port 3002",
+        command: resolveNextServerCommand({
+          appName: "app-admin",
+          appPort: 3002,
+          enableTurbopack: true,
+        }),
         cwd: "app-admin",
         url: "http://localhost:3002",
         reuseExistingServer: REUSE_EXISTING_SERVERS,

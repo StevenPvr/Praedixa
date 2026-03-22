@@ -81,6 +81,9 @@ describe("proxy (root)", () => {
       | Headers
       | undefined;
     expect(forwardedHeaders?.get("x-nonce")).toBe("dGVzdC1ub25jZQ==");
+    expect(forwardedHeaders?.get("Content-Security-Policy")).toContain(
+      "nonce-dGVzdC1ub25jZQ==",
+    );
   });
 
   it("should export a matcher config that excludes static assets", () => {

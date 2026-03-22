@@ -1,11 +1,32 @@
-"use client";
-
-import { Suspense, useEffect, useState } from "react";
 import { ArrowRight, LockKeyhole } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { ProviderAutoRetry } from "./provider-auto-retry";
 
 const AUTO_RETRY_QUERY_PARAM = "provider_retry_at";
 const AUTO_RETRY_SUPPRESSION_MS = 10_000;
+
+interface LoginSearchParams {
+  [key: string]: string | string[] | undefined;
+}
+
+async function resolveSearchParams(
+  searchParams?: Promise<LoginSearchParams>,
+): Promise<LoginSearchParams> {
+  return searchParams ? await searchParams : {};
+}
+
+function readSearchParam(
+  searchParams: LoginSearchParams,
+  key: string,
+): string | null {
+  const value = searchParams[key];
+  if (typeof value === "string") {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return typeof value[0] === "string" ? value[0] : null;
+  }
+  return null;
+}
 
 function toLoginErrorMessage(error: string | null): string | null {
   if (!error) return null;
@@ -24,123 +45,59 @@ function toLoginErrorMessage(error: string | null): string | null {
   return "La connexion a echoue. Veuillez reessayer.";
 }
 
-function buildLoginUrl(
-  origin: string,
-  safeNext: string,
-  isReauth: boolean,
-  autoRetryAt?: number,
-): string {
-  const loginUrl = new URL("/auth/login", origin);
-  loginUrl.searchParams.set("next", safeNext);
-  if (isReauth) {
-    loginUrl.searchParams.set("prompt", "login");
+function sanitizeNextPath(next: string | null): string {
+  if (!next) {
+    return "/";
   }
-  if (typeof autoRetryAt === "number" && Number.isFinite(autoRetryAt)) {
-    loginUrl.searchParams.set(AUTO_RETRY_QUERY_PARAM, String(autoRetryAt));
-  }
-  return loginUrl.toString();
+
+  return next.startsWith("/") && !next.startsWith("//") ? next : "/";
 }
 
-function resolveClientAuthOrigin(): string {
-  const configuredOrigin = process.env["NEXT_PUBLIC_APP_ORIGIN"]?.trim() ?? "";
-
-  if (configuredOrigin.length === 0) {
-    return globalThis.location.origin;
+function shouldAttemptAutoRetry(params: {
+  autoRetryAt: number;
+  error: string | null;
+}): boolean {
+  if (params.error !== "oidc_provider_untrusted") {
+    return false;
   }
 
-  try {
-    const parsed = new URL(configuredOrigin);
-    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
-      return parsed.origin;
-    }
-  } catch {
-    // Fall through to the current browser origin.
+  if (!Number.isFinite(params.autoRetryAt)) {
+    return true;
   }
 
-  return globalThis.location.origin;
+  return Date.now() - params.autoRetryAt >= AUTO_RETRY_SUPPRESSION_MS;
 }
 
-function LoginForm() {
-  const searchParams = useSearchParams();
-  const isReauth = searchParams.get("reauth") === "1";
-  const error = searchParams.get("error");
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams?: Promise<LoginSearchParams>;
+}) {
+  const resolvedSearchParams = await resolveSearchParams(searchParams);
+  const isReauth = readSearchParam(resolvedSearchParams, "reauth") === "1";
+  const error = readSearchParam(resolvedSearchParams, "error");
   const errorMessage = toLoginErrorMessage(error);
-  const autoRetryAtRaw = searchParams.get(AUTO_RETRY_QUERY_PARAM);
-
-  const next = searchParams.get("next") ?? "/";
-  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
-  const autoRetryAt = autoRetryAtRaw ? Number(autoRetryAtRaw) : NaN;
-  const shouldSuppressAutoRetry =
-    Number.isFinite(autoRetryAt) &&
-    Date.now() - autoRetryAt < AUTO_RETRY_SUPPRESSION_MS;
-  const shouldAttemptAutoRetry =
-    error === "oidc_provider_untrusted" && !shouldSuppressAutoRetry;
-  const [isCheckingProvider, setIsCheckingProvider] = useState(
-    shouldAttemptAutoRetry,
+  const safeNext = sanitizeNextPath(
+    readSearchParam(resolvedSearchParams, "next"),
   );
-
-  function handleLogin(): void {
-    globalThis.location.href = buildLoginUrl(
-      resolveClientAuthOrigin(),
-      safeNext,
-      isReauth,
-    );
-  }
-
-  useEffect(() => {
-    if (!shouldAttemptAutoRetry) {
-      setIsCheckingProvider(false);
-      return;
-    }
-
-    let cancelled = false;
-    setIsCheckingProvider(true);
-
-    void globalThis
-      .fetch("/auth/provider-status", {
-        cache: "no-store",
-        headers: {
-          Accept: "application/json",
-        },
-      })
-      .then(async (response) => {
-        if (!response.ok) {
-          return null;
-        }
-
-        const parsed = (await response.json()) as unknown;
-        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-          return null;
-        }
-
-        return parsed as { healthy?: boolean };
-      })
-      .then((payload) => {
-        if (cancelled || payload?.healthy !== true) {
-          return;
-        }
-
-        globalThis.location.href = buildLoginUrl(
-          resolveClientAuthOrigin(),
-          safeNext,
-          isReauth,
-          Date.now(),
-        );
-      })
-      .catch(() => undefined)
-      .finally(() => {
-        if (!cancelled) {
-          setIsCheckingProvider(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isReauth, safeNext, shouldAttemptAutoRetry]);
+  const autoRetryAtRaw = readSearchParam(
+    resolvedSearchParams,
+    AUTO_RETRY_QUERY_PARAM,
+  );
+  const autoRetryAt = autoRetryAtRaw ? Number(autoRetryAtRaw) : Number.NaN;
+  const autoRetry = shouldAttemptAutoRetry({
+    autoRetryAt,
+    error,
+  });
 
   return (
     <div className="space-y-6">
+      <ProviderAutoRetry
+        isReauth={isReauth}
+        safeNext={safeNext}
+        shouldAttempt={autoRetry}
+      />
+
       <div className="space-y-2 text-center">
         <p className="text-xs uppercase tracking-[0.16em] text-ink-tertiary">
           Super admin access
@@ -158,41 +115,35 @@ function LoginForm() {
           </div>
         )}
 
+        {autoRetry && error === "oidc_provider_untrusted" ? (
+          <div className="rounded-lg border border-warning-light bg-warning-light/50 px-4 py-3 text-sm text-warning-text">
+            Verification du fournisseur OIDC en cours avant nouvelle
+            tentative...
+          </div>
+        ) : null}
+
         {errorMessage &&
-          !(error === "oidc_provider_untrusted" && isCheckingProvider) && (
+          !(error === "oidc_provider_untrusted" && autoRetry) && (
             <div className="rounded-lg border border-danger-light bg-danger-light/50 px-4 py-3 text-sm text-danger-text">
               {errorMessage}
             </div>
           )}
 
-        {isCheckingProvider && error === "oidc_provider_untrusted" && (
-          <div className="rounded-lg border border-warning-light bg-warning-light/50 px-4 py-3 text-sm text-warning-text">
-            Verification du fournisseur OIDC en cours avant nouvelle
-            tentative...
-          </div>
-        )}
-
-        <button
-          type="button"
-          onClick={handleLogin}
-          disabled={isCheckingProvider}
-          className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-600"
-        >
-          <LockKeyhole className="h-4 w-4" />
-          {isCheckingProvider
-            ? "Verification de la connexion..."
-            : "Continuer vers la connexion"}
-          <ArrowRight className="h-4 w-4" />
-        </button>
+        <form action="/auth/login" method="get">
+          <input type="hidden" name="next" value={safeNext} />
+          {isReauth ? (
+            <input type="hidden" name="prompt" value="login" />
+          ) : null}
+          <button
+            type="submit"
+            className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-600"
+          >
+            <LockKeyhole className="h-4 w-4" />
+            Continuer vers la connexion
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </form>
       </div>
     </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense>
-      <LoginForm />
-    </Suspense>
   );
 }

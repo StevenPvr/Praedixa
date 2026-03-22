@@ -7,8 +7,42 @@ import {
   deriveRuntimeEnvContracts,
   stringifyRuntimeEnvContracts,
 } from "./runtime-env-contracts.mjs";
+import {
+  loadRuntimeEnvInventory,
+  validateRuntimeEnvInventory,
+} from "./runtime-env-inventory.mjs";
+import {
+  loadRuntimeSecretInventory,
+  validateRuntimeSecretInventory,
+} from "./validate-runtime-secret-inventory.mjs";
 
-const expected = stringifyRuntimeEnvContracts(deriveRuntimeEnvContracts());
+const secretInventory = loadRuntimeSecretInventory();
+const secretErrors = validateRuntimeSecretInventory(secretInventory);
+if (secretErrors.length > 0) {
+  console.error(
+    [
+      "[runtime-env-contracts] Runtime secret inventory invalid",
+      ...secretErrors.map((error) => `- ${error}`),
+    ].join("\n"),
+  );
+  process.exit(1);
+}
+
+const envInventory = loadRuntimeEnvInventory();
+const envErrors = validateRuntimeEnvInventory(envInventory, { secretInventory });
+if (envErrors.length > 0) {
+  console.error(
+    [
+      "[runtime-env-contracts] Runtime env inventory invalid",
+      ...envErrors.map((error) => `- ${error}`),
+    ].join("\n"),
+  );
+  process.exit(1);
+}
+
+const expected = await stringifyRuntimeEnvContracts(
+  deriveRuntimeEnvContracts({ inventory: secretInventory, envInventory }),
+);
 
 if (!existsSync(defaultOutputPath)) {
   console.error(

@@ -1,3 +1,81 @@
+# Current Pass - 2026-03-22 - Monorepo Enforcement And Runtime Env Contracts
+
+### Plan
+
+- [x] Auditer les garde-fous racine existants (`package.json`, `turbo.json`, `check-workspace-scripts`, contrats runtime) pour verifier s'ils ferment vraiment les No-Go restants
+- [x] Durcir les scripts racine et la policy workspace la ou une absence silencieuse de tests ou une derive de graphe reste encore possible
+- [x] Etendre le contrat runtime genere pour couvrir aussi les variables runtime non secretes obligatoires, puis brancher la validation dans la CI autoritaire et la doc
+- [x] Revalider avec les checks cibles et consigner la revue
+
+### Review
+
+- Diagnostic:
+  - le graphe workspace et les scripts racine avaient deja sorti le repo du mode liste manuelle pour `build`, `lint` et `typecheck`, et la policy `critical-test` couvrait bien les workspaces critiques.
+  - le vrai trou restant sur cet axe etait le contrat runtime genere: il ne derivait encore que les secrets et la paire d'origins frontend. Les variables runtime non secretes mais indispensables au boot/deploiement (`NEXT_PUBLIC_API_URL`, `AUTH_OIDC_ISSUER_URL`, `AUTH_OIDC_CLIENT_ID`, `AUTH_OIDC_SCOPE`, reglages auth front) pouvaient donc encore deriver sans faire tomber la CI.
+  - le script racine `test` ne rappelait pas explicitement ce garde-fou policy avant d'entrer dans les suites.
+- Correctifs appliques:
+  - ajout de `docs/deployment/runtime-env-inventory.json` comme source de verite machine-readable pour les variables runtime non secretes par surface.
+  - ajout de `scripts/runtime-env-inventory.mjs` et `scripts/validate-runtime-env-inventory.mjs` pour valider cet inventaire et empecher les duplications de source de verite avec `public_origin`.
+  - `scripts/runtime-env-contracts.mjs` derive maintenant un contrat complet depuis secrets + env non secrets + topologie, avec `required_env_keys`, `optional_env_keys`, `all_env_keys`, puis les unions `required_runtime_keys` / `all_runtime_keys`.
+  - `scripts/generate-runtime-env-contracts.mjs` et `scripts/validate-runtime-env-contracts.mjs` valident maintenant explicitement les deux inventaires avant de generer ou de comparer le contrat versionne.
+  - `scripts/ci/run-authoritative-ci.sh` et `scripts/gates/gate-quality-static.sh` rejouent ces validateurs pour que le contrat runtime complet redevienne un vrai garde-fou, pas juste un artefact documentaire.
+  - `package.json` fait maintenant passer `pnpm test` par `workspaces:check:critical-tests` avant les suites.
+  - les tests repo-owned couvrent le nouveau contrat env via `scripts/__tests__/validate-runtime-env-inventory.test.mjs`, `scripts/__tests__/runtime-env-contracts.test.mjs` et `scripts/__tests__/workspace-scripts.test.mjs`.
+- Verification:
+  - `node scripts/validate-runtime-secret-inventory.mjs`
+  - `node scripts/validate-runtime-env-inventory.mjs`
+  - `node scripts/generate-runtime-env-contracts.mjs`
+  - `node scripts/validate-runtime-env-contracts.mjs`
+  - `node scripts/check-workspace-scripts.mjs --task build --task lint --task typecheck`
+  - `node scripts/check-workspace-scripts.mjs --task test --scope critical-test`
+  - `pnpm workspaces:check:critical-tests`
+  - `node --test scripts/__tests__/validate-runtime-env-inventory.test.mjs scripts/__tests__/runtime-env-contracts.test.mjs scripts/__tests__/workspace-scripts.test.mjs`
+
+# Current Pass - 2026-03-22 - Playwright CLI Pinning For Hooked E2E
+
+### Plan
+
+- [x] Reproduire le blocage `pre-push` sur `pnpm test:e2e` et isoler si le probleme vient du bootstrap Playwright ou des web servers Next
+- [x] Corriger la cause racine dans les scripts racine et gates repo pour forcer le binaire Playwright local
+- [x] Ajouter un garde-fou test/documentation puis reverifier le smoke E2E cross-app
+
+### Review
+
+- Cause racine:
+  - le repo appelait `playwright test` depuis les scripts racine, ce qui resolvait ici vers un binaire global Homebrew en `1.51.0` alors que le repo depend de `@playwright/test` `1.58.1`.
+  - ce drift de version faisait charger les specs avec un runtime incoherent et produisait le faux symptome `Playwright Test did not expect test.describe() to be called here`.
+- Correctifs appliques:
+  - `package.json` force maintenant tous les scripts `test:e2e*` a utiliser `pnpm exec playwright`.
+  - `scripts/gates/gate-exhaustive-local.sh` force aussi `pnpm exec playwright` sur les checks E2E critiques.
+  - `testing/e2e/README.md` documente la commande ciblee correcte.
+  - `scripts/__tests__/workspace-scripts.test.mjs` couvre explicitement ce contrat pour empecher un retour au binaire global.
+- Verification:
+  - `node --test scripts/__tests__/workspace-scripts.test.mjs`
+  - `PW_REUSE_SERVER=0 PW_SERVER_TARGETS=landing pnpm exec playwright test --project=landing --workers=1 --list`
+  - `PW_REUSE_SERVER=0 PW_SERVER_TARGETS=webapp pnpm exec playwright test --project=webapp --workers=1 --list`
+  - `PW_REUSE_SERVER=0 PW_SERVER_TARGETS=admin,webapp pnpm exec playwright test --project=admin --workers=1 --list`
+  - `pnpm test:e2e:smoke`
+
+# Current Pass - 2026-03-22 - Authoritative Playwright Critical Path
+
+### Plan
+
+- [x] Qualifier si les echecs E2E bloquants viennent du produit ou d'un pack de regression heterogene
+- [x] Basculer la suite E2E autoritaire sur un sous-ensemble critique production-like pour les hooks et la CI
+- [ ] Reverifier ce nouveau chemin critique puis rejouer commit et push
+
+### Review
+
+- Diagnostic:
+  - `pnpm test:e2e` large reste utile comme sweep manuel, mais il melange actuellement du drift spec produit, des regressions anciennes et des crashes de serveurs `next dev` a long run.
+  - le chemin critique repo-owned doit rester bloque sur des parcours representatifs et stables, pas sur un pack hétérogène qui n'est plus une autorite fiable.
+- Correctifs appliques:
+  - `playwright.config.ts` supporte maintenant `PW_SERVER_MODE=production`, ce qui demarre les apps via `next start` au lieu de `next dev`.
+  - ajout de `pnpm test:e2e:critical`, qui rebuild `landing`, `webapp` et `admin`, puis execute un lot critique borne sur des serveurs production-like.
+  - `scripts/gates/gate-precommit-tests.sh` bloque maintenant sur `pnpm test:e2e:critical`.
+  - `scripts/gates/gate-exhaustive-local.sh` a ete recentre sur `e2e:critical-production-smoke` au lieu d'un trio de specs historiques en drift.
+  - `testing/e2e/README.md` documente la difference entre le lot critique autoritaire et le sweep manuel complet.
+
 # Current Pass - 2026-03-22 - Pre-Push Typecheck Aggregator
 
 ### Plan
@@ -6929,3 +7007,20 @@
   - `pnpm typecheck`
   - `pnpm test`
   - `pnpm build`
+
+## Current Pass - 2026-03-22 - Production-Like E2E Nonce And Standalone Repair
+
+### Review
+
+- Fixed the last blocking production-like webapp/admin E2E drift by aligning the runtime with the real Next.js nonce contract:
+  - `app-webapp/proxy.ts` now forwards the full `Content-Security-Policy` header upstream alongside `x-nonce`, matching the Next.js 16 nonce guidance.
+  - Protected route groups now stay dynamic in `app-webapp/app/(app)/layout.tsx` and `app-admin/app/(admin)/layout.tsx`, so request-scoped CSP nonces are compatible with hydration and streamed inline scripts.
+  - Added `scripts/dev/run-next-standalone.sh` and switched Playwright production-mode plus frontend audits to that helper, which rehydrates `.next/static` and `public` into the standalone runtime before boot.
+- Updated the durable docs in `testing/e2e/README.md`, `scripts/README.md`, `app-webapp/lib/security/README.md`, `app-admin/lib/security/README.md`, plus a permanent prevention rule in `AGENTS.md`.
+
+### Verification
+
+- `pnpm --dir app-webapp exec vitest run '__tests__/middleware.test.ts' 'lib/security/__tests__/csp.test.ts' 'app/(auth)/login/__tests__/page.test.tsx' 'hooks/__tests__/use-api.test.ts'`
+- `pnpm --dir app-admin exec vitest run '__tests__/middleware.test.ts' 'app/(auth)/login/__tests__/page.test.tsx'`
+- `bash -n scripts/dev/run-next-standalone.sh scripts/run-frontend-audits.sh`
+- `pnpm test:e2e:critical`

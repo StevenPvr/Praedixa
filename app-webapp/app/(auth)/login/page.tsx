@@ -1,9 +1,29 @@
-"use client";
-
-import { Suspense } from "react";
-import { ArrowRight, LockKey } from "@phosphor-icons/react";
-import { useSearchParams } from "next/navigation";
+import { ArrowRight, LockKeyhole } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+interface LoginSearchParams {
+  [key: string]: string | string[] | undefined;
+}
+
+async function resolveSearchParams(
+  searchParams?: Promise<LoginSearchParams>,
+): Promise<LoginSearchParams> {
+  return searchParams ? await searchParams : {};
+}
+
+function readSearchParam(
+  searchParams: LoginSearchParams,
+  key: string,
+): string | null {
+  const value = searchParams[key];
+  if (typeof value === "string") {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return typeof value[0] === "string" ? value[0] : null;
+  }
+  return null;
+}
 
 function toLoginErrorMessage(error: string | null): string | null {
   if (!error) return null;
@@ -54,18 +74,36 @@ function toReauthMessage(
   return "Session expiree ou droits insuffisants. Veuillez vous reconnecter.";
 }
 
-function LoginForm() {
-  const searchParams = useSearchParams();
-  const isReauth = searchParams.get("reauth") === "1";
-  const error = searchParams.get("error");
+function sanitizeNextPath(next: string | null): string {
+  if (!next) {
+    return "/dashboard";
+  }
+
+  return next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+}
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams?: Promise<LoginSearchParams>;
+}) {
+  const resolvedSearchParams = await resolveSearchParams(searchParams);
+  const isReauth = readSearchParam(resolvedSearchParams, "reauth") === "1";
+  const error = readSearchParam(resolvedSearchParams, "error");
   const tokenReason = sanitizeIncidentToken(
-    searchParams.get("token_reason"),
+    readSearchParam(resolvedSearchParams, "token_reason"),
     64,
   );
   const errorMessage = toLoginErrorMessage(error);
-  const reason = searchParams.get("reason");
-  const errorCode = sanitizeIncidentToken(searchParams.get("error_code"), 64);
-  const requestId = sanitizeIncidentToken(searchParams.get("request_id"), 128);
+  const reason = readSearchParam(resolvedSearchParams, "reason");
+  const errorCode = sanitizeIncidentToken(
+    readSearchParam(resolvedSearchParams, "error_code"),
+    64,
+  );
+  const requestId = sanitizeIncidentToken(
+    readSearchParam(resolvedSearchParams, "request_id"),
+    128,
+  );
   const reauthMessage = toReauthMessage(reason, errorCode);
   const supportHint = [
     errorCode && `code ${errorCode}`,
@@ -73,19 +111,9 @@ function LoginForm() {
   ]
     .filter(Boolean)
     .join(" · ");
-
-  const next = searchParams.get("next") ?? "/dashboard";
-  const safeNext =
-    next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
-
-  function handleLogin(): void {
-    const loginUrl = new URL("/auth/login", window.location.origin);
-    loginUrl.searchParams.set("next", safeNext);
-    if (isReauth) {
-      loginUrl.searchParams.set("prompt", "login");
-    }
-    window.location.href = loginUrl.toString();
-  }
+  const safeNext = sanitizeNextPath(
+    readSearchParam(resolvedSearchParams, "next"),
+  );
 
   return (
     <div className="space-y-6">
@@ -126,25 +154,18 @@ function LoginForm() {
           </div>
         )}
 
-        <Button
-          type="button"
-          onClick={handleLogin}
-          className="w-full"
-          size="lg"
-        >
-          <LockKey className="mr-2 h-4 w-4" />
-          Continuer vers la connexion
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
+        <form action="/auth/login" method="get" className="w-full">
+          <input type="hidden" name="next" value={safeNext} />
+          {isReauth ? (
+            <input type="hidden" name="prompt" value="login" />
+          ) : null}
+          <Button type="submit" className="w-full" size="lg">
+            <LockKeyhole className="mr-2 h-4 w-4" />
+            Continuer vers la connexion
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </form>
       </div>
     </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense>
-      <LoginForm />
-    </Suspense>
   );
 }

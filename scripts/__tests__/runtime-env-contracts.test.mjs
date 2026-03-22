@@ -17,8 +17,10 @@ const generatedPath = path.join(
   "runtime-env-contracts.generated.json",
 );
 
-test("runtime env contracts stay in sync with committed generated output", () => {
-  const expected = stringifyRuntimeEnvContracts(deriveRuntimeEnvContracts());
+test("runtime env contracts stay in sync with committed generated output", async () => {
+  const expected = await stringifyRuntimeEnvContracts(
+    deriveRuntimeEnvContracts(),
+  );
   const committed = readFileSync(generatedPath, "utf8");
 
   assert.equal(committed, expected);
@@ -40,4 +42,28 @@ test("runtime env contracts include topology metadata for API runtime", () => {
     "RESEND_WEBHOOK_SECRET",
     "SCW_SECRET_KEY",
   ]);
+});
+
+test("runtime env contracts include required non-secret frontend env keys", () => {
+  const payload = deriveRuntimeEnvContracts();
+  const adminProd = payload.services.find((service) => service.service_id === "admin-prod");
+
+  assert.ok(adminProd);
+  assert.deepEqual(adminProd.runtime_contract.required_env_keys, [
+    "AUTH_APP_ORIGIN",
+    "AUTH_OIDC_CLIENT_ID",
+    "AUTH_OIDC_ISSUER_URL",
+    "AUTH_OIDC_SCOPE",
+    "NEXT_PUBLIC_API_URL",
+    "NEXT_PUBLIC_APP_ORIGIN",
+  ]);
+  assert.ok(
+    adminProd.runtime_contract.optional_env_keys.includes("AUTH_ADMIN_REQUIRED_AMR"),
+  );
+  assert.ok(
+    adminProd.runtime_contract.all_runtime_keys.includes("AUTH_SESSION_SECRET"),
+  );
+  assert.ok(
+    adminProd.runtime_contract.all_runtime_keys.includes("NEXT_PUBLIC_API_URL"),
+  );
 });

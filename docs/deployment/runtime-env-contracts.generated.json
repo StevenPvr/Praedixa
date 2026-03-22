@@ -3,6 +3,7 @@
   "schema_version": "1",
   "generated_from": {
     "runtime_secret_inventory": "docs/deployment/runtime-secrets-inventory.json",
+    "runtime_env_inventory": "docs/deployment/runtime-env-inventory.json",
     "platform_topology": "infra/opentofu/platform-topology.json"
   },
   "services": [
@@ -27,6 +28,34 @@
           "env_keys": ["AUTH_APP_ORIGIN", "NEXT_PUBLIC_APP_ORIGIN"],
           "required_in_preflight": true
         },
+        "required_env_keys": [
+          "AUTH_APP_ORIGIN",
+          "AUTH_OIDC_CLIENT_ID",
+          "AUTH_OIDC_ISSUER_URL",
+          "AUTH_OIDC_SCOPE",
+          "NEXT_PUBLIC_API_URL",
+          "NEXT_PUBLIC_APP_ORIGIN"
+        ],
+        "optional_env_keys": [
+          "AUTH_ADMIN_REQUIRED_AMR",
+          "AUTH_RATE_LIMIT_KEY_PREFIX",
+          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+          "AUTH_TRUST_X_FORWARDED_FOR"
+        ],
+        "all_env_keys": [
+          "AUTH_ADMIN_REQUIRED_AMR",
+          "AUTH_APP_ORIGIN",
+          "AUTH_OIDC_CLIENT_ID",
+          "AUTH_OIDC_ISSUER_URL",
+          "AUTH_OIDC_SCOPE",
+          "AUTH_RATE_LIMIT_KEY_PREFIX",
+          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+          "AUTH_TRUST_X_FORWARDED_FOR",
+          "NEXT_PUBLIC_API_URL",
+          "NEXT_PUBLIC_APP_ORIGIN"
+        ],
         "required_secret_keys": [
           "AUTH_RATE_LIMIT_KEY_SALT",
           "AUTH_RATE_LIMIT_REDIS_URL",
@@ -39,6 +68,44 @@
           "AUTH_RATE_LIMIT_KEY_SALT",
           "AUTH_RATE_LIMIT_REDIS_URL",
           "AUTH_SESSION_SECRET",
+          "RATE_LIMIT_STORAGE_URI"
+        ],
+        "required_runtime_keys": [
+          "AUTH_APP_ORIGIN",
+          "AUTH_OIDC_CLIENT_ID",
+          "AUTH_OIDC_ISSUER_URL",
+          "AUTH_OIDC_SCOPE",
+          "AUTH_RATE_LIMIT_KEY_SALT",
+          "AUTH_RATE_LIMIT_REDIS_URL",
+          "AUTH_SESSION_SECRET",
+          "NEXT_PUBLIC_API_URL",
+          "NEXT_PUBLIC_APP_ORIGIN",
+          "RATE_LIMIT_STORAGE_URI"
+        ],
+        "optional_runtime_keys": [
+          "AUTH_ADMIN_REQUIRED_AMR",
+          "AUTH_OIDC_CLIENT_SECRET",
+          "AUTH_RATE_LIMIT_KEY_PREFIX",
+          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+          "AUTH_TRUST_X_FORWARDED_FOR"
+        ],
+        "all_runtime_keys": [
+          "AUTH_ADMIN_REQUIRED_AMR",
+          "AUTH_APP_ORIGIN",
+          "AUTH_OIDC_CLIENT_ID",
+          "AUTH_OIDC_CLIENT_SECRET",
+          "AUTH_OIDC_ISSUER_URL",
+          "AUTH_OIDC_SCOPE",
+          "AUTH_RATE_LIMIT_KEY_PREFIX",
+          "AUTH_RATE_LIMIT_KEY_SALT",
+          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_URL",
+          "AUTH_SESSION_SECRET",
+          "AUTH_TRUST_X_FORWARDED_FOR",
+          "NEXT_PUBLIC_API_URL",
+          "NEXT_PUBLIC_APP_ORIGIN",
           "RATE_LIMIT_STORAGE_URI"
         ]
       },
@@ -66,6 +133,34 @@
           "env_keys": ["AUTH_APP_ORIGIN", "NEXT_PUBLIC_APP_ORIGIN"],
           "required_in_preflight": true
         },
+        "required_env_keys": [
+          "AUTH_APP_ORIGIN",
+          "AUTH_OIDC_CLIENT_ID",
+          "AUTH_OIDC_ISSUER_URL",
+          "AUTH_OIDC_SCOPE",
+          "NEXT_PUBLIC_API_URL",
+          "NEXT_PUBLIC_APP_ORIGIN"
+        ],
+        "optional_env_keys": [
+          "AUTH_ADMIN_REQUIRED_AMR",
+          "AUTH_RATE_LIMIT_KEY_PREFIX",
+          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+          "AUTH_TRUST_X_FORWARDED_FOR"
+        ],
+        "all_env_keys": [
+          "AUTH_ADMIN_REQUIRED_AMR",
+          "AUTH_APP_ORIGIN",
+          "AUTH_OIDC_CLIENT_ID",
+          "AUTH_OIDC_ISSUER_URL",
+          "AUTH_OIDC_SCOPE",
+          "AUTH_RATE_LIMIT_KEY_PREFIX",
+          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+          "AUTH_TRUST_X_FORWARDED_FOR",
+          "NEXT_PUBLIC_API_URL",
+          "NEXT_PUBLIC_APP_ORIGIN"
+        ],
         "required_secret_keys": [
           "AUTH_RATE_LIMIT_KEY_SALT",
           "AUTH_RATE_LIMIT_REDIS_URL",
@@ -78,6 +173,44 @@
           "AUTH_RATE_LIMIT_KEY_SALT",
           "AUTH_RATE_LIMIT_REDIS_URL",
           "AUTH_SESSION_SECRET",
+          "RATE_LIMIT_STORAGE_URI"
+        ],
+        "required_runtime_keys": [
+          "AUTH_APP_ORIGIN",
+          "AUTH_OIDC_CLIENT_ID",
+          "AUTH_OIDC_ISSUER_URL",
+          "AUTH_OIDC_SCOPE",
+          "AUTH_RATE_LIMIT_KEY_SALT",
+          "AUTH_RATE_LIMIT_REDIS_URL",
+          "AUTH_SESSION_SECRET",
+          "NEXT_PUBLIC_API_URL",
+          "NEXT_PUBLIC_APP_ORIGIN",
+          "RATE_LIMIT_STORAGE_URI"
+        ],
+        "optional_runtime_keys": [
+          "AUTH_ADMIN_REQUIRED_AMR",
+          "AUTH_OIDC_CLIENT_SECRET",
+          "AUTH_RATE_LIMIT_KEY_PREFIX",
+          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+          "AUTH_TRUST_X_FORWARDED_FOR"
+        ],
+        "all_runtime_keys": [
+          "AUTH_ADMIN_REQUIRED_AMR",
+          "AUTH_APP_ORIGIN",
+          "AUTH_OIDC_CLIENT_ID",
+          "AUTH_OIDC_CLIENT_SECRET",
+          "AUTH_OIDC_ISSUER_URL",
+          "AUTH_OIDC_SCOPE",
+          "AUTH_RATE_LIMIT_KEY_PREFIX",
+          "AUTH_RATE_LIMIT_KEY_SALT",
+          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_URL",
+          "AUTH_SESSION_SECRET",
+          "AUTH_TRUST_X_FORWARDED_FOR",
+          "NEXT_PUBLIC_API_URL",
+          "NEXT_PUBLIC_APP_ORIGIN",
           "RATE_LIMIT_STORAGE_URI"
         ]
       },
@@ -101,6 +234,9 @@
       },
       "runtime_contract": {
         "public_origin": null,
+        "required_env_keys": [],
+        "optional_env_keys": [],
+        "all_env_keys": [],
         "required_secret_keys": [
           "CONTACT_API_INGEST_TOKEN",
           "DATABASE_URL",
@@ -111,6 +247,23 @@
         ],
         "optional_secret_keys": [],
         "all_secret_keys": [
+          "CONTACT_API_INGEST_TOKEN",
+          "DATABASE_URL",
+          "KEYCLOAK_ADMIN_PASSWORD",
+          "RATE_LIMIT_STORAGE_URI",
+          "RESEND_WEBHOOK_SECRET",
+          "SCW_SECRET_KEY"
+        ],
+        "required_runtime_keys": [
+          "CONTACT_API_INGEST_TOKEN",
+          "DATABASE_URL",
+          "KEYCLOAK_ADMIN_PASSWORD",
+          "RATE_LIMIT_STORAGE_URI",
+          "RESEND_WEBHOOK_SECRET",
+          "SCW_SECRET_KEY"
+        ],
+        "optional_runtime_keys": [],
+        "all_runtime_keys": [
           "CONTACT_API_INGEST_TOKEN",
           "DATABASE_URL",
           "KEYCLOAK_ADMIN_PASSWORD",
@@ -139,6 +292,9 @@
       },
       "runtime_contract": {
         "public_origin": null,
+        "required_env_keys": [],
+        "optional_env_keys": [],
+        "all_env_keys": [],
         "required_secret_keys": [
           "CONTACT_API_INGEST_TOKEN",
           "DATABASE_URL",
@@ -149,6 +305,23 @@
         ],
         "optional_secret_keys": [],
         "all_secret_keys": [
+          "CONTACT_API_INGEST_TOKEN",
+          "DATABASE_URL",
+          "KEYCLOAK_ADMIN_PASSWORD",
+          "RATE_LIMIT_STORAGE_URI",
+          "RESEND_WEBHOOK_SECRET",
+          "SCW_SECRET_KEY"
+        ],
+        "required_runtime_keys": [
+          "CONTACT_API_INGEST_TOKEN",
+          "DATABASE_URL",
+          "KEYCLOAK_ADMIN_PASSWORD",
+          "RATE_LIMIT_STORAGE_URI",
+          "RESEND_WEBHOOK_SECRET",
+          "SCW_SECRET_KEY"
+        ],
+        "optional_runtime_keys": [],
+        "all_runtime_keys": [
           "CONTACT_API_INGEST_TOKEN",
           "DATABASE_URL",
           "KEYCLOAK_ADMIN_PASSWORD",
@@ -177,6 +350,9 @@
       },
       "runtime_contract": {
         "public_origin": null,
+        "required_env_keys": [],
+        "optional_env_keys": [],
+        "all_env_keys": [],
         "required_secret_keys": [
           "KC_BOOTSTRAP_ADMIN_PASSWORD",
           "KC_DB_PASSWORD",
@@ -184,6 +360,17 @@
         ],
         "optional_secret_keys": [],
         "all_secret_keys": [
+          "KC_BOOTSTRAP_ADMIN_PASSWORD",
+          "KC_DB_PASSWORD",
+          "KEYCLOAK_SMTP_PASSWORD"
+        ],
+        "required_runtime_keys": [
+          "KC_BOOTSTRAP_ADMIN_PASSWORD",
+          "KC_DB_PASSWORD",
+          "KEYCLOAK_SMTP_PASSWORD"
+        ],
+        "optional_runtime_keys": [],
+        "all_runtime_keys": [
           "KC_BOOTSTRAP_ADMIN_PASSWORD",
           "KC_DB_PASSWORD",
           "KEYCLOAK_SMTP_PASSWORD"
@@ -209,6 +396,9 @@
       },
       "runtime_contract": {
         "public_origin": null,
+        "required_env_keys": [],
+        "optional_env_keys": [],
+        "all_env_keys": [],
         "required_secret_keys": [
           "CONTACT_API_INGEST_TOKEN",
           "CONTACT_FORM_CHALLENGE_SECRET",
@@ -218,6 +408,21 @@
         ],
         "optional_secret_keys": [],
         "all_secret_keys": [
+          "CONTACT_API_INGEST_TOKEN",
+          "CONTACT_FORM_CHALLENGE_SECRET",
+          "LANDING_ASSET_SIGNING_SECRET",
+          "RATE_LIMIT_STORAGE_URI",
+          "RESEND_API_KEY"
+        ],
+        "required_runtime_keys": [
+          "CONTACT_API_INGEST_TOKEN",
+          "CONTACT_FORM_CHALLENGE_SECRET",
+          "LANDING_ASSET_SIGNING_SECRET",
+          "RATE_LIMIT_STORAGE_URI",
+          "RESEND_API_KEY"
+        ],
+        "optional_runtime_keys": [],
+        "all_runtime_keys": [
           "CONTACT_API_INGEST_TOKEN",
           "CONTACT_FORM_CHALLENGE_SECRET",
           "LANDING_ASSET_SIGNING_SECRET",
@@ -245,6 +450,9 @@
       },
       "runtime_contract": {
         "public_origin": null,
+        "required_env_keys": [],
+        "optional_env_keys": [],
+        "all_env_keys": [],
         "required_secret_keys": [
           "CONTACT_API_INGEST_TOKEN",
           "CONTACT_FORM_CHALLENGE_SECRET",
@@ -254,6 +462,21 @@
         ],
         "optional_secret_keys": [],
         "all_secret_keys": [
+          "CONTACT_API_INGEST_TOKEN",
+          "CONTACT_FORM_CHALLENGE_SECRET",
+          "LANDING_ASSET_SIGNING_SECRET",
+          "RATE_LIMIT_STORAGE_URI",
+          "RESEND_API_KEY"
+        ],
+        "required_runtime_keys": [
+          "CONTACT_API_INGEST_TOKEN",
+          "CONTACT_FORM_CHALLENGE_SECRET",
+          "LANDING_ASSET_SIGNING_SECRET",
+          "RATE_LIMIT_STORAGE_URI",
+          "RESEND_API_KEY"
+        ],
+        "optional_runtime_keys": [],
+        "all_runtime_keys": [
           "CONTACT_API_INGEST_TOKEN",
           "CONTACT_FORM_CHALLENGE_SECRET",
           "LANDING_ASSET_SIGNING_SECRET",
@@ -285,6 +508,32 @@
           "env_keys": ["AUTH_APP_ORIGIN", "NEXT_PUBLIC_APP_ORIGIN"],
           "required_in_preflight": true
         },
+        "required_env_keys": [
+          "AUTH_APP_ORIGIN",
+          "AUTH_OIDC_CLIENT_ID",
+          "AUTH_OIDC_ISSUER_URL",
+          "AUTH_OIDC_SCOPE",
+          "NEXT_PUBLIC_API_URL",
+          "NEXT_PUBLIC_APP_ORIGIN"
+        ],
+        "optional_env_keys": [
+          "AUTH_RATE_LIMIT_KEY_PREFIX",
+          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+          "AUTH_TRUST_X_FORWARDED_FOR"
+        ],
+        "all_env_keys": [
+          "AUTH_APP_ORIGIN",
+          "AUTH_OIDC_CLIENT_ID",
+          "AUTH_OIDC_ISSUER_URL",
+          "AUTH_OIDC_SCOPE",
+          "AUTH_RATE_LIMIT_KEY_PREFIX",
+          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+          "AUTH_TRUST_X_FORWARDED_FOR",
+          "NEXT_PUBLIC_API_URL",
+          "NEXT_PUBLIC_APP_ORIGIN"
+        ],
         "required_secret_keys": [
           "AUTH_RATE_LIMIT_KEY_SALT",
           "AUTH_RATE_LIMIT_REDIS_URL",
@@ -297,6 +546,42 @@
           "AUTH_RATE_LIMIT_KEY_SALT",
           "AUTH_RATE_LIMIT_REDIS_URL",
           "AUTH_SESSION_SECRET",
+          "RATE_LIMIT_STORAGE_URI"
+        ],
+        "required_runtime_keys": [
+          "AUTH_APP_ORIGIN",
+          "AUTH_OIDC_CLIENT_ID",
+          "AUTH_OIDC_ISSUER_URL",
+          "AUTH_OIDC_SCOPE",
+          "AUTH_RATE_LIMIT_KEY_SALT",
+          "AUTH_RATE_LIMIT_REDIS_URL",
+          "AUTH_SESSION_SECRET",
+          "NEXT_PUBLIC_API_URL",
+          "NEXT_PUBLIC_APP_ORIGIN",
+          "RATE_LIMIT_STORAGE_URI"
+        ],
+        "optional_runtime_keys": [
+          "AUTH_OIDC_CLIENT_SECRET",
+          "AUTH_RATE_LIMIT_KEY_PREFIX",
+          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+          "AUTH_TRUST_X_FORWARDED_FOR"
+        ],
+        "all_runtime_keys": [
+          "AUTH_APP_ORIGIN",
+          "AUTH_OIDC_CLIENT_ID",
+          "AUTH_OIDC_CLIENT_SECRET",
+          "AUTH_OIDC_ISSUER_URL",
+          "AUTH_OIDC_SCOPE",
+          "AUTH_RATE_LIMIT_KEY_PREFIX",
+          "AUTH_RATE_LIMIT_KEY_SALT",
+          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_URL",
+          "AUTH_SESSION_SECRET",
+          "AUTH_TRUST_X_FORWARDED_FOR",
+          "NEXT_PUBLIC_API_URL",
+          "NEXT_PUBLIC_APP_ORIGIN",
           "RATE_LIMIT_STORAGE_URI"
         ]
       },
@@ -324,6 +609,32 @@
           "env_keys": ["AUTH_APP_ORIGIN", "NEXT_PUBLIC_APP_ORIGIN"],
           "required_in_preflight": true
         },
+        "required_env_keys": [
+          "AUTH_APP_ORIGIN",
+          "AUTH_OIDC_CLIENT_ID",
+          "AUTH_OIDC_ISSUER_URL",
+          "AUTH_OIDC_SCOPE",
+          "NEXT_PUBLIC_API_URL",
+          "NEXT_PUBLIC_APP_ORIGIN"
+        ],
+        "optional_env_keys": [
+          "AUTH_RATE_LIMIT_KEY_PREFIX",
+          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+          "AUTH_TRUST_X_FORWARDED_FOR"
+        ],
+        "all_env_keys": [
+          "AUTH_APP_ORIGIN",
+          "AUTH_OIDC_CLIENT_ID",
+          "AUTH_OIDC_ISSUER_URL",
+          "AUTH_OIDC_SCOPE",
+          "AUTH_RATE_LIMIT_KEY_PREFIX",
+          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+          "AUTH_TRUST_X_FORWARDED_FOR",
+          "NEXT_PUBLIC_API_URL",
+          "NEXT_PUBLIC_APP_ORIGIN"
+        ],
         "required_secret_keys": [
           "AUTH_RATE_LIMIT_KEY_SALT",
           "AUTH_RATE_LIMIT_REDIS_URL",
@@ -336,6 +647,42 @@
           "AUTH_RATE_LIMIT_KEY_SALT",
           "AUTH_RATE_LIMIT_REDIS_URL",
           "AUTH_SESSION_SECRET",
+          "RATE_LIMIT_STORAGE_URI"
+        ],
+        "required_runtime_keys": [
+          "AUTH_APP_ORIGIN",
+          "AUTH_OIDC_CLIENT_ID",
+          "AUTH_OIDC_ISSUER_URL",
+          "AUTH_OIDC_SCOPE",
+          "AUTH_RATE_LIMIT_KEY_SALT",
+          "AUTH_RATE_LIMIT_REDIS_URL",
+          "AUTH_SESSION_SECRET",
+          "NEXT_PUBLIC_API_URL",
+          "NEXT_PUBLIC_APP_ORIGIN",
+          "RATE_LIMIT_STORAGE_URI"
+        ],
+        "optional_runtime_keys": [
+          "AUTH_OIDC_CLIENT_SECRET",
+          "AUTH_RATE_LIMIT_KEY_PREFIX",
+          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+          "AUTH_TRUST_X_FORWARDED_FOR"
+        ],
+        "all_runtime_keys": [
+          "AUTH_APP_ORIGIN",
+          "AUTH_OIDC_CLIENT_ID",
+          "AUTH_OIDC_CLIENT_SECRET",
+          "AUTH_OIDC_ISSUER_URL",
+          "AUTH_OIDC_SCOPE",
+          "AUTH_RATE_LIMIT_KEY_PREFIX",
+          "AUTH_RATE_LIMIT_KEY_SALT",
+          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+          "AUTH_RATE_LIMIT_REDIS_URL",
+          "AUTH_SESSION_SECRET",
+          "AUTH_TRUST_X_FORWARDED_FOR",
+          "NEXT_PUBLIC_API_URL",
+          "NEXT_PUBLIC_APP_ORIGIN",
           "RATE_LIMIT_STORAGE_URI"
         ]
       },

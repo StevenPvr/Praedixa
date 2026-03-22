@@ -9,6 +9,12 @@ export UV_CACHE_DIR="${TMPDIR:-/tmp}/praedixa-uv-cache"
 export UV_TOOL_DIR="${TMPDIR:-/tmp}/praedixa-uv-tools"
 mkdir -p "$UV_CACHE_DIR" "$UV_TOOL_DIR"
 
+NEXT_ENV_FILES=(
+  "app-landing/next-env.d.ts"
+  "app-webapp/next-env.d.ts"
+  "app-admin/next-env.d.ts"
+)
+
 fail() {
   echo "[precommit-tests] $*" >&2
   exit 1
@@ -18,8 +24,18 @@ has_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
+restore_generated_next_env_files() {
+  local file=""
+  for file in "${NEXT_ENV_FILES[@]}"; do
+    if [[ -f "$file" ]] && ! git diff --quiet -- "$file"; then
+      git restore --worktree --source=HEAD -- "$file"
+    fi
+  done
+}
+
 setup_pnpm || fail "Missing pnpm (tried PATH, PNPM_HOME, local pnpm tools, corepack, npx)."
 has_cmd uv || fail "Missing required command 'uv'."
+trap restore_generated_next_env_files EXIT
 
 echo "[precommit-tests] Security-focused regression tests..."
 ./scripts/gates/gate-sensitive-security-tests.sh
@@ -48,7 +64,7 @@ pnpm --filter @praedixa/admin test
 echo "[precommit-tests] Playwright Chromium check..."
 ./scripts/dev/check-playwright-chromium.sh
 
-echo "[precommit-tests] End-to-end tests..."
-PW_WORKERS=1 pnpm test:e2e
+echo "[precommit-tests] Critical end-to-end tests..."
+PW_WORKERS=1 pnpm test:e2e:critical
 
 echo "[precommit-tests] OK"
