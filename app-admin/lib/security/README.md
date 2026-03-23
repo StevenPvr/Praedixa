@@ -18,6 +18,7 @@ Ce dossier regroupe les protections techniques complementaires a l'auth OIDC: CS
 - `proxy.ts` utilise `csp.ts`.
 - Les ecrans proteges sous `app/(admin)` restent en rendu dynamique (`dynamic = "force-dynamic"`) pour que la CSP a nonce reste compatible avec l'hydratation Next.js et les flux streames.
 - `csp.ts` garde maintenant ses branches dev/prod dans des variables explicites (`isDev`, `scriptSrc`, `styleSrc`) pour stabiliser la lecture Sonar sans changer la politique nonce.
+- `csp.ts` autorise l'origin OIDC resolue aussi dans `form-action`, sinon le submit `/auth/login` peut etre bloque par le navigateur quand il suit le `307` vers l'issuer externe.
 - `csv.ts` serialize maintenant explicitement les valeurs non-string (`Date`, objets JSON, symboles) avant neutralisation, au lieu de s'appuyer sur une stringification implicite potentiellement opaque.
 - `rate-limit.ts` garde maintenant ses parseurs RESP, la lecture d'URL Redis et la resolution d'IP client en helpers courts pour limiter la complexite cognitive sans diluer les garde-fous fail-close.
 - `app/layout.tsx` consomme `x-nonce` et le propage aux providers client qui emettent un bootstrap inline.

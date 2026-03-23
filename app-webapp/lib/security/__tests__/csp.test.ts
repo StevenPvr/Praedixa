@@ -88,4 +88,17 @@ describe("Webapp CSP wrapper", () => {
 
     expect(csp).not.toContain("report-uri");
   });
+
+  it("should allow the configured OIDC issuer in form-action", async () => {
+    vi.stubEnv(
+      "AUTH_OIDC_ISSUER_URL",
+      "https://auth.praedixa.com/realms/praedixa",
+    );
+    vi.resetModules();
+
+    const { buildCspHeader } = await import("../csp");
+    const csp = buildCspHeader("dGVzdA==");
+
+    expect(csp).toContain("form-action 'self' https://auth.praedixa.com");
+  });
 });

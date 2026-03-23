@@ -41,6 +41,7 @@ export function buildCspHeader(nonce: string): string {
   const optionalApiSource =
     apiUrl.length > 0 ? ` ${getOriginOrEmpty(apiUrl)}` : "";
   const connectSrc = `'self'${optionalApiSource}${optionalAuthSource}`;
+  const formActionSrc = `'self'${optionalAuthSource}`;
   const isDev = isProd === false;
   const scriptUnsafeEvalSource = isDev ? " 'unsafe-eval'" : "";
   const styleSource = isDev ? " 'unsafe-inline'" : ` 'nonce-${nonce}'`;
@@ -60,7 +61,7 @@ export function buildCspHeader(nonce: string): string {
     "worker-src 'self' blob:",
     "frame-ancestors 'none'",
     "base-uri 'self'",
-    "form-action 'self'",
+    `form-action ${formActionSrc}`,
     "object-src 'none'",
     ...upgradeInsecureRequests,
   ];

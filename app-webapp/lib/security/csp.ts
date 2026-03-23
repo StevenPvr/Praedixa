@@ -105,16 +105,21 @@ export function buildCspHeader(nonce: string): string {
   const apiOrigin =
     getTrustedOriginOrEmpty(apiUrl) || (!isProd ? "http://localhost:8000" : "");
   const connectSources = ["'self'"];
+  const formActionSources = ["'self'"];
   if (apiOrigin) {
     connectSources.push(apiOrigin);
   }
   if (authOrigin && authOrigin !== apiOrigin) {
     connectSources.push(authOrigin);
   }
+  if (authOrigin) {
+    formActionSources.push(authOrigin);
+  }
   if (!isProd) {
     connectSources.push("ws://localhost:3001", "ws://127.0.0.1:3001");
   }
   const connectSrc = connectSources.join(" ");
+  const formActionSrc = formActionSources.join(" ");
 
   const directives = [
     "default-src 'self'",
@@ -128,7 +133,7 @@ export function buildCspHeader(nonce: string): string {
     "worker-src 'self' blob:",
     "frame-ancestors 'none'",
     "base-uri 'self'",
-    "form-action 'self'",
+    `form-action ${formActionSrc}`,
     "object-src 'none'",
     ...(normalizedReportUri ? [`report-uri ${normalizedReportUri}`] : []),
     ...(normalizedReportToUrl ? [`report-to ${CSP_REPORT_TO_GROUP}`] : []),

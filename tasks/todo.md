@@ -1,3 +1,52 @@
+# Current Pass - 2026-03-23 - MVP Production Checklist For KPI Prediction, Decision And ROI
+
+### Plan
+
+- [x] Relire l'etat reel du monorepo et les surfaces deja presentes (webapp, admin, API, data/ML)
+- [x] Identifier les bloqueurs explicites deja reconnus par le repo pour un MVP prod
+- [x] Transformer cet etat en checklist concrete, priorisee et orientee livraison client
+
+### Review
+
+- Synthese livree en conversation: focus sur un MVP DecisionOps exploitable en prod avec trois promesses fermees seulement
+  - predire quelques KPI critiques,
+  - recommander une decision actionnable,
+  - prouver un ROI lisible et audit-able.
+- La checklist s'appuie sur les surfaces et bloqueurs déjà visibles dans:
+  - `README.md`
+  - `docs/governance/build-ready-status.json`
+  - `docs/DATABASE.md`
+  - `app-webapp/README.md`
+  - `app-admin/README.md`
+  - `app-api-ts/README.md`
+
+# Current Pass - 2026-03-23 - Admin And Webapp Auth Loop Investigation
+
+### Plan
+
+- [x] Reproduire la boucle d'auth sur `app-admin` et `app-webapp` avec preuves (`Location`, cookies, callback, reauth/eventuels 401)
+- [x] Identifier la cause racine exacte entre origine OIDC, cookies/session, et validation API du token
+- [x] Ecrire un test rouge qui verrouille le scenario casse
+- [x] Corriger la cause racine au plus petit scope utile
+- [x] Revalider avec tests cibles, logs et un parcours navigateur complet
+
+### Review
+
+- Diagnostic:
+  - le `307` de `/auth/login` etait sain des deux cotes: `app-admin` redirigeait bien vers `praedixa-admin` et `app-webapp` vers `praedixa-webapp`.
+  - la vraie boucle venait plus tot: le navigateur bloquait le submit du bouton login avec `Content-Security-Policy: form-action 'self'` parce que le form submit suivait ensuite un `307` cross-origin vers Keycloak.
+  - preuve capturee en navigateur reel avant fix: `Sending form data ... violates the following Content Security Policy directive: "form-action 'self'"`.
+- Correctifs appliques:
+  - `app-admin/lib/security/csp.ts` autorise maintenant explicitement l'origin resolue de l'issuer OIDC dans `form-action`.
+  - `app-webapp/lib/security/csp.ts` fait la meme chose avec la version deja durcie de ses origins de confiance.
+  - tests rouges ajoutes puis passes dans `app-admin/lib/security/__tests__/csp.test.ts` et `app-webapp/lib/security/__tests__/csp.test.ts`.
+  - documentation alignee dans `app-admin/lib/security/README.md` et `app-webapp/lib/security/README.md`.
+- Verification:
+  - `pnpm exec vitest run --config vitest.config.ts app-admin/lib/security/__tests__/csp.test.ts app-webapp/lib/security/__tests__/csp.test.ts`
+  - `pnpm exec eslint app-admin/lib/security/csp.ts app-admin/lib/security/__tests__/csp.test.ts app-webapp/lib/security/csp.ts app-webapp/lib/security/__tests__/csp.test.ts`
+  - repro Playwright apres fix: clic sur `http://localhost:3002/login` puis `http://localhost:3001/login` amene bien a la page Keycloak `Sign in to Praedixa` au lieu d'etre bloque par la CSP.
+  - round-trip admin complet verifie en navigateur reel avec le compte bootstrap local: login Keycloak puis retour sur `http://localhost:3002/` avec shell admin charge.
+
 # Current Pass - 2026-03-23 - Next Dev LAN Origins For Admin And Webapp
 
 ### Plan
