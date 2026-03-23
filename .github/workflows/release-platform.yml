@@ -69,7 +69,7 @@ jobs:
           languages: javascript-typescript, python
 
       - name: Setup Trivy
-        uses: aquasecurity/setup-trivy@v0.2.2
+        uses: aquasecurity/setup-trivy@v0.2.6
 
       - name: Setup k6
         uses: grafana/setup-k6-action@v1
