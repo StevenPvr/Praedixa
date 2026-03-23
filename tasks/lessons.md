@@ -115,3 +115,5 @@
 - Quand une app consomme un package workspace exporte depuis `dist/`, reconstruire ce package explicitement dans les jobs CI cibles avant `test` ou `build`; un runner propre n'heritera jamais du `dist/` local.
 - Quand un composant React exporte un type partage reutilise par un sous-module qu'il importe ensuite, sortir ce type vers un fichier de types dedie ou deja existant; sinon `depcruise` signale un cycle reel meme si TypeScript compile encore.
 - Quand j'ajoute une dependance a un workspace, ne pas me fier a la presence globale du package dans `pnpm-lock.yaml`; verifier l'importer exact du workspace ou regenerer le lockfile avant de pousser.
+- Quand un workflow CI de surface utilise un guardrail baseline-driven, le scoper au meme perimetre que le workflow; sinon une PR CI-only revele de la dette legacy sans rapport avec la surface verifiee.
+- Quand un script bootstrap CI telecharge un outil depuis GitHub Releases, verifier le nom exact de l'asset publie; certains projets livrent un binaire brut et non une archive `.tar.gz`.

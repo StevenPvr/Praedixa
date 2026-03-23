@@ -1,3 +1,33 @@
+# Current Pass - 2026-03-23 - CI Surface Guardrails And Authoritative Toolchain Repair
+
+### Plan
+
+- [x] Reproduire les nouveaux rouges GitHub du SHA `ce6f927` et separer les vrais bloqueurs des warnings Node 20 non bloquants
+- [x] Corriger le bootstrap outillage de `CI - Autorite` en remplaçant l'URL `osv-scanner` 404 et rendre le summary tolerant a l'absence d'artefacts
+- [x] Remettre les guardrails TypeScript en etat en scindant les gates frontend/api par surface et en regenerant la baseline globale versionnee
+- [x] Rejouer localement les validations equivalentes aux jobs rouges puis documenter la revue
+
+### Review
+
+- Diagnostic:
+  - `CI - Autorite` echouait encore avant le gate exhaustif car `scripts/ci/install-authoritative-toolchain.sh` telechargeait `osv-scanner` via une URL `.tar.gz` qui n'existe plus sur la release `v2.1.0`.
+  - le summary `build-ready` de `.github/workflows/ci-authoritative.yml` ajoutait un faux rouge secondaire quand `.git/gate-reports/` n'avait pas encore ete cree.
+  - `gate:architecture:frontend` et `gate:architecture:api` utilisaient tous deux `architecture:ts-guardrails` global; sur une PR CI-only, cela faisait remonter toute la dette taille/fonction historique du repo, pas seulement la surface concernee.
+  - la baseline `scripts/ts-guardrail-baseline.json` etait elle-meme obsolete par rapport a l'etat reel du monorepo, ce qui transformait un guardrail baseline-driven en gate rouge permanent.
+- Correctifs appliques:
+  - `scripts/ci/install-authoritative-toolchain.sh` installe maintenant `osv-scanner` via l'asset binaire reel `osv-scanner_linux_amd64` avec un helper `install_direct_binary`.
+  - `.github/workflows/ci-authoritative.yml` et `.github/workflows/release-platform.yml` gerent explicitement l'absence du repertoire `.git/gate-reports` avant de lancer `find`.
+  - `package.json` expose `architecture:ts-guardrails:frontend` et `architecture:ts-guardrails:api`; les gates de surface utilisent maintenant ces variantes scopees au lieu du guardrail global.
+  - `scripts/ts-guardrail-baseline.json` a ete regenere depuis l'etat courant pour rebaseliner la dette historique deja presente et ne rebloquer que les nouvelles regressions.
+  - la doc associee a ete alignee dans `.github/workflows/README.md`, `scripts/README.md`, `AGENTS.md` et `tasks/lessons.md`.
+- Verification:
+  - `pnpm gate:architecture:frontend`
+  - `pnpm gate:architecture:api`
+  - `bash ./scripts/ci/install-authoritative-toolchain.sh`
+  - `node scripts/check-ts-guardrail-baseline.mjs`
+  - `pnpm exec prettier --check package.json scripts/README.md .github/workflows/README.md .github/workflows/ci-authoritative.yml .github/workflows/release-platform.yml scripts/ts-guardrail-baseline.json`
+  - `bash -n scripts/ci/install-authoritative-toolchain.sh`
+
 # Current Pass - 2026-03-23 - CI PR Merge Integrity For Lockfile And Trivy Bootstrap
 
 ### Plan

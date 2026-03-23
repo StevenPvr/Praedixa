@@ -190,6 +190,7 @@ When iterating over newline-delimited shell output, handle the final line even i
 Before relying on commit message conventions in a repo, declare and install a real `commit-msg` hook in the versioned hook config instead of assuming an old local hook is still present.
 Before pointing monorepo SAST tools at repo root, exclude nested repositories and generated report folders so scans stay limited to in-scope source code.
 Before enforcing strict complexity grades on a legacy service, version an explicit baseline and block regressions; a permanently failing gate is not a real guardrail.
+Before wiring a baseline-driven architecture guard into a surface-specific CI workflow, scope it to the same app/package perimeter; otherwise a CI-only PR can be blocked by unrelated legacy debt.
 Before relying on Keycloak `--import-realm` in a container image, copy realm exports under a `*-realm.json` filename in `/opt/keycloak/data/import/`, or the startup import can be skipped silently.
 Before treating an auth container redeploy as durable, verify its live runtime args still include the required Keycloak import flags (`--import-realm` for `auth-prod`); a corrected image `CMD` alone is not enough if the container keeps older args.
 Before making a default local `dev:*` entrypoint run in background, keep an attached-terminal command as the default and move logfile/PID behavior behind an explicit `:bg` script.

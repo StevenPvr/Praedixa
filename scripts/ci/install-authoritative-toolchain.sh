@@ -69,6 +69,20 @@ install_zip_binary() {
   install -m 0755 "${extract_dir}/${binary_path_inside_archive}" "${BIN_DIR}/${tool_name}"
 }
 
+install_direct_binary() {
+  local tool_name="$1"
+  local version="$2"
+  local url="$3"
+  local output_path="${TMP_DIR}/${tool_name}-${version}"
+
+  if command -v "${tool_name}" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  download "$url" "${output_path}"
+  install -m 0755 "${output_path}" "${BIN_DIR}/${tool_name}"
+}
+
 install_uv_tool() {
   local tool_name="$1"
 
@@ -101,11 +115,10 @@ install_tar_binary \
   "https://github.com/anchore/grype/releases/download/v${GRYPE_VERSION}/grype_${GRYPE_VERSION}_linux_amd64.tar.gz" \
   "grype"
 
-install_tar_binary \
+install_direct_binary \
   "osv-scanner" \
   "${OSV_SCANNER_VERSION}" \
-  "https://github.com/google/osv-scanner/releases/download/v${OSV_SCANNER_VERSION}/osv-scanner_${OSV_SCANNER_VERSION}_linux_amd64.tar.gz" \
-  "osv-scanner"
+  "https://github.com/google/osv-scanner/releases/download/v${OSV_SCANNER_VERSION}/osv-scanner_linux_amd64"
 
 install_zip_binary \
   "terraform" \

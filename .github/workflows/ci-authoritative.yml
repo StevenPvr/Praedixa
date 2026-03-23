@@ -105,6 +105,10 @@ jobs:
         if: always()
         run: |
           set -euo pipefail
+          if [[ ! -d .git/gate-reports ]]; then
+            echo "No build-ready report generated." >>"${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
           report="$(find .git/gate-reports -maxdepth 1 -type f -name 'build-ready-*.json' | head -n1)"
           if [[ -z "${report}" ]]; then
             echo "No build-ready report generated." >>"${GITHUB_STEP_SUMMARY}"

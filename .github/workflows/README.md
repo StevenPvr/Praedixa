@@ -20,6 +20,8 @@ Ce dossier contient les pipelines GitHub Actions versionnés avec le monorepo.
 - `CI - Autorite` publie maintenant aussi un summary GitHub lisible du verdict `build-ready` et un artefact JSON par SHA dans `.git/gate-reports/build-ready-<sha>.json`.
 - Les workflows GitHub qui utilisent `cache: pnpm` installent maintenant `pnpm/action-setup` avant `actions/setup-node`; le repo bloque tout retour au mauvais ordre via `scripts/validate-github-workflow-pnpm-order.mjs`.
 - Les workflows d'autorite et de release pinent `aquasecurity/setup-trivy` sur un SHA valide (`v0.2.6`) pour eviter les refs de tag cassantes ou retirees.
+- Les workflows API/Admin utilisent des guardrails d'architecture TypeScript scopes par surface; la baseline globale reste versionnee pour le gate exhaustif et la CI autoritaire, mais les jobs de surface ne doivent plus echouer sur de la dette historique hors perimetre.
+- Le summary `build-ready` de `CI - Autorite` tolere maintenant l'absence de `.git/gate-reports/` quand le gate casse avant la generation d'artefacts, au lieu d'ajouter un faux rouge secondaire.
 - `CI - Admin` reconstruit explicitement `@praedixa/shared-types`, `@praedixa/api-hooks` et `@praedixa/ui` avant `lint`, `test` et `build`, car `app-admin` consomme leurs exports `dist/*` en environnement runner propre.
 - Le chemin nominal de prod passe par `Release - Platform`; une release ne doit plus dependre d'un laptop operateur ni de parametres libres saisis au declenchement.
 

@@ -213,6 +213,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .meta/release
+          if [[ ! -d .git/gate-reports ]]; then
+            echo "Missing signed gate report artifact directory" >&2
+            exit 1
+          fi
           gate_report="$(find .git/gate-reports -maxdepth 1 -type f -name '*.json' | head -n1)"
           if [[ -z "${gate_report}" ]]; then
             echo "Missing signed gate report artifact" >&2
