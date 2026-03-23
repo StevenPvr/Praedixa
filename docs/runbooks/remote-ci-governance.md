@@ -33,10 +33,15 @@ Le scope de ces workflows doit aussi couvrir les scripts critiques qui peuvent a
 
 - La protection de branche n'est pas definissable de facon fiable dans ces YAML; elle doit etre configuree dans GitHub (ou plus tard via IaC GitHub si le repo l'adopte).
 - Sur `main` et `develop`, exiger au minimum:
-  - revue de code
-  - les checks requis correspondant aux workflows que vous choisissez de rendre obligatoires
+  - `Autorite - Required` comme check requis stable
+  - `strict = true` sur les status checks
+  - une review obligatoire
+  - la resolution de conversation active
+  - l'historique lineaire impose
+  - force-push et suppression interdits
 - Avec les workflows always-on, `Admin - Required` et `API - Required` peuvent maintenant etre utilises comme checks requis sans trou de presence lie a `paths:`.
 - Ne pas exiger seulement les jobs intermediaires (`Admin - Build`, `API TS - ...`, etc.) si vous gardez des jobs finaux stables: l'ancre de branch protection doit rester le job final du workflow concerne.
+- `scripts/github/verify-main-branch-protection.sh` sert de preuve operatoire: il doit confirmer l'etat reel GitHub au lieu de laisser la doc parler a sa place.
 
 ## Flux recommande
 
@@ -71,7 +76,7 @@ Le scope de ces workflows doit aussi couvrir les scripts critiques qui peuvent a
 
 ## Politique de merge
 
-- Un merge vers `main` ou `develop` doit venir d'une PR verte.
+- Un merge vers `main` ou `develop` doit venir d'une PR verte avec au moins une review approuvante.
 - Les `push` directs sur branche protegee doivent rester reserves aux cas d'urgence explicitement gouvernes.
 - Un `push` direct autorise relance quand meme la CI distante et doit etre traite comme un ecart operationnel, pas comme le flux normal.
 
@@ -98,4 +103,4 @@ Le scope de ces workflows doit aussi couvrir les scripts critiques qui peuvent a
 - Verifier qu'un changement sur `app-connectors/` ou `contracts/` reste bien couvert par `CI - API`.
 - Verifier que `workflow_dispatch` reste disponible pour les recontroles manuels.
 - Verifier que les PR Dependabot suivent le meme gate de merge que les PR humaines.
-- Verifier que la branch protection GitHub exige bien les jobs finaux stables, pas des checks intermediaires fluctuants.
+- Verifier via `scripts/github/verify-main-branch-protection.sh` que la branch protection GitHub exige bien `Autorite - Required`, `strict = true`, `1` review obligatoire, la resolution de conversation, l'historique lineaire et l'interdiction des force-push/suppressions.

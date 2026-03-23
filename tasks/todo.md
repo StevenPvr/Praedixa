@@ -16,7 +16,7 @@
 - Correctifs appliques:
   - ajout de `docs/deployment/runtime-env-inventory.json` comme source de verite machine-readable pour les variables runtime non secretes par surface.
   - ajout de `scripts/runtime-env-inventory.mjs` et `scripts/validate-runtime-env-inventory.mjs` pour valider cet inventaire et empecher les duplications de source de verite avec `public_origin`.
-  - `scripts/runtime-env-contracts.mjs` derive maintenant un contrat complet depuis secrets + env non secrets + topologie, avec `required_env_keys`, `optional_env_keys`, `all_env_keys`, puis les unions `required_runtime_keys` / `all_runtime_keys`.
+  - `scripts/runtime-env-contracts.mjs` derive maintenant un contrat complet depuis secrets + env non secrets + topologie, avec preservation explicite des groupes `required_*_groups` / `optional_*_groups` et de la semantique `all_of` / `any_of`, plus les inventaires exhaustifs `all_env_keys`, `all_secret_keys` et `all_runtime_keys`.
   - `scripts/generate-runtime-env-contracts.mjs` et `scripts/validate-runtime-env-contracts.mjs` valident maintenant explicitement les deux inventaires avant de generer ou de comparer le contrat versionne.
   - `scripts/ci/run-authoritative-ci.sh` et `scripts/gates/gate-quality-static.sh` rejouent ces validateurs pour que le contrat runtime complet redevienne un vrai garde-fou, pas juste un artefact documentaire.
   - `package.json` fait maintenant passer `pnpm test` par `workspaces:check:critical-tests` avant les suites.
@@ -30,6 +30,42 @@
   - `node scripts/check-workspace-scripts.mjs --task test --scope critical-test`
   - `pnpm workspaces:check:critical-tests`
   - `node --test scripts/__tests__/validate-runtime-env-inventory.test.mjs scripts/__tests__/runtime-env-contracts.test.mjs scripts/__tests__/workspace-scripts.test.mjs`
+
+# Current Pass - 2026-03-23 - Runtime Contract Semantics, Local Bootstrap And Remote Governance
+
+### Plan
+
+- [x] Corriger le contrat runtime derive pour preserver `all_of` / `any_of`, puis regenerer le JSON versionne
+- [x] Aligner le bootstrap local entre `README.md`, `infra/docker-compose.yml` et les `.env.local.example`
+- [x] Ajouter des validateurs repo-owned pour la coherence bootstrap local et la portabilite documentaire
+- [x] Nettoyer les docs non portables et documenter la gouvernance distante cible
+- [x] Verifier puis appliquer la protection distante `main` avec `Autorite - Required` + 1 review obligatoire
+- [x] Rejouer les validations cibles et consigner la passe
+
+### Review
+
+- Diagnostic:
+  - le contrat runtime versionne mentait encore sur des secrets alternatifs: les groupes `any_of` du `runtime-secrets-inventory` etaient aplatis dans `runtime-env-contracts.generated.json`, ce qui transformait un "ou" en "et" pour `api-staging` et `api-prod`.
+  - le bootstrap local racontait encore deux histoires differentes: `README.md` documentait PostgreSQL avec `changeme`, alors que `infra/docker-compose.yml` force `praedixa_local_dev_pg_2026`; les exemples `app-admin/.env.local.example` et `app-webapp/.env.local.example` pointaient encore vers `https://auth.praedixa.com`.
+  - la documentation versionnee laissait encore fuiter des chemins absolus de machine locale, ce qui contredisait l'objectif de source de verite portable.
+  - la gouvernance distante de `main` etait documentee, mais la preuve operatoire de la branch protection restait implicite et la review obligatoire n'etait pas encore appliquee.
+- Correctifs appliques:
+  - `scripts/runtime-env-contracts.mjs` genere maintenant un schema v2 avec `required_secret_groups`, `optional_secret_groups`, `required_env_groups`, `optional_env_groups`, `all_secret_keys`, `all_env_keys`, `all_runtime_keys`, sans plus exposer les anciens champs aplatis `required_*_keys`.
+  - `scripts/validate-runtime-env-contracts.mjs` ne se limite plus a comparer le JSON regenere: il verifie aussi semantiquement la preservation des groupes `all_of` / `any_of` issus des inventaires runtime.
+  - `docs/deployment/runtime-env-contracts.generated.json` a ete regenere sur le schema v2.
+  - ajout de `scripts/validate-local-bootstrap-consistency.mjs` et `scripts/__tests__/validate-local-bootstrap-consistency.test.mjs` pour bloquer tout drift entre `README.md`, `infra/docker-compose.yml`, `app-admin/.env.local.example`, `app-webapp/.env.local.example`, `app-admin/README.md` et `app-webapp/README.md`.
+  - ajout de `scripts/validate-doc-portability.mjs` et `scripts/__tests__/validate-doc-portability.test.mjs`, plus nettoyage des docs portees (`.github/workflows/README.md`, `infra/opentofu/README.md`, `docs/data-api/connector-api-implementation-audit.md`) afin d'interdire les chemins locaux non portables.
+  - `package.json` et `scripts/gates/gate-quality-static.sh` rejouent maintenant `docs:validate:local-bootstrap` et `docs:validate:portability`.
+  - ajout de `scripts/github/verify-main-branch-protection.sh` et mise a jour de la doc de gouvernance (`README.md`, `docs/deployment/README.md`, `docs/runbooks/remote-ci-governance.md`, `.github/workflows/README.md`, `scripts/README.md`) pour fixer explicitement la cible `Autorite - Required` + `strict` + `1` review obligatoire + conversation resolution + linear history + no force-push/delete.
+- Verification:
+  - `node scripts/generate-runtime-env-contracts.mjs`
+  - `node scripts/validate-runtime-env-contracts.mjs`
+  - `node scripts/validate-local-bootstrap-consistency.mjs`
+  - `node scripts/validate-doc-portability.mjs`
+  - `node --test scripts/__tests__/runtime-env-contracts.test.mjs scripts/__tests__/validate-local-bootstrap-consistency.test.mjs scripts/__tests__/validate-doc-portability.test.mjs`
+  - `./scripts/github/verify-main-branch-protection.sh`
+  - `python3 scripts/validate-security-exceptions.py --quiet`
+  - `python3 -m unittest scripts/__tests__/validate_security_exceptions_test.py`
 
 # Current Pass - 2026-03-22 - Playwright CLI Pinning For Hooked E2E
 

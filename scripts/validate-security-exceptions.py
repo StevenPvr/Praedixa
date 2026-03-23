@@ -130,6 +130,12 @@ def _validate_exception(exc: dict[str, Any], ctx: ValidationContext) -> list[str
     ):
         errors.append(f"{exc_id}: identifiers must be a non-empty list of strings")
 
+    status = str(exc.get("status", "")).strip().lower()
+    if status not in {"active", "resolved", "revoked"}:
+        errors.append(
+            f"{exc_id}: status must be one of active/resolved/revoked, got '{status}'"
+        )
+
     try:
         created_at = _parse_date(str(exc.get("created_at", "")), "created_at", exc_id)
         expires_at = _parse_date(str(exc.get("expires_at", "")), "expires_at", exc_id)
@@ -140,7 +146,11 @@ def _validate_exception(exc: dict[str, Any], ctx: ValidationContext) -> list[str
     if expires_at <= created_at:
         errors.append(f"{exc_id}: expires_at must be after created_at")
 
-    if ctx.policy["exceptions"].get("fail_on_expired", True) and expires_at < ctx.today:
+    if (
+        status == "active"
+        and ctx.policy["exceptions"].get("fail_on_expired", True)
+        and expires_at < ctx.today
+    ):
         errors.append(f"{exc_id}: exception expired on {expires_at.isoformat()}")
 
     max_ttl_days = (
@@ -148,7 +158,7 @@ def _validate_exception(exc: dict[str, Any], ctx: ValidationContext) -> list[str
         .get("max_ttl_days", {})
         .get(severity)
     )
-    if isinstance(max_ttl_days, int) and max_ttl_days > 0:
+    if status == "active" and isinstance(max_ttl_days, int) and max_ttl_days > 0:
         ttl_days = (expires_at - created_at).days
         if ttl_days > max_ttl_days:
             errors.append(
@@ -157,16 +167,10 @@ def _validate_exception(exc: dict[str, Any], ctx: ValidationContext) -> list[str
             )
 
     allowed = bool(ctx.policy.get("severity", {}).get(severity, {}).get("allowed_exception"))
-    if not allowed:
+    if status == "active" and not allowed:
         errors.append(
             f"{exc_id}: exceptions are forbidden for severity '{severity}' "
             "by security policy"
-        )
-
-    status = str(exc.get("status", "")).strip().lower()
-    if status not in {"active", "resolved", "revoked"}:
-        errors.append(
-            f"{exc_id}: status must be one of active/resolved/revoked, got '{status}'"
         )
 
     return errors

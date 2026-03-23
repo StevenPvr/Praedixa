@@ -27,30 +27,26 @@ function uniqueSorted(values) {
   return [...new Set(values)].sort((left, right) => left.localeCompare(right));
 }
 
-function collectSecretKeys(secretGroups, requiredInPreflight) {
-  return uniqueSorted(
-    secretGroups.flatMap((group) => {
-      if (group.required_in_preflight !== requiredInPreflight) {
-        return [];
-      }
-      return group.keys;
-    }),
-  );
+function normalizeGroup(group) {
+  return {
+    mode: group.mode,
+    keys: uniqueSorted(group.keys ?? []),
+    purpose: group.purpose,
+  };
 }
 
-function collectEnvKeys(envGroups, requiredInRuntime) {
-  return uniqueSorted(
-    envGroups.flatMap((group) => {
-      if (group.required_in_runtime !== requiredInRuntime) {
-        return [];
-      }
-      return group.keys;
-    }),
-  );
+function collectGroups(groups, flagName, requiredValue) {
+  return groups
+    .filter((group) => group?.[flagName] === requiredValue)
+    .map((group) => normalizeGroup(group));
 }
 
-function collectPublicOriginEnvKeys(publicOrigin, requiredInRuntime) {
-  if (!publicOrigin || publicOrigin.required_in_preflight !== requiredInRuntime) {
+function collectGroupKeys(groups) {
+  return uniqueSorted(groups.flatMap((group) => group.keys ?? []));
+}
+
+function collectPublicOriginEnvKeys(publicOrigin) {
+  if (!publicOrigin) {
     return [];
   }
   return uniqueSorted(publicOrigin.env_keys ?? []);
@@ -98,22 +94,25 @@ function deriveServiceContract(topology, inventoryService, envInventoryService) 
   const secretGroups = inventoryService.secret_groups ?? [];
   const publicOrigin = inventoryService.public_origin ?? null;
   const envGroups = envInventoryService?.env_groups ?? [];
-  const requiredSecretKeys = collectSecretKeys(secretGroups, true);
-  const optionalSecretKeys = collectSecretKeys(secretGroups, false);
-  const requiredEnvKeys = uniqueSorted([
-    ...collectEnvKeys(envGroups, true),
-    ...collectPublicOriginEnvKeys(publicOrigin, true),
-  ]);
-  const optionalEnvKeys = uniqueSorted([
-    ...collectEnvKeys(envGroups, false),
-    ...collectPublicOriginEnvKeys(publicOrigin, false),
-  ]);
-  const allSecretKeys = uniqueSorted(
-    secretGroups.flatMap((group) => group.keys ?? []),
+  const requiredSecretGroups = collectGroups(
+    secretGroups,
+    "required_in_preflight",
+    true,
   );
+  const optionalSecretGroups = collectGroups(
+    secretGroups,
+    "required_in_preflight",
+    false,
+  );
+  const requiredEnvGroups = collectGroups(envGroups, "required_in_runtime", true);
+  const optionalEnvGroups = collectGroups(envGroups, "required_in_runtime", false);
+  const allSecretKeys = collectGroupKeys([
+    ...requiredSecretGroups,
+    ...optionalSecretGroups,
+  ]);
   const allEnvKeys = uniqueSorted([
-    ...envGroups.flatMap((group) => group.keys ?? []),
-    ...(publicOrigin?.env_keys ?? []),
+    ...collectGroupKeys([...requiredEnvGroups, ...optionalEnvGroups]),
+    ...collectPublicOriginEnvKeys(publicOrigin),
   ]);
 
   return {
@@ -141,20 +140,12 @@ function deriveServiceContract(topology, inventoryService, envInventoryService) 
               required_in_preflight:
                 publicOrigin.required_in_preflight === true,
             },
-      required_env_keys: requiredEnvKeys,
-      optional_env_keys: optionalEnvKeys,
+      required_env_groups: requiredEnvGroups,
+      optional_env_groups: optionalEnvGroups,
       all_env_keys: allEnvKeys,
-      required_secret_keys: requiredSecretKeys,
-      optional_secret_keys: optionalSecretKeys,
+      required_secret_groups: requiredSecretGroups,
+      optional_secret_groups: optionalSecretGroups,
       all_secret_keys: allSecretKeys,
-      required_runtime_keys: uniqueSorted([
-        ...requiredEnvKeys,
-        ...requiredSecretKeys,
-      ]),
-      optional_runtime_keys: uniqueSorted([
-        ...optionalEnvKeys,
-        ...optionalSecretKeys,
-      ]),
       all_runtime_keys: uniqueSorted([...allEnvKeys, ...allSecretKeys]),
     },
     secret_path_prefix: inventoryService.secret_path_prefix,
@@ -173,7 +164,7 @@ export function deriveRuntimeEnvContracts({
 
   return {
     contract_type: "runtime-env-contracts",
-    schema_version: "1",
+    schema_version: "2",
     generated_from: {
       runtime_secret_inventory: "docs/deployment/runtime-secrets-inventory.json",
       runtime_env_inventory: "docs/deployment/runtime-env-inventory.json",

@@ -118,7 +118,7 @@ pnpm dev:webapp
 docker compose -f infra/docker-compose.yml up -d postgres
 ```
 
-PostgreSQL 16 demarre sur `localhost:5433` (credentials : `praedixa` / `changeme` / db `praedixa`).
+PostgreSQL 16 demarre sur `localhost:5433` (credentials : `praedixa` / `praedixa_local_dev_pg_2026` / db `praedixa`).
 
 Pour arreter :
 
@@ -411,7 +411,7 @@ Le `pre-push` bloque si le rapport signe du commit courant est absent, stale, in
 
 - Les hooks locaux (`pre-commit` + `pre-push`) restent les accelerateurs developpeur.
 - `CI - Autorite` et son job `Autorite - Required` sont la source de verite finale pour le merge.
-- Le merge sur `main` doit etre protege par `Autorite - Required`; toute autre CI par surface reste du feedback rapide, pas le juge final.
+- Le merge sur `main` doit etre protege par `Autorite - Required` et au moins une review obligatoire; toute autre CI par surface reste du feedback rapide, pas le juge final.
 
 ### Deploiement production
 

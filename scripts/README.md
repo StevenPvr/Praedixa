@@ -14,6 +14,7 @@ Boite a outils operationnelle du repo.
 - Gates et securite: `gate-*`, `verify-gate-report.sh`, `audit-ultra-strict-local.sh`, `run-*-audit.sh`, `check-*.py`, `check-*.mjs`, `gate.config.yaml`, `security-*.yaml`, `ci/install-authoritative-toolchain.sh`, `ci/run-authoritative-ci.sh`
 - Garde-fous workspaces: `workspaces/*`, `check-workspace-scripts.mjs`
 - Contrats runtime generes: `runtime-env-inventory.mjs`, `validate-runtime-env-inventory.mjs`, `runtime-env-contracts.mjs`, `generate-runtime-env-contracts.mjs`, `validate-runtime-env-contracts.mjs`
+- Cohérence bootstrap/doc/gouvernance distante: `validate-local-bootstrap-consistency.mjs`, `validate-doc-portability.mjs`, `github/verify-main-branch-protection.sh`
 - IaC/OpenTofu state-backed: `lib/iac-state.sh`, `scw-iac-validate.sh`, `scw-iac-plan.sh`, `scw-iac-output.sh`
 - Validation documentaire machine-readable: `validate-*.mjs`, `validate-*.py`
 - Release et deploiement Scaleway: `scw-*`, `release-manifest-*`, `scw-release-*`, `smoke-test-production.sh`, `scw-post-deploy-smoke.sh`
@@ -106,12 +107,15 @@ pnpm docs:validate:database
 pnpm docs:validate:cto
 pnpm docs:validate:schema-parity
 pnpm docs:validate:contracts-parity
+pnpm docs:validate:local-bootstrap
+pnpm docs:validate:portability
 pnpm docs:generate:erd
 pnpm architecture:ts-guardrails
 pnpm gate:prepush
 pnpm gate:exhaustive
 pnpm gate:verify
 pnpm performance:validate-budgets
+pnpm github:verify:main-branch-protection
 ./scripts/gates/gate-sensitive-security-tests.sh
 ./scripts/gates/gate-quality-static.sh
 node ./scripts/check-workspace-scripts.mjs --task build --task lint --task typecheck
@@ -129,7 +133,10 @@ node ./scripts/check-workspace-scripts.mjs --task test --scope critical-test
 `architecture:repo` agrège les deux graphes TypeScript versionnes, `knip`, le baseline guard de taille, le baseline DB, le baseline CTO, la parite schema/doc et la parite contrats/TypeScript; les configs `dependency-cruiser` et `knip` excluent aussi les depots imbriques comme `marketing/presentations-clients/centaurus/` et les artefacts `.open-next/` pour garder un perimetre de scan stable.
 `check-workspace-scripts.mjs` derive le catalogue des workspaces depuis `app-*` et `packages/*`, puis bloque toute absence de script `build` / `lint` / `typecheck` sur le monorepo et toute absence de `test` sur les surfaces critiques. Les scripts racine `pnpm build`, `pnpm lint`, `pnpm typecheck` et `pnpm test` passent donc par un contrat de workspace explicite avant de deleguer a `turbo run ...`.
 `runtime-env-inventory.mjs` et `validate-runtime-env-inventory.mjs` versionnent et verifient les variables runtime non secretes obligatoires par surface (`NEXT_PUBLIC_API_URL`, bootstrap OIDC, reglages auth front, etc.) sans les melanger aux secrets.
-`runtime-env-contracts.mjs` derive un contrat runtime machine-readable versionne depuis `docs/deployment/runtime-secrets-inventory.json`, `docs/deployment/runtime-env-inventory.json` et `infra/opentofu/platform-topology.json`. `generate-runtime-env-contracts.mjs` regenere `docs/deployment/runtime-env-contracts.generated.json`, tandis que `validate-runtime-env-contracts.mjs` echoue si ce contrat derive n'est plus aligne avec les trois sources de verite.
+`runtime-env-contracts.mjs` derive un contrat runtime machine-readable versionne depuis `docs/deployment/runtime-secrets-inventory.json`, `docs/deployment/runtime-env-inventory.json` et `infra/opentofu/platform-topology.json`. Le schema v2 preserve maintenant explicitement les groupes `all_of` / `any_of` pour eviter qu'un secret alternatif devienne a tort "doublement requis". `generate-runtime-env-contracts.mjs` regenere `docs/deployment/runtime-env-contracts.generated.json`, tandis que `validate-runtime-env-contracts.mjs` echoue si ce contrat derive n'est plus aligne semantiquement avec les trois sources de verite.
+`validate-local-bootstrap-consistency.mjs` verifie que `README.md`, `infra/docker-compose.yml`, `app-admin/.env.local.example`, `app-webapp/.env.local.example`, ainsi que les READMEs applicatifs racontent exactement la meme verite locale pour PostgreSQL et l'issuer OIDC `http://localhost:8081/realms/praedixa`.
+`validate-doc-portability.mjs` bloque les chemins absolus locaux de machine et les URLs `file://` personnelles dans `README.md`, `.github/workflows/**/*.md`, `docs/**/*.md`, `infra/**/*.md` et `scripts/**/*.md` pour que la doc versionnee reste portable.
+`github/verify-main-branch-protection.sh` verifie via GitHub API que `main` exige bien `Autorite - Required`, `strict = true`, `1` review obligatoire, la resolution de conversation, l'historique lineaire et l'interdiction des force-push/suppressions.
 `gate-exhaustive-local.sh` produit un rapport signe pour tous les checks du socle. En mode `manual`, les checks qui peuvent declarer une release "verte" alors que la prod ne build plus ou que les tests/E2E critiques cassent (`gate-quality-static`, `pnpm build`, `pnpm test:coverage`, `@praedixa/api-ts test`, `pytest`, les E2E Playwright critiques) sont maintenant classes `medium`/`high` et bloquants; seuls les controles vraiment consultatifs restent en `low` et peuvent encore sortir en `PASS with warnings`.
 `gate-sensitive-security-tests.sh` rejoue les regressions critiques sur l'isolation `site_id`, le durcissement `CONNECTORS_RUNTIME_URL`, les capabilities des service tokens connecteurs et les validations SSRF/OAuth sortantes. Il est execute par `pre-commit` et `pre-push`.
 `ci/run-authoritative-ci.sh` est le point d'entree CI canonique: il enchaine delta securite, gate exhaustif signe, reverification du rapport, contrat runtime secrets + contrat runtime env genere, puis tests de contrat release pour que GitHub Actions puisse devenir l'arbitre final sans dupliquer la logique de fond dans chaque workflow.
@@ -139,6 +146,7 @@ Le hook `pre-push` appelle maintenant explicitement ce script avant le gate prof
 `gate-quality-static.sh` restaure aussi les `next-env.d.ts` generes par `next typecheck` / `next build` (`app-landing`, `app-webapp`, `app-admin`) avant de rendre la main au hook, pour qu'un `pre-push` vert ne laisse jamais le worktree sale sur un fichier purement derive.
 `check-alembic-heads.sh` bloque les branches Python qui introduisent plusieurs heads Alembic; il est execute par le gate local exhaustif et par la CI API.
 `check-commit-message.sh` bloque les messages de commit hors Conventional Commits et le hook `commit-msg` fait maintenant partie de l'installation standard `prek`.
+`validate-security-exceptions.py` continue de bloquer toute exception `active` expiree, mais laisse vivre les entrees `resolved` / `revoked` comme historique gouverne au lieu de forcer leur suppression immediate apres cloture.
 `check-python-complexity-baseline.py` compare les violations Xenon actuelles a une baseline versionnee pour bloquer toute nouvelle derive de complexite sans rendre le gate inutilisable a cause de la dette legacy deja connue. Utiliser `--write-current-baseline` uniquement lors d'une remise a plat volontaire, revue et accompagnee d'une mise a jour de la doc/runbook pour garder la dette structurelle tracee.
 `check-ts-guardrail-baseline.mjs` joue le meme role cote TypeScript/Next/Node pour les fichiers source du socle: limite cible `500` lignes par fichier et `50` lignes par fonction, baseline versionnee, echec uniquement sur nouvelle dette ou aggravation. Le premier `--include-root <path>` remplace la liste racine par defaut, les suivants l'etendent explicitement, et `--root` / `--baseline` restent independants de l'ordre des flags. Toute regeneration de baseline doit etre traitee comme une decision d'architecture explicite, pas comme un contournement opportuniste.
 `run-api-dynamic-audits.sh` demarre l'API TS sur un port libre dedie et en mode `tsx` simple, sans `watch`, pour eviter les collisions avec une API locale deja ouverte pendant les gates. Le script vide explicitement `DATABASE_URL` pour auditer le profil stateless/fail-close de l'API publique au lieu d'heriter d'une base locale partiellement configuree.

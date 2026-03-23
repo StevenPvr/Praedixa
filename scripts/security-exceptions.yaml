@@ -20,6 +20,6 @@ exceptions:
     created_at: "2026-02-22"
     expires_at: "2026-03-22"
     removal_plan: >-
-      Remove exception once upstream toolchain migrates away from vulnerable Ajv
-      branch and lockfile is regenerated.
-    status: active
+      Exception closed after revalidation on 2026-03-23: the current audit no
+      longer reports GHSA-2g4f-4pwh-qvx6 on the repo lockfile/toolchain path.
+    status: resolved

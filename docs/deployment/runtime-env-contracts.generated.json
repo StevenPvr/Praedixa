@@ -1,6 +1,6 @@
 {
   "contract_type": "runtime-env-contracts",
-  "schema_version": "1",
+  "schema_version": "2",
   "generated_from": {
     "runtime_secret_inventory": "docs/deployment/runtime-secrets-inventory.json",
     "runtime_env_inventory": "docs/deployment/runtime-env-inventory.json",
@@ -28,20 +28,30 @@
           "env_keys": ["AUTH_APP_ORIGIN", "NEXT_PUBLIC_APP_ORIGIN"],
           "required_in_preflight": true
         },
-        "required_env_keys": [
-          "AUTH_APP_ORIGIN",
-          "AUTH_OIDC_CLIENT_ID",
-          "AUTH_OIDC_ISSUER_URL",
-          "AUTH_OIDC_SCOPE",
-          "NEXT_PUBLIC_API_URL",
-          "NEXT_PUBLIC_APP_ORIGIN"
+        "required_env_groups": [
+          {
+            "mode": "all_of",
+            "keys": [
+              "AUTH_OIDC_CLIENT_ID",
+              "AUTH_OIDC_ISSUER_URL",
+              "AUTH_OIDC_SCOPE",
+              "NEXT_PUBLIC_API_URL"
+            ],
+            "purpose": "admin upstream API and OIDC bootstrap"
+          }
         ],
-        "optional_env_keys": [
-          "AUTH_ADMIN_REQUIRED_AMR",
-          "AUTH_RATE_LIMIT_KEY_PREFIX",
-          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
-          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
-          "AUTH_TRUST_X_FORWARDED_FOR"
+        "optional_env_groups": [
+          {
+            "mode": "all_of",
+            "keys": [
+              "AUTH_ADMIN_REQUIRED_AMR",
+              "AUTH_RATE_LIMIT_KEY_PREFIX",
+              "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+              "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+              "AUTH_TRUST_X_FORWARDED_FOR"
+            ],
+            "purpose": "admin trusted proxy, auth rate-limit tuning and MFA policy"
+          }
         ],
         "all_env_keys": [
           "AUTH_ADMIN_REQUIRED_AMR",
@@ -56,39 +66,36 @@
           "NEXT_PUBLIC_API_URL",
           "NEXT_PUBLIC_APP_ORIGIN"
         ],
-        "required_secret_keys": [
-          "AUTH_RATE_LIMIT_KEY_SALT",
-          "AUTH_RATE_LIMIT_REDIS_URL",
-          "AUTH_SESSION_SECRET",
-          "RATE_LIMIT_STORAGE_URI"
+        "required_secret_groups": [
+          {
+            "mode": "all_of",
+            "keys": ["AUTH_SESSION_SECRET"],
+            "purpose": "admin session cookie signing"
+          },
+          {
+            "mode": "any_of",
+            "keys": ["AUTH_RATE_LIMIT_REDIS_URL", "RATE_LIMIT_STORAGE_URI"],
+            "purpose": "admin distributed auth rate limit storage"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["AUTH_RATE_LIMIT_KEY_SALT"],
+            "purpose": "admin auth rate limit key derivation"
+          }
         ],
-        "optional_secret_keys": ["AUTH_OIDC_CLIENT_SECRET"],
+        "optional_secret_groups": [
+          {
+            "mode": "all_of",
+            "keys": ["AUTH_OIDC_CLIENT_SECRET"],
+            "purpose": "optional confidential OIDC client secret"
+          }
+        ],
         "all_secret_keys": [
           "AUTH_OIDC_CLIENT_SECRET",
           "AUTH_RATE_LIMIT_KEY_SALT",
           "AUTH_RATE_LIMIT_REDIS_URL",
           "AUTH_SESSION_SECRET",
           "RATE_LIMIT_STORAGE_URI"
-        ],
-        "required_runtime_keys": [
-          "AUTH_APP_ORIGIN",
-          "AUTH_OIDC_CLIENT_ID",
-          "AUTH_OIDC_ISSUER_URL",
-          "AUTH_OIDC_SCOPE",
-          "AUTH_RATE_LIMIT_KEY_SALT",
-          "AUTH_RATE_LIMIT_REDIS_URL",
-          "AUTH_SESSION_SECRET",
-          "NEXT_PUBLIC_API_URL",
-          "NEXT_PUBLIC_APP_ORIGIN",
-          "RATE_LIMIT_STORAGE_URI"
-        ],
-        "optional_runtime_keys": [
-          "AUTH_ADMIN_REQUIRED_AMR",
-          "AUTH_OIDC_CLIENT_SECRET",
-          "AUTH_RATE_LIMIT_KEY_PREFIX",
-          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
-          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
-          "AUTH_TRUST_X_FORWARDED_FOR"
         ],
         "all_runtime_keys": [
           "AUTH_ADMIN_REQUIRED_AMR",
@@ -133,20 +140,30 @@
           "env_keys": ["AUTH_APP_ORIGIN", "NEXT_PUBLIC_APP_ORIGIN"],
           "required_in_preflight": true
         },
-        "required_env_keys": [
-          "AUTH_APP_ORIGIN",
-          "AUTH_OIDC_CLIENT_ID",
-          "AUTH_OIDC_ISSUER_URL",
-          "AUTH_OIDC_SCOPE",
-          "NEXT_PUBLIC_API_URL",
-          "NEXT_PUBLIC_APP_ORIGIN"
+        "required_env_groups": [
+          {
+            "mode": "all_of",
+            "keys": [
+              "AUTH_OIDC_CLIENT_ID",
+              "AUTH_OIDC_ISSUER_URL",
+              "AUTH_OIDC_SCOPE",
+              "NEXT_PUBLIC_API_URL"
+            ],
+            "purpose": "admin upstream API and OIDC bootstrap"
+          }
         ],
-        "optional_env_keys": [
-          "AUTH_ADMIN_REQUIRED_AMR",
-          "AUTH_RATE_LIMIT_KEY_PREFIX",
-          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
-          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
-          "AUTH_TRUST_X_FORWARDED_FOR"
+        "optional_env_groups": [
+          {
+            "mode": "all_of",
+            "keys": [
+              "AUTH_ADMIN_REQUIRED_AMR",
+              "AUTH_RATE_LIMIT_KEY_PREFIX",
+              "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+              "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+              "AUTH_TRUST_X_FORWARDED_FOR"
+            ],
+            "purpose": "admin trusted proxy, auth rate-limit tuning and MFA policy"
+          }
         ],
         "all_env_keys": [
           "AUTH_ADMIN_REQUIRED_AMR",
@@ -161,39 +178,36 @@
           "NEXT_PUBLIC_API_URL",
           "NEXT_PUBLIC_APP_ORIGIN"
         ],
-        "required_secret_keys": [
-          "AUTH_RATE_LIMIT_KEY_SALT",
-          "AUTH_RATE_LIMIT_REDIS_URL",
-          "AUTH_SESSION_SECRET",
-          "RATE_LIMIT_STORAGE_URI"
+        "required_secret_groups": [
+          {
+            "mode": "all_of",
+            "keys": ["AUTH_SESSION_SECRET"],
+            "purpose": "admin session cookie signing"
+          },
+          {
+            "mode": "any_of",
+            "keys": ["AUTH_RATE_LIMIT_REDIS_URL", "RATE_LIMIT_STORAGE_URI"],
+            "purpose": "admin distributed auth rate limit storage"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["AUTH_RATE_LIMIT_KEY_SALT"],
+            "purpose": "admin auth rate limit key derivation"
+          }
         ],
-        "optional_secret_keys": ["AUTH_OIDC_CLIENT_SECRET"],
+        "optional_secret_groups": [
+          {
+            "mode": "all_of",
+            "keys": ["AUTH_OIDC_CLIENT_SECRET"],
+            "purpose": "optional confidential OIDC client secret"
+          }
+        ],
         "all_secret_keys": [
           "AUTH_OIDC_CLIENT_SECRET",
           "AUTH_RATE_LIMIT_KEY_SALT",
           "AUTH_RATE_LIMIT_REDIS_URL",
           "AUTH_SESSION_SECRET",
           "RATE_LIMIT_STORAGE_URI"
-        ],
-        "required_runtime_keys": [
-          "AUTH_APP_ORIGIN",
-          "AUTH_OIDC_CLIENT_ID",
-          "AUTH_OIDC_ISSUER_URL",
-          "AUTH_OIDC_SCOPE",
-          "AUTH_RATE_LIMIT_KEY_SALT",
-          "AUTH_RATE_LIMIT_REDIS_URL",
-          "AUTH_SESSION_SECRET",
-          "NEXT_PUBLIC_API_URL",
-          "NEXT_PUBLIC_APP_ORIGIN",
-          "RATE_LIMIT_STORAGE_URI"
-        ],
-        "optional_runtime_keys": [
-          "AUTH_ADMIN_REQUIRED_AMR",
-          "AUTH_OIDC_CLIENT_SECRET",
-          "AUTH_RATE_LIMIT_KEY_PREFIX",
-          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
-          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
-          "AUTH_TRUST_X_FORWARDED_FOR"
         ],
         "all_runtime_keys": [
           "AUTH_ADMIN_REQUIRED_AMR",
@@ -234,23 +248,35 @@
       },
       "runtime_contract": {
         "public_origin": null,
-        "required_env_keys": [
-          "AUTH_ALLOWED_JWKS_HOSTS",
-          "AUTH_AUDIENCE",
-          "AUTH_ISSUER_URL",
-          "AUTH_JWKS_URL",
-          "CORS_ORIGINS",
-          "ENVIRONMENT",
-          "KEY_PROVIDER",
-          "KEYCLOAK_ADMIN_AUTH_MODE",
-          "LOG_LEVEL",
-          "SCW_DEFAULT_PROJECT_ID"
+        "required_env_groups": [
+          {
+            "mode": "all_of",
+            "keys": [
+              "AUTH_ALLOWED_JWKS_HOSTS",
+              "AUTH_AUDIENCE",
+              "AUTH_ISSUER_URL",
+              "AUTH_JWKS_URL",
+              "CORS_ORIGINS",
+              "ENVIRONMENT",
+              "KEY_PROVIDER",
+              "KEYCLOAK_ADMIN_AUTH_MODE",
+              "LOG_LEVEL",
+              "SCW_DEFAULT_PROJECT_ID"
+            ],
+            "purpose": "api auth, CORS, key provider and provisioning principal bootstrap"
+          }
         ],
-        "optional_env_keys": [
-          "DEBUG",
-          "KEYCLOAK_ADMIN_CLIENT_ID",
-          "KEYCLOAK_ADMIN_REALM",
-          "KEYCLOAK_ADMIN_USERNAME"
+        "optional_env_groups": [
+          {
+            "mode": "all_of",
+            "keys": [
+              "DEBUG",
+              "KEYCLOAK_ADMIN_CLIENT_ID",
+              "KEYCLOAK_ADMIN_REALM",
+              "KEYCLOAK_ADMIN_USERNAME"
+            ],
+            "purpose": "api optional diagnostics and provisioning principal selector"
+          }
         ],
         "all_env_keys": [
           "AUTH_ALLOWED_JWKS_HOSTS",
@@ -268,16 +294,39 @@
           "LOG_LEVEL",
           "SCW_DEFAULT_PROJECT_ID"
         ],
-        "required_secret_keys": [
-          "CONTACT_API_INGEST_TOKEN",
-          "DATABASE_URL",
-          "KEYCLOAK_ADMIN_CLIENT_SECRET",
-          "KEYCLOAK_ADMIN_PASSWORD",
-          "RATE_LIMIT_STORAGE_URI",
-          "RESEND_WEBHOOK_SECRET",
-          "SCW_SECRET_KEY"
+        "required_secret_groups": [
+          {
+            "mode": "all_of",
+            "keys": ["DATABASE_URL"],
+            "purpose": "API primary database access"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["RATE_LIMIT_STORAGE_URI"],
+            "purpose": "API distributed rate limit storage"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["CONTACT_API_INGEST_TOKEN"],
+            "purpose": "contact ingest authentication"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["RESEND_WEBHOOK_SECRET"],
+            "purpose": "provider-signed invitation delivery proof webhooks"
+          },
+          {
+            "mode": "any_of",
+            "keys": ["KEYCLOAK_ADMIN_CLIENT_SECRET", "KEYCLOAK_ADMIN_PASSWORD"],
+            "purpose": "API runtime provisioning access to the Keycloak admin API via password grant or dedicated service account"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["SCW_SECRET_KEY"],
+            "purpose": "Scaleway key provider runtime access"
+          }
         ],
-        "optional_secret_keys": [],
+        "optional_secret_groups": [],
         "all_secret_keys": [
           "CONTACT_API_INGEST_TOKEN",
           "DATABASE_URL",
@@ -286,31 +335,6 @@
           "RATE_LIMIT_STORAGE_URI",
           "RESEND_WEBHOOK_SECRET",
           "SCW_SECRET_KEY"
-        ],
-        "required_runtime_keys": [
-          "AUTH_ALLOWED_JWKS_HOSTS",
-          "AUTH_AUDIENCE",
-          "AUTH_ISSUER_URL",
-          "AUTH_JWKS_URL",
-          "CONTACT_API_INGEST_TOKEN",
-          "CORS_ORIGINS",
-          "DATABASE_URL",
-          "ENVIRONMENT",
-          "KEY_PROVIDER",
-          "KEYCLOAK_ADMIN_AUTH_MODE",
-          "KEYCLOAK_ADMIN_CLIENT_SECRET",
-          "KEYCLOAK_ADMIN_PASSWORD",
-          "LOG_LEVEL",
-          "RATE_LIMIT_STORAGE_URI",
-          "RESEND_WEBHOOK_SECRET",
-          "SCW_DEFAULT_PROJECT_ID",
-          "SCW_SECRET_KEY"
-        ],
-        "optional_runtime_keys": [
-          "DEBUG",
-          "KEYCLOAK_ADMIN_CLIENT_ID",
-          "KEYCLOAK_ADMIN_REALM",
-          "KEYCLOAK_ADMIN_USERNAME"
         ],
         "all_runtime_keys": [
           "AUTH_ALLOWED_JWKS_HOSTS",
@@ -356,23 +380,35 @@
       },
       "runtime_contract": {
         "public_origin": null,
-        "required_env_keys": [
-          "AUTH_ALLOWED_JWKS_HOSTS",
-          "AUTH_AUDIENCE",
-          "AUTH_ISSUER_URL",
-          "AUTH_JWKS_URL",
-          "CORS_ORIGINS",
-          "ENVIRONMENT",
-          "KEY_PROVIDER",
-          "KEYCLOAK_ADMIN_AUTH_MODE",
-          "LOG_LEVEL",
-          "SCW_DEFAULT_PROJECT_ID"
+        "required_env_groups": [
+          {
+            "mode": "all_of",
+            "keys": [
+              "AUTH_ALLOWED_JWKS_HOSTS",
+              "AUTH_AUDIENCE",
+              "AUTH_ISSUER_URL",
+              "AUTH_JWKS_URL",
+              "CORS_ORIGINS",
+              "ENVIRONMENT",
+              "KEY_PROVIDER",
+              "KEYCLOAK_ADMIN_AUTH_MODE",
+              "LOG_LEVEL",
+              "SCW_DEFAULT_PROJECT_ID"
+            ],
+            "purpose": "api auth, CORS, key provider and provisioning principal bootstrap"
+          }
         ],
-        "optional_env_keys": [
-          "DEBUG",
-          "KEYCLOAK_ADMIN_CLIENT_ID",
-          "KEYCLOAK_ADMIN_REALM",
-          "KEYCLOAK_ADMIN_USERNAME"
+        "optional_env_groups": [
+          {
+            "mode": "all_of",
+            "keys": [
+              "DEBUG",
+              "KEYCLOAK_ADMIN_CLIENT_ID",
+              "KEYCLOAK_ADMIN_REALM",
+              "KEYCLOAK_ADMIN_USERNAME"
+            ],
+            "purpose": "api optional diagnostics and provisioning principal selector"
+          }
         ],
         "all_env_keys": [
           "AUTH_ALLOWED_JWKS_HOSTS",
@@ -390,16 +426,39 @@
           "LOG_LEVEL",
           "SCW_DEFAULT_PROJECT_ID"
         ],
-        "required_secret_keys": [
-          "CONTACT_API_INGEST_TOKEN",
-          "DATABASE_URL",
-          "KEYCLOAK_ADMIN_CLIENT_SECRET",
-          "KEYCLOAK_ADMIN_PASSWORD",
-          "RATE_LIMIT_STORAGE_URI",
-          "RESEND_WEBHOOK_SECRET",
-          "SCW_SECRET_KEY"
+        "required_secret_groups": [
+          {
+            "mode": "all_of",
+            "keys": ["DATABASE_URL"],
+            "purpose": "API primary database access"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["RATE_LIMIT_STORAGE_URI"],
+            "purpose": "API distributed rate limit storage"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["CONTACT_API_INGEST_TOKEN"],
+            "purpose": "contact ingest authentication"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["RESEND_WEBHOOK_SECRET"],
+            "purpose": "provider-signed invitation delivery proof webhooks"
+          },
+          {
+            "mode": "any_of",
+            "keys": ["KEYCLOAK_ADMIN_CLIENT_SECRET", "KEYCLOAK_ADMIN_PASSWORD"],
+            "purpose": "API runtime provisioning access to the Keycloak admin API via password grant or dedicated service account"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["SCW_SECRET_KEY"],
+            "purpose": "Scaleway key provider runtime access"
+          }
         ],
-        "optional_secret_keys": [],
+        "optional_secret_groups": [],
         "all_secret_keys": [
           "CONTACT_API_INGEST_TOKEN",
           "DATABASE_URL",
@@ -408,31 +467,6 @@
           "RATE_LIMIT_STORAGE_URI",
           "RESEND_WEBHOOK_SECRET",
           "SCW_SECRET_KEY"
-        ],
-        "required_runtime_keys": [
-          "AUTH_ALLOWED_JWKS_HOSTS",
-          "AUTH_AUDIENCE",
-          "AUTH_ISSUER_URL",
-          "AUTH_JWKS_URL",
-          "CONTACT_API_INGEST_TOKEN",
-          "CORS_ORIGINS",
-          "DATABASE_URL",
-          "ENVIRONMENT",
-          "KEY_PROVIDER",
-          "KEYCLOAK_ADMIN_AUTH_MODE",
-          "KEYCLOAK_ADMIN_CLIENT_SECRET",
-          "KEYCLOAK_ADMIN_PASSWORD",
-          "LOG_LEVEL",
-          "RATE_LIMIT_STORAGE_URI",
-          "RESEND_WEBHOOK_SECRET",
-          "SCW_DEFAULT_PROJECT_ID",
-          "SCW_SECRET_KEY"
-        ],
-        "optional_runtime_keys": [
-          "DEBUG",
-          "KEYCLOAK_ADMIN_CLIENT_ID",
-          "KEYCLOAK_ADMIN_REALM",
-          "KEYCLOAK_ADMIN_USERNAME"
         ],
         "all_runtime_keys": [
           "AUTH_ALLOWED_JWKS_HOSTS",
@@ -478,32 +512,44 @@
       },
       "runtime_contract": {
         "public_origin": null,
-        "required_env_keys": [
-          "KC_BOOTSTRAP_ADMIN_USERNAME",
-          "KC_DB",
-          "KC_DB_URL_DATABASE",
-          "KC_DB_URL_HOST",
-          "KC_DB_URL_PORT",
-          "KC_DB_USERNAME",
-          "KC_HEALTH_ENABLED",
-          "KC_HOSTNAME",
-          "KC_HTTP_ENABLED",
-          "KC_LOG_LEVEL",
-          "KC_METRICS_ENABLED",
-          "KC_PROXY_HEADERS",
-          "KEYCLOAK_SMTP_AUTH",
-          "KEYCLOAK_SMTP_FROM",
-          "KEYCLOAK_SMTP_HOST",
-          "KEYCLOAK_SMTP_PORT",
-          "KEYCLOAK_SMTP_SSL",
-          "KEYCLOAK_SMTP_STARTTLS",
-          "KEYCLOAK_SMTP_USER",
-          "SUPER_ADMIN_EMAIL"
+        "required_env_groups": [
+          {
+            "mode": "all_of",
+            "keys": [
+              "KC_BOOTSTRAP_ADMIN_USERNAME",
+              "KC_DB",
+              "KC_DB_URL_DATABASE",
+              "KC_DB_URL_HOST",
+              "KC_DB_URL_PORT",
+              "KC_DB_USERNAME",
+              "KC_HEALTH_ENABLED",
+              "KC_HOSTNAME",
+              "KC_HTTP_ENABLED",
+              "KC_LOG_LEVEL",
+              "KC_METRICS_ENABLED",
+              "KC_PROXY_HEADERS",
+              "KEYCLOAK_SMTP_AUTH",
+              "KEYCLOAK_SMTP_FROM",
+              "KEYCLOAK_SMTP_HOST",
+              "KEYCLOAK_SMTP_PORT",
+              "KEYCLOAK_SMTP_SSL",
+              "KEYCLOAK_SMTP_STARTTLS",
+              "KEYCLOAK_SMTP_USER",
+              "SUPER_ADMIN_EMAIL"
+            ],
+            "purpose": "auth runtime database, bootstrap admin and SMTP baseline"
+          }
         ],
-        "optional_env_keys": [
-          "KEYCLOAK_SMTP_FROM_DISPLAY_NAME",
-          "KEYCLOAK_SMTP_REPLY_TO",
-          "KEYCLOAK_SMTP_REPLY_TO_DISPLAY_NAME"
+        "optional_env_groups": [
+          {
+            "mode": "all_of",
+            "keys": [
+              "KEYCLOAK_SMTP_FROM_DISPLAY_NAME",
+              "KEYCLOAK_SMTP_REPLY_TO",
+              "KEYCLOAK_SMTP_REPLY_TO_DISPLAY_NAME"
+            ],
+            "purpose": "auth optional SMTP presentation fields"
+          }
         ],
         "all_env_keys": [
           "KC_BOOTSTRAP_ADMIN_USERNAME",
@@ -530,46 +576,28 @@
           "KEYCLOAK_SMTP_USER",
           "SUPER_ADMIN_EMAIL"
         ],
-        "required_secret_keys": [
-          "KC_BOOTSTRAP_ADMIN_PASSWORD",
-          "KC_DB_PASSWORD",
-          "KEYCLOAK_SMTP_PASSWORD"
+        "required_secret_groups": [
+          {
+            "mode": "all_of",
+            "keys": ["KC_DB_PASSWORD"],
+            "purpose": "Keycloak database password"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["KC_BOOTSTRAP_ADMIN_PASSWORD"],
+            "purpose": "Keycloak bootstrap admin break-glass credential"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["KEYCLOAK_SMTP_PASSWORD"],
+            "purpose": "Keycloak realm SMTP credential used for execute-actions-email"
+          }
         ],
-        "optional_secret_keys": [],
+        "optional_secret_groups": [],
         "all_secret_keys": [
           "KC_BOOTSTRAP_ADMIN_PASSWORD",
           "KC_DB_PASSWORD",
           "KEYCLOAK_SMTP_PASSWORD"
-        ],
-        "required_runtime_keys": [
-          "KC_BOOTSTRAP_ADMIN_PASSWORD",
-          "KC_BOOTSTRAP_ADMIN_USERNAME",
-          "KC_DB",
-          "KC_DB_PASSWORD",
-          "KC_DB_URL_DATABASE",
-          "KC_DB_URL_HOST",
-          "KC_DB_URL_PORT",
-          "KC_DB_USERNAME",
-          "KC_HEALTH_ENABLED",
-          "KC_HOSTNAME",
-          "KC_HTTP_ENABLED",
-          "KC_LOG_LEVEL",
-          "KC_METRICS_ENABLED",
-          "KC_PROXY_HEADERS",
-          "KEYCLOAK_SMTP_AUTH",
-          "KEYCLOAK_SMTP_FROM",
-          "KEYCLOAK_SMTP_HOST",
-          "KEYCLOAK_SMTP_PASSWORD",
-          "KEYCLOAK_SMTP_PORT",
-          "KEYCLOAK_SMTP_SSL",
-          "KEYCLOAK_SMTP_STARTTLS",
-          "KEYCLOAK_SMTP_USER",
-          "SUPER_ADMIN_EMAIL"
-        ],
-        "optional_runtime_keys": [
-          "KEYCLOAK_SMTP_FROM_DISPLAY_NAME",
-          "KEYCLOAK_SMTP_REPLY_TO",
-          "KEYCLOAK_SMTP_REPLY_TO_DISPLAY_NAME"
         ],
         "all_runtime_keys": [
           "KC_BOOTSTRAP_ADMIN_PASSWORD",
@@ -620,17 +648,37 @@
       },
       "runtime_contract": {
         "public_origin": null,
-        "required_env_keys": [],
-        "optional_env_keys": [],
+        "required_env_groups": [],
+        "optional_env_groups": [],
         "all_env_keys": [],
-        "required_secret_keys": [
-          "CONTACT_API_INGEST_TOKEN",
-          "CONTACT_FORM_CHALLENGE_SECRET",
-          "LANDING_ASSET_SIGNING_SECRET",
-          "RATE_LIMIT_STORAGE_URI",
-          "RESEND_API_KEY"
+        "required_secret_groups": [
+          {
+            "mode": "all_of",
+            "keys": ["CONTACT_API_INGEST_TOKEN"],
+            "purpose": "landing contact form ingest authentication"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["RESEND_API_KEY"],
+            "purpose": "landing transactional email delivery"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["RATE_LIMIT_STORAGE_URI"],
+            "purpose": "landing distributed abuse protection storage"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["CONTACT_FORM_CHALLENGE_SECRET"],
+            "purpose": "landing human verification challenge secret"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["LANDING_ASSET_SIGNING_SECRET"],
+            "purpose": "landing short-lived asset URL signing secret"
+          }
         ],
-        "optional_secret_keys": [],
+        "optional_secret_groups": [],
         "all_secret_keys": [
           "CONTACT_API_INGEST_TOKEN",
           "CONTACT_FORM_CHALLENGE_SECRET",
@@ -638,14 +686,6 @@
           "RATE_LIMIT_STORAGE_URI",
           "RESEND_API_KEY"
         ],
-        "required_runtime_keys": [
-          "CONTACT_API_INGEST_TOKEN",
-          "CONTACT_FORM_CHALLENGE_SECRET",
-          "LANDING_ASSET_SIGNING_SECRET",
-          "RATE_LIMIT_STORAGE_URI",
-          "RESEND_API_KEY"
-        ],
-        "optional_runtime_keys": [],
         "all_runtime_keys": [
           "CONTACT_API_INGEST_TOKEN",
           "CONTACT_FORM_CHALLENGE_SECRET",
@@ -674,17 +714,37 @@
       },
       "runtime_contract": {
         "public_origin": null,
-        "required_env_keys": [],
-        "optional_env_keys": [],
+        "required_env_groups": [],
+        "optional_env_groups": [],
         "all_env_keys": [],
-        "required_secret_keys": [
-          "CONTACT_API_INGEST_TOKEN",
-          "CONTACT_FORM_CHALLENGE_SECRET",
-          "LANDING_ASSET_SIGNING_SECRET",
-          "RATE_LIMIT_STORAGE_URI",
-          "RESEND_API_KEY"
+        "required_secret_groups": [
+          {
+            "mode": "all_of",
+            "keys": ["CONTACT_API_INGEST_TOKEN"],
+            "purpose": "landing contact form ingest authentication"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["RESEND_API_KEY"],
+            "purpose": "landing transactional email delivery"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["RATE_LIMIT_STORAGE_URI"],
+            "purpose": "landing distributed abuse protection storage"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["CONTACT_FORM_CHALLENGE_SECRET"],
+            "purpose": "landing human verification challenge secret"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["LANDING_ASSET_SIGNING_SECRET"],
+            "purpose": "landing short-lived asset URL signing secret"
+          }
         ],
-        "optional_secret_keys": [],
+        "optional_secret_groups": [],
         "all_secret_keys": [
           "CONTACT_API_INGEST_TOKEN",
           "CONTACT_FORM_CHALLENGE_SECRET",
@@ -692,14 +752,6 @@
           "RATE_LIMIT_STORAGE_URI",
           "RESEND_API_KEY"
         ],
-        "required_runtime_keys": [
-          "CONTACT_API_INGEST_TOKEN",
-          "CONTACT_FORM_CHALLENGE_SECRET",
-          "LANDING_ASSET_SIGNING_SECRET",
-          "RATE_LIMIT_STORAGE_URI",
-          "RESEND_API_KEY"
-        ],
-        "optional_runtime_keys": [],
         "all_runtime_keys": [
           "CONTACT_API_INGEST_TOKEN",
           "CONTACT_FORM_CHALLENGE_SECRET",
@@ -732,19 +784,29 @@
           "env_keys": ["AUTH_APP_ORIGIN", "NEXT_PUBLIC_APP_ORIGIN"],
           "required_in_preflight": true
         },
-        "required_env_keys": [
-          "AUTH_APP_ORIGIN",
-          "AUTH_OIDC_CLIENT_ID",
-          "AUTH_OIDC_ISSUER_URL",
-          "AUTH_OIDC_SCOPE",
-          "NEXT_PUBLIC_API_URL",
-          "NEXT_PUBLIC_APP_ORIGIN"
+        "required_env_groups": [
+          {
+            "mode": "all_of",
+            "keys": [
+              "AUTH_OIDC_CLIENT_ID",
+              "AUTH_OIDC_ISSUER_URL",
+              "AUTH_OIDC_SCOPE",
+              "NEXT_PUBLIC_API_URL"
+            ],
+            "purpose": "webapp upstream API and OIDC bootstrap"
+          }
         ],
-        "optional_env_keys": [
-          "AUTH_RATE_LIMIT_KEY_PREFIX",
-          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
-          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
-          "AUTH_TRUST_X_FORWARDED_FOR"
+        "optional_env_groups": [
+          {
+            "mode": "all_of",
+            "keys": [
+              "AUTH_RATE_LIMIT_KEY_PREFIX",
+              "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+              "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+              "AUTH_TRUST_X_FORWARDED_FOR"
+            ],
+            "purpose": "webapp trusted proxy and auth rate-limit tuning"
+          }
         ],
         "all_env_keys": [
           "AUTH_APP_ORIGIN",
@@ -758,38 +820,36 @@
           "NEXT_PUBLIC_API_URL",
           "NEXT_PUBLIC_APP_ORIGIN"
         ],
-        "required_secret_keys": [
-          "AUTH_RATE_LIMIT_KEY_SALT",
-          "AUTH_RATE_LIMIT_REDIS_URL",
-          "AUTH_SESSION_SECRET",
-          "RATE_LIMIT_STORAGE_URI"
+        "required_secret_groups": [
+          {
+            "mode": "all_of",
+            "keys": ["AUTH_SESSION_SECRET"],
+            "purpose": "webapp session cookie signing"
+          },
+          {
+            "mode": "any_of",
+            "keys": ["AUTH_RATE_LIMIT_REDIS_URL", "RATE_LIMIT_STORAGE_URI"],
+            "purpose": "webapp distributed auth rate limit storage"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["AUTH_RATE_LIMIT_KEY_SALT"],
+            "purpose": "webapp auth rate limit key derivation"
+          }
         ],
-        "optional_secret_keys": ["AUTH_OIDC_CLIENT_SECRET"],
+        "optional_secret_groups": [
+          {
+            "mode": "all_of",
+            "keys": ["AUTH_OIDC_CLIENT_SECRET"],
+            "purpose": "optional confidential OIDC client secret"
+          }
+        ],
         "all_secret_keys": [
           "AUTH_OIDC_CLIENT_SECRET",
           "AUTH_RATE_LIMIT_KEY_SALT",
           "AUTH_RATE_LIMIT_REDIS_URL",
           "AUTH_SESSION_SECRET",
           "RATE_LIMIT_STORAGE_URI"
-        ],
-        "required_runtime_keys": [
-          "AUTH_APP_ORIGIN",
-          "AUTH_OIDC_CLIENT_ID",
-          "AUTH_OIDC_ISSUER_URL",
-          "AUTH_OIDC_SCOPE",
-          "AUTH_RATE_LIMIT_KEY_SALT",
-          "AUTH_RATE_LIMIT_REDIS_URL",
-          "AUTH_SESSION_SECRET",
-          "NEXT_PUBLIC_API_URL",
-          "NEXT_PUBLIC_APP_ORIGIN",
-          "RATE_LIMIT_STORAGE_URI"
-        ],
-        "optional_runtime_keys": [
-          "AUTH_OIDC_CLIENT_SECRET",
-          "AUTH_RATE_LIMIT_KEY_PREFIX",
-          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
-          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
-          "AUTH_TRUST_X_FORWARDED_FOR"
         ],
         "all_runtime_keys": [
           "AUTH_APP_ORIGIN",
@@ -833,19 +893,29 @@
           "env_keys": ["AUTH_APP_ORIGIN", "NEXT_PUBLIC_APP_ORIGIN"],
           "required_in_preflight": true
         },
-        "required_env_keys": [
-          "AUTH_APP_ORIGIN",
-          "AUTH_OIDC_CLIENT_ID",
-          "AUTH_OIDC_ISSUER_URL",
-          "AUTH_OIDC_SCOPE",
-          "NEXT_PUBLIC_API_URL",
-          "NEXT_PUBLIC_APP_ORIGIN"
+        "required_env_groups": [
+          {
+            "mode": "all_of",
+            "keys": [
+              "AUTH_OIDC_CLIENT_ID",
+              "AUTH_OIDC_ISSUER_URL",
+              "AUTH_OIDC_SCOPE",
+              "NEXT_PUBLIC_API_URL"
+            ],
+            "purpose": "webapp upstream API and OIDC bootstrap"
+          }
         ],
-        "optional_env_keys": [
-          "AUTH_RATE_LIMIT_KEY_PREFIX",
-          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
-          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
-          "AUTH_TRUST_X_FORWARDED_FOR"
+        "optional_env_groups": [
+          {
+            "mode": "all_of",
+            "keys": [
+              "AUTH_RATE_LIMIT_KEY_PREFIX",
+              "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
+              "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
+              "AUTH_TRUST_X_FORWARDED_FOR"
+            ],
+            "purpose": "webapp trusted proxy and auth rate-limit tuning"
+          }
         ],
         "all_env_keys": [
           "AUTH_APP_ORIGIN",
@@ -859,38 +929,36 @@
           "NEXT_PUBLIC_API_URL",
           "NEXT_PUBLIC_APP_ORIGIN"
         ],
-        "required_secret_keys": [
-          "AUTH_RATE_LIMIT_KEY_SALT",
-          "AUTH_RATE_LIMIT_REDIS_URL",
-          "AUTH_SESSION_SECRET",
-          "RATE_LIMIT_STORAGE_URI"
+        "required_secret_groups": [
+          {
+            "mode": "all_of",
+            "keys": ["AUTH_SESSION_SECRET"],
+            "purpose": "webapp session cookie signing"
+          },
+          {
+            "mode": "any_of",
+            "keys": ["AUTH_RATE_LIMIT_REDIS_URL", "RATE_LIMIT_STORAGE_URI"],
+            "purpose": "webapp distributed auth rate limit storage"
+          },
+          {
+            "mode": "all_of",
+            "keys": ["AUTH_RATE_LIMIT_KEY_SALT"],
+            "purpose": "webapp auth rate limit key derivation"
+          }
         ],
-        "optional_secret_keys": ["AUTH_OIDC_CLIENT_SECRET"],
+        "optional_secret_groups": [
+          {
+            "mode": "all_of",
+            "keys": ["AUTH_OIDC_CLIENT_SECRET"],
+            "purpose": "optional confidential OIDC client secret"
+          }
+        ],
         "all_secret_keys": [
           "AUTH_OIDC_CLIENT_SECRET",
           "AUTH_RATE_LIMIT_KEY_SALT",
           "AUTH_RATE_LIMIT_REDIS_URL",
           "AUTH_SESSION_SECRET",
           "RATE_LIMIT_STORAGE_URI"
-        ],
-        "required_runtime_keys": [
-          "AUTH_APP_ORIGIN",
-          "AUTH_OIDC_CLIENT_ID",
-          "AUTH_OIDC_ISSUER_URL",
-          "AUTH_OIDC_SCOPE",
-          "AUTH_RATE_LIMIT_KEY_SALT",
-          "AUTH_RATE_LIMIT_REDIS_URL",
-          "AUTH_SESSION_SECRET",
-          "NEXT_PUBLIC_API_URL",
-          "NEXT_PUBLIC_APP_ORIGIN",
-          "RATE_LIMIT_STORAGE_URI"
-        ],
-        "optional_runtime_keys": [
-          "AUTH_OIDC_CLIENT_SECRET",
-          "AUTH_RATE_LIMIT_KEY_PREFIX",
-          "AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS",
-          "AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS",
-          "AUTH_TRUST_X_FORWARDED_FOR"
         ],
         "all_runtime_keys": [
           "AUTH_APP_ORIGIN",
