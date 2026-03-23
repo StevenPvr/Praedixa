@@ -24,6 +24,18 @@ export interface DecisionConfigRecomputeResponse {
   recomputedAt: string;
 }
 
+export interface DecisionConfigDraftState {
+  effectiveAtInput: string;
+  setEffectiveAtInput: (value: string) => void;
+  payloadDraft: string;
+  setPayloadDraft: (value: string) => void;
+  changeReason: string;
+  setChangeReason: (value: string) => void;
+  recomputeAlertId: string;
+  setRecomputeAlertId: (value: string) => void;
+  lastRecompute: DecisionConfigRecomputeResponse | null;
+}
+
 export interface ScheduleVersionRequestBody {
   siteId?: string | null;
   effectiveAt: string;

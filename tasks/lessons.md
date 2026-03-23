@@ -111,3 +111,6 @@
 - Quand un workflow GitHub est cense etre l'autorite de release, ne pas laisser de `workflow_dispatch.inputs` influencer `ref`, `services`, `tag` ou la promotion; utiliser le SHA du run et des environnements proteges a la place.
 - Quand un contrat runtime machine-readable derive des groupes `all_of` / `any_of`, ne jamais les aplatir en listes `required_*_keys`; preserv­er la semantique de groupe et la tester explicitement, sinon la plateforme ment sur ses vrais prerequis.
 - Quand une exception securite passe de `active` a `resolved` ou `revoked`, le validateur ne doit plus la traiter comme expirante/bloquante; garder l'historique gouverne sans obliger a supprimer l'entree du registre.
+- Quand un job GitHub utilise `cache: pnpm` avec `actions/setup-node`, installer `pnpm/action-setup` avant dans le meme job; sinon le runner peut echouer tres tot sur `Unable to locate executable file: pnpm`.
+- Quand une app consomme un package workspace exporte depuis `dist/`, reconstruire ce package explicitement dans les jobs CI cibles avant `test` ou `build`; un runner propre n'heritera jamais du `dist/` local.
+- Quand un composant React exporte un type partage reutilise par un sous-module qu'il importe ensuite, sortir ce type vers un fichier de types dedie ou deja existant; sinon `depcruise` signale un cycle reel meme si TypeScript compile encore.

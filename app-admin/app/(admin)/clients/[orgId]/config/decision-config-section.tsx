@@ -12,10 +12,7 @@ import { useApiGet } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 
 import { AsyncDataTableBlock } from "./async-data-table-block";
-import {
-  DecisionConfigCard,
-  type DecisionConfigDraftState,
-} from "./decision-config-card";
+import { DecisionConfigCard } from "./decision-config-card";
 import { buildVersionColumns } from "./config-columns";
 import {
   compactVersionId,
@@ -25,6 +22,7 @@ import {
 } from "./config-operations";
 import type {
   ConfigActionHandlers,
+  DecisionConfigDraftState,
   DecisionConfigRecomputeResponse,
 } from "./config-types";
 

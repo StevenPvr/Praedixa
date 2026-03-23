@@ -3,24 +3,11 @@
 import type { ResolvedDecisionEngineConfig } from "@praedixa/shared-types";
 import { Card, CardContent } from "@praedixa/ui";
 
+import type { DecisionConfigDraftState } from "./config-types";
 import {
   DecisionConfigControls,
   DecisionConfigSummary,
 } from "./decision-config-card-sections";
-
-export interface DecisionConfigDraftState {
-  effectiveAtInput: string;
-  setEffectiveAtInput: (value: string) => void;
-  payloadDraft: string;
-  setPayloadDraft: (value: string) => void;
-  changeReason: string;
-  setChangeReason: (value: string) => void;
-  recomputeAlertId: string;
-  setRecomputeAlertId: (value: string) => void;
-  lastRecompute:
-    | import("./config-types").DecisionConfigRecomputeResponse
-    | null;
-}
 
 type DecisionConfigCardProps = {
   resolvedConfig: ResolvedDecisionEngineConfig | null | undefined;

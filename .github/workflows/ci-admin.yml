@@ -98,7 +98,7 @@ jobs:
         run: pnpm gate:architecture:frontend
 
       - name: Build workspace packages
-        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build
+        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/api-hooks build && pnpm --filter @praedixa/ui build
 
       - name: Format check
         run: pnpm format:check
@@ -139,7 +139,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build workspace packages
-        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build
+        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/api-hooks build && pnpm --filter @praedixa/ui build
 
       - name: Guard critical test presence
         run: pnpm workspaces:check:critical-tests
@@ -183,7 +183,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build workspace packages
-        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build
+        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/api-hooks build && pnpm --filter @praedixa/ui build
 
       - name: Build admin app
         run: pnpm --filter @praedixa/admin build

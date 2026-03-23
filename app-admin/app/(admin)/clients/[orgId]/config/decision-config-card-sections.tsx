@@ -4,8 +4,10 @@ import type { ResolvedDecisionEngineConfig } from "@praedixa/shared-types";
 import { Button } from "@praedixa/ui";
 
 import { compactVersionId, formatDateTime } from "./config-operations";
-import type { DecisionConfigRecomputeResponse } from "./config-types";
-import type { DecisionConfigDraftState } from "./decision-config-card";
+import type {
+  DecisionConfigDraftState,
+  DecisionConfigRecomputeResponse,
+} from "./config-types";
 
 type DecisionConfigMetricsProps = {
   resolvedConfig: ResolvedDecisionEngineConfig | null | undefined;
