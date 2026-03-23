@@ -138,6 +138,7 @@
     "docs:validate:schema-parity": "node scripts/check-schema-doc-change-parity.mjs",
     "docs:validate:contracts-parity": "node scripts/check-contract-ts-parity.mjs",
     "docs:validate:build-ready-status": "node scripts/validate-build-ready-status.mjs",
+    "docs:validate:workflow-pnpm-order": "node scripts/validate-github-workflow-pnpm-order.mjs",
     "docs:validate:local-bootstrap": "node scripts/validate-local-bootstrap-consistency.mjs",
     "docs:validate:portability": "node scripts/validate-doc-portability.mjs",
     "docs:validate:turbo-env": "node scripts/validate-turbo-env-coverage.mjs",

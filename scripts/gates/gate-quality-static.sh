@@ -44,6 +44,7 @@ node scripts/validate-runtime-secret-inventory.mjs
 node scripts/validate-runtime-env-inventory.mjs
 node scripts/validate-runtime-env-contracts.mjs
 node scripts/validate-build-ready-status.mjs
+node scripts/validate-github-workflow-pnpm-order.mjs
 node scripts/validate-turbo-env-coverage.mjs
 node scripts/validate-local-bootstrap-consistency.mjs
 node scripts/validate-doc-portability.mjs

@@ -24,11 +24,13 @@ node scripts/validate-runtime-secret-inventory.mjs
 node scripts/validate-runtime-env-inventory.mjs
 node scripts/validate-runtime-env-contracts.mjs
 node scripts/validate-build-ready-status.mjs
+node scripts/validate-github-workflow-pnpm-order.mjs
 node scripts/validate-turbo-env-coverage.mjs
 
 echo "[ci-authoritative] Durable release-contract tests..."
 node --test \
   scripts/__tests__/validate-build-ready-status.test.mjs \
+  scripts/__tests__/validate-github-workflow-pnpm-order.test.mjs \
   scripts/__tests__/validate-turbo-env-coverage.test.mjs \
   scripts/__tests__/runtime-env-contracts.test.mjs \
   scripts/__tests__/validate-runtime-env-inventory.test.mjs \

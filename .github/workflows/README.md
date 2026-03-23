@@ -18,6 +18,7 @@ Ce dossier contient les pipelines GitHub Actions versionnés avec le monorepo.
 - `CI - API` et `CI - Admin` rejouent toujours `pnpm performance:validate-budgets` pour que les baselines performance versionnees restent bloquees a distance.
 - La governance cible est simple: `Autorite - Required` doit etre le check protege sur `main`, avec au moins une review obligatoire; les workflows surface (`Admin - Required`, `API - Required`) restent des signaux auxiliaires.
 - `CI - Autorite` publie maintenant aussi un summary GitHub lisible du verdict `build-ready` et un artefact JSON par SHA dans `.git/gate-reports/build-ready-<sha>.json`.
+- Les workflows GitHub qui utilisent `cache: pnpm` installent maintenant `pnpm/action-setup` avant `actions/setup-node`; le repo bloque tout retour au mauvais ordre via `scripts/validate-github-workflow-pnpm-order.mjs`.
 - Le chemin nominal de prod passe par `Release - Platform`; une release ne doit plus dependre d'un laptop operateur ni de parametres libres saisis au declenchement.
 
 ## Références utiles
