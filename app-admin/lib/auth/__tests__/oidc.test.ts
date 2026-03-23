@@ -312,7 +312,7 @@ describe("admin OIDC app origin resolution", () => {
     } as Parameters<typeof resolveAuthAppOrigin>[0];
   }
 
-  it("uses AUTH_APP_ORIGIN when configured", () => {
+  it("uses AUTH_APP_ORIGIN when configured to a public non-local origin", () => {
     process.env.NODE_ENV = "development";
     process.env.AUTH_APP_ORIGIN = "https://admin.praedixa.com";
 
@@ -342,24 +342,33 @@ describe("admin OIDC app origin resolution", () => {
     ).toThrow(/Missing AUTH_APP_ORIGIN/);
   });
 
-  it("defaults to localhost origin in development", () => {
+  it("prefers the request origin for private-network hosts in development", () => {
     process.env.NODE_ENV = "development";
 
     expect(
       resolveAuthAppOrigin(makeRequest("http://10.188.106.147:3002")),
-    ).toBe("http://localhost:3002");
+    ).toBe("http://10.188.106.147:3002");
   });
 
-  it("ignores forwarded host/proto in development", () => {
+  it("keeps localhost config from forcing a host switch in development", () => {
     process.env.NODE_ENV = "development";
+    process.env.AUTH_APP_ORIGIN = "http://localhost:3002";
 
     expect(
       resolveAuthAppOrigin(
-        makeRequest("http://internal-admin:3002", {
+        makeRequest("http://10.188.106.147:3002", {
           "x-forwarded-host": "10.188.106.147:3002",
           "x-forwarded-proto": "http",
         }),
       ),
+    ).toBe("http://10.188.106.147:3002");
+  });
+
+  it("falls back to localhost for non-local dev hosts", () => {
+    process.env.NODE_ENV = "development";
+
+    expect(
+      resolveAuthAppOrigin(makeRequest("http://internal-admin:3002")),
     ).toBe("http://localhost:3002");
   });
 

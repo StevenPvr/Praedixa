@@ -121,7 +121,24 @@ describe("webapp auth origin resolution", () => {
     ).toThrow(/must match/);
   });
 
-  it("defaults to localhost in development", () => {
+  it("prefers the request origin for private-network hosts in development", () => {
+    process.env.NODE_ENV = "development";
+
+    expect(
+      resolveAuthAppOrigin(makeRequest("http://10.188.106.147:3001")),
+    ).toBe("http://10.188.106.147:3001");
+  });
+
+  it("keeps localhost config from forcing a host switch in development", () => {
+    process.env.NODE_ENV = "development";
+    process.env.AUTH_APP_ORIGIN = "http://localhost:3001";
+
+    expect(
+      resolveAuthAppOrigin(makeRequest("http://10.188.106.147:3001")),
+    ).toBe("http://10.188.106.147:3001");
+  });
+
+  it("defaults to localhost in development for non-local hosts", () => {
     process.env.NODE_ENV = "development";
 
     expect(
@@ -147,7 +164,15 @@ describe("webapp auth origin resolution", () => {
     ).toBe("https://staging-admin.praedixa.com");
   });
 
-  it("defaults admin handoff to localhost in development", () => {
+  it("derives the admin handoff from the request host in development", () => {
+    process.env.NODE_ENV = "development";
+
+    expect(
+      resolveAdminAppOrigin(makeRequest("http://10.188.106.147:3001")),
+    ).toBe("http://10.188.106.147:3002");
+  });
+
+  it("defaults admin handoff to localhost in development for non-local hosts", () => {
     process.env.NODE_ENV = "development";
 
     expect(
@@ -192,6 +217,20 @@ describe("webapp auth origin resolution", () => {
         }),
       ),
     ).toBe(false);
+  });
+
+  it("accepts same-origin browser requests on a private dev host even when localhost is configured", () => {
+    process.env.NODE_ENV = "development";
+    process.env.AUTH_APP_ORIGIN = "http://localhost:3001";
+
+    expect(
+      isSameOriginBrowserRequest(
+        makeRequest("http://10.188.106.147:3001", {
+          origin: "http://10.188.106.147:3001",
+          "sec-fetch-site": "same-origin",
+        }),
+      ),
+    ).toBe(true);
   });
 
   it("fails closed in production when the public app origin is missing", () => {

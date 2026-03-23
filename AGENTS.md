@@ -142,6 +142,7 @@ Before debugging repeated local `/api/v1/*` proxy 502s in Next apps, verify the 
 Before creating or refreshing a webapp session from an OIDC access token, verify the token is compatible with the API contract instead of assuming login success implies API access.
 Before rejecting a valid Praedixa user for landing in the wrong app, hand the identity off to the correct Praedixa app when a canonical companion login exists instead of trapping the user on a generic role error.
 Before shipping a cookie-authenticated JSON route in Next.js, reject browser requests whose `Origin` or `Sec-Fetch-Site` is not same-origin, even for GET handlers that can refresh or proxy session state.
+Before finalizing a local OIDC flow in a Next app, verify login cookies, `redirect_uri`, callback, and same-origin checks all stay on the same host; mixing a private-network dev host with `localhost` will break the auth round-trip.
 Before trusting a cookie-authenticated JSON request as same-origin, let any explicit `Sec-Fetch-Site=cross-site` or `Sec-Fetch-Site=same-site` veto the request even if the `Origin` header looks correct.
 Before relying on admin navigation or tab visibility for authorization, enforce the same route-level permission check server-side for direct URL access.
 Before deriving OIDC redirect URLs or cookie-origin checks in a Next auth app, prefer the configured public origin (`AUTH_APP_ORIGIN` or `NEXT_PUBLIC_APP_ORIGIN`) over `request.nextUrl.origin` in production.

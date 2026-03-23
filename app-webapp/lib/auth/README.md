@@ -46,6 +46,7 @@ Le webapp utilise OIDC Authorization Code + PKCE avec cookies httpOnly et sessio
 - `Sec-Fetch-Site: none` n'est jamais accepte par defaut sur les routes JSON cookie-authentifiees; un handler doit l'ouvrir explicitement pour une navigation de confiance comme `/auth/logout`.
 - si `Sec-Fetch-Site` annonce `cross-site` ou `same-site`, ce veto l'emporte sur un `Origin` coherent et la requete browser JSON est rejetee.
 - En production, `AUTH_APP_ORIGIN` ou `NEXT_PUBLIC_APP_ORIGIN` doit etre defini explicitement pour les redirects OIDC; aucun fallback implicite vers `request.nextUrl.origin` n'est accepte.
+- En developpement local, si le webapp tourne via une IP privee ou un alias loopback sur le port `3001`, `origin.ts` conserve ce host pour l'OIDC, le callback, les cookies et le handoff admin; cela evite les mismatches `localhost` vs host reseau.
 - Si `AUTH_APP_ORIGIN` et `NEXT_PUBLIC_APP_ORIGIN` sont tous deux definis, ils doivent etre strictement identiques et representer une origine nue sans path, query, fragment ni credentials.
 - La confiance OIDC reste `https`-only par defaut, sauf en developpement local explicite ou `oidc/discovery.ts` accepte `http://localhost`, `127.0.0.1` et `::1` pour permettre un IdP local sans ouvrir la prod a l'HTTP.
 - `oidc/discovery.ts` est maintenant un simple adaptateur vers `@praedixa/shared-types/oidc-discovery`; toute evolution de la politique de confiance doit partir du helper partage plutot que d'une copie locale.

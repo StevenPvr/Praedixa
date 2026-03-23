@@ -1,5 +1,6 @@
 # Lessons
 
+- 2026-03-23: Quand une app Next OIDC tourne en local sur une IP privee ou un alias loopback, garder le meme host pour les cookies de login, le `redirect_uri`, le callback et les controles same-origin; melanger IP reseau et `localhost` casse le round-trip auth.
 - 2026-03-23: Quand l'utilisateur demande explicitement de couper GitHub Actions, desactiver les definitions de workflow elles-memes et arreter de chasser les rouges un par un.
 - 2026-03-23: Quand on corrige une GitHub Action ou un workflow, verifier toutes les refs restantes dans le repo et confirmer le SHA de la PR distante avant d'annoncer le fix; un vieux run rouge peut masquer les vrais bloqueurs encore actifs.
 - 2026-03-22: Quand un repo versionne `@playwright/test`, lancer toujours les scripts et gates E2E via `pnpm exec playwright`; un binaire global plus vieux peut casser toutes les specs avec un faux symptome de config.

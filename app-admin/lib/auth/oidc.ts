@@ -18,6 +18,7 @@ type KnownRole = (typeof ROLE_PRIORITY)[number];
 
 const DEFAULT_SCOPE = "openid profile email offline_access";
 const DEFAULT_DEV_AUTH_ORIGIN = "http://localhost:3002";
+const DEFAULT_DEV_AUTH_PORT = "3002";
 const DEFAULT_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 14;
 const MIN_SESSION_SECRET_LENGTH = 32;
 const SESSION_CLOCK_SKEW_SECONDS = 300;
@@ -384,8 +385,73 @@ function normalizeHttpOrigin(origin: string): string | null {
   }
 }
 
-export function resolveAuthAppOrigin(_request: NextRequest): string {
+function isPrivateIpv4Hostname(hostname: string): boolean {
+  const octets = hostname.split(".");
+  if (octets.length !== 4) {
+    return false;
+  }
+
+  const values = octets.map((octet) => Number.parseInt(octet, 10));
+  if (values.some((value) => !Number.isInteger(value) || value < 0 || value > 255)) {
+    return false;
+  }
+
+  return (
+    values[0] === 10 ||
+    (values[0] === 172 && values[1] >= 16 && values[1] <= 31) ||
+    (values[0] === 192 && values[1] === 168)
+  );
+}
+
+function isDevelopmentLocalHostname(hostname: string): boolean {
+  const normalizedHostname = hostname.trim().toLowerCase();
+  return (
+    normalizedHostname === "localhost" ||
+    normalizedHostname === "127.0.0.1" ||
+    normalizedHostname === "::1" ||
+    normalizedHostname === "[::1]" ||
+    isPrivateIpv4Hostname(normalizedHostname)
+  );
+}
+
+function isDevelopmentLocalOrigin(
+  origin: string | null,
+  expectedPort: string,
+): origin is string {
+  if (!origin) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(origin);
+    const parsedPort =
+      parsed.port || (parsed.protocol === "https:" ? "443" : "80");
+
+    return (
+      (parsed.protocol === "http:" || parsed.protocol === "https:") &&
+      parsedPort === expectedPort &&
+      isDevelopmentLocalHostname(parsed.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function resolveAuthAppOrigin(request: NextRequest): string {
+  const requestOrigin = normalizeHttpOrigin(request.nextUrl.origin);
   const normalizedConfiguredOrigin = getConfiguredAuthAppOrigin();
+  if (
+    process.env.NODE_ENV !== "production" &&
+    isDevelopmentLocalOrigin(requestOrigin, DEFAULT_DEV_AUTH_PORT) &&
+    (normalizedConfiguredOrigin === null ||
+      isDevelopmentLocalOrigin(
+        normalizedConfiguredOrigin,
+        DEFAULT_DEV_AUTH_PORT,
+      ))
+  ) {
+    return requestOrigin;
+  }
+
   if (normalizedConfiguredOrigin) {
     return normalizedConfiguredOrigin;
   }

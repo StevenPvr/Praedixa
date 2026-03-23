@@ -1,21 +1,24 @@
 import type { NextRequest } from "next/server";
 import {
   type SameOriginRequestOptions,
-  getConfiguredAuthAppOrigin,
   isAllowedSameOriginRequest,
   normalizeHttpOrigin,
+  resolveAuthAppOrigin,
 } from "@/lib/auth/origin";
 
 export function isSameOriginBrowserRequest(
   request: NextRequest,
   options: SameOriginRequestOptions = {},
 ): boolean {
-  const configuredOrigin = getConfiguredAuthAppOrigin();
-  const expectedOrigin =
-    configuredOrigin ||
-    (process.env.NODE_ENV === "production"
-      ? null
-      : normalizeHttpOrigin(request.nextUrl.origin));
+  let expectedOrigin: string | null = null;
+  try {
+    expectedOrigin = resolveAuthAppOrigin(request);
+  } catch {
+    expectedOrigin =
+      process.env.NODE_ENV === "production"
+        ? null
+        : normalizeHttpOrigin(request.nextUrl.origin);
+  }
 
   return isAllowedSameOriginRequest(request, expectedOrigin, options);
 }

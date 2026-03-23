@@ -1,3 +1,28 @@
+# Current Pass - 2026-03-23 - Local OIDC Host Preservation For Admin And Webapp
+
+### Plan
+
+- [x] Reproduire et tracer la boucle auth locale sur `app-admin` et le risque symetrique sur `app-webapp`
+- [x] Corriger la resolution d'origine en developpement pour garder le meme host entre cookies, `redirect_uri` et callback
+- [x] Revalider avec des tests cibles et documenter le garde-fou associe
+
+### Review
+
+- Diagnostic:
+  - `app-admin` et `app-webapp` utilisaient en local une origine auth canonique `localhost` meme quand l'utilisateur ouvrait l'app sur une IP privee du poste.
+  - dans ce cas, `/auth/login` posait des cookies host-only sur l'IP privee, mais envoyait l'OIDC provider vers un `redirect_uri` en `localhost`; le callback revenait donc sur un autre host et perdait l'etat de login.
+  - le webapp gardait un angle mort supplementaire sur les controles same-origin JSON: `isSameOriginBrowserRequest()` ne suivait pas la resolution d'origine par requete en developpement.
+- Correctifs appliques:
+  - `app-admin/lib/auth/oidc.ts` preserve maintenant l'origine de requete en developpement pour `localhost`, loopback et IP privees sur le port admin.
+  - `app-webapp/lib/auth/origin.ts` applique la meme logique pour le host webapp et derive l'handoff admin depuis ce meme host en local.
+  - `app-webapp/lib/security/same-origin.ts` s'aligne maintenant sur `resolveAuthAppOrigin(request)` pour que les routes JSON sensibles suivent le meme host que le flow OIDC local.
+  - tests ajustes et etendus dans `app-admin/lib/auth/__tests__/oidc.test.ts` et `app-webapp/lib/auth/__tests__/origin.test.ts`.
+  - documentation alignee dans `app-admin/lib/auth/README.md`, `app-webapp/lib/auth/README.md` et `app-webapp/lib/security/README.md`.
+- Verification:
+  - preuve du mismatch avant fix via `/auth/login` sur host IP privee: cookies `prx_admin_*` poses sur `10.188.149.44` alors que le `redirect_uri` pointait vers `http://localhost:3002/auth/callback`
+  - `pnpm exec vitest run --config vitest.config.ts app-admin/lib/auth/__tests__/oidc.test.ts app-webapp/lib/auth/__tests__/origin.test.ts`
+  - `pnpm exec eslint app-admin/lib/auth/oidc.ts app-webapp/lib/auth/origin.ts app-webapp/lib/security/same-origin.ts app-admin/lib/auth/__tests__/oidc.test.ts app-webapp/lib/auth/__tests__/origin.test.ts`
+
 # Current Pass - 2026-03-23 - GitHub Actions Disabled By Explicit User Request
 
 ### Plan

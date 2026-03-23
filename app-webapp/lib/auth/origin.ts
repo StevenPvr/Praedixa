@@ -2,6 +2,8 @@ import type { NextRequest } from "next/server";
 
 const DEFAULT_DEV_AUTH_ORIGIN = "http://localhost:3001";
 const DEFAULT_DEV_ADMIN_ORIGIN = "http://localhost:3002";
+const DEFAULT_DEV_AUTH_PORT = "3001";
+const DEFAULT_DEV_ADMIN_PORT = "3002";
 const MISSING_PUBLIC_AUTH_ORIGIN_ERROR =
   "Missing AUTH_APP_ORIGIN (or NEXT_PUBLIC_APP_ORIGIN) for production auth redirects";
 const MISSING_PUBLIC_ADMIN_ORIGIN_ERROR =
@@ -31,6 +33,58 @@ export function normalizeHttpOrigin(
     return parsed.origin;
   } catch {
     return null;
+  }
+}
+
+function isPrivateIpv4Hostname(hostname: string): boolean {
+  const octets = hostname.split(".");
+  if (octets.length !== 4) {
+    return false;
+  }
+
+  const values = octets.map((octet) => Number.parseInt(octet, 10));
+  if (values.some((value) => !Number.isInteger(value) || value < 0 || value > 255)) {
+    return false;
+  }
+
+  return (
+    values[0] === 10 ||
+    (values[0] === 172 && values[1] >= 16 && values[1] <= 31) ||
+    (values[0] === 192 && values[1] === 168)
+  );
+}
+
+function isDevelopmentLocalHostname(hostname: string): boolean {
+  const normalizedHostname = hostname.trim().toLowerCase();
+  return (
+    normalizedHostname === "localhost" ||
+    normalizedHostname === "127.0.0.1" ||
+    normalizedHostname === "::1" ||
+    normalizedHostname === "[::1]" ||
+    isPrivateIpv4Hostname(normalizedHostname)
+  );
+}
+
+function isDevelopmentLocalOrigin(
+  origin: string | null,
+  expectedPort: string,
+): origin is string {
+  if (!origin) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(origin);
+    const parsedPort =
+      parsed.port || (parsed.protocol === "https:" ? "443" : "80");
+
+    return (
+      (parsed.protocol === "http:" || parsed.protocol === "https:") &&
+      parsedPort === expectedPort &&
+      isDevelopmentLocalHostname(parsed.hostname)
+    );
+  } catch {
+    return false;
   }
 }
 
@@ -111,7 +165,7 @@ function getConfiguredAdminAppOriginState(): ConfiguredAuthOriginState {
 function deriveAdminOrigin(authOrigin: string): string | null {
   const parsed = new URL(authOrigin);
 
-  if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") {
+  if (isDevelopmentLocalHostname(parsed.hostname)) {
     parsed.port = "3002";
     return parsed.origin;
   }
@@ -149,10 +203,18 @@ export function getConfiguredAuthAppOriginError(): string | null {
   return getConfiguredAuthAppOriginState().error;
 }
 
-export function resolveAuthAppOrigin(_request: NextRequest): string {
+export function resolveAuthAppOrigin(request: NextRequest): string {
   const { error, origin } = getConfiguredAuthAppOriginState();
   if (error) {
     throw new Error(error);
+  }
+  const requestOrigin = normalizeHttpOrigin(request.nextUrl.origin);
+  if (
+    process.env.NODE_ENV !== "production" &&
+    isDevelopmentLocalOrigin(requestOrigin, DEFAULT_DEV_AUTH_PORT) &&
+    (origin === null || isDevelopmentLocalOrigin(origin, DEFAULT_DEV_AUTH_PORT))
+  ) {
+    return requestOrigin;
   }
   if (origin) {
     return origin;
@@ -169,6 +231,17 @@ export function resolveAdminAppOrigin(request: NextRequest): string {
   const { error, origin } = getConfiguredAdminAppOriginState();
   if (error) {
     throw new Error(error);
+  }
+  const requestOrigin = normalizeHttpOrigin(request.nextUrl.origin);
+  if (
+    process.env.NODE_ENV !== "production" &&
+    isDevelopmentLocalOrigin(requestOrigin, DEFAULT_DEV_AUTH_PORT) &&
+    (origin === null || isDevelopmentLocalOrigin(origin, DEFAULT_DEV_ADMIN_PORT))
+  ) {
+    const derivedRequestOrigin = deriveAdminOrigin(requestOrigin);
+    if (derivedRequestOrigin) {
+      return derivedRequestOrigin;
+    }
   }
   if (origin) {
     return origin;

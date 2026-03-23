@@ -18,6 +18,7 @@ Ce dossier regroupe les protections transverses du webapp hors auth OIDC stricte
 - `next.config.ts` importe `headers.ts` pour les headers generaux.
 - Les handlers JSON comme `/auth/session` et `/api/v1/*` restent stricts; seule une route qui passe `allowNavigate: true` peut accepter un navigateur sans header `Origin`.
 - En production, `same-origin.ts` exige une origine publique configuree via `AUTH_APP_ORIGIN` ou `NEXT_PUBLIC_APP_ORIGIN`; il ne doit jamais retomber sur l'host entrant pour autoriser une requete navigateur.
+- En developpement local, `same-origin.ts` suit maintenant l'origine auth resolue par requete pour les IP privees et aliases loopback; les routes JSON sensibles restent ainsi coherentes avec le host reel du flow OIDC.
 
 ## Tests
 
