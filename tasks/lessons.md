@@ -114,3 +114,4 @@
 - Quand un job GitHub utilise `cache: pnpm` avec `actions/setup-node`, installer `pnpm/action-setup` avant dans le meme job; sinon le runner peut echouer tres tot sur `Unable to locate executable file: pnpm`.
 - Quand une app consomme un package workspace exporte depuis `dist/`, reconstruire ce package explicitement dans les jobs CI cibles avant `test` ou `build`; un runner propre n'heritera jamais du `dist/` local.
 - Quand un composant React exporte un type partage reutilise par un sous-module qu'il importe ensuite, sortir ce type vers un fichier de types dedie ou deja existant; sinon `depcruise` signale un cycle reel meme si TypeScript compile encore.
+- Quand j'ajoute une dependance a un workspace, ne pas me fier a la presence globale du package dans `pnpm-lock.yaml`; verifier l'importer exact du workspace ou regenerer le lockfile avant de pousser.

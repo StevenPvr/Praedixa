@@ -1,3 +1,29 @@
+# Current Pass - 2026-03-23 - CI PR Merge Integrity For Lockfile And Trivy Bootstrap
+
+### Plan
+
+- [x] Reproduire les rouges du SHA PR courant via les logs GitHub et identifier si le probleme vient du branchement pousse ou du merge commit GitHub
+- [x] Resynchroniser `pnpm-lock.yaml` avec `app-webapp/package.json` pour fermer le `frozen-lockfile` casse sur les jobs API/Admin
+- [x] Corriger la ref GitHub Action Trivy non resolvable dans les workflows d'autorite et de release
+- [x] Rejouer les verifications locales cibles, documenter la revue puis pousser le correctif sur la PR
+
+### Review
+
+- Diagnostic:
+  - le SHA `22c5183` corrigeait bien les jobs `pnpm`, `api-hooks` et le cycle `depcruise`, mais la PR merge GitHub cassait encore plus tot sur deux causes independantes.
+  - `pnpm install --frozen-lockfile` echouait sur le merge commit parce que `app-webapp/package.json` avait gagne `lucide-react` sans mise a jour de l'importer `app-webapp` dans `pnpm-lock.yaml`; la simple presence de `lucide-react` ailleurs dans le lockfile masquait ce drift.
+  - `CI - Autorite` cassait avant execution du gate exhaustif parce que `aquasecurity/setup-trivy@v0.2.2` n'etait plus resolvable par GitHub Actions.
+- Correctifs appliques:
+  - regeneration de `pnpm-lock.yaml` pour resynchroniser l'importer `app-webapp` avec `lucide-react`.
+  - pinning de `aquasecurity/setup-trivy` sur le commit SHA de la release `v0.2.6` dans `.github/workflows/ci-authoritative.yml` et `.github/workflows/release-platform.yml`.
+  - documentation alignee dans `.github/workflows/README.md`.
+  - garde-fou de retour d'experience ajoute dans `AGENTS.md` et `tasks/lessons.md` sur la verification de l'importer exact dans `pnpm-lock.yaml`.
+- Verification:
+  - `pnpm install --frozen-lockfile`
+  - `node scripts/validate-github-workflow-pnpm-order.mjs`
+  - `pnpm exec prettier --check .github/workflows/ci-authoritative.yml .github/workflows/release-platform.yml .github/workflows/README.md AGENTS.md tasks/lessons.md tasks/todo.md`
+  - `pnpm --filter @praedixa/api-hooks build && pnpm --filter @praedixa/admin build`
+
 # Current Pass - 2026-03-23 - Build-Ready Proofs, Turbo Reproducibility And Canonical Verdict Reconciliation
 
 ### Plan

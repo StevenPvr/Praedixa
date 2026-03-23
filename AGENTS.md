@@ -222,6 +222,7 @@ When the user clearly wants an end-to-end execution pass, do not stop to ask for
 ### Workspace, Packages, Docker, and Build Integrity
 
 Before building or deploying with Dockerfiles that run `pnpm install --frozen-lockfile`, sync `pnpm-lock.yaml` with every changed workspace `package.json`, or release builds will fail on the runner.
+Before trusting a global grep in `pnpm-lock.yaml` after adding a workspace dependency, inspect the exact importer block for that workspace or rerun `pnpm install --lockfile-only`; another workspace entry can hide a stale specifier list.
 After adding a workspace dependency or package subpath export in the monorepo, run a real `pnpm install` before trusting TypeScript or Vitest resolution; `--lockfile-only` does not refresh workspace links.
 Before wiring a frontend mutation to a typed backend endpoint, verify the submitted JSON matches the shared request contract exactly and cover that exact payload shape in at least one E2E or route-level test.
 Before sending operator-entered JSON from an admin form to a typed mutation, validate the parsed value union and object shape explicitly instead of casting `unknown` to the shared contract.
