@@ -13,14 +13,16 @@
   - la branche distante `origin/feat/build-ready-proof-layer` pointe bien sur `574abe8`, et la PR `#53` execute deja les workflows avec `aquasecurity/setup-trivy` pinne sur le SHA `v0.2.6`; le rouge `setup-trivy@v0.2.2` provenait donc d'un ancien run GitHub, pas d'une ref encore vivante dans le code courant.
   - le vrai rouge repo-owned encore actif etait le lint ESLint de `app-api-ts/src/services/approval-inbox.ts` sur une assertion non necessaire.
   - le vrai ecart structurel entre hooks locaux et GitHub Actions venait surtout de `pnpm test:root` / `pnpm test:root:coverage`: le Vitest racine importait `@praedixa/shared-types`, `@praedixa/ui` et `@praedixa/api-hooks` avant tout build, ce qui passait sur une machine locale chaude avec `dist/` deja presents mais cassait sur un runner GitHub propre.
+  - le `pre-push` a ensuite revele un second point plus fin: la suppression brute du `!` dans `approval-inbox.ts` rendait la valeur `groupItems[0]` correctement typable par ESLint mais plus acceptable pour TypeScript, ce qui bloquait `gate-typecheck-all`.
 - Correctifs appliques:
-  - suppression de l'assertion inutile dans `app-api-ts/src/services/approval-inbox.ts`.
+  - remplacement de l'assertion inutile dans `app-api-ts/src/services/approval-inbox.ts` par un garde explicite sur `firstItem`, ce qui satisfait a la fois ESLint et TypeScript.
   - ajout du script racine `test:root:prepare` dans `package.json` pour builder explicitement `@praedixa/shared-types`, `@praedixa/ui` et `@praedixa/api-hooks` avant `test:root` et `test:root:coverage`.
   - documentation alignee dans `README.md`, `docs/TESTING.md` et `testing/README.md`.
   - garde-fou de retour d'experience ajoute dans `AGENTS.md` et `tasks/lessons.md` sur la verification d'un fix GitHub Actions contre le SHA reel de la PR distante.
 - Verification:
   - `gh pr view 53 --json headRefOid,statusCheckRollup,commits`
   - `pnpm --filter @praedixa/api-ts lint`
+  - `./scripts/gates/gate-typecheck-all.sh`
   - `pnpm test:root:coverage`
   - `pnpm lint`
   - `pnpm test:coverage`

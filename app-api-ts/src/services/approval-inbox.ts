@@ -729,7 +729,13 @@ export function groupApprovalInboxItems(
   }
 
   return [...groups.entries()].map(([groupKey, groupItems]) => {
-    const { label } = getGroupIdentity(groupItems[0], groupBy);
+    const firstItem = groupItems[0];
+    if (!firstItem) {
+      throw new Error(
+        `Approval inbox group '${groupKey}' unexpectedly has no items.`,
+      );
+    }
+    const { label } = getGroupIdentity(firstItem, groupBy);
     return {
       groupBy,
       groupKey,
