@@ -729,7 +729,7 @@ export function groupApprovalInboxItems(
   }
 
   return [...groups.entries()].map(([groupKey, groupItems]) => {
-    const { label } = getGroupIdentity(groupItems[0]!, groupBy);
+    const { label } = getGroupIdentity(groupItems[0], groupBy);
     return {
       groupBy,
       groupKey,

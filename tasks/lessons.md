@@ -1,5 +1,6 @@
 # Lessons
 
+- 2026-03-23: Quand on corrige une GitHub Action ou un workflow, verifier toutes les refs restantes dans le repo et confirmer le SHA de la PR distante avant d'annoncer le fix; un vieux run rouge peut masquer les vrais bloqueurs encore actifs.
 - 2026-03-22: Quand un repo versionne `@playwright/test`, lancer toujours les scripts et gates E2E via `pnpm exec playwright`; un binaire global plus vieux peut casser toutes les specs avec un faux symptome de config.
 - 2026-03-22: Quand un pack Playwright large devient heterogene ou en drift, ne pas le laisser bloquer tous les commits; faire du lot bloquant une suite critique reduite et production-like (`next start` apres build), puis garder le sweep complet en manuel jusqu'a realignement.
 - 2026-03-22: Quand une surface webapp est reouverte par un drapeau runtime (`messagingWorkspace`, `userPreferencesPersistence`), rerun tout de suite les E2E de la page concernee; les unit tests mockes ne suffisent pas a prouver que le runtime reel est encore ouvert.

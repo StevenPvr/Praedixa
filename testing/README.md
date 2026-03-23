@@ -16,6 +16,7 @@ Depuis la racine:
 
 ```bash
 pnpm test
+pnpm test:root
 pnpm test:coverage
 pnpm test:e2e
 pnpm test:e2e:landing

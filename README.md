@@ -313,6 +313,10 @@ pnpm test:watch
 # Gate stricte de couverture unitaire (bloque si < 100%)
 pnpm test:coverage
 
+# Les tests racine rebuildent d'abord @praedixa/shared-types, @praedixa/ui et @praedixa/api-hooks
+# pour rester reproductibles sur un runner CI propre
+pnpm test:root
+
 # Un seul fichier
 pnpm vitest run app-webapp/hooks/__tests__/use-api.test.ts
 

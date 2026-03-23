@@ -1,3 +1,31 @@
+# Current Pass - 2026-03-23 - Authoritative CI Clean-Runner Parity Fix
+
+### Plan
+
+- [x] Verifier si le rouge `setup-trivy@v0.2.2` vient d'un ancien run GitHub ou d'une ref encore vivante dans le repo
+- [x] Corriger le lint bloquant dans `app-api-ts/src/services/approval-inbox.ts`
+- [x] Rendre `pnpm test:root` / `pnpm test:coverage` robustes sur runner propre en preparant les packages workspace exportant `dist/*`
+- [x] Rejouer localement les validations cibles puis pousser un correctif unique
+
+### Review
+
+- Diagnostic:
+  - la branche distante `origin/feat/build-ready-proof-layer` pointe bien sur `574abe8`, et la PR `#53` execute deja les workflows avec `aquasecurity/setup-trivy` pinne sur le SHA `v0.2.6`; le rouge `setup-trivy@v0.2.2` provenait donc d'un ancien run GitHub, pas d'une ref encore vivante dans le code courant.
+  - le vrai rouge repo-owned encore actif etait le lint ESLint de `app-api-ts/src/services/approval-inbox.ts` sur une assertion non necessaire.
+  - le vrai ecart structurel entre hooks locaux et GitHub Actions venait surtout de `pnpm test:root` / `pnpm test:root:coverage`: le Vitest racine importait `@praedixa/shared-types`, `@praedixa/ui` et `@praedixa/api-hooks` avant tout build, ce qui passait sur une machine locale chaude avec `dist/` deja presents mais cassait sur un runner GitHub propre.
+- Correctifs appliques:
+  - suppression de l'assertion inutile dans `app-api-ts/src/services/approval-inbox.ts`.
+  - ajout du script racine `test:root:prepare` dans `package.json` pour builder explicitement `@praedixa/shared-types`, `@praedixa/ui` et `@praedixa/api-hooks` avant `test:root` et `test:root:coverage`.
+  - documentation alignee dans `README.md`, `docs/TESTING.md` et `testing/README.md`.
+  - garde-fou de retour d'experience ajoute dans `AGENTS.md` et `tasks/lessons.md` sur la verification d'un fix GitHub Actions contre le SHA reel de la PR distante.
+- Verification:
+  - `gh pr view 53 --json headRefOid,statusCheckRollup,commits`
+  - `pnpm --filter @praedixa/api-ts lint`
+  - `pnpm test:root:coverage`
+  - `pnpm lint`
+  - `pnpm test:coverage`
+  - `pnpm exec prettier --check app-api-ts/src/services/approval-inbox.ts package.json README.md docs/TESTING.md testing/README.md AGENTS.md tasks/lessons.md tasks/todo.md`
+
 # Current Pass - 2026-03-23 - Authoritative CI PyYAML Runtime Fix
 
 ### Plan

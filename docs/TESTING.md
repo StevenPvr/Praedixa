@@ -206,6 +206,7 @@ def disable_rate_limit():
 
 ```bash
 pnpm test                           # Suite racine + tous les workspaces critiques
+pnpm test:root                      # Vitest racine avec rebuild des packages workspace exportes via dist/*
 pnpm vitest run path/to/file.test.tsx  # Un fichier
 pnpm vitest run -t "test name"      # Par nom
 pnpm test:watch                     # Mode watch
