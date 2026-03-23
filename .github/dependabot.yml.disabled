@@ -1,3 +1,5 @@
+# Disabled on 2026-03-23 by explicit user request.
+# Rename this file back to `dependabot.yml` to re-enable Dependabot updates.
 version: 2
 updates:
   - package-ecosystem: "github-actions"

@@ -1,4 +1,6 @@
-name: CI - Admin
+# Disabled on 2026-03-23 by explicit user request.
+# Rename this file back to `ci-api.yml` to re-enable the workflow.
+name: CI - API
 
 on:
   pull_request:
@@ -12,10 +14,11 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ci-admin-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ci-api-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
+  PYTHON_VERSION: "3.12"
   NODE_VERSION: "22"
 
 permissions:
@@ -23,7 +26,7 @@ permissions:
 
 jobs:
   changes:
-    name: Detect admin-impacting changes
+    name: Detect API-impacting changes
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -31,6 +34,8 @@ jobs:
     outputs:
       relevant: ${{ steps.filter.outputs.relevant }}
       reason: ${{ steps.filter.outputs.reason }}
+      data_engine_relevant: ${{ steps.filter.outputs.data_engine_relevant }}
+      data_engine_reason: ${{ steps.filter.outputs.data_engine_reason }}
       architecture_relevant: ${{ steps.filter.outputs.architecture_relevant }}
       architecture_reason: ${{ steps.filter.outputs.architecture_reason }}
     steps:
@@ -47,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           ./scripts/gates/ci-evaluate-scope.sh \
-            --workflow admin \
+            --workflow api \
             --event-name "$EVENT_NAME" \
             --base-sha "$BASE_SHA" \
             --head-sha "$HEAD_SHA" \
@@ -55,7 +60,7 @@ jobs:
             --changed-files-path changed-files.txt
 
   no_relevant_changes:
-    name: Admin scope not impacted
+    name: API scope not impacted
     runs-on: ubuntu-latest
     needs: [changes]
     if: needs.changes.outputs.relevant != 'true'
@@ -65,11 +70,11 @@ jobs:
     steps:
       - name: Explain skip
         run: |
-          echo "Skipping admin heavy checks."
+          echo "Skipping API heavy checks."
           echo "reason=${{ needs.changes.outputs.reason }}"
 
-  lint_typecheck:
-    name: Admin - Lint and typecheck
+  api_ts_checks:
+    name: API TS - Lint, typecheck, tests, build
     runs-on: ubuntu-latest
     needs: [changes]
     if: needs.changes.outputs.relevant == 'true'
@@ -93,12 +98,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Architecture guards
-        run: pnpm gate:architecture:frontend
-
-      - name: Build workspace packages
-        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/api-hooks build && pnpm --filter @praedixa/ui build
 
       - name: Format check
         run: pnpm format:check
@@ -106,90 +105,98 @@ jobs:
       - name: Performance budgets
         run: pnpm performance:validate-budgets
 
-      - name: ESLint
-        run: pnpm --filter @praedixa/admin lint
+      - name: Architecture guards
+        run: pnpm gate:architecture:api
 
-      - name: TypeScript check
-        run: pnpm --filter @praedixa/admin typecheck
+      - name: Shared contract types - lint
+        run: pnpm --filter @praedixa/shared-types lint
 
-  test:
-    name: Admin - Unit tests
+      - name: Shared contract types - typecheck
+        run: pnpm --filter @praedixa/shared-types typecheck
+
+      - name: Shared contract types - tests
+        run: pnpm --filter @praedixa/shared-types test -- src/__tests__/public-contract.test.ts
+
+      - name: Shared contract types - build
+        run: pnpm --filter @praedixa/shared-types build
+
+      - name: Telemetry package - lint
+        run: pnpm --filter @praedixa/telemetry lint
+
+      - name: Telemetry package - typecheck
+        run: pnpm --filter @praedixa/telemetry typecheck
+
+      - name: Telemetry package - tests
+        run: pnpm --filter @praedixa/telemetry test
+
+      - name: Telemetry package - build
+        run: pnpm --filter @praedixa/telemetry build
+
+      - name: Lint
+        run: pnpm --filter @praedixa/api-ts lint
+
+      - name: Typecheck
+        run: pnpm --filter @praedixa/api-ts typecheck
+
+      - name: Unit tests
+        run: pnpm --filter @praedixa/api-ts test
+
+      - name: Build
+        run: pnpm --filter @praedixa/api-ts build
+
+  data_engine_checks:
+    name: Data engine - Ruff, MyPy, pytest, pip-audit
     runs-on: ubuntu-latest
     needs: [changes]
-    if: needs.changes.outputs.relevant == 'true'
+    if: needs.changes.outputs.data_engine_relevant == 'true'
     timeout-minutes: 25
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@c336a2788d9774dccfdeb4823a5058ccc9f07453 # v4.3.0
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
-          version: 9.15.9
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
+      - name: Install uv
+        uses: astral-sh/setup-uv@38f3f104447c67c051c4a08e39b64a148898af3a # v4.2.0
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          cd app-api
+          uv sync --frozen --extra dev
 
-      - name: Build workspace packages
-        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/api-hooks build && pnpm --filter @praedixa/ui build
+      - name: Import-linter
+        run: |
+          ./scripts/gates/ci-python-tool.sh --cwd app-api import-linter --config .importlinter
 
-      - name: Guard critical test presence
-        run: pnpm workspaces:check:critical-tests
+      - name: Alembic heads
+        run: ./scripts/check-alembic-heads.sh
 
-      - name: Run tests
-        run: pnpm --filter @praedixa/admin test
+      - name: Ruff check
+        run: |
+          cd app-api
+          uv run ruff check app scripts tests
 
-  build:
-    name: Admin - Build
-    runs-on: ubuntu-latest
-    needs: [changes]
-    if: needs.changes.outputs.relevant == 'true'
-    timeout-minutes: 25
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - name: MyPy
+        run: |
+          cd app-api
+          uv run mypy app
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@c336a2788d9774dccfdeb4823a5058ccc9f07453 # v4.3.0
-        with:
-          version: 9.15.9
+      - name: Unit tests
+        run: |
+          cd app-api
+          uv run pytest tests/ -v --tb=short
 
-      - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Restore Next.js build cache
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        with:
-          path: app-admin/.next/cache
-          key: nextjs-admin-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'app-admin/**/*.ts', 'app-admin/**/*.tsx', 'app-admin/**/*.js', 'app-admin/**/*.jsx', 'app-admin/**/*.css', 'packages/shared-types/**/*.ts', 'packages/shared-types/**/*.tsx', 'packages/ui/**/*.ts', 'packages/ui/**/*.tsx', 'packages/ui/**/*.css') }}
-          restore-keys: |
-            nextjs-admin-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
-            nextjs-admin-${{ runner.os }}-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build workspace packages
-        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/api-hooks build && pnpm --filter @praedixa/ui build
-
-      - name: Build admin app
-        run: pnpm --filter @praedixa/admin build
+      - name: Dependency audit
+        run: |
+          cd app-api
+          uv run pip-audit --skip-editable
 
   architecture_guards:
-    name: Frontend architecture guards
+    name: API runtime architecture guards
     runs-on: ubuntu-latest
     needs: [changes]
     if: needs.changes.outputs.architecture_relevant == 'true' && needs.changes.outputs.relevant != 'true'
@@ -214,18 +221,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Dependency boundaries and dead-code guards
-        run: pnpm gate:architecture:frontend
+      - name: Runtime dependency boundaries
+        run: pnpm gate:architecture:api
 
   required:
-    name: Admin - Required
+    name: API - Required
     runs-on: ubuntu-latest
     needs:
       - changes
       - no_relevant_changes
-      - lint_typecheck
-      - test
-      - build
+      - api_ts_checks
+      - data_engine_checks
       - architecture_guards
     if: always()
     timeout-minutes: 5
@@ -236,26 +242,28 @@ jobs:
         env:
           RELEVANT: ${{ needs.changes.outputs.relevant }}
           REASON: ${{ needs.changes.outputs.reason }}
+          DATA_ENGINE_RELEVANT: ${{ needs.changes.outputs.data_engine_relevant }}
+          DATA_ENGINE_REASON: ${{ needs.changes.outputs.data_engine_reason }}
           ARCHITECTURE_RELEVANT: ${{ needs.changes.outputs.architecture_relevant }}
           ARCHITECTURE_REASON: ${{ needs.changes.outputs.architecture_reason }}
           CHANGES_RESULT: ${{ needs.changes.result }}
           SKIP_RESULT: ${{ needs.no_relevant_changes.result }}
-          LINT_RESULT: ${{ needs.lint_typecheck.result }}
-          TEST_RESULT: ${{ needs.test.result }}
-          BUILD_RESULT: ${{ needs.build.result }}
+          API_TS_RESULT: ${{ needs.api_ts_checks.result }}
+          DATA_ENGINE_RESULT: ${{ needs.data_engine_checks.result }}
           ARCHITECTURE_RESULT: ${{ needs.architecture_guards.result }}
         run: |
           set -euo pipefail
 
           echo "relevant=$RELEVANT"
           echo "reason=$REASON"
+          echo "data_engine_relevant=$DATA_ENGINE_RELEVANT"
+          echo "data_engine_reason=$DATA_ENGINE_REASON"
           echo "architecture_relevant=$ARCHITECTURE_RELEVANT"
           echo "architecture_reason=$ARCHITECTURE_REASON"
           echo "changes=$CHANGES_RESULT"
           echo "skip=$SKIP_RESULT"
-          echo "lint=$LINT_RESULT"
-          echo "test=$TEST_RESULT"
-          echo "build=$BUILD_RESULT"
+          echo "api_ts=$API_TS_RESULT"
+          echo "data_engine=$DATA_ENGINE_RESULT"
           echo "architecture=$ARCHITECTURE_RESULT"
 
           [[ "$CHANGES_RESULT" == "success" ]] || exit 1
@@ -265,9 +273,14 @@ jobs:
           fi
 
           if [[ "$RELEVANT" == "true" ]]; then
-            [[ "$LINT_RESULT" == "success" ]] || exit 1
-            [[ "$TEST_RESULT" == "success" ]] || exit 1
-            [[ "$BUILD_RESULT" == "success" ]] || exit 1
+            [[ "$API_TS_RESULT" == "success" ]] || exit 1
+          fi
+
+          if [[ "$DATA_ENGINE_RELEVANT" == "true" ]]; then
+            [[ "$DATA_ENGINE_RESULT" == "success" ]] || exit 1
+          fi
+
+          if [[ "$RELEVANT" == "true" || "$DATA_ENGINE_RELEVANT" == "true" ]]; then
             exit 0
           fi
 

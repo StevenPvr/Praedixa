@@ -1,3 +1,26 @@
+# Current Pass - 2026-03-23 - GitHub Actions Disabled By Explicit User Request
+
+### Plan
+
+- [x] Inventorier les workflows GitHub encore actifs dans le repo
+- [x] Desactiver toutes les definitions versionnees au lieu de corriger encore un rouge isole
+- [x] Documenter l'etat desactive et le chemin explicite de reactivation
+
+### Review
+
+- Diagnostic:
+  - l'utilisateur a explicitement demande une coupure complete de GitHub Actions apres plusieurs boucles CI non productives.
+  - un nouveau rouge `Unable to resolve action aquasecurity/setup-trivy@v0.2.2` confirmait qu'il restait de l'activite GitHub a neutraliser, meme si la branche courante portait deja des refs corrigees.
+- Correctifs appliques:
+  - toutes les definitions sous `.github/workflows` ont ete renommees de `*.yml` vers `*.yml.disabled`.
+  - `.github/dependabot.yml` a aussi ete renomme en `.github/dependabot.yml.disabled` parce que `Dependabot Updates` restait `active` et que l'API GitHub refusait sa desactivation comme un workflow classique.
+  - chaque ancien workflow porte maintenant une bannière en tete expliquant qu'il est desactive et comment le reactiver.
+  - `.github/workflows/README.md` documente maintenant l'etat desactive et le suffixe `.disabled` comme mecanisme repo-owned de coupure.
+  - `AGENTS.md` et `tasks/lessons.md` enregistrent la regle operative: si l'utilisateur demande d'arreter GitHub Actions, on coupe les workflows eux-memes au lieu de continuer a iterer sur les runs.
+- Verification:
+  - `ls -1 .github/workflows`
+  - `git status --short`
+
 # Current Pass - 2026-03-23 - Authoritative CI Clean-Runner Parity Fix
 
 ### Plan

@@ -1,3 +1,5 @@
+# Disabled on 2026-03-23 by explicit user request.
+# Rename this file back to `resilience-evidence.yml` to re-enable the workflow.
 name: Resilience - Evidence
 
 on:
