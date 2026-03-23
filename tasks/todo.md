@@ -1,3 +1,23 @@
+# Current Pass - 2026-03-23 - Next Dev LAN Origins For Admin And Webapp
+
+### Plan
+
+- [x] Confirmer si le host LAN du poste restait bloque par Next.js sur `/_next/*`
+- [x] Autoriser proprement les IPv4 locales detectees dans `allowedDevOrigins` pour `app-admin` et `app-webapp`
+- [x] Documenter le redemarrage requis apres changement de `next.config.ts`
+
+### Review
+
+- Diagnostic:
+  - les logs `next dev` signalaient encore `Blocked cross-origin request from 10.188.149.44 to /_next/* resource`, ce qui prouvait que le host LAN du poste n'etait pas whiteliste par Next en dev.
+  - `app-admin/next.config.ts` et `app-webapp/next.config.ts` n'autorisaient que `localhost` et `127.0.0.1`, donc toute ouverture via l'IP privee de la machine pouvait casser le shell front avant meme de conclure sur l'auth.
+- Correctifs appliques:
+  - `app-admin/next.config.ts` et `app-webapp/next.config.ts` collectent maintenant les IPv4 locales non internes du poste via `node:os` et les ajoutent a `allowedDevOrigins` en plus de `localhost` et `127.0.0.1`.
+  - `app-admin/README.md` et `app-webapp/README.md` documentent explicitement ce comportement et le besoin de redemarrer `pnpm dev:admin` / `pnpm dev:webapp` apres un changement de config Next.
+- Verification:
+  - lecture du host local detecte via `os.networkInterfaces()`: `10.188.149.44`
+  - revue statique de `app-admin/next.config.ts` et `app-webapp/next.config.ts`
+
 # Current Pass - 2026-03-23 - Local OIDC Host Preservation For Admin And Webapp
 
 ### Plan

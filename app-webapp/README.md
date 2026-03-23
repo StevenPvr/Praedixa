@@ -31,6 +31,7 @@ pnpm dev:webapp
 
 Le webapp attend une API Praedixa disponible sur `NEXT_PUBLIC_API_URL`.
 En local, `app-webapp/.env.local` pointe maintenant par defaut sur l'issuer `http://localhost:8081/realms/praedixa`; redemarrer `pnpm dev:webapp` apres toute modification de `.env.local`.
+Le `next.config.ts` webapp autorise maintenant aussi les IPv4 locales detectees du poste dans `allowedDevOrigins`; un acces via l'IP LAN (`http://10.x.x.x:3001`) ne doit plus bloquer les ressources `/_next/*`.
 
 ## Variables d'environnement utiles
 

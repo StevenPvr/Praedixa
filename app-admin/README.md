@@ -32,6 +32,7 @@ pnpm dev:admin
 `pnpm dev:api`, `pnpm dev:auth` et `pnpm dev:admin` restent maintenant attaches au terminal local pour afficher les logs runtime en direct. Si un mode background est prefere, utiliser `pnpm dev:api:bg`, `pnpm dev:auth:bg` ou `pnpm dev:admin:bg`, puis `pnpm dev:api:logs`, `pnpm dev:auth:logs` ou `pnpm dev:admin:logs`.
 
 En local, `app-admin/.env.local` pointe maintenant par defaut sur l'issuer `http://localhost:8081/realms/praedixa`, pas sur `https://auth.praedixa.com`. Redemarrer `pnpm dev:admin` apres tout changement de `.env.local`.
+Le `next.config.ts` admin autorise maintenant aussi les IPv4 locales detectees du poste dans `allowedDevOrigins`; un acces via l'IP LAN (`http://10.x.x.x:3002`) ne doit plus casser `/_next/*`.
 
 Un utilisateur OIDC `super_admin` avec `admin:console:access` et les permissions de page/admin associees est requis pour les flux reels. `admin:console:access` seul ne suffit pas a ouvrir `/`.
 

@@ -119,6 +119,7 @@ Before calling a connector sync path operational, verify a worker can actually c
 
 After deleting or renaming Next.js routes or pages in `app-landing`, clear `.next` before restarting Turbopack so the dev cache cannot crash on stale task data.
 Before finalizing a hook-backed commit in a Next.js app, verify `next-env.d.ts` was not dirtied by `next dev` or Playwright web servers, or the commit can fail after the checks themselves pass.
+Before relying on `next dev` over a LAN/private IP host, include the machine's local IPv4 addresses in `allowedDevOrigins`; otherwise Next can block `/_next/*` as cross-origin and the app can look auth-broken even when the handlers are fine.
 Before adding a new nested Next.js route page, verify the relative import depth from the route file to shared modules with `tsc` before considering the route done.
 Before adding non-standard React DOM props, verify they are supported by typed HTML attributes or pass them explicitly as intentional lowercase custom attributes.
 Before wiring ARIA ids inside a motion-heavy Next.js client component, derive them from stable locale/data keys instead of generated ids so hydration cannot drift between server and client.
