@@ -8,13 +8,13 @@ COMMIT_SHA="${GITHUB_SHA:-$(git rev-parse HEAD)}"
 REPORT_PATH="${ROOT_DIR}/.git/gate-reports/${COMMIT_SHA}.json"
 
 echo "[ci-authoritative] Security delta gate..."
-./scripts/gates/gate-precommit-delta.sh
+uv run --with pyyaml bash ./scripts/gates/gate-precommit-delta.sh
 
 echo "[ci-authoritative] Exhaustive signed gate..."
-./scripts/gates/gate-exhaustive-local.sh --mode manual --report-path "${REPORT_PATH}"
+uv run --with pyyaml bash ./scripts/gates/gate-exhaustive-local.sh --mode manual --report-path "${REPORT_PATH}"
 
 echo "[ci-authoritative] Signed report verification..."
-./scripts/gates/verify-gate-report.sh \
+uv run --with pyyaml bash ./scripts/gates/verify-gate-report.sh \
   --report-path "${REPORT_PATH}" \
   --mode manual \
   --max-age-seconds 21600

@@ -117,3 +117,4 @@
 - Quand j'ajoute une dependance a un workspace, ne pas me fier a la presence globale du package dans `pnpm-lock.yaml`; verifier l'importer exact du workspace ou regenerer le lockfile avant de pousser.
 - Quand un workflow CI de surface utilise un guardrail baseline-driven, le scoper au meme perimetre que le workflow; sinon une PR CI-only revele de la dette legacy sans rapport avec la surface verifiee.
 - Quand un script bootstrap CI telecharge un outil depuis GitHub Releases, verifier le nom exact de l'asset publie; certains projets livrent un binaire brut et non une archive `.tar.gz`.
+- Quand une gate shell CI appelle des validateurs Python repo-owned, ne pas supposer que `python3` du runner embarque `PyYAML`; lancer la gate via `uv run --with pyyaml` ou fournir explicitement la dependance.

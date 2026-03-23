@@ -1,3 +1,24 @@
+# Current Pass - 2026-03-23 - Authoritative CI PyYAML Runtime Fix
+
+### Plan
+
+- [x] Reproduire le rouge `ModuleNotFoundError: yaml` de `CI - Autorite` et confirmer qu'il vient du runner `python3` nu sur les gates shell
+- [x] Corriger le point d'entree canonique `scripts/ci/run-authoritative-ci.sh` pour fournir `PyYAML` aux gates shell repo-owned sans muter les scripts locaux
+- [x] Aligner la doc et consigner la regle de prevention associee
+
+### Review
+
+- Diagnostic:
+  - `CI - Autorite` echouait des la `Security delta gate` sur `ModuleNotFoundError: No module named 'yaml'`.
+  - le workflow installe bien `uv` avant `run-authoritative-ci.sh`, mais le script canonique appelait encore `gate-precommit-delta.sh`, `gate-exhaustive-local.sh` et `verify-gate-report.sh` directement, donc leurs appels `python3 ...` utilisaient le runtime systeme nu du runner.
+- Correctifs appliques:
+  - `scripts/ci/run-authoritative-ci.sh` execute maintenant ces trois gates via `uv run --with pyyaml bash ...`, ce qui injecte `PyYAML` dans le PATH Python du sous-shell sans changer les scripts locaux ni installer globalement sur le runner.
+  - documentation alignee dans `scripts/README.md`.
+  - garde-fou de retour d'experience ajoute dans `AGENTS.md` et `tasks/lessons.md`.
+- Verification:
+  - revue statique de `scripts/ci/run-authoritative-ci.sh`
+  - verification de coherence avec le workflow qui installe deja `uv` avant ce point d'entree
+
 # Current Pass - 2026-03-23 - CI Surface Guardrails And Authoritative Toolchain Repair
 
 ### Plan
