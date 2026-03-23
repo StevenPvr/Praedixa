@@ -1,6 +1,35 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": [".env"],
+  "globalDependencies": [
+    ".env",
+    ".env.local",
+    ".env.*",
+    "app-*/.env",
+    "app-*/.env.local",
+    "app-*/.env.*",
+    "packages/*/.env",
+    "packages/*/.env.local",
+    "packages/*/.env.*",
+    "**/.env.example",
+    "**/.env.local.example"
+  ],
+  "globalEnv": [
+    "AUTH_ADMIN_REQUIRED_AMR",
+    "AUTH_APP_ORIGIN",
+    "AUTH_OIDC_CLIENT_ID",
+    "AUTH_OIDC_ISSUER_URL",
+    "AUTH_OIDC_SCOPE",
+    "AUTH_SESSION_SECRET",
+    "CAMUNDA_BASE_URL",
+    "CAMUNDA_ENABLED",
+    "CI",
+    "CONNECTORS_RUNTIME_TOKEN",
+    "DATABASE_URL",
+    "NEXT_PUBLIC_API_URL",
+    "NEXT_PUBLIC_APP_ORIGIN",
+    "NODE_ENV",
+    "RESEND_WEBHOOK_SECRET"
+  ],
   "tasks": {
     "dev": {
       "cache": false,

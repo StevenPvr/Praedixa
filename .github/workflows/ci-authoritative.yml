@@ -101,6 +101,23 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      - name: Summarize build-ready verdict
+        if: always()
+        run: |
+          set -euo pipefail
+          report="$(find .git/gate-reports -maxdepth 1 -type f -name 'build-ready-*.json' | head -n1)"
+          if [[ -z "${report}" ]]; then
+            echo "No build-ready report generated." >>"${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+          {
+            echo "# Build-ready verdict"
+            jq -r '"- Verdict: \(.current_verdict)\n- Commit: \(.commit_sha)\n- Open blockers: \(.open_blocker_count)"' "${report}"
+            echo ""
+            echo "## Remaining blockers"
+            jq -r '.open_blockers[] | "- [\(.severity)] \(.id): \(.summary)"' "${report}"
+          } >>"${GITHUB_STEP_SUMMARY}"
+
   required:
     name: Autorite - Required
     runs-on: ubuntu-latest

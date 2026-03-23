@@ -1,0 +1,169 @@
+{
+  "status_type": "build-ready-status",
+  "schema_version": "1",
+  "decision_scope": "global-monorepo",
+  "as_of": "2026-03-23",
+  "current_verdict": "no-go",
+  "merge_authority": {
+    "required_check": "Autorite - Required",
+    "required_reviews": 1,
+    "enforce_admins": true,
+    "proof_scripts": [
+      "scripts/github/verify-main-branch-protection.sh",
+      "scripts/github/verify-main-required-check.sh"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "platform-authority",
+      "label": "Merge authority and canonical CI",
+      "status": "partial",
+      "proofs": [
+        ".github/workflows/ci-authoritative.yml",
+        "docs/runbooks/remote-ci-governance.md",
+        "scripts/github/verify-main-branch-protection.sh",
+        "scripts/github/verify-main-required-check.sh"
+      ]
+    },
+    {
+      "id": "runtime-reproducibility",
+      "label": "Local bootstrap, runtime contracts and cache invalidation",
+      "status": "ready",
+      "proofs": [
+        "turbo.json",
+        "scripts/validate-turbo-env-coverage.mjs",
+        "scripts/validate-local-bootstrap-consistency.mjs",
+        "scripts/validate-doc-portability.mjs",
+        "docs/deployment/runtime-env-contracts.generated.json"
+      ]
+    },
+    {
+      "id": "release-recovery",
+      "label": "Release, rollback and restore evidence",
+      "status": "partial",
+      "proofs": [
+        ".github/workflows/release-platform.yml",
+        "scripts/scw/scw-rollback-selftest.sh",
+        "docs/runbooks/backup-restore-evidence-baseline.md",
+        "docs/deployment/scaleway-container.md"
+      ]
+    },
+    {
+      "id": "sre-supportability",
+      "label": "Provider-backed monitoring, dashboards and supportability",
+      "status": "partial",
+      "proofs": [
+        "docs/prd/build-release-sre-readiness-spec.md",
+        "docs/runbooks/synthetic-monitoring-baseline.json",
+        "docs/security/control-plane-hardening.md",
+        "docs/performance/build-ready-budgets.md"
+      ]
+    },
+    {
+      "id": "product-core",
+      "label": "DecisionOps primitives and trust paths",
+      "status": "blocked",
+      "proofs": [
+        "docs/prd/TODO.md",
+        "docs/prd/decision-graph-and-scenario-runtime-spec.md",
+        "docs/prd/decision-ledger-and-roi-proof-spec.md",
+        "docs/prd/coverage-v1-thin-slice-spec.md"
+      ]
+    }
+  ],
+  "open_blockers": [
+    {
+      "id": "main-head-required-check-freshness",
+      "cluster": "platform-authority",
+      "severity": "high",
+      "summary": "La branch protection est bien active, mais le HEAD distant actuel de `main` n'expose pas encore une preuve Checks GitHub `Autorite - Required` verte et relisible.",
+      "references": [
+        "docs/prd/TODO.md",
+        "docs/runbooks/remote-ci-governance.md",
+        "scripts/github/verify-main-required-check.sh"
+      ]
+    },
+    {
+      "id": "decision-graph-semantic-runtime",
+      "cluster": "product-core",
+      "severity": "critical",
+      "summary": "Le vrai DecisionGraph semantique versionne, la semantic query API et les tests de compatibilite cross-version restent ouverts.",
+      "references": [
+        "docs/prd/TODO.md",
+        "docs/prd/decision-graph-and-scenario-runtime-spec.md"
+      ]
+    },
+    {
+      "id": "scenario-runtime-explicability",
+      "cluster": "product-core",
+      "severity": "critical",
+      "summary": "Le runtime scenario persistant, versionne et explicable n'est pas encore ferme pour remplacer le fail-close historique de generation.",
+      "references": [
+        "docs/prd/TODO.md",
+        "docs/prd/decision-graph-and-scenario-runtime-spec.md"
+      ]
+    },
+    {
+      "id": "mapping-studio-and-dataset-health-closeout",
+      "cluster": "product-core",
+      "severity": "high",
+      "summary": "Le Mapping Studio operable, la quarantaine et l'activation self-service complete des connecteurs standards restent a fermer.",
+      "references": [
+        "docs/prd/TODO.md",
+        "docs/prd/connector-activation-and-dataset-trust-spec.md"
+      ]
+    },
+    {
+      "id": "finance-grade-ledger-closeout",
+      "cluster": "product-core",
+      "severity": "high",
+      "summary": "Les exports finance-grade, la coherence ROI/ledger/proof packs et le vrai drill-down consolide restent ouverts.",
+      "references": [
+        "docs/prd/TODO.md",
+        "docs/prd/decision-ledger-and-roi-proof-spec.md"
+      ]
+    },
+    {
+      "id": "release-proof-bundle-freshness",
+      "cluster": "release-recovery",
+      "severity": "high",
+      "summary": "Le repo dispose du chemin de release/rollback/restore, mais pas encore d'un bundle de preuves fraiches complet attache a un SHA recent de main.",
+      "references": [
+        "docs/prd/TODO.md",
+        "docs/prd/build-release-sre-readiness-spec.md",
+        "docs/runbooks/backup-restore-evidence-baseline.md"
+      ]
+    },
+    {
+      "id": "provider-backed-synthetics-and-support-console",
+      "cluster": "sre-supportability",
+      "severity": "high",
+      "summary": "La baseline machine-readable existe, mais les synthetics provider-backed, la support console least-privilege et les dashboards/alertes fermes restent ouverts.",
+      "references": [
+        "docs/prd/TODO.md",
+        "docs/prd/build-release-sre-readiness-spec.md"
+      ]
+    },
+    {
+      "id": "cost-sql-and-no-full-refresh-closeout",
+      "cluster": "sre-supportability",
+      "severity": "medium",
+      "summary": "Le closing cost monitoring, SQL/index/pagination et la preuve 'no full refresh critique' ne sont pas encore completes.",
+      "references": [
+        "docs/prd/TODO.md",
+        "docs/performance/build-ready-budgets.md",
+        "docs/performance/capacity-envelopes.md"
+      ]
+    },
+    {
+      "id": "critical-trust-e2e-path",
+      "cluster": "product-core",
+      "severity": "medium",
+      "summary": "Le parcours canonique auth -> signal -> compare -> approve -> dispatch -> ledger n'est pas encore ferme en E2E officiel.",
+      "references": [
+        "docs/prd/TODO.md",
+        "docs/prd/ux-and-e2e-trust-paths-spec.md"
+      ]
+    }
+  ]
+}

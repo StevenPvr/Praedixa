@@ -26,6 +26,7 @@ Sources de verite utilisees pour cette checklist:
 - `docs/DATABASE.md`
 - `docs/TESTING.md`
 - `docs/security/devops-audit.md`
+- `docs/governance/build-ready-status.json`
 - `docs/runbooks/`
 - `scripts/README.md`
 - l'etat reel des apps/packages/services du monorepo
@@ -282,12 +283,13 @@ Cartographie rapide des artefacts de fermeture:
 - [x] Des scripts de release/deploy et de preflight existent deja
 - [x] Reactiver les workflows GitHub sur `push` / `pull_request` pour en faire une autorite distante utile
 - [x] Supprimer le gap `path-scoped` des workflows requis pour que les checks distants existent sur toute PR/push gouverne
-- [ ] Configurer la protection de branche / la politique plateforme pour rendre `Admin - Required` et `API - Required` effectivement bloquants au merge
+- [x] Configurer la protection de branche / la politique plateforme pour rendre `Autorite - Required` effectivement bloquant au merge, avec review obligatoire et `enforce_admins = true`
 - [x] Pinner les GitHub Actions par SHA
 - [x] Aligner la CI distante avec le gate local sur le minimum bloquant attendu
 - [x] Etendre `CI - API` a `app-connectors` et aux dependances de gouvernance effectivement consommees par les validateurs de policy
 - [x] Ajouter des checks de contrat OpenAPI / types partages dans la CI distante
 - [x] Ajouter des checks de dependances/architecture (`dep-cruiser`, `knip`, equivalents Python) explicitement bloquants si absents
+- [x] Produire un verdict `build-ready` machine-readable et un rapport par SHA depuis `CI - Autorite`
 - [ ] Ajouter des suites de charge et de regression scenario/ledger/action dans le pipeline officiel
 - [x] Versionner et durcir une politique de budgets perf/scalabilite/outils sans echappatoire manuelle
 - [x] Documenter la matrice unique "ce qui bloque un merge" vs "ce qui bloque une release"
@@ -365,6 +367,7 @@ Cartographie rapide des artefacts de fermeture:
 - [x] Documenter l'ownership et la RACI minimum par sous-systeme
 - [x] Ajouter une checklist "comment ajouter une feature sans casser le socle"
 - [x] Ajouter une politique explicite de suppression des docs obsoletes et surfaces legacy
+- [x] Ajouter une source de verite machine-readable du verdict `Go/No-Go`
 - [ ] Reviser regulierement cette checklist a chaque fermeture de chantier structurel
 
 **Definition of done**
@@ -382,4 +385,5 @@ Cartographie rapide des artefacts de fermeture:
 - [ ] Le rollback prod est teste et documente
 - [ ] Aucun chemin critique ne depend de donnees demo, de fallback implicite, de scripts manuels non documentes ou d'une personne cle unique
 - [ ] Les contrats publics, les types partages, le runtime reel et la documentation sont alignes
+- [ ] `docs/governance/build-ready-status.json` et le rapport SHA genere par `CI - Autorite` concluent tous deux `go`
 - [ ] Une fois cette section fermee, le travail restant releve uniquement de la construction de features

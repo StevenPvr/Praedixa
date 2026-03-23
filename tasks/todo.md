@@ -1,3 +1,35 @@
+# Current Pass - 2026-03-23 - Build-Ready Proofs, Turbo Reproducibility And Canonical Verdict Reconciliation
+
+### Plan
+
+- [x] Ajouter une source de verite machine-readable pour le verdict `build-ready`, plus un rapport par SHA reutilisable par la CI autoritaire
+- [x] Durcir Turbo sur les fichiers/env reellement consommes par le monorepo et ajouter un validateur repo-owned contre le drift de cache/reproductibilite
+- [x] Fermer le dernier interstice de gouvernance distante (`enforce_admins`) et etendre la preuve GitHub pour verifier a la fois la branch protection et le check requis sur `main`
+- [x] Reconciler `docs/audits/infra-readiness-todo.md`, `docs/prd/TODO.md`, `docs/security/devops-audit.md` et les runbooks CI avec l'etat reel du repo et les vrais blockers restants
+- [x] Rejouer les validateurs cibles, documenter la revue et le nouveau statut `Go/No-Go`
+
+### Review
+
+- Correctifs appliques:
+  - ajout de `docs/governance/build-ready-status.json` comme source de verite machine-readable du verdict `Go/No-Go`, avec clusters, blockers et preuves associees.
+  - ajout de `scripts/validate-build-ready-status.mjs` et `scripts/generate-build-ready-report.mjs`; `CI - Autorite` genere maintenant `.git/gate-reports/build-ready-<sha>.json` et publie un summary GitHub du verdict.
+  - durcissement de `turbo.json` avec `globalDependencies` et `globalEnv` alignes sur les vrais fichiers/env du repo; ajout de `scripts/validate-turbo-env-coverage.mjs` et de ses tests pour bloquer les faux verts de cache quand `.env.local` ou les vars runtime changent.
+  - fermeture de l'interstice de gouvernance distante sur `main`: `enforce_admins = true` est maintenant actif cote GitHub, `scripts/github/verify-main-branch-protection.sh` le revalide, et `scripts/github/verify-main-required-check.sh` expose enfin la verite du check requis sur le HEAD distant via l'API Checks.
+  - reconciliation des docs canoniques (`docs/audits/infra-readiness-todo.md`, `docs/security/devops-audit.md`, `docs/prd/TODO.md`, `docs/runbooks/remote-ci-governance.md`, `README.md`, `scripts/README.md`, `docs/governance/*`, `.github/workflows/README.md`) pour supprimer les constats perimes et laisser seulement les blockers encore reels.
+- Resultat:
+  - la gouvernance GitHub de `main` n'est plus seulement documentee: la branch protection est prouvee et les admins sont aussi soumis a la policy.
+  - le repo sait maintenant produire un verdict `build-ready` relisible par SHA au lieu de disperser le `Go/No-Go` dans des audits prose-only.
+  - le drift Turbo/env est bloque par un garde-fou repo-owned, ce qui ferme le reproche "`.env` seul est trop mince".
+  - le `No-Go` global reste explicite et coherent: il se concentre maintenant sur la preuve distante encore rouge sur le HEAD actuel de `main`, le bundle release/recovery frais, les synthetics/supportability provider-backed et les chantiers coeur DecisionOps encore ouverts.
+- Verification:
+  - `node scripts/validate-build-ready-status.mjs`
+  - `node scripts/validate-turbo-env-coverage.mjs`
+  - `node --test scripts/__tests__/validate-build-ready-status.test.mjs scripts/__tests__/validate-turbo-env-coverage.test.mjs`
+  - `node scripts/generate-build-ready-report.mjs`
+  - `pnpm exec prettier --check turbo.json package.json .github/workflows/ci-authoritative.yml .github/workflows/README.md README.md docs/governance/README.md docs/governance/adding-features-without-breaking-the-socle.md docs/governance/build-ready-status.json docs/runbooks/remote-ci-governance.md docs/security/devops-audit.md docs/audits/infra-readiness-todo.md docs/prd/TODO.md docs/prd/decisionops-v1-execution-backbone.md scripts/README.md scripts/validate-build-ready-status.mjs scripts/generate-build-ready-report.mjs scripts/validate-turbo-env-coverage.mjs scripts/__tests__/validate-build-ready-status.test.mjs scripts/__tests__/validate-turbo-env-coverage.test.mjs tasks/todo.md`
+  - `./scripts/github/verify-main-branch-protection.sh`
+  - `./scripts/github/verify-main-required-check.sh` -> rouge volontairement expose: le HEAD distant actuel de `main` n'a pas encore `Autorite - Required` en succes, et ce point reste maintenant un blocker machine-readable au lieu d'un angle mort doc.
+
 # Current Pass - 2026-03-22 - Monorepo Enforcement And Runtime Env Contracts
 
 ### Plan

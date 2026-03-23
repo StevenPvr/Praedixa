@@ -4,6 +4,7 @@ Utiliser cette checklist avant de considerer une feature prete a fusionner.
 
 ## Checklist
 
+- Verifier `docs/governance/build-ready-status.json` et ne pas traiter comme "feature-only" un chantier qui rouvre un blocker structurel du meme cluster.
 - Verifier le bon runtime: TypeScript/Node pour les surfaces user-facing et control plane, Python pour data/ML/pipeline.
 - Verifier le bon package ou point d'entree avant de coder pour eviter un couplage transverse.
 - Verifier `docs/architecture/placement-guide.md` si le bon point d'entree n'est pas evident en 30 secondes.
@@ -23,6 +24,7 @@ Utiliser cette checklist avant de considerer une feature prete a fusionner.
 - La feature ajoute une route, un event ou un payload sans contrat partage.
 - La feature depend d'un mode demo, d'un script manuel non documente ou d'un acces privilegie implicite.
 - La feature force une exception durable au gate local ou a la CI distante.
+- La feature contredit le verdict ou les blockers de `docs/governance/build-ready-status.json` sans mettre a jour la preuve dans le meme diff.
 
 ## Handoff minimum
 

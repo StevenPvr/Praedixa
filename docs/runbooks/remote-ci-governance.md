@@ -20,6 +20,9 @@ Le scope de ces workflows doit aussi couvrir les scripts critiques qui peuvent a
 - Chaque workflow publie maintenant un job final stable quand il se declenche:
   - `Admin - Required`
   - `API - Required`
+- `CI - Autorite` publie le seul check merge-blocker canonique:
+  - `Autorite - Required`
+- Le meme workflow publie aussi un rapport machine-readable `build-ready-<sha>.json` et un summary GitHub du verdict courant.
 - Les deux workflows revalident d'abord un socle versionne de policy:
   - `node scripts/validate-secret-rotation-runbook.mjs`
   - `node scripts/validate-runtime-secret-inventory.mjs`
@@ -36,12 +39,14 @@ Le scope de ces workflows doit aussi couvrir les scripts critiques qui peuvent a
   - `Autorite - Required` comme check requis stable
   - `strict = true` sur les status checks
   - une review obligatoire
+  - `enforce_admins = true`
   - la resolution de conversation active
   - l'historique lineaire impose
   - force-push et suppression interdits
-- Avec les workflows always-on, `Admin - Required` et `API - Required` peuvent maintenant etre utilises comme checks requis sans trou de presence lie a `paths:`.
-- Ne pas exiger seulement les jobs intermediaires (`Admin - Build`, `API TS - ...`, etc.) si vous gardez des jobs finaux stables: l'ancre de branch protection doit rester le job final du workflow concerne.
+- `Admin - Required` et `API - Required` restent des checks auxiliaires et ne doivent pas remplacer `Autorite - Required` comme ancre de branch protection.
+- Ne pas exiger seulement les jobs intermediaires (`Admin - Build`, `API TS - ...`, etc.): l'ancre de branch protection doit rester `Autorite - Required`.
 - `scripts/github/verify-main-branch-protection.sh` sert de preuve operatoire: il doit confirmer l'etat reel GitHub au lieu de laisser la doc parler a sa place.
+- `scripts/github/verify-main-required-check.sh` complete cette preuve en verifiant que le HEAD de `main` expose bien un `Autorite - Required` `completed/success` via l'API Checks GitHub, meme quand l'API statuses classique reste peu exploitable.
 
 ## Flux recommande
 
@@ -98,9 +103,11 @@ Le scope de ces workflows doit aussi couvrir les scripts critiques qui peuvent a
 
 ## Checklist operatoire
 
+- Verifier que `Autorite - Required` existe bien sur les SHAs de `main` et reste `completed/success`.
 - Verifier que les checks finaux `Admin - Required` et `API - Required` existent bien quand les workflows se declenchent.
-- Verifier qu'une PR qui ne touche qu'un fichier hors surface applicative directe voit quand meme apparaitre `Admin - Required` et `API - Required`.
+- Verifier qu'une PR qui ne touche qu'un fichier hors surface applicative directe voit quand meme apparaitre `Autorite - Required`, puis les checks auxiliaires attendus.
 - Verifier qu'un changement sur `app-connectors/` ou `contracts/` reste bien couvert par `CI - API`.
 - Verifier que `workflow_dispatch` reste disponible pour les recontroles manuels.
 - Verifier que les PR Dependabot suivent le meme gate de merge que les PR humaines.
-- Verifier via `scripts/github/verify-main-branch-protection.sh` que la branch protection GitHub exige bien `Autorite - Required`, `strict = true`, `1` review obligatoire, la resolution de conversation, l'historique lineaire et l'interdiction des force-push/suppressions.
+- Verifier via `scripts/github/verify-main-branch-protection.sh` que la branch protection GitHub exige bien `Autorite - Required`, `strict = true`, `1` review obligatoire, `enforce_admins = true`, la resolution de conversation, l'historique lineaire et l'interdiction des force-push/suppressions.
+- Verifier via `scripts/github/verify-main-required-check.sh` que le HEAD de `main` expose une preuve Checks GitHub relisible du check requis.

@@ -119,7 +119,7 @@ Gate D est verte quand:
 - Dependances: W1
 - TODO principal: sections 10, 11, 12, 13, 15
 - Story slices:
-  - finaliser la branch protection autour de `Admin - Required` et `API - Required`;
+  - finaliser la branch protection autour de `Autorite - Required`, review obligatoire et `enforce_admins = true`;
   - ajouter les suites de charge/regression scenario-action-ledger dans le pipeline officiel;
   - fermer bootstrap, rollback, migration, backup/restore et provenance;
   - versionner la preuve SRE minimale: synthetics, alertes, dashboards, severity matrix.

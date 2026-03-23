@@ -23,6 +23,7 @@ jq -e '
   and (.required_pull_request_reviews.required_approving_review_count // 0) == 1
   and .required_conversation_resolution.enabled == true
   and .required_linear_history.enabled == true
+  and .enforce_admins.enabled == true
   and .allow_force_pushes.enabled == false
   and .allow_deletions.enabled == false
 ' >/dev/null <<<"$payload" || fail "Branch ${BRANCH} on ${REPO} does not match the required policy."

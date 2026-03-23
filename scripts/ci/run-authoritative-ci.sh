@@ -23,9 +23,13 @@ echo "[ci-authoritative] Runtime secret contract..."
 node scripts/validate-runtime-secret-inventory.mjs
 node scripts/validate-runtime-env-inventory.mjs
 node scripts/validate-runtime-env-contracts.mjs
+node scripts/validate-build-ready-status.mjs
+node scripts/validate-turbo-env-coverage.mjs
 
 echo "[ci-authoritative] Durable release-contract tests..."
 node --test \
+  scripts/__tests__/validate-build-ready-status.test.mjs \
+  scripts/__tests__/validate-turbo-env-coverage.test.mjs \
   scripts/__tests__/runtime-env-contracts.test.mjs \
   scripts/__tests__/validate-runtime-env-inventory.test.mjs \
   scripts/__tests__/validate-runtime-secret-inventory.test.mjs \
@@ -33,5 +37,8 @@ node --test \
   scripts/__tests__/release-manifest-logging.test.mjs \
   scripts/__tests__/release-manifest-supply-chain.test.mjs \
   scripts/__tests__/control-plane-restore-evidence.test.mjs
+
+echo "[ci-authoritative] Build-ready report..."
+node scripts/generate-build-ready-report.mjs --sha "${COMMIT_SHA}"
 
 echo "[ci-authoritative] OK"

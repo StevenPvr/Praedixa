@@ -34,6 +34,7 @@ Points d'entrée utiles :
 
 - `docs/cto/README.md` pour le parcours CTO orienté architecture, donnees, runtimes et sources de verite ;
 - `docs/README.md` pour distinguer la documentation durable du cadrage/PRD ;
+- `docs/governance/build-ready-status.json` pour le verdict machine-readable `Go/No-Go` du socle monorepo ;
 - `docs/specs/README.md` pour les contrats documentaires Symphony ;
 - `scripts/README.md` pour l'automatisation ;
 - `docs/specs/ticket.md` pour le format exact des tickets Linear executables par Symphony ;
@@ -411,7 +412,8 @@ Le `pre-push` bloque si le rapport signe du commit courant est absent, stale, in
 
 - Les hooks locaux (`pre-commit` + `pre-push`) restent les accelerateurs developpeur.
 - `CI - Autorite` et son job `Autorite - Required` sont la source de verite finale pour le merge.
-- Le merge sur `main` doit etre protege par `Autorite - Required` et au moins une review obligatoire; toute autre CI par surface reste du feedback rapide, pas le juge final.
+- Le merge sur `main` doit etre protege par `Autorite - Required`, au moins une review obligatoire et `enforce_admins = true`; toute autre CI par surface reste du feedback rapide, pas le juge final.
+- Le verdict structurel `Go/No-Go` est versionne dans `docs/governance/build-ready-status.json` et rejoue par `CI - Autorite` sous forme de rapport SHA.
 
 ### Deploiement production
 
