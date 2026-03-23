@@ -17,12 +17,17 @@
 - Correctifs appliques:
   - remplacement de l'assertion inutile dans `app-api-ts/src/services/approval-inbox.ts` par un garde explicite sur `firstItem`, ce qui satisfait a la fois ESLint et TypeScript.
   - ajout du script racine `test:root:prepare` dans `package.json` pour builder explicitement `@praedixa/shared-types`, `@praedixa/ui` et `@praedixa/api-hooks` avant `test:root` et `test:root:coverage`.
+  - `scripts/gates/gate-typecheck-all.sh` restaure maintenant aussi les `app-*/next-env.d.ts` generes par les typechecks Next, afin que le hook `pre-push` ne soit plus rejete par `prek` sur un worktree sale alors que tous les controles metier sont verts.
+  - ajout du test versionne `scripts/__tests__/gate-typecheck-all.test.mjs` pour verrouiller ce comportement et satisfaire le garde-fou `sensitive-diff` sur les scripts de gate.
   - documentation alignee dans `README.md`, `docs/TESTING.md` et `testing/README.md`.
+  - documentation outillage alignee dans `scripts/README.md`.
   - garde-fou de retour d'experience ajoute dans `AGENTS.md` et `tasks/lessons.md` sur la verification d'un fix GitHub Actions contre le SHA reel de la PR distante.
 - Verification:
   - `gh pr view 53 --json headRefOid,statusCheckRollup,commits`
   - `pnpm --filter @praedixa/api-ts lint`
   - `./scripts/gates/gate-typecheck-all.sh`
+  - `git status --short` apres echec du `pre-push` pour identifier les `next-env.d.ts` dirties
+  - `node --test scripts/__tests__/gate-typecheck-all.test.mjs`
   - `pnpm test:root:coverage`
   - `pnpm lint`
   - `pnpm test:coverage`
