@@ -57,25 +57,10 @@ function normalizePathname(pathname: string): string {
   return pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
 }
 
-function enforceCanonicalHost(
-  target: URL,
-  requestHost: string,
-  forwardedProto: "http" | "https" | null,
-): boolean {
-  let shouldRedirect = false;
-  const shouldForceHttps =
-    target.protocol !== "https:" || forwardedProto === "http";
-  if (shouldForceHttps && target.protocol !== "https:") {
-    target.protocol = "https:";
-    shouldRedirect = true;
-  }
-
-  if (target.hostname !== CANONICAL_HOST || requestHost === "praedixa.com") {
-    target.hostname = CANONICAL_HOST;
-    target.port = "";
-    shouldRedirect = true;
-  }
-  return shouldRedirect;
+function primeProductionRedirectTarget(target: URL): void {
+  target.protocol = "https:";
+  target.hostname = CANONICAL_HOST;
+  target.port = "";
 }
 
 function applyLegacyRedirect(target: URL): boolean {
@@ -103,15 +88,14 @@ function applyLegacyRedirect(target: URL): boolean {
 function resolveCanonicalTarget(request: NextRequest): URL | null {
   const target = request.nextUrl.clone();
   const requestHost = resolveRequestHost(request);
+  const forwardedProto = resolveForwardedProto(request);
   let shouldRedirect = false;
 
   if (PRODUCTION_HOSTS.has(requestHost)) {
-    shouldRedirect =
-      enforceCanonicalHost(
-        target,
-        requestHost,
-        resolveForwardedProto(request),
-      ) || shouldRedirect;
+    primeProductionRedirectTarget(target);
+    if (requestHost === "praedixa.com" || forwardedProto === "http") {
+      shouldRedirect = true;
+    }
   }
 
   if (!isApiOrStatic(target.pathname)) {

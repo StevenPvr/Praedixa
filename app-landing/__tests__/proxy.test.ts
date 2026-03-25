@@ -90,6 +90,17 @@ describe("landing proxy", () => {
     expect(result.headers.get("location")).toBe("https://www.praedixa.com/fr");
   });
 
+  it("does not redirect canonical https requests just because the runtime host is internal", async () => {
+    const req = makeRequest("/fr", {
+      host: "www.praedixa.com",
+      "x-forwarded-proto": "https",
+    });
+    const result = await proxy(req);
+
+    expect(result.status).toBe(200);
+    expect(result.headers.get("location")).toBeNull();
+  });
+
   it("removes trailing slash on localized routes", async () => {
     const req = makeRequest("/fr/");
     const result = await proxy(req);
