@@ -2,70 +2,74 @@ import type { ValuePropContent } from "./shared";
 import { valuePropFrSections } from "./fr-sections";
 
 export const coreValuePropFr: ValuePropContent = {
-  icp: "COO, directions des opérations et responsables réseau de réseaux multi-sites",
+  icp: "Franchisés, directeurs réseau et responsables opérations de restauration rapide multi-sites",
   promise:
-    "Praedixa couple Data Science, Machine Learning et IA pour anticiper vos besoins opérationnels et prouver votre ROI, sans remplacer vos outils.",
+    "Praedixa aide les réseaux de restauration rapide à prédire la demande et les besoins d\u2019effectifs avant les rushs, sans remplacer POS, planning ni BI.",
   mechanism:
-    "Data Science, Machine Learning et IA détectent les risques, comparent vos options et mesurent l\u2019impact réel de chaque décision.",
+    "Praedixa croise ventes, planning, livraison, promotions, météo et historique terrain pour anticiper la demande, projeter les besoins d\u2019effectifs et signaler les services à risque.",
   reassurance: [
     "Lecture seule",
-    "Données agrégées",
+    "POS + planning + delivery",
     "Hébergement France",
     "NDA sur demande",
   ],
   ctaPrimary: "Voir la preuve de ROI",
-  ctaSecondary: "Parler à un expert",
-  heroKicker: "Pour les réseaux multi-sites",
-  heroHeading: "L\u2019IA qui anticipe, optimise",
-  heroHeadingHighlight: "et prouve votre ROI.",
+  ctaSecondary: "Cadrer mon réseau",
+  heroKicker: "Pour les franchisés de restauration rapide multi-sites",
+  heroHeading: "Prédisez la demande,",
+  heroHeadingHighlight: "calibrez vos effectifs.",
   heroSubheading:
-    "Praedixa connecte vos données existantes et couple Data Science, Machine Learning et IA pour détecter les risques plus tôt, comparer les scénarios et prouver le ROI. Là où les ERP pilotent souvent à la moyenne, Praedixa arbitre décision par décision.",
-  heroBadgeText: "DATA SCIENCE + ML + IA",
-  heroProofBlockText: "Pour COO, direction des opérations, finance et DSI.",
-  heroProofRoles: ["COO", "DIR. OPS", "FINANCE", "DSI"],
-  heroProofMicropill: "Décisions tracées\u00a0|\u00a0Preuve de ROI",
+    "Praedixa relie vos caisses, plannings, apps de livraison, promotions et signaux terrain pour anticiper les volumes à venir, projeter les besoins d\u2019effectifs et voir quels restaurants vont passer sous tension, restaurant par restaurant.",
+  heroBadgeText: "QSR OPS",
+  heroProofBlockText:
+    "Pour franchisés multi-sites, directions réseau et équipes opérations qui veulent prévoir la demande et la couverture.",
+  heroProofRoles: ["FRANCHISÉ", "DIR. RÉSEAU", "OPS", "FINANCE"],
+  heroProofMicropill: "Demande\u00a0|\u00a0effectifs\u00a0|\u00a0couverture",
   heroLogoCaption: "Ils nous font confiance",
   heroOffer: {
     badge: "Notre promesse",
-    title: "Des résultats en 30\u00a0jours",
-    body: "Un logiciel qui s\u2019installe sur vos données existantes, sans remplacer vos outils.",
+    title: "Un premier arbitrage réseau en 30\u00a0jours",
+    body: "Un cadrage rapide sur POS, planning et delivery pour agir avant le prochain temps fort.",
     note: "Lecture seule au démarrage. NDA possible dès le premier échange.",
   },
   socialProof: {
-    eyebrow: "Confiance entreprise",
+    eyebrow: "Pilotage réseau",
     statValue: "30j",
-    statLabel: "Premiers résultats mesurables, sur vos données existantes",
+    statLabel:
+      "Pour objectiver un premier cas de prédiction demande + effectifs sur vos données existantes",
     logosAlt: "Entreprises qui nous font confiance",
-    marqueeLabel: "Soyez parmi les premiers réseaux à anticiper plus tôt",
+    marqueeLabel:
+      "Cadrer un premier cas d\u2019usage QSR sans projet IT lourd",
   },
   product: {
-    kicker: "Le produit",
-    heading: "L\u2019IA qui anticipe, optimise et prouve.",
+    kicker: "Pilotage réseau",
+    heading: "La prédiction demande + effectifs pensée pour le rush.",
     subheading:
-      "Praedixa détecte les risques avant qu\u2019ils ne deviennent des urgences, compare vos options et mesure l\u2019impact réel de chaque décision.",
+      "Praedixa aide le siège et le terrain à anticiper la demande, préparer la couverture et sécuriser les services les plus sensibles.",
   },
   footerTagline:
-    "Praedixa couple Data Science, Machine Learning et IA pour prouver votre ROI, sans remplacer vos outils.",
+    "Praedixa aide les réseaux de restauration rapide à anticiper la demande et les besoins d\u2019effectifs avant les rushs, sans remplacer leurs outils.",
   qualificationTitle: "Est-ce que Praedixa est fait pour vous\u00a0?",
   qualificationBody:
-    "Praedixa s\u2019adresse aux réseaux multi-sites qui veulent anticiper leurs besoins, comparer leurs options et prouver leurs résultats.",
+    "Praedixa s\u2019adresse aux franchisés et réseaux de restauration rapide qui veulent objectiver leurs arbitrages de staffing, service et marge sur plusieurs restaurants.",
   fitTitle: "Un bon point de départ si\u2026",
   fitItems: [
-    "vous gérez plusieurs sites avec des décisions récurrentes",
-    "un responsable opérations veut mesurer l\u2019impact de ses décisions",
-    "des données existantes (exports, API) sont disponibles au démarrage",
+    "vous gérez plusieurs restaurants avec des rushs récurrents à arbitrer",
+    "un responsable réseau ou opérations veut objectiver ses décisions de couverture",
+    "vos POS, plannings ou canaux delivery exposent déjà des données utiles au démarrage",
   ],
   notFitTitle: "Pas pour vous si\u2026",
   notFitItems: [
-    "vous opérez un seul site sans enjeu réseau",
-    "aucun responsable opérations ne peut porter le sujet",
-    "aucune donnée exploitable n\u2019est disponible au démarrage",
+    "vous exploitez un seul site sans enjeu réseau",
+    "aucun décideur opérationnel ne peut porter le sujet côté terrain ou siège",
+    "ni POS, ni planning, ni données d\u2019activité ne sont accessibles au démarrage",
   ],
   stackComparison: {
     kicker: "Compatibilité",
-    heading: "Praedixa s\u2019ajoute à vos outils. Il va au-delà des moyennes.",
+    heading:
+      "Praedixa s\u2019ajoute à vos outils réseau. Il tranche là où ils s\u2019arrêtent.",
     subheading:
-      "ERP, BI, planning, Excel\u00a0: tout reste en place. Là où les ERP pilotent surtout par règles et moyennes, Praedixa ajoute Data Science, Machine Learning et IA pour anticiper, comparer et prouver.",
+      "POS, planning, delivery, BI, Excel\u00a0: tout reste en place. Praedixa relie les signaux utiles pour arbitrer plus tôt entre staffing, temps de service et marge protégée.",
     columnLabels: {
       category: "Outil",
       currentCoverage: "Ce qu\u2019il fait",
@@ -74,117 +78,123 @@ export const coreValuePropFr: ValuePropContent = {
     },
     rows: [
       {
-        category: "ERP",
-        currentCoverage: "Gère les transactions, les stocks et les coûts.",
+        category: "POS / ERP",
+        currentCoverage:
+          "Consolide les ventes, les encaissements, les stocks et les coûts.",
         stopsAt:
-          "Travaille surtout à partir de règles, d\u2019historique et de moyennes.",
+          "Montre le passé mais ne dit pas quel arbitrage lancer avant le prochain rush.",
         praedixaAdd:
-          "Utilise Data Science, Machine Learning et IA pour détecter les écarts, comparer les scénarios et mesurer le ROI.",
+          "Projette les services à risque et compare les options de couverture avant que la marge ne glisse.",
       },
       {
         category: "BI / reporting",
-        currentCoverage: "Montre les KPIs, les écarts et les tendances.",
-        stopsAt: "Montre le problème, mais ne propose pas d\u2019action.",
+        currentCoverage: "Montre les KPIs, écarts et tendances par restaurant.",
+        stopsAt:
+          "Explique ce qui s\u2019est passé, mais pas quoi faire sur le prochain midi ou soir critique.",
         praedixaAdd:
-          "Propose des options concrètes et trace la décision prise.",
+          "Propose des arbitrages concrets et relit leur impact réel sur service et marge.",
       },
       {
         category: "Planning / WFM",
-        currentCoverage: "Planifie les capacités et les horaires par site.",
-        stopsAt: "Planifie, mais ne compare pas les scénarios entre sites.",
+        currentCoverage:
+          "Planifie les shifts, les rôles et la couverture par restaurant.",
+        stopsAt:
+          "Construit un planning, mais ne compare pas les scénarios réseau avant exécution.",
         praedixaAdd:
-          "Compare les scénarios multi-sites et recommande la meilleure option.",
+          "Compare renfort, réaffectation, réduction de promesse de service ou throttling delivery.",
       },
       {
         category: "Excel / comités",
-        currentCoverage: "Permet de cadrer rapidement un sujet prioritaire.",
+        currentCoverage:
+          "Permet de recouper vite un sujet prioritaire entre siège et terrain.",
         stopsAt:
-          "Reste manuel, difficile à rejouer et sans preuve d\u2019impact.",
-        praedixaAdd: "Garde la trace des décisions et de leur impact réel.",
+          "Reste manuel, difficile à rejouer et sans preuve claire sur service, staffing et marge.",
+        praedixaAdd:
+          "Garde un journal relisible des décisions réseau et de leur effet réel.",
       },
       {
         category: "Praedixa",
         currentCoverage:
-          "Ajoute une couche de décision à vos outils existants pour anticiper et arbitrer.",
+          "Ajoute une couche de décision à vos outils existants pour anticiper les rushs et arbitrer réseau par réseau.",
         stopsAt:
-          "Ne remplace ni ERP, ni BI, ni planning. S\u2019appuie sur eux.",
+          "Ne remplace ni POS, ni BI, ni planning. S\u2019appuie sur eux.",
         praedixaAdd:
-          "Anticiper, comparer, décider et prouver le ROI, site par site.",
+          "Anticiper, comparer, décider et prouver le ROI, restaurant par restaurant.",
       },
     ],
-    bottomNote:
-      "Compatible avec votre stack actuelle. Aucune migration nécessaire.",
+    bottomNote: "Compatible avec POS, planning, delivery, BI et exports existants.",
   },
   servicesMeta: {
     title:
-      "Praedixa | Ce que vous achetez\u00a0: des résultats en 30\u00a0jours",
+      "Praedixa | Restauration rapide\u00a0: un premier arbitrage réseau en 30\u00a0jours",
     description:
-      "Le déploiement Praedixa s\u2019installe sur vos données existantes et livre des résultats mesurables en 30\u00a0jours, sans remplacer vos outils.",
+      "Le déploiement Praedixa cadre un premier arbitrage réseau sur vos rushs, vos restaurants et vos données existantes en 30\u00a0jours.",
     ogTitle:
-      "Praedixa | Ce que vous achetez\u00a0: des résultats en 30\u00a0jours",
+      "Praedixa | Restauration rapide\u00a0: un premier arbitrage réseau en 30\u00a0jours",
     ogDescription:
-      "Déploiement Praedixa\u00a0: des résultats mesurables en 30\u00a0jours, sans projet IT lourd.",
+      "Déploiement Praedixa pour réseaux QSR\u00a0: un premier arbitrage réseau en 30\u00a0jours, sans chantier IT lourd.",
   },
   services: {
     kicker: "Offre",
     heading:
-      "Ce que vous achetez\u00a0: des résultats en 30\u00a0jours, pas un projet IT de plus.",
+      "Ce que vous achetez\u00a0: un premier arbitrage réseau objectivé en 30\u00a0jours.",
     subheading:
-      "Le déploiement Praedixa s\u2019installe sur vos données existantes. Si besoin, une preuve sur historique démontre les résultats avant le lancement.",
+      "Praedixa démarre sur POS, planning, delivery et coûts déjà disponibles. Si besoin, une preuve de ROI sur historique démontre le sujet avant extension réseau.",
     timelineTitle: "En 30\u00a0jours",
     timeline: [
       {
         title: "Semaine 1",
-        body: "Cadrage de l\u2019enjeu prioritaire, des sources de données et du sponsor opérationnel.",
+        body: "Cadrage du réseau, des restaurants prioritaires, des créneaux critiques et du sponsor opérations.",
       },
       {
         title: "Semaine 2",
-        body: "Première analyse avec options comparées à partir des données existantes.",
+        body: "Première carte de risque avec options comparées à partir des données POS, planning et delivery.",
       },
       {
         title: "Semaine 3",
-        body: "Décision recommandée et validation avec les parties prenantes.",
+        body: "Décision recommandée par restaurant ou groupe de restaurants, validée avec opérations et finance.",
       },
       {
         title: "Semaine 4",
-        body: "Mesure de l\u2019impact réel et plan pour la suite.",
+        body: "Lecture de l\u2019impact réel sur staffing, service et marge, puis plan d\u2019extension.",
       },
     ],
     deliveredTitle: "Ce qui est livré",
     delivered: [
-      "Une première décision multi-sites optimisée sur vos données existantes",
-      "Des options comparées avec des hypothèses explicites",
-      "Une recommandation claire pour les opérations et la finance",
-      "Une mesure de l\u2019impact réel de la décision prise",
+      "Une première lecture restaurant par restaurant sur rushs, staffing et service",
+      "Des options comparées avec hypothèses explicites sur coût, service et marge",
+      "Une recommandation claire pour opérations, réseau et finance",
+      "Une mesure de l\u2019impact réel sur un premier arbitrage réseau",
     ],
     notDeliveredTitle: "Ce qui n\u2019est pas livré",
     notDelivered: [
-      "Un remplacement de vos outils existants (ERP, BI, planning)",
-      "Une promesse vague sans résultat mesurable",
-      "Du reporting supplémentaire sans aide à la décision",
+      "Une refonte de votre POS, de votre planning ou de votre BI",
+      "Un chantier data lourd avant d\u2019agir",
+      "Un POC flou sans décision terrain réelle",
+      "Du reporting supplémentaire sans arbitrage concret",
     ],
     clientNeedsTitle: "Ce qu\u2019il faut côté client",
     clientNeeds: [
-      "Un sponsor opérations disponible",
-      "Des exports ou API exploitables dès le départ",
-      "Un enjeu opérationnel concret à traiter en priorité",
+      "Un sponsor réseau ou opérations disponible",
+      "Des accès POS, planning, delivery ou coûts exploitables dès le départ",
+      "Un temps fort à venir ou un arbitrage déjà visible sur le terrain",
     ],
     participantsTitle: "Qui participe",
     participants: [
-      "Sponsor opérations / réseau",
-      "Référent data ou BI pour les accès",
-      "Finance pour valider l\u2019impact économique",
+      "Franchisé, directeur réseau ou responsable opérations",
+      "Référent data / BI / planning pour les accès",
+      "Finance ou RH pour relire l\u2019impact économique et humain",
     ],
     reviewTitle: "Quel comité de revue",
     reviewItems: [
-      "Point court hebdomadaire de cadrage",
+      "Point court hebdomadaire siège + terrain",
       "Revue de la recommandation avec opérations et finance",
-      "Synthèse finale avec mesure de l\u2019impact",
+      "Synthèse finale sur service, staffing et marge protégée",
     ],
-    primaryCtaLabel: "Parler à un expert",
+    primaryCtaLabel: "Cadrer mon réseau",
     secondaryCtaLabel: "Voir la preuve sur historique",
     bottomNote:
-      "La preuve sur historique permet de démontrer les résultats sur vos propres données avant de lancer le déploiement.",
+      "La preuve de ROI permet de relire un temps fort passé avant de généraliser le déploiement réseau.",
   },
   ...valuePropFrSections,
 };

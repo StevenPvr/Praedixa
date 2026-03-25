@@ -14,16 +14,6 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("next/image", () => ({
-  default: ({
-    fill: _fill,
-    priority: _priority,
-    unoptimized: _unoptimized,
-    ...props
-  }: Record<string, unknown>) => <img {...props} />,
-}));
-
-// Mock phosphor icons to avoid SSR import issues in test environment
 vi.mock("@phosphor-icons/react/dist/ssr", () => ({
   ArrowRight: (props: Record<string, unknown>) => (
     <svg data-testid="arrow-right-icon" {...props} />
@@ -42,112 +32,61 @@ describe("SectorCardsSection", () => {
   it("renders the French kicker and heading", () => {
     render(<SectorCardsSection locale="fr" />);
 
-    expect(screen.getByText("Secteurs")).toBeInTheDocument();
+    expect(screen.getByText("Cas d\u2019usage réseau")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "Une solution adaptée à votre secteur.",
+        name: "Les arbitrages qui reviennent chaque semaine dans un réseau QSR.",
       }),
     ).toBeInTheDocument();
   });
 
-  it("renders all 5 sector cards", () => {
+  it("renders the 4 QSR use-case cards", () => {
     render(<SectorCardsSection locale="fr" />);
 
-    const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(5);
+    const cardHeadings = screen.getAllByRole("heading", { level: 3 });
+    expect(cardHeadings).toHaveLength(4);
   });
 
-  it("renders the correct sector card titles", () => {
+  it("renders the expected card titles", () => {
     render(<SectorCardsSection locale="fr" />);
 
-    expect(screen.getByRole("heading", { name: "HCR" })).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "Enseignement supérieur",
+        name: "Arbitrer le staffing avant les rushs service par service",
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "Logistique / Transport / Retail",
+        name: "Choisir quand ralentir un canal plutôt que brûler la marge",
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "Automobile / concessions / ateliers",
+        name: "Réallouer intelligemment entre restaurants proches",
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Fitness" }),
+      screen.getByRole("heading", {
+        name: "Relire les temps forts avant qu\u2019ils n\u2019abîment vos équipes",
+      }),
     ).toBeInTheDocument();
   });
 
-  it("renders the homepageHook text for each card", () => {
+  it("renders the supporting stat labels", () => {
     render(<SectorCardsSection locale="fr" />);
 
-    expect(
-      screen.getByText(
-        /Anticipez les pics d.activité et optimisez vos ressources/,
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        /Anticipez la charge campus et sécurisez la continuité de service/,
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        /Optimisez vos flux et tenez votre promesse client en temps réel/,
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        /Anticipez la charge atelier et réduisez les délais clients/,
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Midi / soir")).toBeInTheDocument();
+    expect(screen.getByText("Drive + delivery")).toBeInTheDocument();
+    expect(screen.getByText("Multi-sites")).toBeInTheDocument();
+    expect(screen.getByText("Promo + météo")).toBeInTheDocument();
   });
 
-  it("renders each card with the correct sector page href", () => {
+  it("renders the CTA link to scope a deployment conversation", () => {
     render(<SectorCardsSection locale="fr" />);
 
-    const links = screen.getAllByRole("link");
-
-    expect(links[0]).toHaveAttribute("href", "/fr/secteurs/hcr");
-    expect(links[1]).toHaveAttribute(
-      "href",
-      "/fr/secteurs/enseignement-superieur",
-    );
-    expect(links[2]).toHaveAttribute(
-      "href",
-      "/fr/secteurs/logistique-transport-retail",
-    );
-    expect(links[3]).toHaveAttribute(
-      "href",
-      "/fr/secteurs/automobile-concessions-ateliers",
-    );
-    expect(links[4]).toHaveAttribute(
-      "href",
-      "/fr/secteurs/fitness-reseaux-clubs",
-    );
-  });
-
-  it("renders the homepageStat when available", () => {
-    render(<SectorCardsSection locale="fr" />);
-
-    // All 4 sectors have homepageStat defined
-    expect(
-      screen.getByText(/336 850 projets de recrutement/),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/3,04 M d.étudiants/)).toBeInTheDocument();
-    expect(screen.getByText(/175,3 Md€ e-commerce/)).toBeInTheDocument();
-    expect(
-      screen.getByText(/33 900 recrutements projetés/),
-    ).toBeInTheDocument();
-  });
-
-  it("renders the 'Explorer' label on each card for French locale", () => {
-    render(<SectorCardsSection locale="fr" />);
-
-    const explorLabels = screen.getAllByText("Explorer");
-    expect(explorLabels).toHaveLength(5);
+    const link = screen.getByRole("link", {
+      name: /Cadrer un premier cas réseau/,
+    });
+    expect(link).toHaveAttribute("href", "/fr/contact?intent=deploiement");
   });
 });

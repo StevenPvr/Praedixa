@@ -2,70 +2,73 @@ import type { ValuePropContent } from "./shared";
 import { valuePropEnSections } from "./en-sections";
 
 export const coreValuePropEn: ValuePropContent = {
-  icp: "COOs, operations leaders, and network managers running multi-site networks",
+  icp: "Franchisees, network directors, and operations leaders running quick-service restaurant networks",
   promise:
-    "Praedixa anticipates your operational needs and proves your ROI, without replacing your tools.",
+    "Praedixa helps quick-service restaurant networks predict demand and staffing needs before rush periods, without replacing POS, planning, or BI.",
   mechanism:
-    "AI detects risks, compares your options, and measures the real impact of each decision.",
+    "Praedixa combines sales, planning, delivery, promotions, weather, and field history to anticipate demand, project staffing needs, and flag the services most likely to slip.",
   reassurance: [
     "Read-only",
-    "Aggregated data",
+    "POS + planning + delivery",
     "Hosted in France",
     "NDA on request",
   ],
   ctaPrimary: "See the historical proof",
-  ctaSecondary: "Talk to an expert",
-  heroKicker: "For multi-site networks",
-  heroHeading: "AI that anticipates, optimizes",
-  heroHeadingHighlight: "and proves your ROI.",
+  ctaSecondary: "Scope my network",
+  heroKicker: "For multi-site quick-service restaurant franchise networks",
+  heroHeading: "Predict demand,",
+  heroHeadingHighlight: "calibrate staffing.",
   heroSubheading:
-    "Praedixa connects your existing data, detects risks sooner, compares options and documents the real impact of every decision.",
-  heroBadgeText: "DECISION AI",
-  heroProofBlockText: "For COOs, operations directors, finance and CIOs.",
-  heroProofRoles: ["COO", "OPS DIR.", "FINANCE", "CIO"],
-  heroProofMicropill: "Traced decisions\u00a0|\u00a0Provable ROI",
+    "Praedixa connects your POS, schedules, delivery apps, promotions, and field signals to anticipate incoming volumes, project staffing needs, and see which restaurants will come under pressure restaurant by restaurant.",
+  heroBadgeText: "QSR OPS",
+  heroProofBlockText:
+    "For franchisees, network directors, and operations teams that need earlier demand and coverage visibility.",
+  heroProofRoles: ["FRANCHISEE", "NETWORK", "OPS", "FINANCE"],
+  heroProofMicropill: "Demand\u00a0|\u00a0staffing\u00a0|\u00a0coverage",
   heroLogoCaption: "They trust us",
   heroOffer: {
     badge: "Our promise",
-    title: "Results in 30 days",
-    body: "Software that installs on your existing data, without replacing your tools.",
+    title: "A first network-level decision in 30 days",
+    body: "A focused scope on POS, planning, and delivery to act before the next peak period.",
     note: "Read-only start. NDA available from day one.",
   },
   socialProof: {
-    eyebrow: "Enterprise trust",
+    eyebrow: "Network operations",
     statValue: "30d",
-    statLabel: "First measurable results, on your existing data",
+    statLabel:
+      "To objectify a first multi-site decision on top of your existing data",
     logosAlt: "Companies that trust us",
-    marqueeLabel: "Be among the first networks to anticipate sooner",
+    marqueeLabel:
+      "Frame a first QSR use case without a heavy IT project",
   },
   product: {
-    kicker: "The product",
-    heading: "AI that anticipates, optimizes, and proves.",
+    kicker: "Network operations",
+    heading: "Demand and staffing prediction built for the rush.",
     subheading:
-      "Praedixa detects risks before they become emergencies, compares your options, and measures the real impact of each decision.",
+      "Praedixa helps HQ and field teams anticipate demand, prepare coverage, and protect the most sensitive services.",
   },
   footerTagline:
-    "Praedixa anticipates your operational needs and proves your ROI, without replacing your tools.",
+    "Praedixa helps quick-service restaurant networks anticipate demand and staffing needs before the rush, without replacing their tools.",
   qualificationTitle: "Is Praedixa right for you?",
   qualificationBody:
-    "Praedixa is built for multi-site networks that want to anticipate their needs, compare their options, and prove their results.",
+    "Praedixa is built for quick-service restaurant franchise networks that want to objectify staffing, service, and margin trade-offs across multiple restaurants.",
   fitTitle: "A good starting point if\u2026",
   fitItems: [
-    "you manage multiple sites with recurring decisions",
-    "an operations leader wants to measure the impact of their decisions",
-    "existing data (exports, APIs) is available at the start",
+    "you run multiple restaurants with recurring lunch, dinner, or delivery peaks",
+    "a network or operations leader wants cleaner staffing decisions",
+    "POS, planning, or delivery data is already accessible at kickoff",
   ],
   notFitTitle: "Not for you if\u2026",
   notFitItems: [
-    "you operate a single site with no network-level challenge",
-    "no operations leader can own the topic",
-    "no usable data is available at the start",
+    "you run a single location with no network-level challenge",
+    "no operations leader can own the topic on the field or HQ side",
+    "no usable POS, planning, or activity data is accessible at the start",
   ],
   stackComparison: {
     kicker: "Compatibility",
-    heading: "Praedixa adds to your tools. It does not replace them.",
+    heading: "Praedixa adds to your network stack. It decides where your tools stop.",
     subheading:
-      "ERP, BI, planning, Excel: everything stays in place. Praedixa adds the missing decision intelligence.",
+      "POS, planning, delivery, BI, spreadsheets: everything stays in place. Praedixa connects the useful signals to arbitrate earlier between staffing, service, and protected margin.",
     columnLabels: {
       category: "Tool",
       currentCoverage: "What it does",
@@ -74,110 +77,121 @@ export const coreValuePropEn: ValuePropContent = {
     },
     rows: [
       {
-        category: "ERP",
-        currentCoverage: "Manages transactions, inventory, and costs.",
-        stopsAt: "Does not compare decision options against each other.",
+        category: "POS / ERP",
+        currentCoverage: "Captures sales, transactions, inventory, and cost flows.",
+        stopsAt:
+          "Shows the past but does not tell teams what decision to launch before the next rush.",
         praedixaAdd:
-          "Compares options and measures the impact of the chosen decision.",
+          "Projects risky services and compares coverage options before margin slips.",
       },
       {
         category: "BI / reporting",
-        currentCoverage: "Shows KPIs, gaps, and trends.",
-        stopsAt: "Shows the problem, but does not suggest an action.",
-        praedixaAdd: "Suggests concrete options and tracks the decision taken.",
+        currentCoverage: "Shows KPIs, gaps, and trends by restaurant.",
+        stopsAt:
+          "Explains what happened, but not what to do on the next critical lunch or dinner period.",
+        praedixaAdd:
+          "Surfaces concrete trade-offs and reviews their real effect on service and margin.",
       },
       {
         category: "Planning / WFM",
-        currentCoverage: "Plans capacity and schedules by site.",
-        stopsAt: "Plans, but does not compare scenarios across sites.",
+        currentCoverage: "Builds shifts, rosters, and coverage by restaurant.",
+        stopsAt:
+          "Builds the schedule, but does not compare network scenarios before execution.",
         praedixaAdd:
-          "Compares multi-site scenarios and recommends the best option.",
+          "Compares reinforcement, reallocation, service reduction, or delivery throttling scenarios.",
       },
       {
         category: "Spreadsheets / committees",
-        currentCoverage: "Lets teams frame a priority topic quickly.",
-        stopsAt: "Stays manual, hard to replay, and with no impact proof.",
-        praedixaAdd: "Keeps track of decisions and their real impact.",
+        currentCoverage: "Helps HQ and field teams frame a topic quickly.",
+        stopsAt:
+          "Stays manual, hard to replay, and with no clear proof on service, staffing, and margin.",
+        praedixaAdd:
+          "Keeps a readable log of network decisions and their actual effect.",
       },
       {
         category: "Praedixa",
         currentCoverage:
-          "Adds to your existing tools to anticipate and decide.",
+          "Adds a decision layer on top of your existing tools to anticipate rushes and arbitrate across the network.",
         stopsAt:
-          "Does not replace ERP, BI, or planning. Builds on top of them.",
+          "Does not replace POS, BI, or planning. Builds on top of them.",
         praedixaAdd:
-          "Anticipate, compare, decide, and prove the ROI over time.",
+          "Anticipate, compare, decide, and prove ROI restaurant by restaurant.",
       },
     ],
-    bottomNote: "Compatible with your current stack. No migration required.",
+    bottomNote:
+      "Compatible with existing POS, planning, delivery, BI, and export layers.",
   },
   servicesMeta: {
-    title: "Praedixa | What you buy: results in 30 days",
+    title:
+      "Praedixa | Quick-service restaurants: a first network decision in 30 days",
     description:
-      "Praedixa deployment installs on your existing data and delivers measurable results in 30 days, without replacing your tools.",
-    ogTitle: "Praedixa | What you buy: results in 30 days",
+      "Praedixa scopes a first network decision on top of your rushes, restaurants, and existing data in 30 days.",
+    ogTitle:
+      "Praedixa | Quick-service restaurants: a first network decision in 30 days",
     ogDescription:
-      "Praedixa deployment: measurable results in 30 days, without a heavy IT project.",
+      "Praedixa deployment for QSR networks: a first network decision in 30 days, without a heavy IT project.",
   },
   services: {
     kicker: "Offer",
-    heading: "What you buy: results in 30 days, not one more IT project.",
+    heading:
+      "What you buy: a first network decision made explicit in 30 days.",
     subheading:
-      "Praedixa deployment installs on your existing data. If needed, a historical proof demonstrates results before launch.",
+      "Praedixa starts on top of POS, planning, delivery, and cost data already available. If needed, a historical proof validates the topic before broader rollout.",
     timelineTitle: "In 30 days",
     timeline: [
       {
         title: "Week 1",
-        body: "Frame the priority challenge, data sources, and operations sponsor.",
+        body: "Frame the network, priority restaurants, critical dayparts, and the operations sponsor.",
       },
       {
         title: "Week 2",
-        body: "First analysis with compared options from existing data.",
+        body: "First risk map with compared options from POS, planning, and delivery data.",
       },
       {
         title: "Week 3",
-        body: "Recommended decision and validation with stakeholders.",
+        body: "Recommended decision by restaurant or restaurant cluster, reviewed with ops and finance.",
       },
       {
         title: "Week 4",
-        body: "Measure the real impact and plan for what comes next.",
+        body: "Review actual impact on staffing, service, and margin, then define rollout next steps.",
       },
     ],
     deliveredTitle: "What is delivered",
     delivered: [
-      "A first multi-site decision optimized on your existing data",
-      "Compared options with explicit assumptions",
-      "A clear recommendation for operations and finance",
-      "A measure of the real impact of the decision taken",
+      "A first restaurant-by-restaurant view of rushes, staffing, and service risk",
+      "Compared options with explicit cost, service, and margin assumptions",
+      "A clear recommendation for operations, network leadership, and finance",
+      "A measured readout of the first network-level decision",
     ],
     notDeliveredTitle: "What is not delivered",
     notDelivered: [
-      "A replacement of your existing tools (ERP, BI, planning)",
-      "A vague promise with no measurable result",
-      "Extra reporting with no decision support",
+      "A rebuild of your POS, planning, or BI stack",
+      "A heavy data program before action starts",
+      "A vague pilot with no real field decision",
+      "More reporting without a concrete trade-off to arbitrate",
     ],
     clientNeedsTitle: "What the client needs to provide",
     clientNeeds: [
-      "An available operations sponsor",
-      "Usable exports or APIs from the start",
-      "A concrete operational challenge to tackle first",
+      "A network or operations sponsor available for the pass",
+      "Usable POS, planning, delivery, or cost access from the start",
+      "A coming peak period or an already visible trade-off to tackle first",
     ],
     participantsTitle: "Who joins",
     participants: [
-      "Operations / network sponsor",
-      "Data or BI lead for access",
-      "Finance to validate economic impact",
+      "Franchisee, network director, or operations leader",
+      "Data / BI / planning owner for access",
+      "Finance or HR to review economic and staffing impact",
     ],
     reviewTitle: "Review cadence",
     reviewItems: [
-      "Short weekly framing checkpoint",
+      "Short weekly HQ + field checkpoint",
       "Recommendation review with operations and finance",
-      "Final summary with impact measurement",
+      "Final readout on service, staffing, and protected margin",
     ],
-    primaryCtaLabel: "Talk to an expert",
+    primaryCtaLabel: "Scope my network",
     secondaryCtaLabel: "See the historical proof",
     bottomNote:
-      "The historical proof demonstrates results on your own data before launching deployment.",
+      "The historical proof lets teams review a past peak period before scaling the network rollout.",
   },
   ...valuePropEnSections,
 };

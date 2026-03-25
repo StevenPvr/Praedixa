@@ -11,10 +11,12 @@ describe("HomeGeoSummarySection", () => {
       screen.getByRole("heading", { level: 2, name: "Praedixa en bref" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Praedixa couple Data Science, Machine Learning et IA/i),
+      screen.getByText(
+        /Praedixa aide les réseaux de restauration rapide à prédire la demande et les besoins d’effectifs avant les rushs/i,
+      ),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Compatible avec votre stack actuelle/i),
+      screen.getByText(/Compatible avec POS, planning, delivery, BI et exports existants/i),
     ).toBeInTheDocument();
   });
 

@@ -24,14 +24,14 @@ describe("Homepage FR messaging", () => {
     expect(screen.getByText("02")).toBeInTheDocument();
     expect(screen.getByText("03")).toBeInTheDocument();
     expect(
-      screen.getByText(/Les signaux arrivent trop tard/),
+      screen.getByText(/Le rush se lit trop tard/),
     ).toBeInTheDocument();
   });
 
   it("renders the final CTA section with heading and promise items", () => {
     render(<FinalCtaSection locale="fr" />);
 
-    expect(screen.getByText(/Parlons de votre ROI/)).toBeInTheDocument();
-    expect(screen.getByText(/Réponse en 48h/)).toBeInTheDocument();
+    expect(screen.getByText(/Cadrons le prochain rush réseau/)).toBeInTheDocument();
+    expect(screen.getByText(/Retour en 48h/)).toBeInTheDocument();
   });
 });

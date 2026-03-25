@@ -20,14 +20,14 @@ export function HeroPulsorSection({ locale }: HeroPulsorSectionProps) {
       className="hero-pulsor relative isolate -mt-[var(--header-h)] overflow-hidden"
       style={{
         background:
-          "linear-gradient(170deg, #FAFAFA 0%, #F4F5F8 35%, #EEF0F5 65%, #F2F3F6 100%)",
+          "radial-gradient(980px 520px at 78% 18%, rgba(240,179,93,0.08), transparent 42%), radial-gradient(720px 520px at 16% 78%, rgba(240,179,93,0.06), transparent 48%), linear-gradient(180deg, #ffffff 0%, #fffdf9 34%, #ffffff 100%)",
       }}
     >
       {/* Decorative depth layers (radial glow, columns, grain) — mouse-reactive parallax */}
       <HeroPulsorDepthLayers />
 
       {/* Front content */}
-      <div className="relative z-10 flex min-h-[860px] flex-col items-center justify-center pb-4 pt-[calc(var(--header-h)+2rem)] min-[480px]:min-h-[880px] md:min-h-[900px] lg:min-h-[960px] xl:min-h-[1000px] 2xl:min-h-[1040px]">
+      <div className="relative z-10 flex min-h-[100dvh] flex-col justify-between pb-4 pt-[calc(var(--header-h)+2.5rem)]">
         <HeroPulsorContent
           locale={locale}
           contactHref={contactHref}

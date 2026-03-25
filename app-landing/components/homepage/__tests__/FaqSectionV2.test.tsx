@@ -36,15 +36,16 @@ describe("FaqSectionV2", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders all 6 FAQ question items", () => {
+  it("renders all FAQ question items", () => {
     render(<FaqSectionV2 locale="fr" />);
 
     const questions = [
-      /Faut-il remplacer nos outils actuels/,
-      /En combien de temps voit-on les premiers résultats/,
-      /Quelles données sont nécessaires au démarrage/,
-      /Qui doit porter le projet côté client/,
-      /Quelle est la différence avec un outil de BI/,
+      /Faut-il changer de POS ou de planning/,
+      /À partir de combien de restaurants cela devient pertinent/,
+      /Est-ce que cela couvre drive, salle et delivery/,
+      /Quelles données faut-il au démarrage/,
+      /Qui doit porter le sujet côté client/,
+      /Quelle est la différence avec la BI ou le WFM/,
       /Que se passe-t-il après les 30 premiers jours/,
     ];
 
@@ -53,11 +54,22 @@ describe("FaqSectionV2", () => {
     }
   });
 
-  it("renders 6 accordion toggle buttons", () => {
+  it("renders accordion toggle buttons for every FAQ item", () => {
     render(<FaqSectionV2 locale="fr" />);
 
-    const buttons = screen.getAllByRole("button");
-    expect(buttons).toHaveLength(6);
+    const faqButtons = [
+      /Faut-il changer de POS ou de planning/,
+      /À partir de combien de restaurants cela devient pertinent/,
+      /Est-ce que cela couvre drive, salle et delivery/,
+      /Quelles données faut-il au démarrage/,
+      /Qui doit porter le sujet côté client/,
+      /Quelle est la différence avec la BI ou le WFM/,
+      /Que se passe-t-il après les 30 premiers jours/,
+    ];
+
+    for (const label of faqButtons) {
+      expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
+    }
   });
 
   it("renders the contact mini card with CTA text", () => {
@@ -65,7 +77,7 @@ describe("FaqSectionV2", () => {
 
     expect(
       screen.getByText(
-        "Décrivez votre contexte et nous revenons avec une réponse qualifiée sous 48h ouvrées.",
+        "Décrivez votre réseau et le prochain rush à traiter, nous revenons avec une réponse qualifiée sous 48h ouvrées.",
       ),
     ).toBeInTheDocument();
 

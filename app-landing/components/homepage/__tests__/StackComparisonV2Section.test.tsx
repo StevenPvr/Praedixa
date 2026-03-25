@@ -25,17 +25,19 @@ describe("StackComparisonV2Section", () => {
 
     expect(screen.getByText("Compatibilité")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
-      /Praedixa s.ajoute à vos outils. Il va au-delà des moyennes/,
+      /Praedixa s.ajoute à vos outils réseau. Il tranche là où ils s.arrêtent/,
     );
     expect(
-      screen.getByText(/Là où les ERP pilotent surtout par règles et moyennes/),
+      screen.getByText(
+        /Praedixa relie les signaux utiles pour arbitrer plus tôt entre staffing, temps de service et marge protégée/,
+      ),
     ).toBeInTheDocument();
   });
 
   it("renders 5 comparison row categories", () => {
     render(<StackComparisonV2Section locale="fr" />);
 
-    expect(screen.getAllByText("ERP").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("POS / ERP").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("BI / reporting").length).toBeGreaterThanOrEqual(
       1,
     );
@@ -52,7 +54,9 @@ describe("StackComparisonV2Section", () => {
     render(<StackComparisonV2Section locale="fr" />);
 
     expect(
-      screen.getByText(/Compatible avec votre stack actuelle/),
+      screen.getByText(
+        /Compatible avec POS, planning, delivery, BI et exports existants/,
+      ),
     ).toBeInTheDocument();
   });
 
@@ -61,12 +65,13 @@ describe("StackComparisonV2Section", () => {
 
     expect(
       screen.getAllByText(
-        /Travaille surtout à partir de règles, d.historique et de moyennes/,
+        /Montre le passé mais ne dit pas quel arbitrage lancer avant le prochain rush/,
       ).length,
     ).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getAllByText(/Utilise Data Science, Machine Learning et IA/)
-        .length,
+      screen.getAllByText(
+        /Projette les services à risque et compare les options de couverture avant que la marge ne glisse/,
+      ).length,
     ).toBeGreaterThanOrEqual(1);
   });
 

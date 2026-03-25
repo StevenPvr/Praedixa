@@ -6,7 +6,7 @@ describe("ProblemBlockSection", () => {
   it("renders the kicker text", () => {
     render(<ProblemBlockSection locale="fr" />);
 
-    expect(screen.getByText("Le constat")).toBeInTheDocument();
+    expect(screen.getByText("Là où la marge fuit")).toBeInTheDocument();
   });
 
   it("renders the section heading", () => {
@@ -15,7 +15,7 @@ describe("ProblemBlockSection", () => {
     expect(
       screen.getByRole("heading", {
         level: 2,
-        name: "Vous avez les données. Il vous manque un cadre pour décider vite.",
+        name: "Vos restaurants n\u2019ont pas un problème de données. Ils ont un problème d\u2019arbitrage réseau.",
       }),
     ).toBeInTheDocument();
   });
@@ -39,12 +39,12 @@ describe("ProblemBlockSection", () => {
     render(<ProblemBlockSection locale="fr" />);
 
     expect(
-      screen.getByText(/Les signaux arrivent trop tard/),
+      screen.getByText(/Le rush se lit trop tard/),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Les options ne sont pas comparées/),
+      screen.getByText(/Chaque restaurant arbitre seul/),
     ).toBeInTheDocument();
-    expect(screen.getByText(/impact n.est jamais mesuré/)).toBeInTheDocument();
+    expect(screen.getByText(/La marge glisse sans preuve/)).toBeInTheDocument();
   });
 
   it("renders each problem card consequence text", () => {
@@ -52,17 +52,17 @@ describe("ProblemBlockSection", () => {
 
     expect(
       screen.getByText(
-        /Quand l.information arrive, il est déjà trop tard pour agir au meilleur coût/,
+        /Quand le service décroche déjà, les seules options restantes coûtent plus cher/,
       ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        /Sous pression, on choisit la vitesse plutôt que la meilleure option/,
+        /Sans lecture réseau partagée, on compense au plus vite/,
       ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        /Impossible de savoir si la décision prise était la bonne/,
+        /Sans relecture service, staffing et marge, le même problème revient/,
       ),
     ).toBeInTheDocument();
   });

@@ -16,7 +16,7 @@ describe("FinalCtaSection", () => {
     expect(
       screen.getByRole("heading", {
         level: 2,
-        name: "Parlons de votre ROI.",
+        name: "Cadrons le prochain rush réseau.",
       }),
     ).toBeInTheDocument();
   });
@@ -24,16 +24,16 @@ describe("FinalCtaSection", () => {
   it("renders the label kicker", () => {
     render(<FinalCtaSection locale="fr" />);
 
-    expect(screen.getByText(/Prêt à commencer/)).toBeInTheDocument();
+    expect(screen.getByText(/Réseau restauration rapide/)).toBeInTheDocument();
   });
 
   it("renders all 3 promise items", () => {
     render(<FinalCtaSection locale="fr" />);
 
     const promiseItems = [
-      "Réponse en 48h",
-      "Diagnostic personnalisé",
-      "Plan d\u2019action concret",
+      "Retour en 48h",
+      "Premier risque à objectiver",
+      "Plan d\u2019action réseau concret",
     ];
 
     for (const item of promiseItems) {
@@ -41,11 +41,11 @@ describe("FinalCtaSection", () => {
     }
   });
 
-  it("renders step 1 form fields (Type de réseau, Principal enjeu, Horizon projet)", () => {
+  it("renders step 1 form fields (Nombre de restaurants, Principal enjeu, Horizon projet)", () => {
     render(<FinalCtaSection locale="fr" />);
 
     expect(
-      screen.getByRole("combobox", { name: "Type de réseau" }),
+      screen.getByRole("combobox", { name: "Nombre de restaurants" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("textbox", { name: "Principal enjeu" }),
@@ -55,22 +55,14 @@ describe("FinalCtaSection", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders a select for 'Type de réseau' with correct options", () => {
+  it("renders a select for 'Nombre de restaurants' with correct options", () => {
     render(<FinalCtaSection locale="fr" />);
 
     const selects = screen.getAllByRole("combobox");
-    // Two selects: "Type de réseau" and "Horizon projet"
+    // Two selects: "Nombre de restaurants" and "Horizon projet"
     expect(selects).toHaveLength(2);
 
-    const options = [
-      "Logistique",
-      "Distribution",
-      "Restauration",
-      "Retail",
-      "Services",
-      "Industrie",
-      "Autre",
-    ];
+    const options = ["2\u20135", "6\u201315", "16\u201340", "41\u2013100", "100+"];
     for (const opt of options) {
       expect(screen.getByRole("option", { name: opt })).toBeInTheDocument();
     }

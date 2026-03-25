@@ -20,7 +20,7 @@ export function MethodBlockSection({ locale }: MethodBlockSectionProps) {
           {method.heading}
         </h2>
       </div>
-      <MethodBlockClient steps={method.steps} />
+      <MethodBlockClient locale={locale} steps={method.steps} />
     </SectionShellV2>
   );
 }

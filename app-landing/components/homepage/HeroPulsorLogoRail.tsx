@@ -30,7 +30,7 @@ function LogoItemCard({ item }: { item: LogoItem }) {
         alt={item.name}
         width={120}
         height={34}
-        className="h-[30px] w-auto object-contain opacity-60"
+        className="h-[30px] w-auto object-contain opacity-75"
       />
     </div>
   );
@@ -48,14 +48,14 @@ export function HeroPulsorLogoRail({ locale }: HeroPulsorLogoRailProps) {
       {/* Divider */}
       <div
         className="mx-auto h-px max-w-[1320px]"
-        style={{ background: "var(--hero-divider)" }}
+        style={{ background: "rgba(28,38,51,0.12)" }}
         aria-hidden="true"
       />
 
       {/* Caption */}
       <p
         className="mt-8 text-center text-[16px] font-normal"
-        style={{ color: "rgba(15,17,21,0.50)" }}
+        style={{ color: "rgba(28,38,51,0.64)" }}
       >
         {caption}
       </p>

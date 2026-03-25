@@ -71,12 +71,12 @@ describe("ProofBlockSection", () => {
     expect(screen.getByText("Preuve de ROI")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "Des résultats concrets, pas des moyennes.",
+        name: "Un cas réseau relisible par opérations et finance.",
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        /Chaque décision est tracée, reliée à son impact économique/,
+        /Chaque arbitrage est relié à son effet sur le service, la masse salariale et la marge/,
       ),
     ).toBeInTheDocument();
   });
@@ -100,7 +100,7 @@ describe("ProofBlockSection", () => {
     render(<ProofBlockSection locale="fr" />);
 
     expect(
-      screen.getByText(/Trois sites font face à un pic d.activité/),
+      screen.getByText(/18 restaurants font face à une promotion app/),
     ).toBeInTheDocument();
   });
 
@@ -111,14 +111,14 @@ describe("ProofBlockSection", () => {
     await user.click(screen.getByRole("tab", { name: "Options comparées" }));
 
     expect(
-      screen.getByText(/Chaque option est évaluée sur la même base/),
+      screen.getByText(/Chaque option est évaluée sur coût, temps de service et marge protégée/),
     ).toBeInTheDocument();
 
     await user.click(screen.getByRole("tab", { name: "Impact mesuré" }));
 
     expect(
       screen.getByText(
-        /La réallocation entre sites a réduit les coûts d.urgence/,
+        /Le scénario retenu a réduit les heures d.urgence de 7,4/,
       ),
     ).toBeInTheDocument();
   });
@@ -126,20 +126,12 @@ describe("ProofBlockSection", () => {
   it("renders 3 metrics", () => {
     render(<ProofBlockSection locale="fr" />);
 
-    // "3" appears in both step indicator and metric — check metric via font-mono class
-    const threeElements = screen.getAllByText("3");
-    expect(threeElements.length).toBeGreaterThanOrEqual(2);
-
-    // "Options comparées" appears as both a tab label and a metric label
-    expect(
-      screen.getAllByText("Options comparées").length,
-    ).toBeGreaterThanOrEqual(2);
-
-    expect(screen.getByText(/−12/)).toBeInTheDocument();
-    expect(screen.getByText(/Coûts d.urgence/)).toBeInTheDocument();
-
-    expect(screen.getByText("8j")).toBeInTheDocument();
-    expect(screen.getByText("Anticipation")).toBeInTheDocument();
+    expect(screen.getByText("18")).toBeInTheDocument();
+    expect(screen.getByText("Restaurants relus")).toBeInTheDocument();
+    expect(screen.getByText(/−7,4/)).toBeInTheDocument();
+    expect(screen.getByText(/Heures d.urgence/)).toBeInTheDocument();
+    expect(screen.getByText("11 min")).toBeInTheDocument();
+    expect(screen.getByText(/Temps de service contenu/)).toBeInTheDocument();
   });
 
   it("renders the CTA link pointing to the proof page", () => {

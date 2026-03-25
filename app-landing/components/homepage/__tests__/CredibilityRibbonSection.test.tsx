@@ -13,8 +13,15 @@ describe("CredibilityRibbonSection", () => {
   it("renders all stack chips", () => {
     render(<CredibilityRibbonSection locale="fr" />);
 
-    expect(screen.getByText("Stack couverte")).toBeInTheDocument();
-    for (const chip of ["ERP", "WFM", "BI", "Planning", "Excel", "API / CSV"]) {
+    expect(screen.getByText("Signaux relus")).toBeInTheDocument();
+    for (const chip of [
+      "POS",
+      "Planning",
+      "Delivery",
+      "Promos",
+      "BI",
+      "API / CSV",
+    ]) {
       expect(screen.getByText(chip)).toBeInTheDocument();
     }
   });
@@ -22,8 +29,8 @@ describe("CredibilityRibbonSection", () => {
   it("renders all role chips", () => {
     render(<CredibilityRibbonSection locale="fr" />);
 
-    expect(screen.getByText("Décideurs concernés")).toBeInTheDocument();
-    for (const chip of ["COO", "Dir. Ops", "Dir. Réseau", "Finance", "DSI"]) {
+    expect(screen.getByText("Décideurs du réseau")).toBeInTheDocument();
+    for (const chip of ["Franchisé", "Dir. Réseau", "Ops", "Finance", "RH"]) {
       expect(screen.getByText(chip)).toBeInTheDocument();
     }
   });
@@ -32,7 +39,9 @@ describe("CredibilityRibbonSection", () => {
     render(<CredibilityRibbonSection locale="fr" />);
 
     expect(
-      screen.getByText("Les fonctions qui prennent les décisions clés."),
+      screen.getByText(
+        "Les fonctions qui arbitrent staffing, service et marge au niveau réseau.",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -42,9 +51,9 @@ describe("CredibilityRibbonSection", () => {
     expect(screen.getByText("Engagements")).toBeInTheDocument();
     for (const marker of [
       "Lecture seule au démarrage",
+      "Aucune écriture caisse ou planning",
       "Hébergement France",
       "NDA dès le premier échange",
-      "Données agrégées",
     ]) {
       expect(screen.getByText(marker)).toBeInTheDocument();
     }

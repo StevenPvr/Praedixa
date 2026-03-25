@@ -1,3 +1,79 @@
+# Current Pass - 2026-03-25 - Commit Push And Scaleway Landing Release
+
+### Plan
+
+- [ ] Committer les changements landing en `--no-verify`
+- [ ] Pousser la branche courante sur GitHub et GitLab en `--no-verify`
+- [ ] Produire un gate report pour le SHA du commit afin d'alimenter le manifest de release
+- [ ] Builder l'image `landing`, signer un manifest et deployer `landing` sur Scaleway prod
+
+### Review
+
+- En cours.
+
+# Current Pass - 2026-03-25 - Hero White Canvas And Canonical Demand/Staffing Framing
+
+### Plan
+
+- [x] Relire le hero reel et identifier les surfaces encore incoherentes sur fond blanc
+- [x] Repasser la palette du hero, des CTAs, des role pills et du rail de logos pour conserver un canvas blanc avec contraste lisible
+- [x] Recentrer le wording hero/public value prop sur la prediction de la demande et des besoins d'effectifs
+- [x] Rejouer les tests landing cibles et le lint apres mise a jour des assertions
+
+### Review
+
+- Le hero garde maintenant un canvas blanc, avec contraste reporte sur des surfaces sable/ambre cote gauche et un board sombre cote droit.
+- Le rail de confiance a ete realigne sur fond clair avec logo noir, separateur sombre et caption lisible.
+- La promesse publique canonique FR/EN remet explicitement la prediction de la demande et des besoins d'effectifs au premier plan, avec service et marge comme effets business secondaires.
+- Les tests hero/home summary ont ete realignes sur ce vocabulaire.
+- Verifications executees:
+  - `pnpm --filter @praedixa/landing lint`
+  - `pnpm --filter @praedixa/landing typecheck`
+  - `pnpm --filter @praedixa/landing test`
+
+# Current Pass - 2026-03-25 - Landing Repositioning For Quick-Service Restaurant Franchisees
+
+### Plan
+
+- [x] Reconfirmer les sections homepage V2 réellement rendues et les contenus canoniques FR/EN qui les alimentent
+- [x] Repositionner la promesse publique, les CTA et les preuves vers les réseaux / franchisés de restauration rapide multi-sites
+- [x] Ajuster les sections homepage les plus structurantes pour que le parcours parle explicitement marge, staffing, service et pilotage multi-sites
+- [x] Aligner la documentation et les tests ciblés sur ce nouveau framing
+- [x] Vérifier la passe avec tests ciblés et typecheck landing
+
+### Review
+
+- La source de vérité publique `app-landing/lib/content/value-prop/*` a été réalignée en FR et EN sur un ICP unique: franchisés et réseaux de restauration rapide multi-sites.
+- La homepage active parle maintenant explicitement de rushs, staffing, drive, delivery, temps de service et marge, y compris dans la preuve, la FAQ, le contact et l'offre.
+- Le hero actif `HeroPulsor` a été transformé en split-screen orienté QSR avec board de signaux réseau, au lieu d'un discours générique IA centré.
+- `ProblemBlockSection` a quitté le pattern générique en 3 cartes égales pour une composition asymétrique, et `SectorCardsSection` ne renvoie plus à d'autres verticales visibles depuis la homepage: il expose désormais des cas d'usage QSR cohérents avec le nouveau positionnement.
+- Les visuels de `MethodBlockClient` ont été localisés et réécrits autour d'un contexte restauration rapide.
+- Documentation alignée dans `app-landing/components/homepage/README.md` et `app-landing/lib/content/README.md`.
+- Vérifications exécutées:
+  - `pnpm --filter @praedixa/landing typecheck`
+  - `pnpm --filter @praedixa/landing test`
+  - `pnpm --filter @praedixa/landing lint`
+
+# Current Pass - 2026-03-23 - Cartographie Architecture Runtime Reelle
+
+### Plan
+
+- [x] Recenser les points d'entree reels de chaque sous-systeme (`app-landing`, `app-webapp`, `app-admin`, `app-api-ts`, `app-connectors`, `app-api`)
+- [x] Identifier les orchestrateurs, workers/jobs/pipelines, stockages et interfaces externes effectivement cables
+- [x] Reconstituer les flux d'execution, statuts metier et transitions observes dans le code
+- [x] Produire une synthese avec diagrammes Mermaid et references de code, en separant le branche du non confirme
+
+### Review
+
+- Cartographie livree en conversation a partir du code uniquement, en separant:
+  - les points d'entree reels (`app-landing`, `app-webapp`, `app-admin`, `app-api-ts`, `app-connectors`, scripts Python `app-api`, `app-symphony`),
+  - les flux effectivement cables entre frontends Next, API TS, runtime connecteurs et workers Python,
+  - les sous-systemes secondaires ou non confirmes.
+- Conclusions principales:
+  - le runtime produit reel suit surtout `Next.js -> BFF Next -> app-api-ts -> app-connectors -> workers Python -> Postgres/object store`;
+  - `app-connectors` persiste aujourd'hui son etat runtime dans `connector_runtime_snapshots` / `connector_secret_records`, tandis que les tables Python `integration_*` existent comme modele cible mais leur usage comme source de verite courante n'est pas confirme par les appels lus;
+  - le niveau "agentique" du produit client est faible a modere et majoritairement deterministe; `app-symphony` porte une orchestration interne separee.
+
 # Current Pass - 2026-03-23 - MVP Production Checklist For KPI Prediction, Decision And ROI
 
 ### Plan

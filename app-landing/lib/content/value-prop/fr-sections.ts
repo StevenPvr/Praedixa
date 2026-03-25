@@ -17,32 +17,32 @@ type ValuePropFrSections = Pick<
 
 export const valuePropFrSections: ValuePropFrSections = {
   contact: {
-    heading: "Cadrons le premier arbitrage à objectiver.",
+    heading: "Cadrons le prochain arbitrage réseau.",
     intro:
-      "Décrivez le premier arbitrage à traiter, le réseau concerné et l\u2019horizon projet. Nous revenons avec un prochain pas clair sous 48h ouvrées.",
+      "Décrivez votre parc de restaurants, le service le plus sous tension et l\u2019arbitrage à objectiver. Nous revenons avec un prochain pas clair sous 48h ouvrées.",
     promiseTitle: "Ce que vous recevez",
     promiseItems: [
       "Un retour qualifié sous 48h ouvrées",
-      "Une orientation claire entre preuve sur historique et cadrage du déploiement",
-      "Un prochain pas concret, adapté à votre périmètre",
+      "Une première lecture des services, canaux ou restaurants à risque",
+      "Un prochain arbitrage concret à objectiver en priorité",
     ],
-    proofIntentKicker: "Preuve sur historique",
-    proofIntentHeading: "Demander la preuve sur historique.",
+    proofIntentKicker: "Preuve de ROI",
+    proofIntentHeading: "Demander une preuve de ROI sur vos rushs.",
     proofIntentIntro:
-      "Décrivez l\u2019arbitrage à objectiver. Nous revenons avec une première lecture utile et la meilleure façon de cadrer la suite.",
+      "Décrivez un rush passé ou un service qui a décroché. Nous revenons avec une première lecture utile et la meilleure façon de cadrer la suite.",
     proofIntentPromiseItems: [
-      "Lecture en lecture seule sur vos données existantes",
-      "Options comparées sur base coût / service / risque",
-      "Prochain pas recommandé si le sujet mérite un déploiement",
+      "Lecture en lecture seule sur POS, planning et delivery",
+      "Options comparées sur base coût / service / marge",
+      "Prochain pas recommandé si le sujet mérite un déploiement réseau",
     ],
-    scopingIntentKicker: "Premier périmètre",
+    scopingIntentKicker: "Premier périmètre réseau",
     scopingIntentHeading: "Cadrer un premier périmètre de décision.",
     scopingIntentIntro:
-      "Décrivez le réseau, l\u2019arbitrage prioritaire et l\u2019horizon projet. Nous revenons avec un cadrage simple du premier périmètre.",
+      "Décrivez le réseau, le temps fort prioritaire et l\u2019horizon projet. Nous revenons avec un cadrage simple du premier périmètre.",
     scopingIntentPromiseItems: [
-      "Qualification du périmètre prioritaire",
+      "Qualification du service, du canal ou du groupe de restaurants prioritaire",
       "Lecture des prérequis data et sponsor",
-      "Proposition de cadrage du premier comité de revue",
+      "Proposition de premier comité de revue siège + terrain",
     ],
     reassuranceTitle: "Réassurance",
     reassuranceItems: [
@@ -53,11 +53,11 @@ export const valuePropFrSections: ValuePropFrSections = {
     secondaryPanelTitle:
       "Besoin d\u2019aligner l\u2019offre avant l\u2019échange\u00a0?",
     secondaryPanelBody:
-      "La page offre détaille ce qui est livré, ce qui ne l\u2019est pas et le rythme des 30 premiers jours.",
+      "La page offre détaille ce qui est livré, ce qui ne l\u2019est pas et le rythme des 30 premiers jours pour un réseau QSR.",
     secondaryPanelCta: "Voir l\u2019offre publique",
     formTitle: "Décrire votre contexte",
     formSubtitle:
-      "Les champs utiles pour qualifier le sujet sont requis. Le message libre reste optionnel.",
+      "Les champs utiles pour qualifier le réseau et le rush à traiter sont requis. Le message libre reste optionnel.",
     company: "Entreprise",
     role: "Fonction",
     email: "Email professionnel",
@@ -68,10 +68,11 @@ export const valuePropFrSections: ValuePropFrSections = {
     currentStack: "Stack actuelle",
     message: "Message libre",
     mainTradeOffPlaceholder:
-      "Ex\u00a0: renfort vs réallocation sur 12 sites logistiques avant pic de charge.",
-    currentStackPlaceholder: "Ex\u00a0: ERP + WFM + BI + exports Excel",
+      "Ex\u00a0: renfort drive vs salle sur 18 restaurants avant promotion nationale.",
+    currentStackPlaceholder:
+      "Ex\u00a0: POS + planning + Uber Eats / Deliveroo + BI",
     messagePlaceholder:
-      "Contexte additionnel, comité à convaincre, contraintes IT ou gouvernance déjà connues.",
+      "Contexte additionnel, service sous tension, comité à convaincre, contraintes IT ou gouvernance déjà connues.",
     send: "Envoyer la demande",
     sending: "Envoi en cours\u2026",
     successTitle: "Demande envoyée",
@@ -104,7 +105,7 @@ export const valuePropFrSections: ValuePropFrSections = {
   proofMeta: {
     title: "Praedixa | Preuve sur historique",
     description:
-      "Une preuve sur historique structurée comme un support de revue: situation initiale, options comparées, décision retenue, impact observé et limites de lecture.",
+      "Une preuve de ROI structurée comme un support de revue pour un réseau de restauration rapide\u00a0: situation initiale, options comparées, décision retenue, impact observé et limites de lecture.",
     ogTitle: "Praedixa | Preuve sur historique",
     ogDescription:
       "Un exemple public de preuve sur historique avec options comparées, décision retenue et impact relu.",
@@ -112,42 +113,42 @@ export const valuePropFrSections: ValuePropFrSections = {
   proof: {
     kicker: "Preuve sur historique",
     title:
-      "Une preuve exploitable en comité, pas un commentaire sur la preuve.",
-    lead: "Exemple public inspiré d\u2019un cas logistique multi-sites\u00a0: un pic de charge met sous tension trois sites et force un arbitrage entre renfort local, réallocation inter-sites et ajustement temporaire de service.",
+      "Une preuve exploitable en comité, pas une intuition de plus sur le rush.",
+    lead: "Exemple public inspiré d\u2019un réseau de 18 restaurants de restauration rapide\u00a0: une promotion nationale fait monter simultanément drive, salle et delivery, et force un arbitrage entre renfort ciblé, réallocation et réduction temporaire de promesse de service.",
     situationTitle: "Situation initiale",
     situationBody: [
-      "Trois sites logistiques absorbent un pic de charge sur cinq jours. Le backlog augmente, les heures supplémentaires sont déjà entamées et le recours à l\u2019intérim risque d\u2019arriver trop tard.",
-      "Le sujet n\u2019est pas seulement de prédire un pic. Il faut décider où renforcer, où réallouer et où accepter un report sans déplacer le coût vers la semaine suivante.",
+      "Un vendredi soir promotionnel met 6 restaurants sous tension sur le drive et la livraison. Les temps de service montent déjà, les heures d\u2019urgence partent vite et les managers n\u2019ont pas de lecture réseau unifiée.",
+      "Le sujet n\u2019est pas seulement de prévoir le pic. Il faut décider quels restaurants renforcer, quels canaux ralentir temporairement et où la réallocation protège le mieux la marge.",
     ],
     optionsTitle: "Options comparées",
     optionsBody: [
-      "La preuve compare trois options lisibles en comité\u00a0: heures supplémentaires locales, intérim ciblé et réallocation inter-sites.",
-      "Chaque option est relue avec la même base\u00a0: coût d\u2019action, coût de non-action, risque de service, capacité disponible et limites d\u2019interprétation.",
+      "La preuve compare trois options lisibles en comité\u00a0: renfort sur place, réallocation entre restaurants voisins et réduction temporaire du menu delivery.",
+      "Chaque option est relue avec la même base\u00a0: coût d\u2019action, risque service, effet sur la marge, faisabilité terrain et limites d\u2019interprétation.",
     ],
     decisionTitle: "Décision retenue",
     decisionBody: [
-      "La décision retenue combine réallocation inter-sites et renfort ciblé plutôt qu\u2019un recours uniforme aux heures supplémentaires.",
-      "Le choix est justifié par une meilleure protection du service à coût total plus défendable, malgré un effort de coordination inter-sites plus élevé.",
+      "La décision retenue combine renfort ciblé sur les restaurants les plus exposés et réduction courte du menu delivery là où la cuisine sature.",
+      "Le choix est justifié par une meilleure protection du temps de service et de la marge qu\u2019une réponse uniforme en heures supplémentaires.",
     ],
     impactTitle: "Impact observé",
     impactBody: [
-      "La revue avant / recommandé / réel montre une meilleure protection du backlog critique et une réduction du coût d\u2019urgence par rapport au scénario local-only.",
-      "La relecture sert surtout à préparer le prochain arbitrage avec des hypothèses plus propres, pas à fabriquer une certitude artificielle.",
+      "La revue avant / recommandé / réel montre une baisse des heures d\u2019urgence et une meilleure tenue du temps de service sur les restaurants sous tension.",
+      "La relecture sert surtout à préparer le prochain rush avec des hypothèses plus propres, pas à fabriquer une certitude artificielle.",
     ],
     limitsTitle: "Limites de la preuve",
     limitsBody: [
       "Il s\u2019agit d\u2019un exemple public en base 100, pas d\u2019un engagement chiffré universel.",
-      "La preuve ne remplace ni le cadrage métier ni la revue des données nécessaires avant déploiement.",
+      "La preuve ne remplace ni le cadrage métier ni la revue des données nécessaires avant déploiement réseau.",
     ],
     dataTitle: "Données mobilisées",
     dataBody: [
-      "Charge prévisionnelle à court horizon, capacité disponible, backlog, heures supplémentaires, recours intérim et contraintes de service par site.",
+      "Ventes POS, panier moyen, planning, absences, canaux delivery, promotions, temps de service et coûts de couverture par restaurant.",
       "Le démarrage peut rester en lecture seule sur exports ou API existants.",
     ],
     nextTitle: "Prochain arbitrage rendu possible",
     nextBody: [
-      "Une fois cette preuve structurée, le réseau peut réutiliser le même cadre pour les prochains arbitrages de couverture, de réallocation ou d\u2019ajustement de service.",
-      "C\u2019est ce passage de l\u2019exemple à la cadence de décision qui justifie le déploiement Praedixa.",
+      "Une fois cette preuve structurée, le réseau peut réutiliser le même cadre pour les prochains arbitrages de staffing, de promesse de service ou de delivery.",
+      "C\u2019est ce passage du rush isolé à la cadence de décision réseau qui justifie le déploiement Praedixa.",
     ],
     tableTitle: "Synthèse comparée",
     tableColumns: {
@@ -161,215 +162,218 @@ export const valuePropFrSections: ValuePropFrSections = {
     },
     rows: [
       {
-        option: "Heures supplémentaires locales",
+        option: "Renfort local",
         actionCost: "Base 100",
-        inactionCost: "Base 155",
+        inactionCost: "Base 143",
         serviceRisk: "Moyen à élevé",
         decision: "Non retenue seule",
-        observedEffect: "Soulage un site mais propage le backlog",
-        limitation:
-          "N\u2019isole pas l\u2019effet du manque de capacité inter-sites",
-      },
-      {
-        option: "Intérim ciblé",
-        actionCost: "Base 118",
-        inactionCost: "Base 142",
-        serviceRisk: "Moyen",
-        decision: "Retenue partiellement",
-        observedEffect: "Protège le site le plus contraint",
-        limitation: "Dépend du délai réel de mise à disposition",
+        observedEffect: "Soulage un restaurant mais fait vite dériver les heures d\u2019urgence",
+        limitation: "Ne résout pas la saturation réseau sur drive et delivery",
       },
       {
         option: "Réallocation inter-sites",
-        actionCost: "Base 92",
-        inactionCost: "Base 147",
-        serviceRisk: "Faible à moyen",
+        actionCost: "Base 91",
+        inactionCost: "Base 148",
+        serviceRisk: "Moyen",
         decision: "Retenue",
+        observedEffect: "Protège les restaurants voisins les plus exposés",
+        limitation: "Suppose une polyvalence et une distance compatibles",
+      },
+      {
+        option: "Réduction menu delivery",
+        actionCost: "Base 84",
+        inactionCost: "Base 139",
+        serviceRisk: "Faible à moyen",
+        decision: "Retenue partiellement",
         observedEffect:
-          "Réduit le coût d\u2019urgence et stabilise le backlog critique",
-        limitation: "Suppose une coordination réseau effective",
+          "Stabilise les cuisines critiques et protège la marge pendant le rush",
+        limitation: "Peut réduire temporairement le chiffre sur un canal",
       },
     ],
     primaryCtaLabel: "Cadrer un premier périmètre",
     secondaryCtaLabel: "Voir l\u2019offre publique",
   },
   credibilityRibbon: {
-    stackLabel: "Stack couverte",
-    stackChips: ["ERP", "WFM", "BI", "Planning", "Excel", "API / CSV"],
-    rolesLabel: "Décideurs concernés",
-    roleChips: ["COO", "Dir. Ops", "Dir. Réseau", "Finance", "DSI"],
-    rolesMicrocopy: "Les fonctions qui prennent les décisions clés.",
+    stackLabel: "Signaux relus",
+    stackChips: ["POS", "Planning", "Delivery", "Promos", "BI", "API / CSV"],
+    rolesLabel: "Décideurs du réseau",
+    roleChips: ["Franchisé", "Dir. Réseau", "Ops", "Finance", "RH"],
+    rolesMicrocopy:
+      "Les fonctions qui arbitrent staffing, service et marge au niveau réseau.",
     trustLabel: "Engagements",
     trustMarkers: [
       "Lecture seule au démarrage",
+      "Aucune écriture caisse ou planning",
       "Hébergement France",
       "NDA dès le premier échange",
-      "Données agrégées",
     ],
   },
   problemCards: [
     {
       number: "01",
-      title: "Les signaux arrivent trop tard",
+      title: "Le rush se lit trop tard",
       consequence:
-        "Quand l\u2019information arrive, il est déjà trop tard pour agir au meilleur coût.",
+        "Quand le service décroche déjà, les seules options restantes coûtent plus cher et protègent moins bien la marge.",
     },
     {
       number: "02",
-      title: "Les options ne sont pas comparées",
+      title: "Chaque restaurant arbitre seul",
       consequence:
-        "Sous pression, on choisit la vitesse plutôt que la meilleure option.",
+        "Sans lecture réseau partagée, on compense au plus vite au lieu de choisir la meilleure option pour l\u2019ensemble du parc.",
     },
     {
       number: "03",
-      title: "L\u2019impact n\u2019est jamais mesuré",
+      title: "La marge glisse sans preuve",
       consequence:
-        "Impossible de savoir si la décision prise était la bonne. Le même problème revient.",
+        "Sans relecture service, staffing et marge, le même problème revient au prochain midi, soir ou temps fort promotionnel.",
     },
   ],
   method: {
     kicker: "Comment ça marche",
-    heading: "Quatre étapes. Un résultat mesurable.",
+    heading: "Quatre étapes pour décider avant le rush.",
     steps: [
       {
         id: "voir",
         number: "01",
         verb: "Anticiper",
         title:
-          "L\u2019IA détecte les risques avant qu\u2019ils ne deviennent des urgences",
-        body: "Praedixa se connecte à vos données existantes et combine Data Science, Machine Learning et IA pour identifier les risques opérationnels avant qu\u2019ils n\u2019impactent vos coûts ou votre service.",
+          "Voir quels restaurants vont décrocher avant midi, soir ou promo",
+        body: "Praedixa relit POS, planning, delivery, météo et promotions pour identifier les restaurants, créneaux et canaux qui vont passer sous tension.",
         bullets: [
           "Connexion en lecture seule à vos sources existantes",
-          "Détection automatique des risques à venir",
-          "Alerte proactive quand une action s\u2019impose",
+          "Projection des services à risque à court horizon",
+          "Signal exploitable par restaurant, canal et créneau",
         ],
-        microproof: "Risque détecté 8\u00a0jours avant l\u2019impact",
+        microproof: "Rush détecté 5\u00a0jours avant un vendredi promo",
       },
       {
         id: "comparer",
         number: "02",
         verb: "Comparer",
-        title: "Comparez vos options en un clic",
-        body: "Pour chaque risque détecté, Praedixa calcule le coût et l\u2019impact de chaque option. Vous voyez en un coup d\u2019\u0153il la meilleure décision.",
+        title: "Comparer les arbitrages qui existent vraiment sur le terrain",
+        body: "Pour chaque service sous tension, Praedixa compare les options réalistes\u00a0: renfort local, réaffectation inter-sites, réduction temporaire de promesse de service ou throttling delivery.",
         bullets: [
           "Plusieurs scénarios chiffrés et comparés",
           "Coût d\u2019action vs coût de non-action",
-          "Hypothèses transparentes, pas de boîte noire",
+          "Hypothèses lisibles par siège et terrain",
         ],
-        microproof: "4 options comparées en 12\u00a0secondes",
+        microproof: "3 scénarios comparés en 17\u00a0s",
       },
       {
         id: "decider",
         number: "03",
         verb: "Décider",
-        title: "Prenez la bonne décision, tracée et justifiée",
-        body: "La décision retenue est documentée avec ses hypothèses et validée par les bonnes personnes. Tout est traçable.",
+        title: "Valider un plan par restaurant, pas une moyenne réseau",
+        body: "La décision retenue est tracée avec ses hypothèses, les restaurants concernés, le service touché et les validations nécessaires côté réseau, opérations et finance.",
         bullets: [
-          "Validation par les parties prenantes (opérations, finance)",
-          "Trace complète\u00a0: qui a décidé, quand, pourquoi",
-          "Exécution suivie de bout en bout",
+          "Validation par les parties prenantes utiles",
+          "Trace complète\u00a0: qui décide, quand et pourquoi",
+          "Exécution suivie jusqu\u2019au terrain",
         ],
-        microproof: "Décision prise en 4h au lieu de 3\u00a0jours",
+        microproof: "Décision prise le matin pour le service du soir",
       },
       {
         id: "prouver",
         number: "04",
         verb: "Prouver",
-        title: "Mesurez le ROI réel de chaque décision",
-        body: "Après exécution, Praedixa compare ce qui était prévu à ce qui s\u2019est passé. Vous pouvez prouver votre ROI en comité.",
+        title: "Relire marge, service et heures d\u2019urgence après exécution",
+        body: "Après exécution, Praedixa compare ce qui était prévu à ce qui s\u2019est réellement passé sur la couverture, le temps de service, la marge et les coûts d\u2019urgence.",
         bullets: [
           "Comparaison automatique prévu vs réel",
           "Preuve structurée, exploitable en comité",
-          "Chaque décision améliore la suivante",
+          "Chaque rush améliore le suivant",
         ],
-        microproof: "\u221212\u00a0% sur les coûts d\u2019urgence",
+        microproof: "\u22127,4\u00a0% d\u2019heures d\u2019urgence sur le cas relu",
       },
     ],
   },
   proofPreview: {
     kicker: "Preuve de ROI",
-    heading: "Des résultats concrets, pas des moyennes.",
-    body: "Chaque décision est tracée, reliée à son impact économique et relue en comité. Vous obtenez une preuve de ROI exploitable, pas une simple estimation.",
+    heading: "Un cas réseau relisible par opérations et finance.",
+    body: "Chaque arbitrage est relié à son effet sur le service, la masse salariale et la marge. Vous obtenez une preuve relisible en comité, pas une simple estimation.",
     tabs: [
       {
         label: "Situation",
         content:
-          "Trois sites font face à un pic d\u2019activité. Les coûts d\u2019urgence augmentent et les options se réduisent de jour en jour.",
+          "18 restaurants font face à une promotion app un vendredi soir. Drive et delivery saturent dans 6 points de vente et les heures d\u2019urgence commencent déjà à dériver.",
       },
       {
         label: "Options comparées",
         content:
-          "Trois options chiffrées\u00a0: renfort local, intérim ciblé et réallocation entre sites. Chaque option est évaluée sur la même base\u00a0: coût, risque et impact sur le service, pas sur une moyenne générique.",
+          "Trois arbitrages sont relus sur la même base\u00a0: renfort ciblé, réallocation inter-sites et réduction temporaire du menu delivery. Chaque option est évaluée sur coût, temps de service et marge protégée.",
       },
       {
         label: "Impact mesuré",
         content:
-          "La réallocation entre sites a réduit les coûts d\u2019urgence de 12\u00a0% tout en maintenant le niveau de service sur les trois sites.",
+          "Le scénario retenu a réduit les heures d\u2019urgence de 7,4\u00a0% et contenu le temps de service sur les restaurants les plus exposés.",
       },
     ],
     metrics: [
-      { value: "3", label: "Options comparées" },
-      { value: "\u221212\u00a0%", label: "Coûts d\u2019urgence" },
-      { value: "8j", label: "Anticipation" },
+      { value: "18", label: "Restaurants relus" },
+      { value: "\u22127,4\u00a0%", label: "Heures d\u2019urgence" },
+      { value: "11 min", label: "Temps de service contenu" },
     ],
   },
   deployment: {
     kicker: "Déploiement",
-    heading: "Opérationnel en 30\u00a0jours.",
+    heading: "Un premier cas réseau en 30\u00a0jours.",
     subheading:
-      "Un démarrage simple, un sponsor opérations, vos données existantes.",
+      "On démarre sur POS, planning et delivery. Un sponsor opérations suffit pour cadrer le premier arbitrage.",
     steps: [
       {
         marker: "S1",
-        title: "Cadrage",
+        title: "Cadrage réseau",
         description:
-          "Identification de l\u2019enjeu prioritaire, des sources de données et du sponsor.",
+          "Choix des restaurants prioritaires, des créneaux critiques et des sources utiles.",
       },
       {
         marker: "S2",
-        title: "Première analyse",
-        description: "Options comparées à partir de vos données existantes.",
+        title: "Carte de risque",
+        description:
+          "Lecture par restaurant, service et canal avec options comparées sur vos données existantes.",
       },
       {
         marker: "S3",
-        title: "Décision",
+        title: "Arbitrage",
         description:
-          "Recommandation validée avec les opérations et la finance.",
+          "Recommandation validée avec opérations, réseau et finance.",
       },
       {
         marker: "S4",
-        title: "Mesure d\u2019impact",
-        description: "Comparaison prévu vs réel et plan pour la suite.",
+        title: "Mesure réelle",
+        description:
+          "Comparaison prévu vs réel sur staffing, service et marge, puis plan pour la suite.",
       },
       {
         marker: "\u2192",
         title: "Extension",
-        description: "Nouveaux sites, nouvelles décisions, même méthode.",
+        description:
+          "Nouveaux restaurants, nouveaux temps forts, même méthode de décision.",
       },
     ],
     notItems: [
-      "Pas de remplacement de vos outils",
-      "Pas de projet IT lourd",
-      "Pas de reporting supplémentaire",
-      "Pas de promesse sans preuve",
+      "Pas de remplacement caisse ou planning",
+      "Pas de chantier data lourd",
+      "Pas de POC flou sans décision terrain",
+      "Pas de reporting de plus pour le terrain",
     ],
     ctaMicrocopy: "Retour qualifié sous 48h ouvrées",
   },
   integrationSecurity: {
     kicker: "Intégration & sécurité",
-    heading: "Sécurisé, souverain, non intrusif.",
+    heading: "Branché sur le réel, sans toucher à vos opérations.",
     subheading:
-      "Lecture seule. Données hébergées en France. NDA dès le premier échange.",
+      "Lecture seule. Données hébergées en France. Aucun write sur POS ou planning. NDA dès le premier échange.",
     controls: [
       {
         badge: "Contrôle actif",
         title: "Lecture seule",
-        body: "Aucune écriture dans vos systèmes. Praedixa lit, compare et documente.",
+        body: "Aucune écriture dans vos systèmes. Praedixa lit, compare et documente sans toucher au terrain.",
       },
       {
         badge: "Contrôle actif",
-        title: "Données agrégées",
-        body: "Pas de données nominatives. Les signaux sont agrégés au niveau site ou réseau.",
+        title: "Aucune écriture caisse ou planning",
+        body: "Le POS, le planning et les canaux delivery restent maîtres. Praedixa n\u2019injecte rien dans vos opérations.",
       },
       {
         badge: "Contrôle actif",
@@ -384,88 +388,90 @@ export const valuePropFrSections: ValuePropFrSections = {
       {
         badge: "Contrôle actif",
         title: "Traçabilité complète",
-        body: "Chaque décision et chaque validation est tracée avec horodatage et auteur.",
+        body: "Chaque arbitrage et chaque validation est tracé avec horodatage et auteur.",
       },
       {
         badge: "Contrôle actif",
         title: "Connecteurs standards",
-        body: "API REST, exports CSV, connecteurs ERP et WFM. Pas d\u2019intégration invasive.",
+        body: "POS, exports CSV, APIs delivery, planning et BI. Pas d\u2019intégration invasive.",
       },
     ],
-    stackItems: ["Planning", "ERP", "CRM", "BI", "Excel", "CSV", "API REST"],
+    stackItems: ["POS", "Planning", "Delivery", "Promos", "BI", "CSV", "API"],
   },
   faqV2: {
     heading: "Questions fréquentes",
     items: [
       {
-        question: "Faut-il remplacer nos outils actuels\u00a0?",
+        question: "Faut-il changer de POS ou de planning\u00a0?",
         answer:
-          "Non. Praedixa se connecte en lecture seule à vos outils existants. ERP, BI, planning et Excel restent en place.",
+          "Non. Praedixa se connecte en lecture seule à vos outils existants. POS, planning, delivery et BI restent en place.",
       },
       {
-        question: "En combien de temps voit-on les premiers résultats\u00a0?",
+        question: "À partir de combien de restaurants cela devient pertinent\u00a0?",
         answer:
-          "30\u00a0jours. Le cadrage commence en semaine\u00a01, les premières options comparées arrivent en semaine\u00a02.",
+          "Dès que le siège ou le franchisé arbitre sur plusieurs restaurants, services ou canaux. Le gain vient de la lecture réseau, pas d\u2019un restaurant isolé.",
       },
       {
-        question: "Quelles données sont nécessaires au démarrage\u00a0?",
+        question: "Est-ce que cela couvre drive, salle et delivery\u00a0?",
         answer:
-          "Vos exports ou API existants suffisent. Praedixa démarre en lecture seule, sans migration de données.",
+          "Oui. Le sujet n\u2019est pas le canal en soi, mais l\u2019arbitrage entre couverture, promesse de service et marge quand plusieurs canaux se tendent en même temps.",
       },
       {
-        question: "Qui doit porter le projet côté client\u00a0?",
+        question: "Quelles données faut-il au démarrage\u00a0?",
         answer:
-          "Un responsable opérations ou réseau qui a un enjeu concret à traiter. Il cadre le périmètre et valide les résultats.",
+          "Vos exports ou API existants suffisent dans la plupart des cas\u00a0: ventes POS, planning, absences, delivery, promotions ou coûts de couverture.",
       },
       {
-        question: "Quelle est la différence avec un outil de BI\u00a0?",
+        question: "Qui doit porter le sujet côté client\u00a0?",
         answer:
-          "La BI et l\u2019ERP montrent l\u2019existant et pilotent souvent à partir de règles ou de moyennes. Praedixa ajoute Data Science, Machine Learning et IA pour anticiper les risques, comparer les options et mesurer l\u2019impact réel de chaque décision.",
+          "Un franchisé multi-sites, un directeur réseau ou un responsable opérations avec un vrai arbitrage à trancher dans les prochaines semaines.",
+      },
+      {
+        question: "Quelle est la différence avec la BI ou le WFM\u00a0?",
+        answer:
+          "La BI montre ce qui s\u2019est passé. Le planning exécute un scénario. Praedixa relie les deux pour choisir plus tôt quoi faire quand le rush met simultanément service, staffing et marge sous tension.",
       },
       {
         question: "Que se passe-t-il après les 30 premiers jours\u00a0?",
         answer:
-          "La méthode est réutilisable. Vous pouvez étendre à de nouveaux sites ou de nouvelles décisions sans repartir de zéro.",
+          "La méthode est réutilisable. Vous pouvez étendre à d\u2019autres restaurants, d\u2019autres canaux ou d\u2019autres temps forts sans repartir de zéro.",
       },
     ],
     contactCta: "Une question spécifique\u00a0?",
     contactBody:
-      "Décrivez votre contexte et nous revenons avec une réponse qualifiée sous 48h ouvrées.",
+      "Décrivez votre réseau et le prochain rush à traiter, nous revenons avec une réponse qualifiée sous 48h ouvrées.",
   },
   finalCta: {
-    label: "Prêt à commencer\u00a0?",
-    heading: "Parlons de votre ROI.",
-    body: "Décrivez votre contexte. On revient avec un plan d\u2019action en 48h.",
+    label: "Réseau restauration rapide",
+    heading: "Cadrons le prochain rush réseau.",
+    body: "Décrivez vos restaurants, vos services sous tension et le prochain temps fort. On revient avec un cadrage concret sous 48h.",
     promiseItems: [
-      "Réponse en 48h",
-      "Diagnostic personnalisé",
-      "Plan d\u2019action concret",
+      "Retour en 48h",
+      "Premier risque à objectiver",
+      "Plan d\u2019action réseau concret",
     ],
     step1Fields: [
       {
-        name: "Type de réseau",
+        name: "Nombre de restaurants",
         type: "select",
-        options: [
-          "Logistique",
-          "Distribution",
-          "Restauration",
-          "Retail",
-          "Services",
-          "Industrie",
-          "Autre",
-        ],
+        options: ["2\u20135", "6\u201315", "16\u201340", "41\u2013100", "100+"],
       },
       { name: "Principal enjeu", type: "text" },
       {
         name: "Horizon projet",
         type: "select",
-        options: ["< 1 mois", "1\u20133 mois", "3\u20136 mois", "> 6 mois"],
+        options: [
+          "Avant le prochain temps fort",
+          "< 1 mois",
+          "1\u20133 mois",
+          "> 3 mois",
+        ],
       },
     ],
     step2Fields: [
       { name: "Nom", type: "text" },
       { name: "Email professionnel", type: "email" },
-      { name: "Entreprise", type: "text" },
+      { name: "Enseigne / groupe", type: "text" },
       { name: "Message (optionnel)", type: "textarea" },
     ],
     step1Cta: "Continuer",

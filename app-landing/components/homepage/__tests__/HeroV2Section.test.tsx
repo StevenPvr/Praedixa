@@ -49,15 +49,15 @@ describe("HeroV2Section", () => {
     render(<HeroV2Section locale="fr" />);
 
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent("L\u2019IA qui anticipe, optimise");
-    expect(heading).toHaveTextContent("et prouve votre ROI.");
+    expect(heading).toHaveTextContent("Prédisez la demande,");
+    expect(heading).toHaveTextContent("calibrez vos effectifs.");
   });
 
   it("renders the kicker eyebrow text", () => {
     render(<HeroV2Section locale="fr" />);
 
     expect(
-      screen.getByText("Pour les réseaux multi-sites"),
+      screen.getByText("Pour les franchisés de restauration rapide multi-sites"),
     ).toBeInTheDocument();
   });
 
@@ -65,7 +65,9 @@ describe("HeroV2Section", () => {
     render(<HeroV2Section locale="fr" />);
 
     expect(
-      screen.getByText(/Praedixa connecte vos données existantes/),
+      screen.getByText(
+        /Praedixa relie vos caisses, plannings, apps de livraison, promotions et signaux terrain/,
+      ),
     ).toBeInTheDocument();
   });
 
@@ -78,7 +80,7 @@ describe("HeroV2Section", () => {
     expect(primaryCta).toHaveAttribute("href", "/fr/decision-log-preuve-roi");
 
     const secondaryCta = screen.getByRole("link", {
-      name: "Parler à un expert",
+      name: "Cadrer mon réseau",
     });
     expect(secondaryCta).toHaveAttribute(
       "href",
@@ -90,7 +92,7 @@ describe("HeroV2Section", () => {
     render(<HeroV2Section locale="fr" />);
 
     expect(screen.getByText("Lecture seule")).toBeInTheDocument();
-    expect(screen.getByText("Données agrégées")).toBeInTheDocument();
+    expect(screen.getByText("POS + planning + delivery")).toBeInTheDocument();
     expect(screen.getByText("Hébergement France")).toBeInTheDocument();
     expect(screen.getByText("NDA sur demande")).toBeInTheDocument();
   });

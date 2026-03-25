@@ -25,6 +25,8 @@ Ici vivent les contenus longs, structures ou semi-editorialises que les pages co
 - si une page a besoin d'un contrat fort, exporter types + acces centralises depuis ce dossier
 - la facade `sector-pages.ts` sert d'entree unique pour les routes, composants, sitemap et llms
 - la promesse publique canonique doit vivre dans `value-prop/*` et etre referencee par les pages, pas recopidee librement dans plusieurs dictionnaires ou composants
+- la promesse publique actuelle de la homepage vise d'abord les franchisés et reseaux de restauration rapide multi-sites; tout nouveau copy homepage/contact/preuve doit rester aligne sur cet ICP tant qu'un autre repositionnement n'a pas ete approuve
+- pour cet ICP QSR, le wording hero/homepage doit d'abord parler prediction de la demande et des besoins d'effectifs; le service, la marge ou le delivery viennent ensuite comme consequences metier, pas comme la promesse principale
 - les modules `sector-pages*` consomment le contrat `Locale` depuis `lib/i18n/locale.ts`, pas depuis un module de redirects qui reimporte cette facade
 - la copy partagee des verticales reste dans `sector-pages-data/shared.ts`, pas dans `SectorPage.tsx`
 - les pages sectorielles exposent aussi un helper de deduplication des sources affichees pour garder une liste de references propre par URL

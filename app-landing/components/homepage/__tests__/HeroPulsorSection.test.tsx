@@ -57,22 +57,22 @@ describe("HeroPulsorSection", () => {
     render(<HeroPulsorSection locale="fr" />);
 
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent("L\u2019IA qui anticipe, optimise");
-    expect(heading).toHaveTextContent("et prouve votre ROI.");
+    expect(heading).toHaveTextContent("Prédisez la demande,");
+    expect(heading).toHaveTextContent("calibrez vos effectifs.");
   });
 
   it("renders the eyebrow kicker text", () => {
     render(<HeroPulsorSection locale="fr" />);
 
     expect(
-      screen.getByText("Pour les réseaux multi-sites"),
+      screen.getByText("Pour les franchisés de restauration rapide multi-sites"),
     ).toBeInTheDocument();
   });
 
   it("renders the blue badge text", () => {
     render(<HeroPulsorSection locale="fr" />);
 
-    expect(screen.getByText("DATA SCIENCE + ML + IA")).toBeInTheDocument();
+    expect(screen.getByText("QSR OPS")).toBeInTheDocument();
   });
 
   it("renders the subheading paragraph", () => {
@@ -80,7 +80,7 @@ describe("HeroPulsorSection", () => {
 
     expect(
       screen.getByText(
-        /Praedixa connecte vos données existantes et couple Data Science, Machine Learning et IA/,
+        /Praedixa relie vos caisses, plannings, apps de livraison, promotions et signaux terrain/,
       ),
     ).toBeInTheDocument();
   });
@@ -90,7 +90,7 @@ describe("HeroPulsorSection", () => {
 
     // Primary CTA (dark pill) → contact
     const contactCta = screen.getByRole("link", {
-      name: /Parler à un expert/,
+      name: /Cadrer mon réseau/,
     });
     expect(contactCta).toHaveAttribute(
       "href",
@@ -108,7 +108,7 @@ describe("HeroPulsorSection", () => {
     render(<HeroPulsorSection locale="fr" />);
 
     expect(screen.getByText("Lecture seule")).toBeInTheDocument();
-    expect(screen.getByText("Données agrégées")).toBeInTheDocument();
+    expect(screen.getByText("POS + planning + delivery")).toBeInTheDocument();
     expect(screen.getByText("Hébergement France")).toBeInTheDocument();
     expect(screen.getByText("NDA sur demande")).toBeInTheDocument();
   });
@@ -116,16 +116,21 @@ describe("HeroPulsorSection", () => {
   it("renders proof block with role chips", () => {
     render(<HeroPulsorSection locale="fr" />);
 
-    expect(screen.getByText("COO")).toBeInTheDocument();
-    expect(screen.getByText("DIR. OPS")).toBeInTheDocument();
+    expect(screen.getByText("FRANCHISÉ")).toBeInTheDocument();
+    expect(screen.getByText("DIR. RÉSEAU")).toBeInTheDocument();
+    expect(screen.getByText("OPS")).toBeInTheDocument();
     expect(screen.getByText("FINANCE")).toBeInTheDocument();
-    expect(screen.getByText("DSI")).toBeInTheDocument();
   });
 
   it("renders the micro-pill", () => {
     render(<HeroPulsorSection locale="fr" />);
 
-    expect(screen.getByText(/Preuve de ROI/)).toBeInTheDocument();
+    expect(
+      screen.getByText((_, element) => {
+        const text = element?.textContent?.replace(/\s+/g, " ").trim();
+        return text === "Demande | effectifs | couverture";
+      }),
+    ).toBeInTheDocument();
   });
 
   it("renders the logo rail caption", () => {
@@ -138,9 +143,9 @@ describe("HeroPulsorSection", () => {
     render(<HeroPulsorSection locale="en" />);
 
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent("AI that anticipates, optimizes");
-    expect(heading).toHaveTextContent("and proves your ROI.");
-    expect(screen.getByText("DECISION AI")).toBeInTheDocument();
+    expect(heading).toHaveTextContent("Predict demand,");
+    expect(heading).toHaveTextContent("calibrate staffing.");
+    expect(screen.getByText("QSR OPS")).toBeInTheDocument();
     expect(screen.getByText("They trust us")).toBeInTheDocument();
   });
 });

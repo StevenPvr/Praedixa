@@ -8,13 +8,15 @@ Construire une homepage modulaire ou chaque section reste lisible seule, reordon
 
 hero -> credibilite -> probleme -> methode -> comparatif -> preuve -> deploiement -> secteurs -> integration -> faq -> contact
 
+La homepage publique actuelle est orientee en priorite vers les franchisés et reseaux de restauration rapide multi-sites. Les sections homepage doivent donc parler explicitement rushs, staffing, service, delivery et marge, pas d'un message multi-sectoriel generique.
+
 ## Sections V2 (parcours actif)
 
 Assemblees dans `app/[locale]/page.tsx`, chaque section prend `locale: Locale` et recupere son contenu via `getValuePropContent(locale)`.
 
 | #    | Fichier                                            | Anchor         | Description                                                                               |
 | ---- | -------------------------------------------------- | -------------- | ----------------------------------------------------------------------------------------- |
-| S01  | `HeroV2Section.tsx` + `HeroV2Client.tsx`           | `#hero`        | Hero composite: H1, CTAs, Decision Console card, video media frame, floating proof cards  |
+| S01  | `HeroPulsorSection.tsx` + `HeroPulsorContent.tsx`  | `#hero`        | Hero split-screen sur canvas blanc: promesse QSR, CTAs et board de signaux reseau avant rush |
 | S01b | `HomeGeoSummarySection.tsx`                        | `#resume`      | Bloc answer-first juste apres le hero pour donner une lecture canonique courte et citable |
 | S02  | `CredibilityRibbonSection.tsx`                     | `#credibilite` | Ruban de credibilite: stack chips, role pills, trust markers                              |
 | S03  | `ProblemBlockSection.tsx`                          | `#probleme`    | 3 cartes tension numerotees avec hover signal                                             |
@@ -22,7 +24,7 @@ Assemblees dans `app/[locale]/page.tsx`, chaque section prend `locale: Locale` e
 | S05  | `StackComparisonV2Section.tsx`                     | `#comparatif`  | Table 3 colonnes desktop, accordions mobile                                               |
 | S06  | `ProofBlockSection.tsx` + `ProofBlockClient.tsx`   | `#preuve`      | Section dark, preview ROI a onglets, 3 metriques                                          |
 | S07  | `DeploymentTimelineSection.tsx`                    | `#deploiement` | Timeline 5 etapes + bloc "ce que ce n'est pas"                                            |
-| S08  | `SectorCardsSection.tsx`                           | `#secteurs`    | 4 cartes sectorielles avec liens vers pages ICP                                           |
+| S08  | `SectorCardsSection.tsx`                           | `#secteurs`    | 4 cas d'usage QSR sur les arbitrages reseau recurrent                                     |
 | S09  | `IntegrationSecuritySection.tsx`                   | `#integration` | Section dark, 6 control cards, ruban stack chips                                          |
 | S10  | `FaqSectionV2.tsx`                                 | `#faq`         | 6 accordions FAQ + mini card contact                                                      |
 | S11  | `FinalCtaSection.tsx` + `FinalCtaClient.tsx`       | `#contact`     | Split panel: promesse + formulaire 2 etapes                                               |
@@ -65,5 +67,7 @@ La homepage doit garder un passage `answer-first` visible, court et canoniquemen
 Le comparatif homepage doit opposer Praedixa a des categories d'outils (`ERP`, `BI`, `planning`, `Excel/comites`), jamais a des marques nommees.
 Sur la homepage FR, preferer le wording visible `preuve de ROI`; reserver `preuve sur historique` au slug et a la page detaillee quand il faut expliquer la methode de preuve.
 Quand la homepage oppose Praedixa aux ERP, rendre explicite la difference de methode (`Data Science + Machine Learning + IA` vs pilotage par moyennes) au lieu de rester sur un comparatif trop abstrait.
+Quand la homepage est recadree sur un ICP unique, retirer les sections visibles qui renvoient encore a d'autres verticales ou les convertir en cas d'usage du meme ICP.
 Le rail de confiance du hero ne doit pas afficher de placeholders repetes ou de pseudo-logos textuels au-dessus de la ligne de flottaison.
+Le hero `HeroPulsor` garde un fond global blanc; le contraste doit venir du texte, des surfaces teintees et du board de signaux, jamais d'un basculement du canvas en dark mode.
 Si un composant legacy de trust bar est conserve hors parcours actif, il doit lui aussi rester borne a des logos verifies; ne jamais y laisser de faux wordmarks ou de placeholders de preuve sociale.

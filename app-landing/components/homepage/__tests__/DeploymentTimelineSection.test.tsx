@@ -25,10 +25,10 @@ describe("DeploymentTimelineSection", () => {
 
     expect(screen.getByText(/Déploiement/)).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
-      /Opérationnel en 30/,
+      /Un premier cas réseau en 30/,
     );
     expect(
-      screen.getByText(/Un démarrage simple, un sponsor opérations/),
+      screen.getByText(/On démarre sur POS, planning et delivery/),
     ).toBeInTheDocument();
   });
 
@@ -44,13 +44,17 @@ describe("DeploymentTimelineSection", () => {
   it("renders step titles", () => {
     render(<DeploymentTimelineSection locale="fr" />);
 
-    expect(screen.getAllByText("Cadrage").length).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getAllByText(/Première analyse/).length,
+      screen.getAllByText("Cadrage réseau").length,
     ).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText(/Décision/).length).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getAllByText(/Mesure d.impact/).length,
+      screen.getAllByText(/Carte de risque/).length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText(/Arbitrage/).length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText(/Mesure réelle/).length,
     ).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/Extension/).length).toBeGreaterThanOrEqual(1);
   });
@@ -59,20 +63,24 @@ describe("DeploymentTimelineSection", () => {
     render(<DeploymentTimelineSection locale="fr" />);
 
     expect(
-      screen.getByText(/Pas de remplacement de vos outils/),
+      screen.getByText(/Pas de remplacement caisse ou planning/),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Pas de projet IT lourd/)).toBeInTheDocument();
     expect(
-      screen.getByText(/Pas de reporting supplémentaire/),
+      screen.getByText(/Pas de chantier data lourd/),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Pas de promesse sans preuve/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Pas de POC flou sans décision terrain/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Pas de reporting de plus pour le terrain/),
+    ).toBeInTheDocument();
   });
 
   it("renders CTA link with deployment intent href", () => {
     render(<DeploymentTimelineSection locale="fr" />);
 
     const ctaLink = screen.getByRole("link", {
-      name: /Parler à un expert/,
+      name: /Cadrer mon réseau/,
     });
     expect(ctaLink).toHaveAttribute("href", "/fr/contact?intent=deploiement");
   });

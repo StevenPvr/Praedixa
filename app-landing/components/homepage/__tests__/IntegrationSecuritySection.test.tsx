@@ -17,7 +17,7 @@ describe("IntegrationSecuritySection", () => {
     expect(
       screen.getByRole("heading", {
         level: 2,
-        name: /Sécurisé, souverain, non intrusif/,
+        name: /Branché sur le réel, sans toucher à vos opérations/,
       }),
     ).toBeInTheDocument();
   });
@@ -39,7 +39,7 @@ describe("IntegrationSecuritySection", () => {
     render(<IntegrationSecuritySection locale="fr" />);
 
     expect(screen.getByText("Lecture seule")).toBeInTheDocument();
-    expect(screen.getByText("Données agrégées")).toBeInTheDocument();
+    expect(screen.getByText("Aucune écriture caisse ou planning")).toBeInTheDocument();
     expect(screen.getByText("Hébergement France")).toBeInTheDocument();
     expect(screen.getByText("NDA dès le premier échange")).toBeInTheDocument();
     expect(screen.getByText("Traçabilité complète")).toBeInTheDocument();
@@ -50,13 +50,13 @@ describe("IntegrationSecuritySection", () => {
     render(<IntegrationSecuritySection locale="fr" />);
 
     const stackItems = [
+      "POS",
       "Planning",
-      "ERP",
-      "CRM",
+      "Delivery",
+      "Promos",
       "BI",
-      "Excel",
       "CSV",
-      "API REST",
+      "API",
     ];
     for (const item of stackItems) {
       expect(screen.getByText(item)).toBeInTheDocument();

@@ -122,3 +122,4 @@
 - Quand un workflow CI de surface utilise un guardrail baseline-driven, le scoper au meme perimetre que le workflow; sinon une PR CI-only revele de la dette legacy sans rapport avec la surface verifiee.
 - Quand un script bootstrap CI telecharge un outil depuis GitHub Releases, verifier le nom exact de l'asset publie; certains projets livrent un binaire brut et non une archive `.tar.gz`.
 - Quand une gate shell CI appelle des validateurs Python repo-owned, ne pas supposer que `python3` du runner embarque `PyYAML`; lancer la gate via `uv run --with pyyaml` ou fournir explicitement la dependance.
+- Quand un utilisateur corrige un hero sur le contraste ou le message, relire d'abord le fond reel de la section et la promesse produit canonique avant de pousser une direction visuelle; un bon layout avec une mauvaise base de contraste ou un wording produit faux reste un contre-sens.

@@ -23,11 +23,11 @@ interface Particle {
 }
 
 const COLORS = {
-  blue: "91,115,255",
-  indigo: "120,105,215",
+  amber: "216,161,91",
+  copper: "171,114,63",
 } as const;
 
-const PALETTE = [COLORS.blue, COLORS.blue, COLORS.blue, COLORS.indigo];
+const PALETTE = [COLORS.amber, COLORS.amber, COLORS.amber, COLORS.copper];
 
 const CONNECTION_DIST = 240;
 
@@ -47,7 +47,8 @@ function createParticles(w: number, h: number): Particle[] {
       vx: (Math.random() - 0.5) * 0.35,
       vy: (Math.random() - 0.5) * 0.35,
       radius: Math.random() * 2.5 + 2,
-      color: PALETTE[Math.floor(Math.random() * PALETTE.length)] ?? COLORS.blue,
+      color:
+        PALETTE[Math.floor(Math.random() * PALETTE.length)] ?? COLORS.amber,
       alpha: Math.random() * 0.35 + 0.45,
       pulse: Math.random() * Math.PI * 2,
       pulseSpeed: Math.random() * 0.012 + 0.006,
@@ -64,7 +65,7 @@ function createParticles(w: number, h: number): Particle[] {
       vx: (Math.random() - 0.5) * 0.12,
       vy: (Math.random() - 0.5) * 0.12,
       radius: Math.random() * 3 + 5,
-      color: i < 4 ? COLORS.blue : COLORS.indigo,
+      color: i < 4 ? COLORS.amber : COLORS.copper,
       alpha: 0.75,
       pulse: Math.random() * Math.PI * 2,
       pulseSpeed: 0.018,
@@ -182,9 +183,9 @@ export function HeroPulsorDepthLayers() {
       // ── Cursor glow ──
       if (mouseOnScreen) {
         const glowGrad = ctx.createRadialGradient(mx, my, 0, mx, my, 180);
-        glowGrad.addColorStop(0, "rgba(91,115,255,0.06)");
-        glowGrad.addColorStop(0.5, "rgba(91,115,255,0.02)");
-        glowGrad.addColorStop(1, "rgba(91,115,255,0)");
+        glowGrad.addColorStop(0, "rgba(216,161,91,0.08)");
+        glowGrad.addColorStop(0.5, "rgba(216,161,91,0.03)");
+        glowGrad.addColorStop(1, "rgba(216,161,91,0)");
         ctx.fillStyle = glowGrad;
         ctx.fillRect(mx - 180, my - 180, 360, 360);
       }
@@ -220,7 +221,7 @@ export function HeroPulsorDepthLayers() {
             ctx.beginPath();
             ctx.moveTo(pi.x, pi.y);
             ctx.lineTo(pj.x, pj.y);
-            ctx.strokeStyle = `rgba(${COLORS.blue},${ratio * base})`;
+            ctx.strokeStyle = `rgba(${COLORS.amber},${ratio * base})`;
             ctx.lineWidth = lineW;
             ctx.stroke();
           }
@@ -326,20 +327,20 @@ export function HeroPulsorDepthLayers() {
         className="absolute inset-0"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(91,115,255,0.06) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(91,115,255,0.06) 1px, transparent 1px)
+            linear-gradient(rgba(216,161,91,0.07) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(216,161,91,0.07) 1px, transparent 1px)
           `,
           backgroundSize: "64px 64px",
           maskImage:
-            "radial-gradient(ellipse 85% 75% at 50% 40%, rgba(0,0,0,0.4) 0%, transparent 100%)",
+            "radial-gradient(ellipse 85% 75% at 50% 40%, rgba(0,0,0,0.18) 0%, transparent 100%)",
           WebkitMaskImage:
-            "radial-gradient(ellipse 85% 75% at 50% 40%, rgba(0,0,0,0.4) 0%, transparent 100%)",
+            "radial-gradient(ellipse 85% 75% at 50% 40%, rgba(0,0,0,0.18) 0%, transparent 100%)",
         }}
       />
 
       {/* ── Noise grain ── */}
       <div
-        className="absolute -inset-4 opacity-[0.035]"
+        className="absolute -inset-4 opacity-[0.02]"
         style={{
           backgroundImage:
             "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")",

@@ -27,7 +27,7 @@ describe("MethodBlockSection", () => {
 
     expect(screen.getByText(/Comment ça marche/)).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
-      /Quatre étapes\. Un résultat mesurable/,
+      /Quatre étapes pour décider avant le rush/,
     );
   });
 
@@ -53,16 +53,17 @@ describe("MethodBlockSection", () => {
     render(<MethodBlockSection locale="fr" />);
 
     expect(
-      screen.getAllByText(/Risque détecté 8/).length,
+      screen.getAllByText(/Rush détecté 5/).length,
     ).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getAllByText(/4 options comparées en 12/).length,
+      screen.getAllByText(/3 scénarios comparés en 17/).length,
     ).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getAllByText(/Décision prise en 4h/).length,
+      screen.getAllByText(/Décision prise le matin pour le service du soir/)
+        .length,
     ).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getAllByText(/12.*% sur les coûts d.urgence/).length,
+      screen.getAllByText(/7,4.*heures d.urgence/).length,
     ).toBeGreaterThanOrEqual(1);
   });
 
