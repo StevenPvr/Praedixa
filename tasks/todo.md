@@ -1,3 +1,254 @@
+# Current Pass - 2026-03-27 - Hero Pill Removal
+
+### Plan
+
+- [x] Retirer les companion pills `QSR OPS` et `30j` du hero
+- [x] Verrouiller cette simplification dans le test du hero
+- [x] Mettre a jour la doc et la lecon correspondantes
+
+### Review
+
+- Les deux pills `QSR OPS` et `30j` ont ete supprimes du hero pour laisser uniquement le kicker principal en tete de section.
+- Le contrat est verrouille dans `app-landing/components/homepage/__tests__/HeroPulsorSection.test.tsx`.
+- Documentation alignee dans `app-landing/components/homepage/README.md`.
+
+# Current Pass - 2026-03-27 - Hero Video Contrast And Header White Theme
+
+### Plan
+
+- [x] Reduire l'opacite du recouvrement video du hero pour laisser mieux respirer les rushs en fond
+- [x] Basculer le logo et le texte de navigation en blanc lorsque le header survole le hero `hero-pulsor`
+- [x] Verrouiller ce comportement par tests, puis revalider visuellement en local
+
+### Review
+
+- Le recouvrement video du hero a ete allege:
+  - overlay de base baisse
+  - gradient lateral moins dense
+  - fondu bas moins opaque
+- Le header en haut de page passe maintenant en theme blanc au-dessus du hero `hero-pulsor`:
+  - logo mark blanchi
+  - wordmark blanc
+  - liens de navigation blancs
+  - locale switcher et hamburger alignes sur la meme logique
+- Le comportement est verrouille par:
+  - `components/homepage/__tests__/HeroPulsorSection.test.tsx`
+  - `components/shared/__tests__/HeaderHeroTheme.test.ts`
+- Documentation alignee dans:
+  - `app-landing/components/homepage/README.md`
+  - `app-landing/components/shared/README.md`
+  - `app-landing/components/shared/__tests__/README.md`
+- Verification executee:
+  - `pnpm --filter @praedixa/landing test components/homepage/__tests__/HeroPulsorSection.test.tsx components/shared/__tests__/HeaderHeroTheme.test.ts`
+  - `pnpm --filter @praedixa/landing typecheck`
+  - `pnpm --filter @praedixa/landing lint`
+  - verification visuelle locale sur `http://localhost:3000/fr` en desktop et mobile
+
+# Current Pass - 2026-03-27 - Video Hero Reset
+
+### Plan
+
+- [x] Monter un asset video hero unique a partir des deux rushs disponibles dans `app-landing/public/hero-video`
+- [x] Recentrer le hero sur un fond video plein cadre avec overlay lisible et composition beaucoup plus epuree
+- [x] Retirer du hero les panneaux, rails et micro-preuves qui alourdissent la silhouette au-dessus de la ligne de flottaison
+- [x] Mettre a jour les tests et la documentation lies a cette nouvelle version du hero
+- [x] Reverifier par tests, typecheck, lint et rendu local desktop/mobile
+
+### Review
+
+- Un nouveau montage `restaurant-hero-loop.mp4` a ete genere a partir des deux rushs presents dans `app-landing/public/hero-video`, avec un poster dedie `restaurant-hero-poster.jpg`.
+- Le hero homepage a ete reconstruit dans une logique beaucoup plus degagee:
+  - fond video plein cadre
+  - overlay sombre pour la lisibilite
+  - suppression du board de signaux et du logo rail dans le viewport hero
+  - message, CTA et ligne de preuve legere uniquement
+- La composition se rapproche davantage d'un hero "statutaire" type Palantir que d'un hero produit a panneaux.
+- Documentation alignee dans:
+  - `app-landing/components/homepage/README.md`
+  - `app-landing/public/hero-video/README.md`
+- Verification executee:
+  - `pnpm --filter @praedixa/landing test components/homepage/__tests__/HeroPulsorSection.test.tsx`
+  - `pnpm --filter @praedixa/landing typecheck`
+  - `pnpm --filter @praedixa/landing lint`
+  - verification visuelle locale sur `http://localhost:3000/fr` en desktop et mobile
+
+# Current Pass - 2026-03-27 - Remove Post-Hero Summary Block
+
+### Plan
+
+- [x] Identifier le bloc encore rendu juste sous le hero dans le parcours homepage
+- [x] Retirer ce bloc du flux actif sans le remplacer
+- [x] Supprimer les references code/tests/doc qui le consideraient encore comme actif
+- [x] Reverifier le dessus de homepage en tests et en navigateur local
+
+### Review
+
+- Le bloc `HomeGeoSummarySection` juste sous le hero a ete retire du parcours homepage actif.
+- La homepage passe maintenant du hero directement au ruban de credibilite, sans resume intermediaire.
+- Les references actives ont ete nettoyees:
+  - suppression de l'import/rendu dans `app-landing/app/[locale]/page.tsx`
+  - suppression du composant `HomeGeoSummarySection.tsx`
+  - suppression de son test dedie
+  - mise a jour de `app-landing/components/homepage/README.md`
+- Verification executee:
+  - `pnpm --filter @praedixa/landing test components/homepage/__tests__/HeroPulsorSection.test.tsx`
+  - `pnpm --filter @praedixa/landing typecheck`
+  - `pnpm --filter @praedixa/landing lint`
+  - verification visuelle locale sur `http://localhost:3000/fr`
+
+# Current Pass - 2026-03-27 - Hero De-Block Simplification
+
+### Plan
+
+- [x] Prendre en compte le recadrage utilisateur sur les gros blocs rectangulaires
+- [x] Supprimer les panneaux lourds introduits dans le hero et revenir a une seule scene produit plus legere
+- [x] Garder le message QSR et les CTA tout en allégeant la preuve visuelle autour
+- [x] Mettre a jour les tests/documentation lies a cette simplification
+- [x] Reverifier en test, lint, typecheck et rendu local desktop/mobile
+
+### Review
+
+- Les gros blocs rectangulaires ont ete retires:
+  - suppression du grand wrapper blanc de scene
+  - suppression des deux cartes massives d'offre / preuve a droite
+  - simplification du board sombre pour en faire une seule preuve produit plus fluide
+- La preuve hero est maintenant portee par:
+  - une ligne de promesse legere
+  - une ligne de roles compacte
+  - une seule console reseau arrondie, sans pile de cartes concurrentes
+- Le hero reste coherent avec la demande initiale:
+  - intro centree
+  - grande typo
+  - CTA premium
+  - inspiration Prosperian conservee dans le rythme editorial, mais sans les panneaux lourds
+- Documentation alignee dans `app-landing/components/homepage/README.md`.
+- Verification executee:
+  - `pnpm --filter @praedixa/landing test components/homepage/__tests__/HeroPulsorSection.test.tsx`
+  - `pnpm --filter @praedixa/landing typecheck`
+  - `pnpm --filter @praedixa/landing lint`
+  - verification visuelle locale desktop et mobile sur `http://localhost:3000/fr`
+
+# Current Pass - 2026-03-27 - Landing Hero Prosperian-Inspired Rework
+
+### Plan
+
+- [x] Auditer le hero actif, la reference `prosperian.co` et les contraintes de copy / branding a conserver
+- [x] Recomposer le hero landing vers une direction plus editoriale et premium, fortement inspiree de Prosperian sans dupliquer sa marque
+- [x] Garder la promesse QSR Praedixa, les CTA et la preuve au-dessus de la ligne de flottaison tout en simplifiant la lecture
+- [x] Mettre a jour la documentation locale et les tests du hero si la structure visible change
+- [x] Revalider par tests cibles, typecheck/lint si necessaire, puis verification visuelle locale
+
+### Review
+
+- Le hero landing quitte le split-screen dense au profit d'une composition plus proche de Prosperian:
+  - intro centree, tres editoriale, avec kicker + badge, H1 massif, subheading plus respire, CTA premium et micro-preuves compactes
+  - grand "product stage" sous l'intro, qui remet la console Praedixa au centre comme preuve produit au lieu d'un hero separe en deux colonnes concurrentes
+- La reference Prosperian a ete reprise dans les signaux visuels, pas dans la marque:
+  - canvas clair plus lumineux
+  - fond quadrille / floute plus doux
+  - grand rythme typographique centre
+  - CTA primaire sombre plus statutaire
+  - sensation de mockup produit unique sous le message
+- Le contenu metier Praedixa reste coherent:
+  - promesse QSR conservee
+  - CTA "Cadrer mon reseau" et "Voir la preuve de ROI" conserves
+  - preuve/offre toujours visibles au-dessus de la ligne de flottaison
+  - board reseau conserve avec signaux terrain, stats et lecture siege + terrain
+- Documentation alignee dans `app-landing/components/homepage/README.md`.
+- Test du hero mis a jour pour couvrir la nouvelle carte d'offre.
+- Verification executee:
+  - `pnpm --filter @praedixa/landing test components/homepage/__tests__/HeroPulsorSection.test.tsx`
+  - `pnpm --filter @praedixa/landing typecheck`
+  - `pnpm --filter @praedixa/landing lint`
+  - verification visuelle locale desktop et mobile sur `http://localhost:3000/fr`
+
+# Current Pass - 2026-03-27 - Hero SVG Restaurant Artwork
+
+### Plan
+
+- [ ] Verifier si le snippet SVG fourni existe deja dans le repo ou s'il faut reconstruire un artwork autonome
+- [ ] Creer un composant SVG complet a partir du snippet, avec `defs`, symboles et palette coherente avec la landing
+- [ ] Remplacer le panneau droit du hero par cet artwork au lieu du board rectangulaire
+- [ ] Mettre a jour la doc locale si la nature du hero change
+- [ ] Revalider par lint, typecheck, test hero et verification visuelle locale
+
+# Current Pass - 2026-03-26 - Landing Hero Clean Rework
+
+### Plan
+
+- [x] Auditer le hero actif, le copy branche et les contraintes du skill `design-taste-frontend`
+- [x] Recomposer le hero autour d'un split-screen plus editorial et moins "dashboard brut"
+- [x] Garder les messages, CTA et preuves attendus tout en simplifiant la lecture visuelle
+- [x] Mettre a jour la doc locale et les tests du hero si necessaire
+- [x] Verifier visuellement le rendu puis executer les validations cibles
+
+### Review
+
+- Le hero landing a ete repense sans changer le positionnement QSR ni les CTA existants: la composition est maintenant plus claire, plus editorialisee, et moins proche d'un dashboard de demo brut.
+- La colonne gauche porte mieux la hierarchie:
+  - kicker plus discret
+  - H1 plus statutaire
+  - CTA primaire magnetique
+  - bandeau d'offre / preuve compact au lieu d'un gros bloc beige peu lisible
+- La colonne droite devient une "decision room" unique:
+  - un seul panneau sombre dense pour les signaux reseau
+  - une colonne secondaire claire pour la lecture siege + terrain et le cadrage "pourquoi maintenant"
+  - une palette plus coherente avec un seul accent ambre
+- Le fond du hero a ete recalibre pour rester clair et premium, avec des glow plus subtils.
+- Documentation alignee dans `app-landing/components/homepage/README.md`.
+- Validation executee:
+  - `pnpm --filter @praedixa/landing lint`
+  - `pnpm --filter @praedixa/landing typecheck`
+  - `pnpm --filter @praedixa/landing test components/homepage/__tests__/HeroPulsorSection.test.tsx`
+  - verification visuelle en navigateur local sur `http://localhost:3000/fr`
+
+# Current Pass - 2026-03-26 - LinkedIn Banners 1920x400
+
+### Plan
+
+- [x] Confirmer les bannières source et choisir une recomposition propre pour le ratio `1920x400`
+- [x] Créer les variantes SVG `1920x400` dans `marketing/linkedin_banners`
+- [x] Exporter les rendus raster correspondants et vérifier les dimensions finales
+- [x] Documenter les nouveaux fichiers dans `marketing/linkedin_banners/README.md`
+
+### Review
+
+- Deux variantes `1920x400` ont été créées pour couvrir les deux usages déjà présents dans le dossier:
+  - `marketing/linkedin_banners/personal_banner_1920x400.svg`
+  - `marketing/linkedin_banners/company_banner_1920x400.svg`
+- Des exports raster prêts à l'emploi ont aussi été générés localement en `JPG` et `PNG` pour chaque bannière.
+- La composition a été légèrement rééquilibrée pour le nouveau ratio panoramique afin d'éviter un crop destructif du texte ou du badge.
+- Vérification finale exécutée avec `sips`:
+  - `personal_banner_1920x400.png` -> `1920 x 400`
+  - `personal_banner_1920x400.jpg` -> `1920 x 400`
+  - `company_banner_1920x400.png` -> `1920 x 400`
+  - `company_banner_1920x400.jpg` -> `1920 x 400`
+- La documentation locale du dossier `marketing/linkedin_banners` a été mise à jour pour signaler les nouvelles variantes et rappeler que le `SVG` reste la source de vérité.
+
+# Current Pass - 2026-03-26 - Installation Du MCP Figma Dans Codex
+
+### Plan
+
+- [x] Confirmer la source officielle et la methode d'installation compatible Codex
+- [x] Ajouter le serveur MCP Figma a la configuration locale Codex
+- [x] Verifier la presence du token et la visibilite du serveur dans Codex
+- [x] Documenter le resultat et les points d'usage
+
+### Review
+
+- Le serveur MCP Figma officiel a ete confirme via la documentation Figma pour Codex, avec la commande manuelle `codex mcp add figma --url https://mcp.figma.com/mcp`.
+- Installation effectuee dans `/Users/steven/.codex/config.toml` avec l'entree `[mcp_servers.figma]` pointant vers `https://mcp.figma.com/mcp` et `bearer_token_env_var = "FIGMA_OAUTH_TOKEN"`.
+- Verification locale reussie:
+  - `codex mcp get figma` retourne un transport `streamable_http`, l'URL Figma et le bearer token env var attendu.
+  - `codex mcp list` affiche `figma` en statut `enabled` avec auth `Bearer token`.
+- Le shell courant expose deja `FIGMA_OAUTH_TOKEN`, donc aucune saisie de token supplementaire n'a ete necessaire pendant l'installation.
+- L'authentification OAuth native `codex mcp login figma` a aussi ete finalisee avec succes, ce qui aligne la session Codex avec le flux officiel Figma.
+- Les skills Figma officielles recommandees par Figma pour Codex ont ete installees localement dans `/Users/steven/.codex/skills`: `figma-use`, `figma-implement-design`, `figma-code-connect-components`, `figma-create-design-system-rules`, `figma-create-new-file`, `figma-generate-design`, `figma-generate-library`.
+- Le fichier Figma fourni par l'utilisateur est lisible via MCP (`fileKey = 9PlN2N8NvXulWlQHi1Wbrr`, `nodeId = 0:1`) et le compte authentifie est `steven.poivre.etu@univ-lille.fr`.
+- Diagnostic final: meme apres redemarrage de l'app, ce thread continue d'exposer seulement les anciens outils Figma de lecture (`get_metadata`, `get_design_context`, `get_screenshot`, etc.) et pas les outils d'ecriture attendus (`use_figma`, `create_new_file`, `generate_figma_design`).
+- Cause racine la plus probable: le jeu d'outils de ce thread a ete fixe avant l'ajout du serveur/skills Figma d'ecriture et n'a pas ete rehydrate dans cette conversation. La documentation OpenAI sur Codex explique explicitement que changer les tools en cours de conversation est un cas special qui peut ne pas etre reapplique proprement a un thread deja ouvert.
+- Action restante pour debloquer l'ecriture Figma: ouvrir un NOUVEAU thread Codex apres ce setup. Le nouveau thread devrait charger le serveur MCP Figma et les skills `figma-use` / `figma-generate-design` des le demarrage.
+
 # Current Pass - 2026-03-25 - Landing Redirect Loop Root Cause Fix
 
 ### Plan

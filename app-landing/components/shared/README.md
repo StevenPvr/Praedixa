@@ -25,6 +25,7 @@ Shell partage du site et primitives visuelles reutilisables.
 - `__tests__/NavigationMenus.test.tsx`
 - `__tests__/BreadcrumbTrail.test.tsx`
 - `__tests__/GeoSummaryPanel.test.tsx`
+- `__tests__/HeaderHeroTheme.test.ts`
 
 ## Conventions
 
@@ -36,6 +37,7 @@ Shell partage du site et primitives visuelles reutilisables.
 - `GeoSummaryPanel.tsx` doit rester court, canonique et derivable du contenu deja visible; ne pas en faire un second hero marketing deconnecte des sections de la page
 - l'iconographie marketing doit passer par `shared/icons/` plutot que multiplier des glyphes generiques de librairie avec des styles incoherents
 - dans `Header.tsx`, garder un nom accessible explicite pour les CTA responsives et verifier le contraste reel des variantes desktop/mobile au lieu de supposer que les spans caches restent neutres pour l'audit a11y
+- quand le header survole un hero `hero-pulsor`, traiter le theme visuel via les regles globales scrollees `body:has(.hero-pulsor) header[data-scroll-surface="top"] ...`; ne pas disperser des overrides concurrents entre `Header.tsx`, `DesktopNav.tsx` et `MobileNav.tsx`
 - `Footer.tsx` doit reprendre exactement la meme these publique que la homepage; ne pas y reintroduire un wording legacy plus etroit (`charge/capacite`, `coverage`) une fois le message canonique mis a jour
 - `Header.tsx` et `Footer.tsx` doivent partager la meme hierarchie d'entree publique: sur la homepage FR, afficher `preuve de ROI` comme CTA visible vers la page de preuve et garder le cadrage du premier perimetre comme autre entree globale; ne pas renvoyer vers une ancienne page `/deploiement`
 - le mini-parcours `ScopingCallRequestPanel` doit reutiliser la meme validation semantique d'email que les autres formulaires LP via `lib/security/email-address.ts`

@@ -13,6 +13,7 @@ Sous-dossiers :
 Fichiers :
 
 - `BreadcrumbTrail.test.tsx`
+- `HeaderHeroTheme.test.ts`
 - `HeaderScrollState.test.ts`
 - `NavigationMenus.test.tsx`
 

@@ -319,7 +319,7 @@ export function HeroPulsorDepthLayers() {
       <canvas
         ref={canvasRef}
         className="absolute inset-0"
-        style={{ opacity: reduced ? 0 : 1 }}
+        style={{ opacity: reduced ? 0 : 0.5 }}
       />
 
       {/* ── Grid overlay ── */}
@@ -332,9 +332,9 @@ export function HeroPulsorDepthLayers() {
           `,
           backgroundSize: "64px 64px",
           maskImage:
-            "radial-gradient(ellipse 85% 75% at 50% 40%, rgba(0,0,0,0.18) 0%, transparent 100%)",
+            "radial-gradient(ellipse 82% 72% at 50% 38%, rgba(0,0,0,0.24) 0%, transparent 100%)",
           WebkitMaskImage:
-            "radial-gradient(ellipse 85% 75% at 50% 40%, rgba(0,0,0,0.18) 0%, transparent 100%)",
+            "radial-gradient(ellipse 82% 72% at 50% 38%, rgba(0,0,0,0.24) 0%, transparent 100%)",
         }}
       />
 

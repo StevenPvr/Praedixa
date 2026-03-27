@@ -621,8 +621,7 @@ body:has(.hero-dark) header[data-scroll-surface="top"] .hdr-hamburger:hover {
 }
 
 /* ── Header: transparent adaptation on Pulsor hero ─────────────────
-   Light-washed hero: dark text, transparent pill backgrounds.
-   Logo and CTA keep their default dark styling. ── */
+   Video-backed hero: white logo and nav, transparent supports. ── */
 
 body:has(.hero-pulsor) header[data-scroll-surface="top"] .hdr-logo {
   background: transparent;
@@ -631,7 +630,15 @@ body:has(.hero-pulsor) header[data-scroll-surface="top"] .hdr-logo {
 }
 
 body:has(.hero-pulsor) header[data-scroll-surface="top"] .hdr-logo:hover {
-  background: rgba(15, 17, 21, 0.04);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body:has(.hero-pulsor) header[data-scroll-surface="top"] .hdr-logo img {
+  filter: brightness(0) invert(1);
+}
+
+body:has(.hero-pulsor) header[data-scroll-surface="top"] .hdr-logo-text {
+  color: rgba(255, 255, 255, 0.92);
 }
 
 body:has(.hero-pulsor) header[data-scroll-surface="top"] .hdr-nav-pill {
@@ -641,31 +648,46 @@ body:has(.hero-pulsor) header[data-scroll-surface="top"] .hdr-nav-pill {
 }
 
 body:has(.hero-pulsor) header[data-scroll-surface="top"] .hdr-nav-link {
-  color: rgba(17, 24, 39, 0.62);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 body:has(.hero-pulsor) header[data-scroll-surface="top"] .hdr-nav-link:hover {
-  color: #111827;
-  background: rgba(15, 17, 21, 0.04);
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body:has(.hero-pulsor) header[data-scroll-surface="top"] .hdr-nav-link svg {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+body:has(.hero-pulsor) header[data-scroll-surface="top"] .hdr-cta {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+body:has(.hero-pulsor) header[data-scroll-surface="top"] .hdr-cta:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.32);
 }
 
 body:has(.hero-pulsor) header[data-scroll-surface="top"] .hdr-locale {
-  color: rgba(17, 24, 39, 0.55);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 body:has(.hero-pulsor) header[data-scroll-surface="top"] .hdr-locale:hover {
-  color: #111827;
-  background: rgba(15, 17, 21, 0.04);
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 body:has(.hero-pulsor) header[data-scroll-surface="top"] .hdr-hamburger {
-  background: rgba(15, 17, 21, 0.04);
-  border-color: rgba(15, 17, 21, 0.08);
-  color: rgba(17, 24, 39, 0.82);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.92);
   box-shadow: none;
 }
 
 body:has(.hero-pulsor) header[data-scroll-surface="top"] .hdr-hamburger:hover {
-  background: rgba(15, 17, 21, 0.08);
-  border-color: rgba(15, 17, 21, 0.12);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.25);
 }

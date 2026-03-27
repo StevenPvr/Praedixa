@@ -16,8 +16,7 @@ Assemblees dans `app/[locale]/page.tsx`, chaque section prend `locale: Locale` e
 
 | #    | Fichier                                            | Anchor         | Description                                                                               |
 | ---- | -------------------------------------------------- | -------------- | ----------------------------------------------------------------------------------------- |
-| S01  | `HeroPulsorSection.tsx` + `HeroPulsorContent.tsx`  | `#hero`        | Hero split-screen sur canvas blanc: promesse QSR, CTAs et board de signaux reseau avant rush |
-| S01b | `HomeGeoSummarySection.tsx`                        | `#resume`      | Bloc answer-first juste apres le hero pour donner une lecture canonique courte et citable |
+| S01  | `HeroPulsorSection.tsx` + `HeroPulsorContent.tsx` + `HeroPulsorVideoBackdrop.tsx` | `#hero`        | Hero video plein cadre: fond operations restaurant, overlay sombre, message resserre et CTA au-dessus de la ligne de flottaison |
 | S02  | `CredibilityRibbonSection.tsx`                     | `#credibilite` | Ruban de credibilite: stack chips, role pills, trust markers                              |
 | S03  | `ProblemBlockSection.tsx`                          | `#probleme`    | 3 cartes tension numerotees avec hover signal                                             |
 | S04  | `MethodBlockSection.tsx` + `MethodBlockClient.tsx` | `#methode`     | Sticky-scroll: 4 etapes voir/comparer/decider/prouver avec panel visuel synchronise       |
@@ -43,7 +42,7 @@ Ces fichiers existent encore mais ne sont plus importes dans `page.tsx`:
 - `lib/content/value-prop/` — contenu FR/EN type
 - `lib/i18n/config.ts` — types Locale, getLocalizedPath
 
-## Tests (12 fichiers, 75 assertions)
+## Tests (11 fichiers)
 
 - `__tests__/HeroV2Section.test.tsx`
 - `__tests__/CredibilityRibbonSection.test.tsx`
@@ -63,11 +62,15 @@ Ces fichiers existent encore mais ne sont plus importes dans `page.tsx`:
 Si une section commence a porter de la logique de page complete, la remonter dans `components/pages/`.
 Le copy FR utilise des apostrophes typographiques U+2019; les tests doivent utiliser des regex avec `.` pour matcher les deux variantes.
 Pour les sections homepage V2, extraire les sous-blocs vers des composants locaux ou fichiers freres des que la section depasse les guardrails de taille.
-La homepage doit garder un passage `answer-first` visible, court et canoniquement aligné avec la promesse publique; ne pas laisser le hero etre la seule entree semantique pour les crawlers et agents.
+Si aucun bloc `answer-first` dedie n'est rendu sous le hero, integrer cette lecture canonique directement dans le hero lui-meme au lieu de re-creer une section post-hero.
 Le comparatif homepage doit opposer Praedixa a des categories d'outils (`ERP`, `BI`, `planning`, `Excel/comites`), jamais a des marques nommees.
 Sur la homepage FR, preferer le wording visible `preuve de ROI`; reserver `preuve sur historique` au slug et a la page detaillee quand il faut expliquer la methode de preuve.
 Quand la homepage oppose Praedixa aux ERP, rendre explicite la difference de methode (`Data Science + Machine Learning + IA` vs pilotage par moyennes) au lieu de rester sur un comparatif trop abstrait.
 Quand la homepage est recadree sur un ICP unique, retirer les sections visibles qui renvoient encore a d'autres verticales ou les convertir en cas d'usage du meme ICP.
 Le rail de confiance du hero ne doit pas afficher de placeholders repetes ou de pseudo-logos textuels au-dessus de la ligne de flottaison.
-Le hero `HeroPulsor` garde un fond global blanc; le contraste doit venir du texte, des surfaces teintees et du board de signaux, jamais d'un basculement du canvas en dark mode.
+Le hero `HeroPulsor` s'appuie desormais sur un fond video plein cadre; le contraste doit etre porte par un overlay sombre et un bloc texte simple, pas par des panneaux produits ajoutes au-dessus de la video.
+Le recouvrement du hero video doit rester suffisamment leger pour laisser vivre les rushs en fond; si le texte reste lisible, preferer toujours un overlay moins opaque a un hero qui parait eteint.
+Le hero `HeroPulsor` doit privilegier une hierarchie editoriale tres resserree (kicker, H1, subheading, CTA, une ligne de preuve) et garder une grande respiration autour du message.
+Dans le hero `HeroPulsor`, ne pas remettre de companion pills de type badge metier ou stat courte (`QSR OPS`, `30j`) a cote du kicker si l'utilisateur cherche une silhouette plus nue.
+Dans le hero `HeroPulsor`, ne jamais remettre par-dessus la video un board produit, un logo rail ou une pile de cartes qui recompacte la silhouette au-dessus de la ligne de flottaison.
 Si un composant legacy de trust bar est conserve hors parcours actif, il doit lui aussi rester borne a des logos verifies; ne jamais y laisser de faux wordmarks ou de placeholders de preuve sociale.

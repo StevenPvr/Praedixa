@@ -69,10 +69,11 @@ describe("HeroPulsorSection", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the blue badge text", () => {
+  it("removes the extra hero micro-pills", () => {
     render(<HeroPulsorSection locale="fr" />);
 
-    expect(screen.getByText("QSR OPS")).toBeInTheDocument();
+    expect(screen.queryByText("QSR OPS")).not.toBeInTheDocument();
+    expect(screen.queryByText("30j")).not.toBeInTheDocument();
   });
 
   it("renders the subheading paragraph", () => {
@@ -113,30 +114,36 @@ describe("HeroPulsorSection", () => {
     expect(screen.getByText("NDA sur demande")).toBeInTheDocument();
   });
 
-  it("renders proof block with role chips", () => {
+  it("renders a background hero video montage", () => {
     render(<HeroPulsorSection locale="fr" />);
 
-    expect(screen.getByText("FRANCHISÉ")).toBeInTheDocument();
-    expect(screen.getByText("DIR. RÉSEAU")).toBeInTheDocument();
-    expect(screen.getByText("OPS")).toBeInTheDocument();
-    expect(screen.getByText("FINANCE")).toBeInTheDocument();
+    const video = screen.getByTestId(
+      "hero-background-video",
+    ) as HTMLVideoElement;
+    expect(video).toHaveAttribute("autoplay");
+    expect(video).toHaveAttribute("loop");
+    expect(video.muted).toBe(true);
+    expect(video).toHaveAttribute(
+      "poster",
+      "/hero-video/restaurant-hero-poster.jpg",
+    );
+    expect(screen.getByTestId("hero-video-overlay-base")).toHaveClass(
+      "bg-[rgba(7,12,17,0.3)]",
+    );
+    expect(screen.getByTestId("hero-video-overlay-gradient")).toHaveClass(
+      "bg-[linear-gradient(90deg,rgba(7,12,17,0.64)_0%,rgba(7,12,17,0.54)_36%,rgba(7,12,17,0.22)_62%,rgba(7,12,17,0.44)_100%)]",
+    );
   });
 
-  it("renders the micro-pill", () => {
+  it("removes the old signal board and logo rail from the hero", () => {
     render(<HeroPulsorSection locale="fr" />);
 
     expect(
-      screen.getByText((_, element) => {
-        const text = element?.textContent?.replace(/\s+/g, " ").trim();
-        return text === "Demande | effectifs | couverture";
-      }),
-    ).toBeInTheDocument();
-  });
-
-  it("renders the logo rail caption", () => {
-    render(<HeroPulsorSection locale="fr" />);
-
-    expect(screen.getByText("Ils nous font confiance")).toBeInTheDocument();
+      screen.queryByText("Projection demande + effectifs"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Ils nous font confiance"),
+    ).not.toBeInTheDocument();
   });
 
   it("renders correctly for the English locale", () => {
@@ -145,7 +152,8 @@ describe("HeroPulsorSection", () => {
     const heading = screen.getByRole("heading", { level: 1 });
     expect(heading).toHaveTextContent("Predict demand,");
     expect(heading).toHaveTextContent("calibrate staffing.");
-    expect(screen.getByText("QSR OPS")).toBeInTheDocument();
-    expect(screen.getByText("They trust us")).toBeInTheDocument();
+    expect(screen.queryByText("QSR OPS")).not.toBeInTheDocument();
+    expect(screen.queryByText("30d")).not.toBeInTheDocument();
+    expect(screen.getByTestId("hero-background-video")).toBeInTheDocument();
   });
 });

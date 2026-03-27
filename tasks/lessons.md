@@ -1,5 +1,12 @@
 # Lessons
 
+- 2026-03-27: Quand un hero video doit etre encore simplifie, commencer par retirer les companion pills secondaires (`QSR OPS`, `30j`, badges stats) avant de toucher a la typo ou aux CTA; ce sont souvent les premiers parasites visuels.
+- 2026-03-27: Quand le contraste du header pose probleme au-dessus d'un hero `hero-pulsor`, corriger d'abord les regles globales `body:has(.hero-pulsor) header[data-scroll-surface="top"] ...` avant de toucher aux composants de nav; c'est la vraie source de theme pour l'etat top.
+- 2026-03-27: Quand l'utilisateur veut remettre de la video dans le hero tout en le rendant plus "degage", ne pas poser la video sous la meme structure qu'avant; repartir d'une composition minimale et retirer les panneaux, rails et preuves redondantes au-dessus de la ligne de flottaison.
+- 2026-03-27: Quand l'utilisateur demande de retirer le bloc sous le hero, ne pas conserver par reflexe une section "answer-first" post-hero; si ce resume reste utile, il doit etre absorbe par le hero lui-meme et non impose comme un bloc supplementaire.
+- 2026-03-27: Quand un utilisateur recadre un hero comme "trop de gros blocs rectangulaires", retirer d'abord les conteneurs lourds et reconcentrer la preuve en lignes, pills ou elements flottants; la sensation premium depend d'abord de la silhouette generale, pas du detail interne des cartes.
+- 2026-03-26: Quand un setup MCP Figma doit permettre l'ecriture dans Figma, ne pas s'arreter a la lecture du fichier ou au statut `enabled`; verifier explicitement que les outils de write (`use_figma`, `create_new_file`, `generate_figma_design`) sont bien charges dans la session active.
+- 2026-03-26: Quand on ajoute ou authentifie de nouveaux outils MCP/skills pendant une conversation Codex, ne pas supposer que le thread courant recharge son schema d'outils; verifier sur un NOUVEAU thread avant de conclure que l'integration ne marche pas.
 - 2026-03-23: Quand un app Next.js de dev doit etre ouverte via l'IP LAN du poste, ajouter aussi ces IPv4 locales a `allowedDevOrigins`; sinon Next bloque `/_next/*` et le symptome peut ressembler a un bug auth.
 - 2026-03-23: Quand une app Next OIDC tourne en local sur une IP privee ou un alias loopback, garder le meme host pour les cookies de login, le `redirect_uri`, le callback et les controles same-origin; melanger IP reseau et `localhost` casse le round-trip auth.
 - 2026-03-23: Quand l'utilisateur demande explicitement de couper GitHub Actions, desactiver les definitions de workflow elles-memes et arreter de chasser les rouges un par un.
