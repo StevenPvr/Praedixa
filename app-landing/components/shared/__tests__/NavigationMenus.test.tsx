@@ -74,25 +74,14 @@ describe("navigation menus", () => {
     const sectorsButton = screen.getByRole("button", { name: /secteurs/i });
     fireEvent.focus(sectorsButton);
 
-    expect(screen.getByRole("link", { name: /HCR/i })).toHaveAttribute(
-      "href",
+    const sectorLinks = screen
+      .getAllByRole("link")
+      .filter((link) => link.getAttribute("href")?.startsWith("/fr/secteurs/"));
+
+    expect(sectorLinks.map((link) => link.getAttribute("href"))).toEqual([
       "/fr/secteurs/hcr",
-    );
-    expect(
-      screen.getByRole("link", { name: /Enseignement supérieur/i }),
-    ).toHaveAttribute("href", "/fr/secteurs/enseignement-superieur");
-    expect(
-      screen.getByRole("link", { name: /Logistique \/ Transport \/ Retail/i }),
-    ).toHaveAttribute("href", "/fr/secteurs/logistique-transport-retail");
-    expect(
-      screen.getByRole("link", {
-        name: /Automobile \/ concessions \/ ateliers/i,
-      }),
-    ).toHaveAttribute("href", "/fr/secteurs/automobile-concessions-ateliers");
-    expect(screen.getByRole("link", { name: /Fitness/i })).toHaveAttribute(
-      "href",
-      "/fr/secteurs/fitness-reseaux-clubs",
-    );
+      "/fr/secteurs/logistique-transport-retail",
+    ]);
     expect(
       screen.getByRole("link", { name: /Voir la page ressources/i }),
     ).toHaveAttribute("href", "/fr/ressources");
@@ -123,22 +112,14 @@ describe("navigation menus", () => {
 
     await user.click(screen.getByRole("button", { name: /^Secteurs$/i }));
 
-    expect(screen.getByRole("link", { name: /HCR/i })).toHaveAttribute(
-      "href",
+    const sectorLinks = screen
+      .getAllByRole("link")
+      .filter((link) => link.getAttribute("href")?.startsWith("/fr/secteurs/"));
+
+    expect(sectorLinks.map((link) => link.getAttribute("href"))).toEqual([
       "/fr/secteurs/hcr",
-    );
-    expect(
-      screen.getByRole("link", { name: /Logistique \/ Transport \/ Retail/i }),
-    ).toHaveAttribute("href", "/fr/secteurs/logistique-transport-retail");
-    expect(
-      screen.getByRole("link", {
-        name: /Automobile \/ concessions \/ ateliers/i,
-      }),
-    ).toHaveAttribute("href", "/fr/secteurs/automobile-concessions-ateliers");
-    expect(screen.getByRole("link", { name: /Fitness/i })).toHaveAttribute(
-      "href",
-      "/fr/secteurs/fitness-reseaux-clubs",
-    );
+      "/fr/secteurs/logistique-transport-retail",
+    ]);
 
     mockPathname = "/fr/produit-methode";
     rerender(

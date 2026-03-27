@@ -265,9 +265,7 @@ export const enCoreConversion: Partial<Dictionary> = {
     error: "Something went wrong. Please try again.",
     sectors: [
       "Hospitality / Food service",
-      "Higher education",
       "Logistics / Transport / Retail",
-      "Automotive / dealerships / workshops",
       "Construction",
       "Services",
       "Other",

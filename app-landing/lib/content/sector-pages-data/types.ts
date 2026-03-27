@@ -3,10 +3,7 @@ import type { MarketingIconComponent } from "../../../components/shared/icons/Ma
 
 export type SectorPageId =
   | "hcr"
-  | "higher-education"
-  | "logistics-transport-retail"
-  | "automotive"
-  | "fitness";
+  | "logistics-transport-retail";
 
 export interface SectorProof {
   value: string;

@@ -11,9 +11,9 @@ import {
 } from "../sector-pages";
 
 describe("sector pages content", () => {
-  it("exposes five sector pages per locale", () => {
-    expect(listSectorPages("fr")).toHaveLength(5);
-    expect(listSectorPages("en")).toHaveLength(5);
+  it("exposes the published sector pages per locale", () => {
+    expect(listSectorPages("fr")).toHaveLength(2);
+    expect(listSectorPages("en")).toHaveLength(2);
   });
 
   it("resolves localized hrefs consistently", () => {
@@ -21,25 +21,16 @@ describe("sector pages content", () => {
     expect(getSectorPageHref("en", "hcr")).toBe(
       "/en/industries/hospitality-food-service",
     );
-    expect(getSectorAlternatePaths("automotive")).toEqual({
-      fr: "/fr/secteurs/automobile-concessions-ateliers",
-      en: "/en/industries/automotive-dealerships-workshops",
-    });
-    expect(getSectorAlternatePaths("fitness")).toEqual({
-      fr: "/fr/secteurs/fitness-reseaux-clubs",
-      en: "/en/industries/fitness-club-networks",
+    expect(getSectorAlternatePaths("logistics-transport-retail")).toEqual({
+      fr: "/fr/secteurs/logistique-transport-retail",
+      en: "/en/industries/logistics-transport-retail",
     });
   });
 
   it("returns the expected localized entries by slug", () => {
-    expect(getSectorPageBySlug("fr", "enseignement-superieur")?.id).toBe(
-      "higher-education",
-    );
+    expect(getSectorPageBySlug("fr", "hcr")?.id).toBe("hcr");
     expect(getSectorPageBySlug("en", "logistics-transport-retail")?.id).toBe(
       "logistics-transport-retail",
-    );
-    expect(getSectorPageBySlug("fr", "fitness-reseaux-clubs")?.id).toBe(
-      "fitness",
     );
     expect(getSectorPageBySlug("fr", "unknown")).toBeNull();
   });
@@ -47,15 +38,15 @@ describe("sector pages content", () => {
   it("maps legacy sector URLs to the exact replacement pages", () => {
     const redirects = getSectorLegacyRedirects();
 
+    expect(Array.from(new Set(Object.values(redirects))).sort()).toEqual([
+      "/en/industries/hospitality-food-service",
+      "/en/industries/logistics-transport-retail",
+      "/fr/secteurs/hcr",
+      "/fr/secteurs/logistique-transport-retail",
+    ]);
     expect(redirects["/praedixa-restauration-rapide"]).toBe("/fr/secteurs/hcr");
     expect(redirects["/praedixa-logistics"]).toBe(
       "/en/industries/logistics-transport-retail",
-    );
-    expect(redirects["/praedixa-concessions-ateliers"]).toBe(
-      "/fr/secteurs/automobile-concessions-ateliers",
-    );
-    expect(redirects["/praedixa-fitness"]).toBe(
-      "/fr/secteurs/fitness-reseaux-clubs",
     );
   });
 
@@ -104,67 +95,33 @@ describe("sector pages content", () => {
 
   it("keeps sector value propositions differentiated by business risk, not only staffing", () => {
     const hospitalityFr = getSectorPageById("fr", "hcr");
-    const higherEducationFr = getSectorPageById("fr", "higher-education");
     const logisticsFr = getSectorPageById("fr", "logistics-transport-retail");
-    const automotiveFr = getSectorPageById("fr", "automotive");
-    const fitnessFr = getSectorPageById("fr", "fitness");
 
     expect(hospitalityFr.valuePropBody).toContain("promesse de service");
-    expect(higherEducationFr.valuePropBody).toContain("service étudiant");
     expect(logisticsFr.valuePropBody).toContain("couverture stock");
-    expect(automotiveFr.valuePropBody).toContain("pièces");
-    expect(fitnessFr.valuePropBody).toContain("rétention");
 
     const hospitalityEn = getSectorPageById("en", "hcr");
-    const higherEducationEn = getSectorPageById("en", "higher-education");
     const logisticsEn = getSectorPageById("en", "logistics-transport-retail");
-    const automotiveEn = getSectorPageById("en", "automotive");
-    const fitnessEn = getSectorPageById("en", "fitness");
 
     expect(hospitalityEn.valuePropBody).toContain("service promise");
-    expect(higherEducationEn.valuePropBody).toContain("student service");
     expect(logisticsEn.valuePropBody).toContain("inventory coverage");
-    expect(automotiveEn.valuePropBody).toContain("parts");
-    expect(fitnessEn.valuePropBody).toContain("retention");
   });
 
   it("keeps sector KPIs and decisions anchored in distinct business levers", () => {
     const hospitalityFr = getSectorPageById("fr", "hcr");
-    const higherEducationFr = getSectorPageById("fr", "higher-education");
     const logisticsFr = getSectorPageById("fr", "logistics-transport-retail");
-    const automotiveFr = getSectorPageById("fr", "automotive");
-    const fitnessFr = getSectorPageById("fr", "fitness");
 
     expect(hospitalityFr.kpis.join(" ")).toContain("RevPAR");
     expect(hospitalityFr.decisions.join(" ")).toContain("terrasses");
-    expect(higherEducationFr.kpis.join(" ")).toContain("yield");
-    expect(higherEducationFr.decisions.join(" ")).toContain(
-      "surveillance d'examens",
-    );
     expect(logisticsFr.kpis.join(" ")).toContain("Couverture de stock");
     expect(logisticsFr.decisions.join(" ")).toContain("réapprovisionnement");
-    expect(automotiveFr.kpis.join(" ")).toContain("Taux de service pièces");
-    expect(automotiveFr.decisions.join(" ")).toContain(
-      "transferts inter-sites",
-    );
-    expect(fitnessFr.kpis.join(" ")).toContain("Taux de remplissage");
-    expect(fitnessFr.decisions.join(" ")).toContain("cours collectifs");
 
     const hospitalityEn = getSectorPageById("en", "hcr");
-    const higherEducationEn = getSectorPageById("en", "higher-education");
     const logisticsEn = getSectorPageById("en", "logistics-transport-retail");
-    const automotiveEn = getSectorPageById("en", "automotive");
-    const fitnessEn = getSectorPageById("en", "fitness");
 
     expect(hospitalityEn.kpis.join(" ")).toContain("RevPAR");
     expect(hospitalityEn.decisions.join(" ")).toContain("terraces");
-    expect(higherEducationEn.kpis.join(" ")).toContain("yield");
-    expect(higherEducationEn.decisions.join(" ")).toContain("exam proctoring");
     expect(logisticsEn.kpis.join(" ")).toContain("Inventory coverage");
     expect(logisticsEn.decisions.join(" ")).toContain("replenishment");
-    expect(automotiveEn.kpis.join(" ")).toContain("Parts fill rate");
-    expect(automotiveEn.decisions.join(" ")).toContain("inter-site transfers");
-    expect(fitnessEn.kpis.join(" ")).toContain("Class fill rate");
-    expect(fitnessEn.decisions.join(" ")).toContain("group classes");
   });
 });

@@ -29,9 +29,7 @@ export const ALLOWED_EMPLOYEE_RANGES = new Set([
 export const ALLOWED_SECTORS = new Set([
   ...SECTORS,
   "Hospitality / Food service",
-  "Higher education",
   "Logistics / Transport / Retail",
-  "Automotive / dealerships / workshops",
   "Construction",
   "Other",
 ]);

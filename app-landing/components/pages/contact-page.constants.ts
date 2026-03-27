@@ -6,18 +6,14 @@ export const SITE_COUNTS = ["1-3", "4-10", "11-30", "31+"] as const;
 export const CONTACT_SECTORS = {
   fr: [
     "HCR",
-    "Enseignement supérieur",
     "Logistique / Transport / Retail",
-    "Automobile / concessions / ateliers",
     "BTP",
     "Services",
     "Autre",
   ],
   en: [
     "Hospitality / Food service",
-    "Higher education",
     "Logistics / Transport / Retail",
-    "Automotive / dealerships / workshops",
     "Construction",
     "Services",
     "Other",

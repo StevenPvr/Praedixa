@@ -248,9 +248,7 @@ export const frCoreConversion: Partial<Dictionary> = {
     error: "Une erreur est survenue. Veuillez réessayer.",
     sectors: [
       "HCR",
-      "Enseignement supérieur",
       "Logistique / Transport / Retail",
-      "Automobile / concessions / ateliers",
       "BTP",
       "Services",
       "Autre",

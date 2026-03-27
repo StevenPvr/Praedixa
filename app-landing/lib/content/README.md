@@ -11,7 +11,7 @@ Contenu structure et versionne du landing hors dictionnaires UI.
 - `serp-asset-downloads.ts`: assets telechargeables lies aux ressources
 - `legal.ts`: contenus legaux
 - `pilot-form-options.ts`: options serveur/partagees pour le formulaire de deploiement
-- `sector-pages.ts`: facade publique des pages verticales HCR, enseignement supérieur, logistique/transport/retail, automobile et fitness
+- `sector-pages.ts`: facade publique des pages verticales HCR et logistique/transport/retail
 - `sector-pages-data/`: contrats, routes, contenu FR/EN et copy partagee des verticales
 
 ## Idee generale

@@ -10,20 +10,14 @@ export const sectorRoutes: Record<Locale, SectorRouteConfig> = {
     basePath: "/fr/secteurs",
     slugs: {
       hcr: "hcr",
-      "higher-education": "enseignement-superieur",
       "logistics-transport-retail": "logistique-transport-retail",
-      automotive: "automobile-concessions-ateliers",
-      fitness: "fitness-reseaux-clubs",
     },
   },
   en: {
     basePath: "/en/industries",
     slugs: {
       hcr: "hospitality-food-service",
-      "higher-education": "higher-education",
       "logistics-transport-retail": "logistics-transport-retail",
-      automotive: "automotive-dealerships-workshops",
-      fitness: "fitness-club-networks",
     },
   },
 };
@@ -38,10 +32,6 @@ export const sectorLegacyAliases: Record<
       "/praedixa-quick-service-restaurants",
       "/en/praedixa-quick-service-restaurants",
     ],
-  },
-  "higher-education": {
-    fr: [],
-    en: [],
   },
   "logistics-transport-retail": {
     fr: [
@@ -62,23 +52,5 @@ export const sectorLegacyAliases: Record<
       "/praedixa-retail-distribution",
       "/en/praedixa-retail-distribution",
     ],
-  },
-  automotive: {
-    fr: [
-      "/praedixa-automobile",
-      "/fr/praedixa-automobile",
-      "/praedixa-concessions-ateliers",
-      "/fr/praedixa-concessions-ateliers",
-    ],
-    en: [
-      "/praedixa-automotive",
-      "/en/praedixa-automotive",
-      "/praedixa-auto-dealerships-workshops",
-      "/en/praedixa-auto-dealerships-workshops",
-    ],
-  },
-  fitness: {
-    fr: ["/praedixa-fitness", "/fr/praedixa-fitness"],
-    en: ["/praedixa-fitness-clubs", "/en/praedixa-fitness-clubs"],
   },
 };

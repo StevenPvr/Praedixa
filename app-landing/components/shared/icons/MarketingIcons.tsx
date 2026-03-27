@@ -82,20 +82,6 @@ export function StorefrontLineIcon(props: MarketingIconProps) {
   );
 }
 
-export function CampusLineIcon(props: MarketingIconProps) {
-  return (
-    <IconBase {...props}>
-      <path d="M4 8.5 12 4.5l8 4" />
-      <path d="M6.5 10.5v6" />
-      <path d="M10 10.5v6" />
-      <path d="M14 10.5v6" />
-      <path d="M17.5 10.5v6" />
-      <path d="M5 16.5h14" />
-      <path d="M4 19.5h16" />
-    </IconBase>
-  );
-}
-
 export function FlowNetworkIcon(props: MarketingIconProps) {
   return (
     <IconBase {...props}>
@@ -104,35 +90,6 @@ export function FlowNetworkIcon(props: MarketingIconProps) {
       <rect x="13" y="13" width="5.5" height="5.5" rx="1.6" />
       <path d="M11 8.8h3.7" />
       <path d="M10.4 10.4l4.4 4.4" />
-    </IconBase>
-  );
-}
-
-export function CarServiceIcon(props: MarketingIconProps) {
-  return (
-    <IconBase {...props}>
-      <path d="M7.2 10.6a2 2 0 0 1 1.9-1.4h5.8a2 2 0 0 1 1.9 1.4l1.2 3.6" />
-      <path d="M5 14.2h14l-.4 2.7a1.8 1.8 0 0 1-1.8 1.6H7.2a1.8 1.8 0 0 1-1.8-1.6L5 14.2Z" />
-      <circle cx="8.2" cy="15.7" r="1.1" />
-      <circle cx="15.8" cy="15.7" r="1.1" />
-      <path d="M9.8 12.4h4.4" />
-      <path d="M6.2 13.2 7.8 9" />
-      <path d="M17.8 13.2 16.2 9" />
-    </IconBase>
-  );
-}
-
-export function FitnessClubIcon(props: MarketingIconProps) {
-  return (
-    <IconBase {...props}>
-      <path d="M4.8 10.4h3.1" />
-      <path d="M16.1 10.4h3.1" />
-      <path d="M7.9 8v4.8" />
-      <path d="M16.1 8v4.8" />
-      <path d="M9.1 9.2h5.8v2.4H9.1z" />
-      <path d="M6.6 8.7 7.9 8v4.8l-1.3-.7" />
-      <path d="M17.4 8.7 16.1 8v4.8l1.3-.7" />
-      <path d="M8.1 16.8c1-.8 2.3-1.2 3.9-1.2s2.9.4 3.9 1.2" />
     </IconBase>
   );
 }

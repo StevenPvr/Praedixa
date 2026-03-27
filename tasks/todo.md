@@ -1,3 +1,27 @@
+# Current Pass - 2026-03-27 - Remove Retired Landing Verticals
+
+### Plan
+
+- [x] Retirer les verticales retirees de la source de vérité des pages sectorielles et des assets associés dans `app-landing`
+- [x] Nettoyer les surfaces publiques dérivées qui exposaient encore ces verticales: navigation, sitemap, SEO/LLMs, hub ressources et formulaires landing
+- [x] Supprimer ou réaligner les tests et la documentation landing liés à ces verticales retirees
+- [x] Vérifier le nettoyage par tests ciblés, typecheck, lint et E2E landing ciblé
+
+### Review
+
+- La source de vérité sectorielle landing ne publie plus que `HCR` et `Logistique / Transport / Retail`.
+- Les contenus, routes et dérivés suivants ont été nettoyés:
+  - `sector-pages-data/*` et les alias legacy associés
+  - formulaires contact / déploiement / pilot
+  - `llms.txt`, `llms-full.txt`, `sitemap`, navigation et hub ressources via leurs sources dynamiques
+  - assets media et icônes marketing devenus morts
+- Le module sectoriel partagé devenu inutilisé a été supprimé.
+- Vérifications exécutées:
+  - `pnpm --filter @praedixa/landing test app/__tests__/llms.test.ts app/__tests__/sitemap.test.ts app/api/deployment-request/__tests__/route-validation.test.ts components/shared/__tests__/NavigationMenus.test.tsx lib/content/__tests__/sector-pages.test.ts`
+  - `pnpm test:e2e:landing testing/e2e/landing/hero-industry-links.spec.ts --reporter=list`
+  - `pnpm --filter @praedixa/landing typecheck`
+  - `pnpm --filter @praedixa/landing lint`
+
 # Current Pass - 2026-03-27 - LinkedIn Banners Messaging Refresh
 
 ### Plan

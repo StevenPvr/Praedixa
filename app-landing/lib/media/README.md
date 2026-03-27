@@ -9,7 +9,7 @@ Servir les assets effectivement utilises par la homepage sans empiler de selecti
 ## Fichiers
 
 - `hero-industries.ts`: definition de l'asset montage unique utilise par le hero
-- `sector-backgrounds.ts`: mapping des fonds editoriaux externes utilises par le carousel des verticales
+- `sector-backgrounds.ts`: mapping des fonds editoriaux externes utilises par les verticales publiees
 
 ## Tests
 

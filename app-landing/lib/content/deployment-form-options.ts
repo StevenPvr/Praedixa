@@ -1,8 +1,6 @@
 export const SECTORS = [
   "HCR",
-  "Enseignement supérieur",
   "Logistique / Transport / Retail",
-  "Automobile / concessions / ateliers",
   "BTP",
   "Services",
   "Autre",

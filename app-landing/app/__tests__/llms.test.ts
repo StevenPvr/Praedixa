@@ -11,6 +11,16 @@ const retiredKnowledgeUrls = [
   "https://www.praedixa.com/en/playbook-staffing-reallocation-options",
 ];
 
+function extractUniqueSectorUrls(body: string): string[] {
+  return Array.from(
+    new Set(
+      body.match(
+        /https:\/\/www\.praedixa\.com\/(?:fr\/secteurs|en\/industries)\/[a-z0-9-]+/g,
+      ) ?? [],
+    ),
+  ).sort();
+}
+
 describe("llms routes", () => {
   it("should return plain text for /llms.txt", async () => {
     const response = await getLlms();
@@ -64,11 +74,14 @@ describe("llms routes", () => {
       "[Sector FR: HCR](https://www.praedixa.com/fr/secteurs/hcr)",
     );
     expect(body).toContain(
-      "[Industry EN: Higher education](https://www.praedixa.com/en/industries/higher-education)",
+      "[Industry EN: Logistics / Transport / Retail](https://www.praedixa.com/en/industries/logistics-transport-retail)",
     );
-    expect(body).toContain(
-      "[Sector FR: Fitness](https://www.praedixa.com/fr/secteurs/fitness-reseaux-clubs)",
-    );
+    expect(extractUniqueSectorUrls(body)).toEqual([
+      "https://www.praedixa.com/en/industries/hospitality-food-service",
+      "https://www.praedixa.com/en/industries/logistics-transport-retail",
+      "https://www.praedixa.com/fr/secteurs/hcr",
+      "https://www.praedixa.com/fr/secteurs/logistique-transport-retail",
+    ]);
     expect(body).not.toContain("historical audit");
     expect(body).not.toContain("Cloudflare");
 
@@ -89,13 +102,12 @@ describe("llms routes", () => {
     expect(body).toContain("https://www.praedixa.com/fr/ressources");
     expect(body).toContain("https://www.praedixa.com/en/resources");
     expect(body).toContain("https://www.praedixa.com/fr/ressources/");
-    expect(body).toContain("https://www.praedixa.com/fr/secteurs/hcr");
-    expect(body).toContain(
+    expect(extractUniqueSectorUrls(body)).toEqual([
+      "https://www.praedixa.com/en/industries/hospitality-food-service",
       "https://www.praedixa.com/en/industries/logistics-transport-retail",
-    );
-    expect(body).toContain(
-      "https://www.praedixa.com/en/industries/fitness-club-networks",
-    );
+      "https://www.praedixa.com/fr/secteurs/hcr",
+      "https://www.praedixa.com/fr/secteurs/logistique-transport-retail",
+    ]);
 
     for (const retiredUrl of retiredKnowledgeUrls) {
       expect(body).not.toContain(retiredUrl);

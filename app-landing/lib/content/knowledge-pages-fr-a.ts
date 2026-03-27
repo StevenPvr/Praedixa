@@ -111,7 +111,7 @@ export const frContentA: Record<
         title: "Contextes couverts",
         paragraphs: [
           "Praedixa s'adresse aux organisations multi-sites qui doivent arbitrer entre RH, finance, opérations et supply chain.",
-          "Les pages sectorielles dédiées couvrent maintenant HCR, enseignement supérieur, logistique / transport / retail, automobile / concessions / ateliers et fitness avec une proposition de valeur et des preuves adaptées à chaque contexte.",
+          "Les pages sectorielles dédiées couvrent maintenant HCR et logistique / transport / retail avec une proposition de valeur et des preuves adaptées à chaque contexte.",
         ],
         bullets: [
           "Variations de charge et de staffing",

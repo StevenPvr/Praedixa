@@ -177,15 +177,11 @@ describe("POST /api/deployment-request validation", () => {
     it("accepts every valid sector", async () => {
       const validSectors = [
         "HCR",
-        "Enseignement supérieur",
         "Logistique / Transport / Retail",
-        "Automobile / concessions / ateliers",
         "BTP",
         "Services",
         "Autre",
         "Hospitality / Food service",
-        "Higher education",
-        "Automotive / dealerships / workshops",
         "Construction",
         "Other",
       ];
