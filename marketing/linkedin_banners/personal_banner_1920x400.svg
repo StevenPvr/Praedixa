@@ -1,8 +1,8 @@
 <svg
   xmlns="http://www.w3.org/2000/svg"
-  width="4752"
-  height="1188"
-  viewBox="0 0 1584 396"
+  width="1920"
+  height="400"
+  viewBox="0 0 1920 400"
   style="background-color: #10182b; font-family: 'Geist', 'Satoshi', 'Inter', system-ui, sans-serif;"
 >
   <defs>
@@ -10,16 +10,16 @@
       <feTurbulence type="fractalNoise" baseFrequency="0.62" numOctaves="3" stitchTiles="stitch" />
       <feColorMatrix type="matrix" values="1 0 0 0 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 0.035 0" />
     </filter>
-    <radialGradient id="navyGlow" cx="78%" cy="46%" r="56%">
+    <radialGradient id="navyGlow" cx="77%" cy="46%" r="56%">
       <stop offset="0%" stop-color="#3459A8" stop-opacity="0.34" />
       <stop offset="100%" stop-color="#10182b" stop-opacity="0" />
     </radialGradient>
-    <radialGradient id="navyGlowSoft" cx="20%" cy="14%" r="66%">
+    <radialGradient id="navyGlowSoft" cx="18%" cy="14%" r="66%">
       <stop offset="0%" stop-color="#243e78" stop-opacity="0.43" />
       <stop offset="100%" stop-color="#10182b" stop-opacity="0" />
     </radialGradient>
     <radialGradient id="amberAccent" cx="92%" cy="90%" r="44%">
-      <stop offset="0%" stop-color="#b88a2f" stop-opacity="0.24" />
+      <stop offset="0%" stop-color="#b88a2f" stop-opacity="0.22" />
       <stop offset="100%" stop-color="#10182b" stop-opacity="0" />
     </radialGradient>
     <linearGradient id="headlineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -34,15 +34,15 @@
   <rect width="100%" height="100%" fill="url(#amberAccent)" />
 
   <g stroke="#ffffff" stroke-opacity="0.06" stroke-width="1">
-    <line x1="108" y1="0" x2="108" y2="396" />
-    <line x1="324" y1="0" x2="324" y2="396" />
-    <line x1="1218" y1="0" x2="1218" y2="396" />
-    <line x1="1428" y1="0" x2="1428" y2="396" />
-    <line x1="0" y1="106" x2="1584" y2="106" />
-    <line x1="0" y1="305" x2="1584" y2="305" />
+    <line x1="124" y1="0" x2="124" y2="400" />
+    <line x1="396" y1="0" x2="396" y2="400" />
+    <line x1="1462" y1="0" x2="1462" y2="400" />
+    <line x1="1696" y1="0" x2="1696" y2="400" />
+    <line x1="0" y1="114" x2="1920" y2="114" />
+    <line x1="0" y1="312" x2="1920" y2="312" />
   </g>
 
-  <g transform="translate(980, -110) scale(8.2)" opacity="0.05">
+  <g transform="translate(1368, -96) scale(7.1)" opacity="0.05">
     <g fill="none" stroke="#ffffff">
       <rect x="10" y="10" width="44" height="44" transform="rotate(45 32 32)" stroke-width="1.1" />
       <line x1="22" y1="18" x2="22" y2="46" stroke-width="1.65" stroke-linecap="square" />
@@ -52,38 +52,38 @@
 
   <rect width="100%" height="100%" filter="url(#noise)" opacity="0.8" pointer-events="none" />
 
-  <g transform="translate(56, 50)">
+  <g transform="translate(72, 48)">
     <g fill="none" stroke="#ffffff">
       <rect x="10" y="10" width="44" height="44" transform="rotate(45 32 32)" stroke-width="1.1" />
       <line x1="22" y1="18" x2="22" y2="46" stroke-width="1.65" stroke-linecap="square" />
       <path d="M22 18H36C42 18 46 22 46 28C46 34 42 38 36 38H22" stroke-width="1.65" stroke-linecap="square" stroke-linejoin="miter" />
     </g>
-    <text x="76" y="44" fill="#ffffff" font-size="32" font-weight="700" letter-spacing="-0.02em">
+    <text x="82" y="45" fill="#ffffff" font-size="46" font-weight="700" letter-spacing="-0.02em">
       Praedixa
     </text>
   </g>
 
-  <g transform="translate(560, 152)">
-    <text x="0" y="0" fill="url(#headlineGrad)" font-size="58" font-weight="800" letter-spacing="-0.03em">
+  <g transform="translate(684, 150)">
+    <text x="0" y="0" fill="url(#headlineGrad)" font-size="70" font-weight="800" letter-spacing="-0.03em">
       Anticiper la demande,
     </text>
-    <text x="0" y="66" fill="#ffffff" font-size="58" font-weight="800" letter-spacing="-0.03em">
+    <text x="0" y="80" fill="#ffffff" font-size="70" font-weight="800" letter-spacing="-0.03em">
       Prévoir les effectifs,
     </text>
-    <text x="0" y="132" fill="#dcb56a" font-size="58" font-weight="800" letter-spacing="-0.03em">
+    <text x="0" y="160" fill="#dcb56a" font-size="70" font-weight="800" letter-spacing="-0.03em">
       Piloter chaque service.
     </text>
-    <text x="0" y="174" fill="#c5d2ef" font-size="24" font-weight="500" letter-spacing="-0.006em">
+    <text x="0" y="214" fill="#c5d2ef" font-size="27" font-weight="500" letter-spacing="-0.006em">
       IA pour franchises de restauration · EuraTechnologies · Hébergement France
     </text>
   </g>
 
-  <g transform="translate(1110, 48)">
-    <rect x="0" y="0" width="420" height="62" rx="31" fill="rgba(16, 24, 43, 0.36)" stroke="rgba(184, 138, 47, 0.44)" stroke-width="1" />
-    <rect x="1" y="1" width="418" height="60" rx="30" fill="none" stroke="rgba(255, 255, 255, 0.11)" stroke-width="0.8" />
-    <g transform="translate(28, 39)">
-      <circle cx="0" cy="-7" r="5" fill="#b88a2f" />
-      <text x="18" y="0" fill="#f8fbff" font-size="18" font-weight="600" letter-spacing="0em">
+  <g transform="translate(1370, 22)">
+    <rect x="0" y="0" width="478" height="64" rx="32" fill="rgba(16, 24, 43, 0.36)" stroke="rgba(184, 138, 47, 0.44)" stroke-width="1" />
+    <rect x="1" y="1" width="476" height="62" rx="31" fill="none" stroke="rgba(255, 255, 255, 0.11)" stroke-width="0.8" />
+    <g transform="translate(30, 40)">
+      <circle cx="0" cy="-8" r="5" fill="#b88a2f" />
+      <text x="18" y="0" fill="#f8fbff" font-size="19" font-weight="600" letter-spacing="0em">
         Praedixa.com · Alternative française pour réseaux de restauration
       </text>
     </g>

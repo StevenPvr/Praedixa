@@ -1,8 +1,8 @@
 <svg
   xmlns="http://www.w3.org/2000/svg"
-  width="3384"
-  height="573"
-  viewBox="0 0 1128 191"
+  width="1920"
+  height="400"
+  viewBox="0 0 1920 400"
   style="background-color: #10182b; font-family: 'Geist', 'Satoshi', 'Inter', system-ui, sans-serif;"
 >
   <defs>
@@ -19,7 +19,7 @@
       <stop offset="100%" stop-color="#10182b" stop-opacity="0" />
     </radialGradient>
     <radialGradient id="amberAccent" cx="94%" cy="94%" r="45%">
-      <stop offset="0%" stop-color="#b88a2f" stop-opacity="0.26" />
+      <stop offset="0%" stop-color="#b88a2f" stop-opacity="0.24" />
       <stop offset="100%" stop-color="#10182b" stop-opacity="0" />
     </radialGradient>
     <linearGradient id="headlineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -34,15 +34,15 @@
   <rect width="100%" height="100%" fill="url(#amberAccent)" />
 
   <g stroke="#ffffff" stroke-opacity="0.06" stroke-width="1">
-    <line x1="90" y1="0" x2="90" y2="191" />
-    <line x1="255" y1="0" x2="255" y2="191" />
-    <line x1="870" y1="0" x2="870" y2="191" />
-    <line x1="1038" y1="0" x2="1038" y2="191" />
-    <line x1="0" y1="58" x2="1128" y2="58" />
-    <line x1="0" y1="142" x2="1128" y2="142" />
+    <line x1="126" y1="0" x2="126" y2="400" />
+    <line x1="434" y1="0" x2="434" y2="400" />
+    <line x1="1454" y1="0" x2="1454" y2="400" />
+    <line x1="1692" y1="0" x2="1692" y2="400" />
+    <line x1="0" y1="118" x2="1920" y2="118" />
+    <line x1="0" y1="304" x2="1920" y2="304" />
   </g>
 
-  <g transform="translate(790, -52) scale(4.2)" opacity="0.05">
+  <g transform="translate(1360, -98) scale(6.9)" opacity="0.05">
     <g fill="none" stroke="#ffffff">
       <rect x="10" y="10" width="44" height="44" transform="rotate(45 32 32)" stroke-width="1.1" />
       <line x1="22" y1="18" x2="22" y2="46" stroke-width="1.65" stroke-linecap="square" />
@@ -52,27 +52,27 @@
 
   <rect width="100%" height="100%" filter="url(#noise)" opacity="0.8" pointer-events="none" />
 
-  <g transform="translate(336, 73)">
-    <text x="0" y="0" fill="url(#headlineGrad)" font-size="33" font-weight="800" letter-spacing="-0.03em">
+  <g transform="translate(560, 146)">
+    <text x="0" y="0" fill="url(#headlineGrad)" font-size="68" font-weight="800" letter-spacing="-0.03em">
       Anticiper la demande,
     </text>
-    <text x="0" y="36" fill="#ffffff" font-size="33" font-weight="800" letter-spacing="-0.03em">
+    <text x="0" y="78" fill="#ffffff" font-size="68" font-weight="800" letter-spacing="-0.03em">
       Prévoir les effectifs,
     </text>
-    <text x="0" y="72" fill="#dcb56a" font-size="33" font-weight="800" letter-spacing="-0.03em">
+    <text x="0" y="156" fill="#dcb56a" font-size="68" font-weight="800" letter-spacing="-0.03em">
       Piloter chaque service.
     </text>
-    <text x="0" y="95" fill="#c5d2ef" font-size="14" font-weight="500" letter-spacing="-0.005em">
+    <text x="0" y="208" fill="#c5d2ef" font-size="25" font-weight="500" letter-spacing="-0.006em">
       IA pour franchises de restauration · EuraTechnologies · Hébergement France
     </text>
   </g>
 
-  <g transform="translate(762, 22)">
-    <rect x="0" y="0" width="332" height="44" rx="22" fill="rgba(16, 24, 43, 0.35)" stroke="rgba(184, 138, 47, 0.42)" stroke-width="1" />
-    <rect x="1" y="1" width="330" height="42" rx="21" fill="none" stroke="rgba(255, 255, 255, 0.1)" stroke-width="0.8" />
-    <g transform="translate(26, 27)">
-      <circle cx="0" cy="-5" r="4" fill="#b88a2f" />
-      <text x="14" y="0" fill="#f8fbff" font-size="14" font-weight="600" letter-spacing="0em">
+  <g transform="translate(1290, 24)">
+    <rect x="0" y="0" width="536" height="62" rx="31" fill="rgba(16, 24, 43, 0.35)" stroke="rgba(184, 138, 47, 0.42)" stroke-width="1" />
+    <rect x="1" y="1" width="534" height="60" rx="30" fill="none" stroke="rgba(255, 255, 255, 0.1)" stroke-width="0.8" />
+    <g transform="translate(30, 39)">
+      <circle cx="0" cy="-7" r="5" fill="#b88a2f" />
+      <text x="18" y="0" fill="#f8fbff" font-size="19" font-weight="600" letter-spacing="0em">
         Praedixa · Alternative française de décision opérationnelle
       </text>
     </g>

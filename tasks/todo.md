@@ -1,3 +1,26 @@
+# Current Pass - 2026-03-27 - LinkedIn Banners Messaging Refresh
+
+### Plan
+
+- [x] Reprendre le message des bannieres `company` et `personal` a partir de la nouvelle orientation Praedixa
+- [x] Mettre a jour les quatre SVG source (`standard` et `1920x400`) sans casser la composition actuelle
+- [x] Aligner la documentation locale du dossier sur ce nouveau positionnement
+- [x] Verifier rapidement le rendu textuel des SVG mis a jour
+
+### Review
+
+- Les quatre sources SVG de `marketing/linkedin_banners` ont ete mises a jour avec une promesse plus proche du nouveau positionnement:
+  - anticipation de la demande
+  - prevision des effectifs
+  - pilotage du service
+- Le sous-texte mentionne maintenant explicitement les franchises de restauration, EuraTechnologies et l'hebergement en France.
+- Les badges lateraux ont ete realignes vers une lecture "alternative francaise" plutot qu'une offre d'audit ou de POC gratuit.
+- La documentation du dossier a ete mise a jour pour rappeler ce cadrage message.
+- Verification effectuee:
+  - controle direct des quatre SVG modifies
+  - recherche textuelle des nouveaux messages avec `rg`
+  - tentative de re-export raster local bloquee faute d'outil SVG compatible dans l'environnement (`sips` ne sait pas convertir ces fichiers ici)
+
 # Current Pass - 2026-03-27 - Hero Pill Removal
 
 ### Plan
