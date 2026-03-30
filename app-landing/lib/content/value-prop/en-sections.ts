@@ -194,11 +194,19 @@ export const valuePropEnSections: ValuePropEnSections = {
   },
   credibilityRibbon: {
     stackLabel: "Signals reviewed",
-    stackChips: ["POS", "Planning", "Delivery", "Promotions", "BI", "API / CSV"],
+    stackChips: [
+      "POS",
+      "Planning",
+      "Inventory",
+      "Delivery",
+      "Promotions",
+      "BI",
+      "API / CSV",
+    ],
     rolesLabel: "Network decision-makers",
     roleChips: ["Franchisee", "Network", "Ops", "Finance", "HR"],
     rolesMicrocopy:
-      "The people who arbitrate staffing, service, and margin across the network.",
+      "The people who arbitrate demand, inventory, and staffing across the network.",
     trustLabel: "Commitments",
     trustMarkers: [
       "Read-only at the start",
@@ -210,36 +218,36 @@ export const valuePropEnSections: ValuePropEnSections = {
   problemCards: [
     {
       number: "01",
-      title: "The rush becomes visible too late",
+      title: "Demand becomes visible too late",
       consequence:
-        "Once service is already slipping, the remaining options cost more and protect margin less effectively.",
+        "Once the rush is already here, the remaining options cost more and let service, critical inventory, and staffing drift at once.",
     },
     {
       number: "02",
-      title: "Each restaurant arbitrates alone",
+      title: "Inventory and teams are rebalanced too late",
       consequence:
-        "Without a shared network read, teams compensate locally instead of choosing the best option for the whole footprint.",
+        "Without a shared network read, each restaurant compensates locally instead of choosing the best inventory / staffing mix for the whole footprint.",
     },
     {
       number: "03",
-      title: "Margin drifts without proof",
+      title: "The same tensions keep coming back",
       consequence:
-        "Without a readout on service, staffing, and margin, the same problem comes back on the next lunch, dinner, or promotion.",
+        "Without a readout on demand, inventory, staffing, and margin, the same problem comes back on the next lunch, dinner, or promotion.",
     },
   ],
   method: {
     kicker: "How it works",
-    heading: "Four steps to decide before the rush.",
+    heading: "Four steps to forecast and decide before the rush.",
     steps: [
       {
         id: "voir",
         number: "01",
         verb: "Anticipate",
-        title: "See which restaurants will slip before lunch, dinner, or promotion time",
-        body: "Praedixa rereads POS, planning, delivery, weather, and promotion signals to identify the restaurants, dayparts, and channels that will come under pressure first.",
+        title: "See where demand, inventory, and staffing will tighten before lunch, dinner, or promotion time",
+        body: "Praedixa rereads POS, planning, inventory, delivery, weather, and promotion signals to identify the restaurants, dayparts, and channels that will come under pressure first.",
         bullets: [
           "Read-only connection to your existing sources",
-          "Projection of risky services at short horizon",
+          "Projection of demand, inventory pressure, and staffing needs at short horizon",
           "Actionable signal by restaurant, channel, and time slot",
         ],
         microproof: "Rush detected 5 days before a promotional Friday",
@@ -249,7 +257,7 @@ export const valuePropEnSections: ValuePropEnSections = {
         number: "02",
         verb: "Compare",
         title: "Compare the field options that really exist",
-        body: "For each service under pressure, Praedixa compares realistic options: local reinforcement, cross-site reallocation, temporary service simplification, or delivery throttling.",
+        body: "For each service under pressure, Praedixa compares realistic options: local reinforcement, cross-site reallocation, critical-inventory protection, or temporary offer simplification.",
         bullets: [
           "Multiple scenarios quantified and compared",
           "Cost of action vs cost of inaction",
@@ -274,8 +282,8 @@ export const valuePropEnSections: ValuePropEnSections = {
         id: "prouver",
         number: "04",
         verb: "Prove",
-        title: "Review margin, service, and emergency hours after execution",
-        body: "After execution, Praedixa compares what was planned to what actually happened on coverage, service time, margin, and emergency labor cost.",
+        title: "Review inventory, service, and emergency hours after execution",
+        body: "After execution, Praedixa compares what was planned to what actually happened on inventory, coverage, service time, margin, and emergency labor cost.",
         bullets: [
           "Automatic planned vs actual comparison",
           "Structured proof, ready for committee",
@@ -288,7 +296,7 @@ export const valuePropEnSections: ValuePropEnSections = {
   proofPreview: {
     kicker: "ROI proof",
     heading: "A network case operations and finance can both read.",
-    body: "Each trade-off is tied back to its effect on service, labor cost, and margin. You get a committee-ready proof, not a simple estimate.",
+    body: "Each trade-off is tied back to its effect on inventory, labor cost, service, and margin. You get a committee-ready proof, not a simple estimate.",
     tabs: [
       {
         label: "Situation",
@@ -298,7 +306,7 @@ export const valuePropEnSections: ValuePropEnSections = {
       {
         label: "Options compared",
         content:
-          "Three trade-offs are reviewed on the same baseline: targeted reinforcement, cross-site reallocation, and temporary delivery-menu reduction. Each option is evaluated on cost, service time, and protected margin.",
+          "Three trade-offs are reviewed on the same baseline: targeted reinforcement, cross-site reallocation, and temporary offer simplification. Each option is evaluated on cost, inventory availability, service time, and protected margin.",
       },
       {
         label: "Impact measured",
@@ -316,7 +324,7 @@ export const valuePropEnSections: ValuePropEnSections = {
     kicker: "Deployment",
     heading: "A first network case in 30 days.",
     subheading:
-      "We start on top of POS, planning, and delivery data. One operations sponsor is enough to frame the first trade-off.",
+      "We start on top of POS, planning, inventory, and delivery data. One operations sponsor is enough to frame the first network forecast.",
     steps: [
       {
         marker: "W1",
@@ -328,7 +336,7 @@ export const valuePropEnSections: ValuePropEnSections = {
         marker: "W2",
         title: "Risk map",
         description:
-          "A restaurant, service, and channel view with compared options on your existing data.",
+          "A restaurant, service, and channel view on demand, inventory, and staffing with compared options on your existing data.",
       },
       {
         marker: "W3",
@@ -340,7 +348,7 @@ export const valuePropEnSections: ValuePropEnSections = {
         marker: "W4",
         title: "Actual impact",
         description:
-          "Planned vs actual comparison on staffing, service, and margin, then rollout next steps.",
+          "Planned vs actual comparison on inventory, staffing, service, and margin, then rollout next steps.",
       },
       {
         marker: "\u2192",
@@ -391,10 +399,19 @@ export const valuePropEnSections: ValuePropEnSections = {
       {
         badge: "Active control",
         title: "Standard connectors",
-        body: "POS exports, delivery APIs, planning, BI, and CSV. No invasive integration.",
+        body: "POS exports, inventory data, delivery APIs, planning, BI, and CSV. No invasive integration.",
       },
     ],
-    stackItems: ["POS", "Planning", "Delivery", "Promotions", "BI", "CSV", "API"],
+    stackItems: [
+      "POS",
+      "Planning",
+      "Inventory",
+      "Delivery",
+      "Promotions",
+      "BI",
+      "CSV",
+      "API",
+    ],
   },
   faqV2: {
     heading: "Frequently asked questions",
@@ -412,12 +429,12 @@ export const valuePropEnSections: ValuePropEnSections = {
       {
         question: "Does this cover drive-through, front counter, and delivery?",
         answer:
-          "Yes. The point is not the channel itself, but the trade-off between coverage, service promise, and margin when several channels tighten at once.",
+          "Yes. The point is not the channel itself, but the ability to forecast demand, critical inventory, and staffing needs when several channels tighten at once.",
       },
       {
         question: "What data is needed to get started?",
         answer:
-          "Existing exports or APIs are usually enough: POS sales, schedules, absences, delivery feeds, promotions, or coverage-cost data.",
+          "Existing exports or APIs are usually enough: POS sales, schedules, absences, inventory data, delivery feeds, promotions, or coverage-cost data.",
       },
       {
         question: "Who should sponsor the work on the client side?",
@@ -427,7 +444,7 @@ export const valuePropEnSections: ValuePropEnSections = {
       {
         question: "How is this different from BI or WFM?",
         answer:
-          "BI explains what happened. Planning executes a scenario. Praedixa connects the two to choose earlier what to do when the rush puts service, staffing, and margin under pressure.",
+          "BI explains what happened. Planning executes a scenario. Praedixa connects the two to forecast demand, inventory, and staffing earlier, before the rush puts service and margin under pressure.",
       },
       {
         question: "What happens after the first 30 days?",
@@ -437,15 +454,15 @@ export const valuePropEnSections: ValuePropEnSections = {
     ],
     contactCta: "Have a specific question?",
     contactBody:
-      "Describe your network and the next rush to tackle, and we will reply with a qualified answer within 48 business hours.",
+      "Describe your network and the next demand, inventory, or staffing issue to tackle, and we will reply with a qualified answer within 48 business hours.",
   },
   finalCta: {
     label: "Quick-service restaurant network",
-    heading: "Let\u2019s frame the next network rush.",
-    body: "Describe your restaurants, the services under pressure, and the next peak period. We come back with a concrete scope in 48 hours.",
+    heading: "Let\u2019s frame your first network forecast.",
+    body: "Describe your restaurants, your demand, inventory, or staffing pressure, and the next peak period. We come back with a concrete scope in 48 hours.",
     promiseItems: [
       "Reply in 48h",
-      "First risk to objectify",
+      "First signal to objectify",
       "Concrete network action plan",
     ],
     step1Fields: [

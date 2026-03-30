@@ -19,45 +19,45 @@ const networkUseCases: Record<Locale, NetworkUseCaseCard[]> = {
   fr: [
     {
       stat: "Midi / soir",
-      title: "Arbitrer le staffing avant les rushs service par service",
-      body: "Décider plus tôt où renforcer la salle, le drive ou la cuisine pour éviter que le service ne décroche au pire moment.",
+      title: "Prévoir où la demande va déborder avant le rush",
+      body: "Voir plus tôt quels restaurants, canaux et créneaux vont saturer pour agir avant que le service ne décroche.",
     },
     {
-      stat: "Drive + delivery",
-      title: "Choisir quand ralentir un canal plutôt que brûler la marge",
-      body: "Comparer renfort, throttling delivery ou simplification de promesse de service quand plusieurs canaux se tendent en même temps.",
+      stat: "Stock critique",
+      title: "Repérer les tensions stock avant qu\u2019elles ne cassent le service",
+      body: "Identifier quand un produit, un ingrédient ou une famille critique va manquer pour arbitrer plus tôt entre réallocation, simplification d\u2019offre et protection de marge.",
     },
     {
       stat: "Multi-sites",
-      title: "Réallouer intelligemment entre restaurants proches",
-      body: "Voir quels restaurants peuvent absorber un manque voisin sans déplacer le problème ailleurs dans le réseau.",
+      title: "Calibrer les effectifs sans surcouvrir le réseau",
+      body: "Projeter les besoins d\u2019effectifs restaurant par restaurant pour renforcer là où la demande monte, sans déplacer le problème ailleurs dans le réseau.",
     },
     {
       stat: "Promo + météo",
-      title: "Relire les temps forts avant qu\u2019ils n\u2019abîment vos équipes",
-      body: "Mesurer l\u2019effet combiné d\u2019une campagne, d\u2019un week-end météo et des absences sur la couverture et la marge.",
+      title: "Relire les temps forts sur demande, stock et équipes",
+      body: "Mesurer l\u2019effet combiné d\u2019une campagne, d\u2019un week-end météo et des absences sur la demande, le stock utile et la couverture.",
     },
   ],
   en: [
     {
       stat: "Lunch / dinner",
-      title: "Arbitrate staffing before the rush, service by service",
-      body: "Decide earlier where to reinforce front counter, drive-through, or kitchen before service quality starts slipping.",
+      title: "Forecast where demand will overflow before the rush",
+      body: "See earlier which restaurants, channels, and dayparts will saturate so teams can act before service quality slips.",
     },
     {
-      stat: "Drive + delivery",
-      title: "Choose when to slow one channel instead of burning margin",
-      body: "Compare reinforcement, delivery throttling, or service simplification when several channels tighten at once.",
+      stat: "Critical inventory",
+      title: "Spot inventory pressure before it breaks service",
+      body: "Identify when a product, ingredient, or critical family will run short so teams can arbitrate earlier between reallocation, offer simplification, and protected margin.",
     },
     {
       stat: "Multi-site",
-      title: "Reallocate intelligently across nearby restaurants",
-      body: "See which restaurants can absorb a nearby gap without moving the problem elsewhere in the network.",
+      title: "Calibrate staffing without over-covering the network",
+      body: "Project staffing needs restaurant by restaurant so teams reinforce where demand rises without moving the problem elsewhere in the network.",
     },
     {
       stat: "Promo + weather",
-      title: "Review peak periods before they wear down your teams",
-      body: "Measure the combined effect of a campaign, a weather-driven weekend, and absences on coverage and margin.",
+      title: "Review peak periods across demand, inventory, and teams",
+      body: "Measure the combined effect of a campaign, a weather-driven weekend, and absences on demand, useful inventory, and coverage.",
     },
   ],
 };
@@ -67,12 +67,12 @@ export function SectorCardsSection({ locale }: SectorCardsSectionProps) {
   const kicker = locale === "fr" ? "Cas d\u2019usage réseau" : "Network use cases";
   const heading =
     locale === "fr"
-      ? "Les arbitrages qui reviennent chaque semaine dans un réseau QSR."
-      : "The trade-offs that come back every week in a QSR network.";
+      ? "Les prévisions qui reviennent chaque semaine dans un réseau QSR."
+      : "The forecast loops that come back every week in a QSR network.";
   const body =
     locale === "fr"
-      ? "La valeur n\u2019est pas de prédire pour prédire. La valeur est de rendre chaque arbitrage service / staffing / marge plus défendable au siège comme sur le terrain."
-      : "The point is not to predict for prediction\u2019s sake. The point is to make each service / staffing / margin trade-off more defensible for HQ and the field.";
+      ? "La valeur n\u2019est pas de prédire pour prédire. La valeur est de rendre chaque décision de demande, de stock et d\u2019effectifs plus défendable au siège comme sur le terrain."
+      : "The point is not to forecast for forecasting\u2019s sake. The point is to make each demand, inventory, and staffing decision more defensible for HQ and the field.";
   const contactHref = buildContactIntentHref(locale, "deployment");
 
   return (

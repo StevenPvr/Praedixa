@@ -1,3 +1,197 @@
+# Current Pass - 2026-03-30 - Landing Wording Reorientation Demand Inventory Staffing
+
+### Plan
+
+- [x] Relever les sections homepage actives et la source `value-prop` qui racontent encore surtout `staffing / service / marge`
+- [x] Repositionner le wording FR/EN vers une solution de prévision de demande, de stock et d'effectifs, sans casser le cadrage "s'ajoute aux outils existants"
+- [x] Aligner la documentation landing et les tests ciblés sur ce nouveau framing
+- [x] Exécuter les vérifications ciblées et consigner la review
+
+### Review
+
+- La source de vérité publique a été recentrée sur la promesse `prévision de demande, de stock et d'effectifs` dans:
+  - `app-landing/lib/content/value-prop/fr.ts`
+  - `app-landing/lib/content/value-prop/en.ts`
+  - `app-landing/lib/content/value-prop/fr-sections.ts`
+  - `app-landing/lib/content/value-prop/en-sections.ts`
+- Le hero et les sections homepage actives racontent désormais cette lecture en premier, tout en gardant le cadrage produit `lecture seule` / `ne remplace pas POS, planning, BI`:
+  - hero FR/EN
+  - bloc problème
+  - méthode
+  - comparatif stack
+  - cas d'usage réseau
+  - FAQ
+  - CTA final
+- Les signaux visibles ont été réalignés pour inclure explicitement le stock:
+  - reassurance hero
+  - ruban de crédibilité
+  - section intégration & sécurité
+- La documentation locale a été mise à jour dans:
+  - `app-landing/components/homepage/README.md`
+  - `app-landing/lib/content/README.md`
+- Vérifications exécutées:
+  - `pnpm --filter @praedixa/landing test components/homepage/__tests__/HeroPulsorSection.test.tsx components/homepage/__tests__/HeroV2Section.test.tsx components/homepage/__tests__/CredibilityRibbonSection.test.tsx components/homepage/__tests__/ProblemBlockSection.test.tsx components/homepage/__tests__/MethodBlockSection.test.tsx components/homepage/__tests__/StackComparisonV2Section.test.tsx components/homepage/__tests__/DeploymentTimelineSection.test.tsx components/homepage/__tests__/SectorCardsSection.test.tsx components/homepage/__tests__/IntegrationSecuritySection.test.tsx components/homepage/__tests__/FaqSectionV2.test.tsx components/homepage/__tests__/FinalCtaSection.test.tsx components/homepage/__tests__/HomepageMessaging.test.tsx`
+  - `pnpm --filter @praedixa/landing typecheck`
+
+# Current Pass - 2026-03-29 - LinkedIn Banner Logo Lockup And Text Framing
+
+### Plan
+
+- [x] Verifier le rendu reel des bannieres apres l'ajout du branding et identifier les ecarts restants de placement
+- [x] Poser un vrai lockup Praedixa en haut a gauche sur `company` et `personal`, dans les deux formats, a partir du symbole officiel partage
+- [x] Recaler le texte dans un cadre avec des marges internes stables, regenerer tous les exports raster et verifier le rendu final
+
+### Review
+
+- Les quatre SVG source ont ete repris:
+  - `company_banner.svg`
+  - `company_banner_1920x400.svg`
+  - `personal_banner.svg`
+  - `personal_banner_1920x400.svg`
+- Chaque variante affiche maintenant en haut a gauche un vrai lockup Praedixa:
+  - symbole officiel repris du composant partage `@praedixa/ui`
+  - mot `Praedixa` place a cote dans une capsule sombre legere pour rester lisible sur la photo
+- Les panneaux de headline ont ete reposes avec des marges internes explicites et un recentrage geometrique sur le format pour que la copy reste proprement contenue dans le cadre sur les deux ratios.
+- Le lockup Praedixa a ete recentre verticalement dans sa capsule au lieu de rester cale seulement sur la baseline du texte SVG.
+- Les 8 exports raster ont ete regeneres via rendu navigateur:
+  - `company_banner(.png/.jpg)`
+  - `company_banner_1920x400(.png/.jpg)`
+  - `personal_banner(.png/.jpg)`
+  - `personal_banner_1920x400(.png/.jpg)`
+- Verification effectuee:
+  - controle visuel final sur `company_banner_1920x400.jpg`
+  - controle visuel final sur `personal_banner_1920x400.jpg`
+  - controle visuel des formats larges `company_banner.jpg` et `personal_banner.jpg`
+  - dimensions raster reconfirmees: `3384x573`, `1920x400`, `4752x1188`, `1920x400`
+
+# Current Pass - 2026-03-28 - LinkedIn Banner Visual Targeting
+
+# Current Pass - 2026-03-29 - Personal Banner Contrast And Blue Halo Removal
+
+### Plan
+
+- [x] Aligner `personal_banner` sur le nouveau traitement de contraste de `company`
+- [x] Retirer completement les teintes bleutees residuelles dans la copy et les badges au-dessus des photos
+- [x] Regenerer les exports raster `personal` en `png` et `jpg`, puis verifier le rendu large
+
+### Review
+
+- Les deux SVG `personal` ont ete ajustes:
+  - `personal_banner.svg`
+  - `personal_banner_1920x400.svg`
+- Le fond photo a ete legerement remonte pour mieux cadrer la scene burger/plateau.
+- Le bloc de headline utilise maintenant la meme logique que `company`: panneau sombre neutre, typo creme/blanc chaud, accent ambre et ombre de texte douce.
+- Le bleu residuel a ete retire du traitement typo et des badges; seul le repere tricolore reste pour signaler l'ancrage francais.
+- Les exports `personal` ont ete regeneres:
+  - `personal_banner.png`
+  - `personal_banner.jpg`
+  - `personal_banner_1920x400.png`
+  - `personal_banner_1920x400.jpg`
+- Verification effectuee:
+  - dimensions confirmees via `sips`: `4752x1188` et `1920x400` en `png` et `jpg`
+  - controle visuel final sur `personal_banner_1920x400.jpg`
+
+# Current Pass - 2026-03-28 - Company Banner Contrast And Framing
+
+### Plan
+
+- [x] Remonter legerement le cadrage photo de `company_banner` dans les deux formats
+- [x] Renforcer la lisibilite de la copy `company` avec une palette plus contrastée sur le fond
+- [x] Regenerer les exports raster `company` (`png` et `jpg`) et verifier leurs dimensions
+
+### Review
+
+- Les deux SVG `company` ont ete ajustes:
+  - `company_banner.svg`
+  - `company_banner_1920x400.svg`
+- Le fond photo a ete remonte pour montrer davantage la zone burger/plateau utile et moins de vide bas.
+- Le bloc de headline repose maintenant sur un panneau sombre discret, avec texte creme/blanc chaud et accent ambre pour mieux ressortir sur la photo.
+- La capsule haute a aussi ete assombrie et rechauffee pour rester lisible sans halo.
+- Les exports `company` ont ete regenerees:
+  - `company_banner.png`
+  - `company_banner.jpg`
+  - `company_banner_1920x400.png`
+  - `company_banner_1920x400.jpg`
+- Verification effectuee:
+  - rendu visuel controle sur `company_banner_1920x400.jpg`
+  - dimensions confirmees via `sips`: `3384x573` et `1920x400` en `png` et `jpg`
+
+### Plan
+
+- [x] Reprendre les bannières LinkedIn pour rendre le focus `réseaux de restauration rapide multi-sites` visible sans dépendre du texte seul
+- [x] Rendre l'ancrage `alternative française` lisible visuellement via formes, couleurs et symboles, pas uniquement via copy
+- [x] Réexporter tous les formats raster, vérifier le rendu et documenter le nouveau système visuel
+
+### Review
+
+- Les 4 SVG source ont été recomposés autour de deux signaux visuels explicites:
+  - `France`: marqueur tricolore dans la capsule
+  - `réseau de restauration rapide multi-sites`: fonds photo open source de restauration rapide réellement visibles
+- Le sous-texte a été resserré sur le vrai cadrage produit:
+  - `Restauration rapide multi-sites · Conçue et hébergée en France`
+- Le badge `company` dit maintenant `Alternative française pour réseaux multi-sites` pour garder le ciblage visible sans jargon.
+- Le schéma réseau et le frame interne ambigu ont été abandonnés au profit de deux sources ouvertes recadrées par format:
+  - `company`: friteuses et service (`open_source_fries_cooking_ccby.jpg`)
+  - `personal`: plateau burger-frites (`open_source_fast_food_tray_cc0.jpg`)
+- Chaque bannière repose maintenant sur un fond JPG dédié à son ratio puis embarqué dans le SVG pour fiabiliser les exports.
+- Les 8 exports raster ont été régénérés après cette refonte visuelle:
+  - `company_banner(.png/.jpg)`
+  - `company_banner_1920x400(.png/.jpg)`
+  - `personal_banner(.png/.jpg)`
+  - `personal_banner_1920x400(.png/.jpg)`
+- Vérifications effectuées:
+  - contrôle visuel final sur `company_banner_1920x400.jpg` et `personal_banner_1920x400.jpg`
+  - dimensions raster confirmées via `sips` sur les 8 exports
+  - rendu PNG/JPG régénéré depuis les SVG photo via Playwright en dimensions natives
+
+# Current Pass - 2026-03-28 - LinkedIn Banner Raster Exports
+
+### Plan
+
+- [x] Documenter la regeneration des exports raster LinkedIn a partir des SVG corriges
+- [x] Regenerer les `png` et `jpg` pour `company` et `personal` dans les deux formats disponibles
+- [x] Verifier les dimensions et la presence des fichiers regeneres, puis consigner le resultat
+
+### Review
+
+- Les 8 exports raster ont ete regeneres a partir des SVG source corriges:
+  - `company_banner.png`
+  - `company_banner.jpg`
+  - `company_banner_1920x400.png`
+  - `company_banner_1920x400.jpg`
+  - `personal_banner.png`
+  - `personal_banner.jpg`
+  - `personal_banner_1920x400.png`
+  - `personal_banner_1920x400.jpg`
+- La generation a ete faite en rendu navigateur headless via Playwright, `sips` ne sachant pas extraire ces SVG dans cet environnement.
+- Verification effectuee:
+  - controle des dimensions via `sips -g pixelWidth -g pixelHeight`
+  - verification visuelle sur `company_banner_1920x400.png` et `personal_banner_1920x400.png`
+  - horodatage confirme sur les 8 fichiers regenerees le `2026-03-28`
+
+# Current Pass - 2026-03-28 - LinkedIn Banner Pill Overflow
+
+### Plan
+
+- [x] Verifier quelles bannières LinkedIn ont un badge superieur qui deborde reellement dans `marketing/linkedin_banners`
+- [x] Ajuster les SVG source concernes pour que le texte du badge tienne proprement dans son cadre sans casser la composition
+- [x] Mettre a jour la documentation et les garde-fous associes, puis revalider le rendu/mesures finales
+
+### Review
+
+- Les quatre SVG source ont ete revus:
+  - `company_banner.svg`
+  - `company_banner_1920x400.svg`
+  - `personal_banner.svg`
+  - `personal_banner_1920x400.svg`
+- Les capsules superieures ont ete elargies et recalees pour conserver leur marge droite d'origine tout en absorbant la vraie largeur du texte.
+- Le badge personnel reprend maintenant la formulation courte `Praedixa.com · Alternative française pour réseaux multi-sites`, plus proche du besoin signale.
+- La documentation locale du dossier a ete completee avec une regle explicite: mesurer la largeur rendue du texte SVG avant re-export raster.
+- Verification effectuee:
+  - mesure navigateur sur les 4 SVG via Playwright avec `fetch(...).text()` + `getBBox()`
+  - marge utile restante confirmee apres texte: `16px` sur `company` et `company_1920x400`, `16px` et `17px` sur les deux variantes `personal`
+  - screenshots navigateur de controle sur les variantes `company` et `personal`
+
 # Current Pass - 2026-03-27 - Remove Retired Landing Verticals
 
 ### Plan

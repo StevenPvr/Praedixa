@@ -49,8 +49,8 @@ describe("HeroV2Section", () => {
     render(<HeroV2Section locale="fr" />);
 
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent("Prédisez la demande,");
-    expect(heading).toHaveTextContent("calibrez vos effectifs.");
+    expect(heading).toHaveTextContent("Prévoyez la demande,");
+    expect(heading).toHaveTextContent("anticipez stock et effectifs.");
   });
 
   it("renders the kicker eyebrow text", () => {
@@ -66,7 +66,7 @@ describe("HeroV2Section", () => {
 
     expect(
       screen.getByText(
-        /Praedixa relie vos caisses, plannings, apps de livraison, promotions et signaux terrain/,
+        /Praedixa relie vos caisses, plannings, apps de livraison, promotions, signaux stock et terrain/,
       ),
     ).toBeInTheDocument();
   });
@@ -92,7 +92,7 @@ describe("HeroV2Section", () => {
     render(<HeroV2Section locale="fr" />);
 
     expect(screen.getByText("Lecture seule")).toBeInTheDocument();
-    expect(screen.getByText("POS + planning + delivery")).toBeInTheDocument();
+    expect(screen.getByText("POS + planning + stock + delivery")).toBeInTheDocument();
     expect(screen.getByText("Hébergement France")).toBeInTheDocument();
     expect(screen.getByText("NDA sur demande")).toBeInTheDocument();
   });

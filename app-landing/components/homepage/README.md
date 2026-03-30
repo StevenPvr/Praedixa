@@ -8,7 +8,7 @@ Construire une homepage modulaire ou chaque section reste lisible seule, reordon
 
 hero -> credibilite -> probleme -> methode -> comparatif -> preuve -> deploiement -> secteurs -> integration -> faq -> contact
 
-La homepage publique actuelle est orientee en priorite vers les franchisés et reseaux de restauration rapide multi-sites. Les sections homepage doivent donc parler explicitement rushs, staffing, service, delivery et marge, pas d'un message multi-sectoriel generique.
+La homepage publique actuelle est orientee en priorite vers les franchisés et reseaux de restauration rapide multi-sites. Les sections homepage doivent donc parler explicitement rushs, prevision de demande, stock, effectifs, service, delivery et marge, pas d'un message multi-sectoriel generique.
 
 ## Sections V2 (parcours actif)
 

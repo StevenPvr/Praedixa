@@ -10,15 +10,16 @@ interface ProblemBlockSectionProps {
 export function ProblemBlockSection({ locale }: ProblemBlockSectionProps) {
   const vp = getValuePropContent(locale);
   const cards = vp.problemCards;
-  const kicker = locale === "fr" ? "Là où la marge fuit" : "Where margin leaks";
+  const kicker =
+    locale === "fr" ? "Là où le rush vous surprend" : "Where the rush catches teams late";
   const heading =
     locale === "fr"
-      ? "Vos restaurants n\u2019ont pas un problème de données. Ils ont un problème d\u2019arbitrage réseau."
-      : "Your restaurants do not have a data problem. They have a network trade-off problem.";
+      ? "Vos restaurants n\u2019ont pas un problème de données. Ils ont un problème d\u2019anticipation réseau."
+      : "Your restaurants do not have a data problem. They have a network anticipation problem.";
   const body =
     locale === "fr"
-      ? "Quand le rush accélère, le vrai sujet n\u2019est ni le dashboard ni le planning seuls. C\u2019est de décider plus tôt où renforcer, où ralentir et où protéger la marge."
-      : "When the rush accelerates, the real issue is not another dashboard or schedule on its own. It is deciding earlier where to reinforce, where to slow down, and where to protect margin.";
+      ? "Quand le rush accélère, le vrai sujet n\u2019est ni le dashboard ni le planning seuls. C\u2019est de prévoir plus tôt la demande, le stock et les effectifs pour décider où agir avant que service et marge ne décrochent."
+      : "When the rush accelerates, the real issue is not another dashboard or schedule on its own. It is forecasting demand, inventory, and staffing earlier so teams can act before service and margin slip.";
   const [firstCard, ...otherCards] = cards;
 
   return (

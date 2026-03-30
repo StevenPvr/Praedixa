@@ -25,11 +25,11 @@ describe("StackComparisonV2Section", () => {
 
     expect(screen.getByText("Compatibilité")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
-      /Praedixa s.ajoute à vos outils réseau. Il tranche là où ils s.arrêtent/,
+      /Praedixa s.ajoute à vos outils réseau. Il projette là où ils s.arrêtent/,
     );
     expect(
       screen.getByText(
-        /Praedixa relie les signaux utiles pour arbitrer plus tôt entre staffing, temps de service et marge protégée/,
+        /Praedixa relie les signaux utiles pour prévoir plus tôt la demande, les tensions stock et les besoins d.effectifs/,
       ),
     ).toBeInTheDocument();
   });
@@ -55,7 +55,7 @@ describe("StackComparisonV2Section", () => {
 
     expect(
       screen.getByText(
-        /Compatible avec POS, planning, delivery, BI et exports existants/,
+        /Compatible avec POS, planning, stock, delivery, BI et exports existants/,
       ),
     ).toBeInTheDocument();
   });
@@ -65,12 +65,12 @@ describe("StackComparisonV2Section", () => {
 
     expect(
       screen.getAllByText(
-        /Montre le passé mais ne dit pas quel arbitrage lancer avant le prochain rush/,
+        /Montre le passé mais ne dit pas où la demande, le stock ou les effectifs vont se tendre avant le prochain rush/,
       ).length,
     ).toBeGreaterThanOrEqual(1);
     expect(
       screen.getAllByText(
-        /Projette les services à risque et compare les options de couverture avant que la marge ne glisse/,
+        /Projette la demande, les tensions stock et les besoins d.effectifs, puis compare les arbitrages avant que la marge ne glisse/,
       ).length,
     ).toBeGreaterThanOrEqual(1);
   });

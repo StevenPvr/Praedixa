@@ -4,22 +4,22 @@ import { valuePropFrSections } from "./fr-sections";
 export const coreValuePropFr: ValuePropContent = {
   icp: "Franchisés, directeurs réseau et responsables opérations de restauration rapide multi-sites",
   promise:
-    "Praedixa aide les réseaux de restauration rapide à prédire la demande et les besoins d\u2019effectifs avant les rushs, sans remplacer POS, planning ni BI.",
+    "Praedixa aide les réseaux de restauration rapide à prévoir la demande, les tensions stock et les besoins d\u2019effectifs avant les rushs, sans remplacer POS, planning ni BI.",
   mechanism:
-    "Praedixa croise ventes, planning, livraison, promotions, météo et historique terrain pour anticiper la demande, projeter les besoins d\u2019effectifs et signaler les services à risque.",
+    "Praedixa croise ventes, planning, livraison, promotions, météo, historique terrain et signaux stock pour anticiper la demande, projeter les besoins d\u2019effectifs, repérer les tensions d\u2019approvisionnement et signaler les restaurants à risque.",
   reassurance: [
     "Lecture seule",
-    "POS + planning + delivery",
+    "POS + planning + stock + delivery",
     "Hébergement France",
     "NDA sur demande",
   ],
   ctaPrimary: "Voir la preuve de ROI",
   ctaSecondary: "Cadrer mon réseau",
   heroKicker: "Pour les franchisés de restauration rapide multi-sites",
-  heroHeading: "Prédisez la demande,",
-  heroHeadingHighlight: "calibrez vos effectifs.",
+  heroHeading: "Prévoyez la demande,",
+  heroHeadingHighlight: "anticipez stock et effectifs.",
   heroSubheading:
-    "Praedixa relie vos caisses, plannings, apps de livraison, promotions et signaux terrain pour anticiper les volumes à venir, projeter les besoins d\u2019effectifs et voir quels restaurants vont passer sous tension, restaurant par restaurant.",
+    "Praedixa relie vos caisses, plannings, apps de livraison, promotions, signaux stock et terrain pour anticiper les volumes à venir, projeter les besoins d\u2019effectifs, repérer les tensions stock et voir quels restaurants vont passer sous tension, restaurant par restaurant.",
   heroBadgeText: "QSR OPS",
   heroProofBlockText:
     "Pour franchisés multi-sites, directions réseau et équipes opérations qui veulent prévoir la demande et la couverture.",
@@ -28,48 +28,48 @@ export const coreValuePropFr: ValuePropContent = {
   heroLogoCaption: "Ils nous font confiance",
   heroOffer: {
     badge: "Notre promesse",
-    title: "Un premier arbitrage réseau en 30\u00a0jours",
-    body: "Un cadrage rapide sur POS, planning et delivery pour agir avant le prochain temps fort.",
+    title: "Une première lecture demande, stock, effectifs en 30\u00a0jours",
+    body: "Un cadrage rapide sur POS, planning, stock et delivery pour agir avant le prochain temps fort.",
     note: "Lecture seule au démarrage. NDA possible dès le premier échange.",
   },
   socialProof: {
     eyebrow: "Pilotage réseau",
     statValue: "30j",
     statLabel:
-      "Pour objectiver un premier cas de prédiction demande + effectifs sur vos données existantes",
+      "Pour objectiver un premier cas de prévision demande + stock + effectifs sur vos données existantes",
     logosAlt: "Entreprises qui nous font confiance",
     marqueeLabel:
       "Cadrer un premier cas d\u2019usage QSR sans projet IT lourd",
   },
   product: {
     kicker: "Pilotage réseau",
-    heading: "La prédiction demande + effectifs pensée pour le rush.",
+    heading: "La prévision demande + stock + effectifs pensée pour le rush.",
     subheading:
-      "Praedixa aide le siège et le terrain à anticiper la demande, préparer la couverture et sécuriser les services les plus sensibles.",
+      "Praedixa aide le siège et le terrain à anticiper la demande, préparer le stock utile et calibrer la couverture des services les plus sensibles.",
   },
   footerTagline:
-    "Praedixa aide les réseaux de restauration rapide à anticiper la demande et les besoins d\u2019effectifs avant les rushs, sans remplacer leurs outils.",
+    "Praedixa aide les réseaux de restauration rapide à anticiper la demande, les tensions stock et les besoins d\u2019effectifs avant les rushs, sans remplacer leurs outils.",
   qualificationTitle: "Est-ce que Praedixa est fait pour vous\u00a0?",
   qualificationBody:
-    "Praedixa s\u2019adresse aux franchisés et réseaux de restauration rapide qui veulent objectiver leurs arbitrages de staffing, service et marge sur plusieurs restaurants.",
+    "Praedixa s\u2019adresse aux franchisés et réseaux de restauration rapide qui veulent objectiver leurs arbitrages de demande, de stock et d\u2019effectifs sur plusieurs restaurants.",
   fitTitle: "Un bon point de départ si\u2026",
   fitItems: [
     "vous gérez plusieurs restaurants avec des rushs récurrents à arbitrer",
-    "un responsable réseau ou opérations veut objectiver ses décisions de couverture",
+    "un responsable réseau ou opérations veut mieux prévoir la demande, le stock ou les besoins d\u2019effectifs",
     "vos POS, plannings ou canaux delivery exposent déjà des données utiles au démarrage",
   ],
   notFitTitle: "Pas pour vous si\u2026",
   notFitItems: [
     "vous exploitez un seul site sans enjeu réseau",
     "aucun décideur opérationnel ne peut porter le sujet côté terrain ou siège",
-    "ni POS, ni planning, ni données d\u2019activité ne sont accessibles au démarrage",
+    "ni POS, ni planning, ni données d\u2019activité ou de stock ne sont accessibles au démarrage",
   ],
   stackComparison: {
     kicker: "Compatibilité",
     heading:
-      "Praedixa s\u2019ajoute à vos outils réseau. Il tranche là où ils s\u2019arrêtent.",
+      "Praedixa s\u2019ajoute à vos outils réseau. Il projette là où ils s\u2019arrêtent.",
     subheading:
-      "POS, planning, delivery, BI, Excel\u00a0: tout reste en place. Praedixa relie les signaux utiles pour arbitrer plus tôt entre staffing, temps de service et marge protégée.",
+      "POS, planning, stock, delivery, BI, Excel\u00a0: tout reste en place. Praedixa relie les signaux utiles pour prévoir plus tôt la demande, les tensions stock et les besoins d\u2019effectifs avant que service et marge ne dérapent.",
     columnLabels: {
       category: "Outil",
       currentCoverage: "Ce qu\u2019il fait",
@@ -82,9 +82,9 @@ export const coreValuePropFr: ValuePropContent = {
         currentCoverage:
           "Consolide les ventes, les encaissements, les stocks et les coûts.",
         stopsAt:
-          "Montre le passé mais ne dit pas quel arbitrage lancer avant le prochain rush.",
+          "Montre le passé mais ne dit pas où la demande, le stock ou les effectifs vont se tendre avant le prochain rush.",
         praedixaAdd:
-          "Projette les services à risque et compare les options de couverture avant que la marge ne glisse.",
+          "Projette la demande, les tensions stock et les besoins d\u2019effectifs, puis compare les arbitrages avant que la marge ne glisse.",
       },
       {
         category: "BI / reporting",
@@ -92,7 +92,7 @@ export const coreValuePropFr: ValuePropContent = {
         stopsAt:
           "Explique ce qui s\u2019est passé, mais pas quoi faire sur le prochain midi ou soir critique.",
         praedixaAdd:
-          "Propose des arbitrages concrets et relit leur impact réel sur service et marge.",
+          "Propose des arbitrages concrets et relit leur impact réel sur stock, service et marge.",
       },
       {
         category: "Planning / WFM",
@@ -101,28 +101,29 @@ export const coreValuePropFr: ValuePropContent = {
         stopsAt:
           "Construit un planning, mais ne compare pas les scénarios réseau avant exécution.",
         praedixaAdd:
-          "Compare renfort, réaffectation, réduction de promesse de service ou throttling delivery.",
+          "Projette les besoins d\u2019effectifs à partir de la demande et des tensions stock, puis compare renfort, réaffectation ou simplification d\u2019offre.",
       },
       {
         category: "Excel / comités",
         currentCoverage:
           "Permet de recouper vite un sujet prioritaire entre siège et terrain.",
         stopsAt:
-          "Reste manuel, difficile à rejouer et sans preuve claire sur service, staffing et marge.",
+          "Reste manuel, difficile à rejouer et sans preuve claire sur demande, stock, effectifs et marge.",
         praedixaAdd:
           "Garde un journal relisible des décisions réseau et de leur effet réel.",
       },
       {
         category: "Praedixa",
         currentCoverage:
-          "Ajoute une couche de décision à vos outils existants pour anticiper les rushs et arbitrer réseau par réseau.",
+          "Ajoute une couche de prévision et de décision à vos outils existants pour anticiper les rushs et arbitrer réseau par réseau.",
         stopsAt:
           "Ne remplace ni POS, ni BI, ni planning. S\u2019appuie sur eux.",
         praedixaAdd:
-          "Anticiper, comparer, décider et prouver le ROI, restaurant par restaurant.",
+          "Anticiper la demande, le stock et les effectifs, comparer les arbitrages, puis prouver le ROI restaurant par restaurant.",
       },
     ],
-    bottomNote: "Compatible avec POS, planning, delivery, BI et exports existants.",
+    bottomNote:
+      "Compatible avec POS, planning, stock, delivery, BI et exports existants.",
   },
   servicesMeta: {
     title:
@@ -137,9 +138,9 @@ export const coreValuePropFr: ValuePropContent = {
   services: {
     kicker: "Offre",
     heading:
-      "Ce que vous achetez\u00a0: un premier arbitrage réseau objectivé en 30\u00a0jours.",
+      "Ce que vous achetez\u00a0: une première lecture demande, stock, effectifs objectivée en 30\u00a0jours.",
     subheading:
-      "Praedixa démarre sur POS, planning, delivery et coûts déjà disponibles. Si besoin, une preuve de ROI sur historique démontre le sujet avant extension réseau.",
+      "Praedixa démarre sur POS, planning, delivery, signaux stock et coûts déjà disponibles. Si besoin, une preuve de ROI sur historique démontre le sujet avant extension réseau.",
     timelineTitle: "En 30\u00a0jours",
     timeline: [
       {
@@ -148,7 +149,7 @@ export const coreValuePropFr: ValuePropContent = {
       },
       {
         title: "Semaine 2",
-        body: "Première carte de risque avec options comparées à partir des données POS, planning et delivery.",
+        body: "Première carte de risque demande / stock / effectifs avec options comparées à partir des données POS, planning, stock et delivery.",
       },
       {
         title: "Semaine 3",
@@ -156,13 +157,13 @@ export const coreValuePropFr: ValuePropContent = {
       },
       {
         title: "Semaine 4",
-        body: "Lecture de l\u2019impact réel sur staffing, service et marge, puis plan d\u2019extension.",
+        body: "Lecture de l\u2019impact réel sur stock, effectifs, service et marge, puis plan d\u2019extension.",
       },
     ],
     deliveredTitle: "Ce qui est livré",
     delivered: [
-      "Une première lecture restaurant par restaurant sur rushs, staffing et service",
-      "Des options comparées avec hypothèses explicites sur coût, service et marge",
+      "Une première lecture restaurant par restaurant sur demande, stock, effectifs et services sous tension",
+      "Des options comparées avec hypothèses explicites sur coût, couverture stock, service et marge",
       "Une recommandation claire pour opérations, réseau et finance",
       "Une mesure de l\u2019impact réel sur un premier arbitrage réseau",
     ],
@@ -176,7 +177,7 @@ export const coreValuePropFr: ValuePropContent = {
     clientNeedsTitle: "Ce qu\u2019il faut côté client",
     clientNeeds: [
       "Un sponsor réseau ou opérations disponible",
-      "Des accès POS, planning, delivery ou coûts exploitables dès le départ",
+      "Des accès POS, planning, stock, delivery ou coûts exploitables dès le départ",
       "Un temps fort à venir ou un arbitrage déjà visible sur le terrain",
     ],
     participantsTitle: "Qui participe",
@@ -189,7 +190,7 @@ export const coreValuePropFr: ValuePropContent = {
     reviewItems: [
       "Point court hebdomadaire siège + terrain",
       "Revue de la recommandation avec opérations et finance",
-      "Synthèse finale sur service, staffing et marge protégée",
+      "Synthèse finale sur demande, stock, effectifs et marge protégée",
     ],
     primaryCtaLabel: "Cadrer mon réseau",
     secondaryCtaLabel: "Voir la preuve sur historique",

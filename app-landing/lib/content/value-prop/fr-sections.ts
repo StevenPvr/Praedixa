@@ -195,11 +195,19 @@ export const valuePropFrSections: ValuePropFrSections = {
   },
   credibilityRibbon: {
     stackLabel: "Signaux relus",
-    stackChips: ["POS", "Planning", "Delivery", "Promos", "BI", "API / CSV"],
+    stackChips: [
+      "POS",
+      "Planning",
+      "Stock",
+      "Delivery",
+      "Promos",
+      "BI",
+      "API / CSV",
+    ],
     rolesLabel: "Décideurs du réseau",
     roleChips: ["Franchisé", "Dir. Réseau", "Ops", "Finance", "RH"],
     rolesMicrocopy:
-      "Les fonctions qui arbitrent staffing, service et marge au niveau réseau.",
+      "Les fonctions qui arbitrent demande, stock et effectifs au niveau réseau.",
     trustLabel: "Engagements",
     trustMarkers: [
       "Lecture seule au démarrage",
@@ -211,37 +219,37 @@ export const valuePropFrSections: ValuePropFrSections = {
   problemCards: [
     {
       number: "01",
-      title: "Le rush se lit trop tard",
+      title: "La demande se lit trop tard",
       consequence:
-        "Quand le service décroche déjà, les seules options restantes coûtent plus cher et protègent moins bien la marge.",
+        "Quand le rush est déjà là, les seules options restantes coûtent plus cher et laissent filer à la fois le service, le stock critique et les effectifs.",
     },
     {
       number: "02",
-      title: "Chaque restaurant arbitre seul",
+      title: "Stock et équipes se recalent trop tard",
       consequence:
-        "Sans lecture réseau partagée, on compense au plus vite au lieu de choisir la meilleure option pour l\u2019ensemble du parc.",
+        "Sans lecture réseau partagée, chaque restaurant compense localement au lieu de choisir la meilleure combinaison stock / effectifs pour l\u2019ensemble du parc.",
     },
     {
       number: "03",
-      title: "La marge glisse sans preuve",
+      title: "Les mêmes tensions reviennent",
       consequence:
-        "Sans relecture service, staffing et marge, le même problème revient au prochain midi, soir ou temps fort promotionnel.",
+        "Sans relecture demande, stock, effectifs et marge, le même problème revient au prochain midi, soir ou temps fort promotionnel.",
     },
   ],
   method: {
     kicker: "Comment ça marche",
-    heading: "Quatre étapes pour décider avant le rush.",
+    heading: "Quatre étapes pour prévoir et décider avant le rush.",
     steps: [
       {
         id: "voir",
         number: "01",
         verb: "Anticiper",
         title:
-          "Voir quels restaurants vont décrocher avant midi, soir ou promo",
-        body: "Praedixa relit POS, planning, delivery, météo et promotions pour identifier les restaurants, créneaux et canaux qui vont passer sous tension.",
+          "Voir où demande, stock et effectifs vont se tendre avant midi, soir ou promo",
+        body: "Praedixa relit POS, planning, stock, delivery, météo et promotions pour identifier les restaurants, créneaux et canaux qui vont passer sous tension.",
         bullets: [
           "Connexion en lecture seule à vos sources existantes",
-          "Projection des services à risque à court horizon",
+          "Projection de la demande, des tensions stock et des besoins d\u2019effectifs à court horizon",
           "Signal exploitable par restaurant, canal et créneau",
         ],
         microproof: "Rush détecté 5\u00a0jours avant un vendredi promo",
@@ -251,7 +259,7 @@ export const valuePropFrSections: ValuePropFrSections = {
         number: "02",
         verb: "Comparer",
         title: "Comparer les arbitrages qui existent vraiment sur le terrain",
-        body: "Pour chaque service sous tension, Praedixa compare les options réalistes\u00a0: renfort local, réaffectation inter-sites, réduction temporaire de promesse de service ou throttling delivery.",
+        body: "Pour chaque service sous tension, Praedixa compare les options réalistes\u00a0: renfort local, réaffectation inter-sites, sécurisation d\u2019un stock critique ou simplification temporaire de l\u2019offre.",
         bullets: [
           "Plusieurs scénarios chiffrés et comparés",
           "Coût d\u2019action vs coût de non-action",
@@ -276,8 +284,8 @@ export const valuePropFrSections: ValuePropFrSections = {
         id: "prouver",
         number: "04",
         verb: "Prouver",
-        title: "Relire marge, service et heures d\u2019urgence après exécution",
-        body: "Après exécution, Praedixa compare ce qui était prévu à ce qui s\u2019est réellement passé sur la couverture, le temps de service, la marge et les coûts d\u2019urgence.",
+        title: "Relire stock, service et heures d\u2019urgence après exécution",
+        body: "Après exécution, Praedixa compare ce qui était prévu à ce qui s\u2019est réellement passé sur le stock, la couverture, le temps de service, la marge et les coûts d\u2019urgence.",
         bullets: [
           "Comparaison automatique prévu vs réel",
           "Preuve structurée, exploitable en comité",
@@ -290,7 +298,7 @@ export const valuePropFrSections: ValuePropFrSections = {
   proofPreview: {
     kicker: "Preuve de ROI",
     heading: "Un cas réseau relisible par opérations et finance.",
-    body: "Chaque arbitrage est relié à son effet sur le service, la masse salariale et la marge. Vous obtenez une preuve relisible en comité, pas une simple estimation.",
+    body: "Chaque arbitrage est relié à son effet sur le stock, la masse salariale, le service et la marge. Vous obtenez une preuve relisible en comité, pas une simple estimation.",
     tabs: [
       {
         label: "Situation",
@@ -300,7 +308,7 @@ export const valuePropFrSections: ValuePropFrSections = {
       {
         label: "Options comparées",
         content:
-          "Trois arbitrages sont relus sur la même base\u00a0: renfort ciblé, réallocation inter-sites et réduction temporaire du menu delivery. Chaque option est évaluée sur coût, temps de service et marge protégée.",
+          "Trois arbitrages sont relus sur la même base\u00a0: renfort ciblé, réallocation inter-sites et simplification temporaire de l\u2019offre. Chaque option est évaluée sur coût, disponibilité stock, temps de service et marge protégée.",
       },
       {
         label: "Impact mesuré",
@@ -318,7 +326,7 @@ export const valuePropFrSections: ValuePropFrSections = {
     kicker: "Déploiement",
     heading: "Un premier cas réseau en 30\u00a0jours.",
     subheading:
-      "On démarre sur POS, planning et delivery. Un sponsor opérations suffit pour cadrer le premier arbitrage.",
+      "On démarre sur POS, planning, stock et delivery. Un sponsor opérations suffit pour cadrer la première prévision réseau.",
     steps: [
       {
         marker: "S1",
@@ -330,7 +338,7 @@ export const valuePropFrSections: ValuePropFrSections = {
         marker: "S2",
         title: "Carte de risque",
         description:
-          "Lecture par restaurant, service et canal avec options comparées sur vos données existantes.",
+          "Lecture par restaurant, service et canal sur demande, stock et effectifs avec options comparées sur vos données existantes.",
       },
       {
         marker: "S3",
@@ -342,7 +350,7 @@ export const valuePropFrSections: ValuePropFrSections = {
         marker: "S4",
         title: "Mesure réelle",
         description:
-          "Comparaison prévu vs réel sur staffing, service et marge, puis plan pour la suite.",
+          "Comparaison prévu vs réel sur stock, effectifs, service et marge, puis plan pour la suite.",
       },
       {
         marker: "\u2192",
@@ -393,10 +401,19 @@ export const valuePropFrSections: ValuePropFrSections = {
       {
         badge: "Contrôle actif",
         title: "Connecteurs standards",
-        body: "POS, exports CSV, APIs delivery, planning et BI. Pas d\u2019intégration invasive.",
+        body: "POS, stock, exports CSV, APIs delivery, planning et BI. Pas d\u2019intégration invasive.",
       },
     ],
-    stackItems: ["POS", "Planning", "Delivery", "Promos", "BI", "CSV", "API"],
+    stackItems: [
+      "POS",
+      "Planning",
+      "Stock",
+      "Delivery",
+      "Promos",
+      "BI",
+      "CSV",
+      "API",
+    ],
   },
   faqV2: {
     heading: "Questions fréquentes",
@@ -414,12 +431,12 @@ export const valuePropFrSections: ValuePropFrSections = {
       {
         question: "Est-ce que cela couvre drive, salle et delivery\u00a0?",
         answer:
-          "Oui. Le sujet n\u2019est pas le canal en soi, mais l\u2019arbitrage entre couverture, promesse de service et marge quand plusieurs canaux se tendent en même temps.",
+          "Oui. Le sujet n\u2019est pas le canal en soi, mais la capacité à prévoir la demande, le stock critique et les besoins d\u2019effectifs quand plusieurs canaux se tendent en même temps.",
       },
       {
         question: "Quelles données faut-il au démarrage\u00a0?",
         answer:
-          "Vos exports ou API existants suffisent dans la plupart des cas\u00a0: ventes POS, planning, absences, delivery, promotions ou coûts de couverture.",
+          "Vos exports ou API existants suffisent dans la plupart des cas\u00a0: ventes POS, planning, absences, stock, delivery, promotions ou coûts de couverture.",
       },
       {
         question: "Qui doit porter le sujet côté client\u00a0?",
@@ -429,7 +446,7 @@ export const valuePropFrSections: ValuePropFrSections = {
       {
         question: "Quelle est la différence avec la BI ou le WFM\u00a0?",
         answer:
-          "La BI montre ce qui s\u2019est passé. Le planning exécute un scénario. Praedixa relie les deux pour choisir plus tôt quoi faire quand le rush met simultanément service, staffing et marge sous tension.",
+          "La BI montre ce qui s\u2019est passé. Le planning exécute un scénario. Praedixa relie les deux pour prévoir plus tôt la demande, le stock et les besoins d\u2019effectifs avant que le rush ne mette simultanément service et marge sous tension.",
       },
       {
         question: "Que se passe-t-il après les 30 premiers jours\u00a0?",
@@ -439,15 +456,15 @@ export const valuePropFrSections: ValuePropFrSections = {
     ],
     contactCta: "Une question spécifique\u00a0?",
     contactBody:
-      "Décrivez votre réseau et le prochain rush à traiter, nous revenons avec une réponse qualifiée sous 48h ouvrées.",
+      "Décrivez votre réseau et votre prochain enjeu de demande, de stock ou d\u2019effectifs, nous revenons avec une réponse qualifiée sous 48h ouvrées.",
   },
   finalCta: {
     label: "Réseau restauration rapide",
-    heading: "Cadrons le prochain rush réseau.",
-    body: "Décrivez vos restaurants, vos services sous tension et le prochain temps fort. On revient avec un cadrage concret sous 48h.",
+    heading: "Cadrons votre première prévision réseau.",
+    body: "Décrivez vos restaurants, vos tensions de demande, de stock ou d\u2019effectifs et le prochain temps fort. On revient avec un cadrage concret sous 48h.",
     promiseItems: [
       "Retour en 48h",
-      "Premier risque à objectiver",
+      "Premier signal à objectiver",
       "Plan d\u2019action réseau concret",
     ],
     step1Fields: [

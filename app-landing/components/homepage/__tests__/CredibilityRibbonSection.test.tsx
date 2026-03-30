@@ -17,6 +17,7 @@ describe("CredibilityRibbonSection", () => {
     for (const chip of [
       "POS",
       "Planning",
+      "Stock",
       "Delivery",
       "Promos",
       "BI",
@@ -40,7 +41,7 @@ describe("CredibilityRibbonSection", () => {
 
     expect(
       screen.getByText(
-        "Les fonctions qui arbitrent staffing, service et marge au niveau réseau.",
+        "Les fonctions qui arbitrent demande, stock et effectifs au niveau réseau.",
       ),
     ).toBeInTheDocument();
   });

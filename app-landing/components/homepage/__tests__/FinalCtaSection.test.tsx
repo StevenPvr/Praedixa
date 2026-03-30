@@ -16,7 +16,7 @@ describe("FinalCtaSection", () => {
     expect(
       screen.getByRole("heading", {
         level: 2,
-        name: "Cadrons le prochain rush réseau.",
+        name: "Cadrons votre première prévision réseau.",
       }),
     ).toBeInTheDocument();
   });
@@ -32,7 +32,7 @@ describe("FinalCtaSection", () => {
 
     const promiseItems = [
       "Retour en 48h",
-      "Premier risque à objectiver",
+      "Premier signal à objectiver",
       "Plan d\u2019action réseau concret",
     ];
 

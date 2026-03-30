@@ -57,8 +57,8 @@ describe("HeroPulsorSection", () => {
     render(<HeroPulsorSection locale="fr" />);
 
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent("Prédisez la demande,");
-    expect(heading).toHaveTextContent("calibrez vos effectifs.");
+    expect(heading).toHaveTextContent("Prévoyez la demande,");
+    expect(heading).toHaveTextContent("anticipez stock et effectifs.");
   });
 
   it("renders the eyebrow kicker text", () => {
@@ -81,7 +81,7 @@ describe("HeroPulsorSection", () => {
 
     expect(
       screen.getByText(
-        /Praedixa relie vos caisses, plannings, apps de livraison, promotions et signaux terrain/,
+        /Praedixa relie vos caisses, plannings, apps de livraison, promotions, signaux stock et terrain/,
       ),
     ).toBeInTheDocument();
   });
@@ -109,7 +109,7 @@ describe("HeroPulsorSection", () => {
     render(<HeroPulsorSection locale="fr" />);
 
     expect(screen.getByText("Lecture seule")).toBeInTheDocument();
-    expect(screen.getByText("POS + planning + delivery")).toBeInTheDocument();
+    expect(screen.getByText("POS + planning + stock + delivery")).toBeInTheDocument();
     expect(screen.getByText("Hébergement France")).toBeInTheDocument();
     expect(screen.getByText("NDA sur demande")).toBeInTheDocument();
   });
@@ -150,8 +150,8 @@ describe("HeroPulsorSection", () => {
     render(<HeroPulsorSection locale="en" />);
 
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent("Predict demand,");
-    expect(heading).toHaveTextContent("calibrate staffing.");
+    expect(heading).toHaveTextContent("Forecast demand,");
+    expect(heading).toHaveTextContent("inventory and staffing.");
     expect(screen.queryByText("QSR OPS")).not.toBeInTheDocument();
     expect(screen.queryByText("30d")).not.toBeInTheDocument();
     expect(screen.getByTestId("hero-background-video")).toBeInTheDocument();

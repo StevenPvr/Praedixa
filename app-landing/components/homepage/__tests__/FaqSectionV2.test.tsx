@@ -77,7 +77,7 @@ describe("FaqSectionV2", () => {
 
     expect(
       screen.getByText(
-        "Décrivez votre réseau et le prochain rush à traiter, nous revenons avec une réponse qualifiée sous 48h ouvrées.",
+        "Décrivez votre réseau et votre prochain enjeu de demande, de stock ou d’effectifs, nous revenons avec une réponse qualifiée sous 48h ouvrées.",
       ),
     ).toBeInTheDocument();
 

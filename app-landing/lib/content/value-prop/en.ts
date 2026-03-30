@@ -4,22 +4,22 @@ import { valuePropEnSections } from "./en-sections";
 export const coreValuePropEn: ValuePropContent = {
   icp: "Franchisees, network directors, and operations leaders running quick-service restaurant networks",
   promise:
-    "Praedixa helps quick-service restaurant networks predict demand and staffing needs before rush periods, without replacing POS, planning, or BI.",
+    "Praedixa helps quick-service restaurant networks forecast demand, inventory pressure, and staffing needs before rush periods, without replacing POS, planning, or BI.",
   mechanism:
-    "Praedixa combines sales, planning, delivery, promotions, weather, and field history to anticipate demand, project staffing needs, and flag the services most likely to slip.",
+    "Praedixa combines sales, planning, delivery, promotions, weather, field history, and inventory signals to anticipate demand, project staffing needs, spot inventory pressure, and flag the restaurants most likely to slip.",
   reassurance: [
     "Read-only",
-    "POS + planning + delivery",
+    "POS + planning + inventory + delivery",
     "Hosted in France",
     "NDA on request",
   ],
   ctaPrimary: "See the historical proof",
   ctaSecondary: "Scope my network",
   heroKicker: "For multi-site quick-service restaurant franchise networks",
-  heroHeading: "Predict demand,",
-  heroHeadingHighlight: "calibrate staffing.",
+  heroHeading: "Forecast demand,",
+  heroHeadingHighlight: "inventory and staffing.",
   heroSubheading:
-    "Praedixa connects your POS, schedules, delivery apps, promotions, and field signals to anticipate incoming volumes, project staffing needs, and see which restaurants will come under pressure restaurant by restaurant.",
+    "Praedixa connects your POS, schedules, delivery apps, promotions, inventory signals, and field context to anticipate incoming volumes, project staffing needs, spot inventory pressure, and see which restaurants will come under pressure restaurant by restaurant.",
   heroBadgeText: "QSR OPS",
   heroProofBlockText:
     "For franchisees, network directors, and operations teams that need earlier demand and coverage visibility.",
@@ -28,8 +28,8 @@ export const coreValuePropEn: ValuePropContent = {
   heroLogoCaption: "They trust us",
   heroOffer: {
     badge: "Our promise",
-    title: "A first network-level decision in 30 days",
-    body: "A focused scope on POS, planning, and delivery to act before the next peak period.",
+    title: "A first demand, inventory, staffing readout in 30 days",
+    body: "A focused scope on top of POS, planning, inventory, and delivery to act before the next peak period.",
     note: "Read-only start. NDA available from day one.",
   },
   socialProof: {
@@ -43,32 +43,32 @@ export const coreValuePropEn: ValuePropContent = {
   },
   product: {
     kicker: "Network operations",
-    heading: "Demand and staffing prediction built for the rush.",
+    heading: "Demand, inventory, and staffing forecasting built for the rush.",
     subheading:
-      "Praedixa helps HQ and field teams anticipate demand, prepare coverage, and protect the most sensitive services.",
+      "Praedixa helps HQ and field teams anticipate demand, prepare the right inventory, and calibrate coverage for the most sensitive services.",
   },
   footerTagline:
-    "Praedixa helps quick-service restaurant networks anticipate demand and staffing needs before the rush, without replacing their tools.",
+    "Praedixa helps quick-service restaurant networks anticipate demand, inventory pressure, and staffing needs before the rush, without replacing their tools.",
   qualificationTitle: "Is Praedixa right for you?",
   qualificationBody:
-    "Praedixa is built for quick-service restaurant franchise networks that want to objectify staffing, service, and margin trade-offs across multiple restaurants.",
+    "Praedixa is built for quick-service restaurant franchise networks that want to objectify demand, inventory, and staffing trade-offs across multiple restaurants.",
   fitTitle: "A good starting point if\u2026",
   fitItems: [
     "you run multiple restaurants with recurring lunch, dinner, or delivery peaks",
-    "a network or operations leader wants cleaner staffing decisions",
+    "a network or operations leader wants earlier demand, inventory, or staffing visibility",
     "POS, planning, or delivery data is already accessible at kickoff",
   ],
   notFitTitle: "Not for you if\u2026",
   notFitItems: [
     "you run a single location with no network-level challenge",
     "no operations leader can own the topic on the field or HQ side",
-    "no usable POS, planning, or activity data is accessible at the start",
+    "no usable POS, planning, inventory, or activity data is accessible at the start",
   ],
   stackComparison: {
     kicker: "Compatibility",
-    heading: "Praedixa adds to your network stack. It decides where your tools stop.",
+    heading: "Praedixa adds to your network stack. It projects where your tools stop.",
     subheading:
-      "POS, planning, delivery, BI, spreadsheets: everything stays in place. Praedixa connects the useful signals to arbitrate earlier between staffing, service, and protected margin.",
+      "POS, planning, inventory, delivery, BI, spreadsheets: everything stays in place. Praedixa connects the useful signals to forecast demand, inventory pressure, and staffing needs before service and margin drift.",
     columnLabels: {
       category: "Tool",
       currentCoverage: "What it does",
@@ -80,9 +80,9 @@ export const coreValuePropEn: ValuePropContent = {
         category: "POS / ERP",
         currentCoverage: "Captures sales, transactions, inventory, and cost flows.",
         stopsAt:
-          "Shows the past but does not tell teams what decision to launch before the next rush.",
+          "Shows the past but does not tell teams where demand, inventory, or staffing will tighten before the next rush.",
         praedixaAdd:
-          "Projects risky services and compares coverage options before margin slips.",
+          "Projects demand, inventory pressure, and staffing needs, then compares trade-offs before margin slips.",
       },
       {
         category: "BI / reporting",
@@ -90,7 +90,7 @@ export const coreValuePropEn: ValuePropContent = {
         stopsAt:
           "Explains what happened, but not what to do on the next critical lunch or dinner period.",
         praedixaAdd:
-          "Surfaces concrete trade-offs and reviews their real effect on service and margin.",
+          "Surfaces concrete trade-offs and reviews their real effect on inventory, service, and margin.",
       },
       {
         category: "Planning / WFM",
@@ -98,28 +98,28 @@ export const coreValuePropEn: ValuePropContent = {
         stopsAt:
           "Builds the schedule, but does not compare network scenarios before execution.",
         praedixaAdd:
-          "Compares reinforcement, reallocation, service reduction, or delivery throttling scenarios.",
+          "Projects staffing needs from demand and inventory pressure, then compares reinforcement, reallocation, or offer-simplification scenarios.",
       },
       {
         category: "Spreadsheets / committees",
         currentCoverage: "Helps HQ and field teams frame a topic quickly.",
         stopsAt:
-          "Stays manual, hard to replay, and with no clear proof on service, staffing, and margin.",
+          "Stays manual, hard to replay, and with no clear proof on demand, inventory, staffing, and margin.",
         praedixaAdd:
           "Keeps a readable log of network decisions and their actual effect.",
       },
       {
         category: "Praedixa",
         currentCoverage:
-          "Adds a decision layer on top of your existing tools to anticipate rushes and arbitrate across the network.",
+          "Adds a forecasting and decision layer on top of your existing tools to anticipate rushes and arbitrate across the network.",
         stopsAt:
           "Does not replace POS, BI, or planning. Builds on top of them.",
         praedixaAdd:
-          "Anticipate, compare, decide, and prove ROI restaurant by restaurant.",
+          "Anticipate demand, inventory, and staffing, compare trade-offs, then prove ROI restaurant by restaurant.",
       },
     ],
     bottomNote:
-      "Compatible with existing POS, planning, delivery, BI, and export layers.",
+      "Compatible with existing POS, planning, inventory, delivery, BI, and export layers.",
   },
   servicesMeta: {
     title:
@@ -134,9 +134,9 @@ export const coreValuePropEn: ValuePropContent = {
   services: {
     kicker: "Offer",
     heading:
-      "What you buy: a first network decision made explicit in 30 days.",
+      "What you buy: a first demand, inventory, staffing readout made explicit in 30 days.",
     subheading:
-      "Praedixa starts on top of POS, planning, delivery, and cost data already available. If needed, a historical proof validates the topic before broader rollout.",
+      "Praedixa starts on top of POS, planning, delivery, inventory, and cost data already available. If needed, a historical proof validates the topic before broader rollout.",
     timelineTitle: "In 30 days",
     timeline: [
       {
@@ -145,7 +145,7 @@ export const coreValuePropEn: ValuePropContent = {
       },
       {
         title: "Week 2",
-        body: "First risk map with compared options from POS, planning, and delivery data.",
+        body: "First demand / inventory / staffing risk map with compared options from POS, planning, inventory, and delivery data.",
       },
       {
         title: "Week 3",
@@ -153,13 +153,13 @@ export const coreValuePropEn: ValuePropContent = {
       },
       {
         title: "Week 4",
-        body: "Review actual impact on staffing, service, and margin, then define rollout next steps.",
+        body: "Review actual impact on inventory, staffing, service, and margin, then define rollout next steps.",
       },
     ],
     deliveredTitle: "What is delivered",
     delivered: [
-      "A first restaurant-by-restaurant view of rushes, staffing, and service risk",
-      "Compared options with explicit cost, service, and margin assumptions",
+      "A first restaurant-by-restaurant view of demand, inventory, staffing, and service risk",
+      "Compared options with explicit cost, inventory-coverage, service, and margin assumptions",
       "A clear recommendation for operations, network leadership, and finance",
       "A measured readout of the first network-level decision",
     ],
@@ -173,7 +173,7 @@ export const coreValuePropEn: ValuePropContent = {
     clientNeedsTitle: "What the client needs to provide",
     clientNeeds: [
       "A network or operations sponsor available for the pass",
-      "Usable POS, planning, delivery, or cost access from the start",
+      "Usable POS, planning, inventory, delivery, or cost access from the start",
       "A coming peak period or an already visible trade-off to tackle first",
     ],
     participantsTitle: "Who joins",
@@ -186,7 +186,7 @@ export const coreValuePropEn: ValuePropContent = {
     reviewItems: [
       "Short weekly HQ + field checkpoint",
       "Recommendation review with operations and finance",
-      "Final readout on service, staffing, and protected margin",
+      "Final readout on demand, inventory, staffing, and protected margin",
     ],
     primaryCtaLabel: "Scope my network",
     secondaryCtaLabel: "See the historical proof",

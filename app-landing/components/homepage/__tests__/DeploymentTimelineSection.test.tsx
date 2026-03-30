@@ -28,7 +28,7 @@ describe("DeploymentTimelineSection", () => {
       /Un premier cas réseau en 30/,
     );
     expect(
-      screen.getByText(/On démarre sur POS, planning et delivery/),
+      screen.getByText(/On démarre sur POS, planning, stock et delivery/),
     ).toBeInTheDocument();
   });
 

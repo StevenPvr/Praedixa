@@ -27,7 +27,7 @@ describe("MethodBlockSection", () => {
 
     expect(screen.getByText(/Comment ça marche/)).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
-      /Quatre étapes pour décider avant le rush/,
+      /Quatre étapes pour prévoir et décider avant le rush/,
     );
   });
 

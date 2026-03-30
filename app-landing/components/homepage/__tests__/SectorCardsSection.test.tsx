@@ -35,7 +35,7 @@ describe("SectorCardsSection", () => {
     expect(screen.getByText("Cas d\u2019usage réseau")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "Les arbitrages qui reviennent chaque semaine dans un réseau QSR.",
+        name: "Les prévisions qui reviennent chaque semaine dans un réseau QSR.",
       }),
     ).toBeInTheDocument();
   });
@@ -52,22 +52,22 @@ describe("SectorCardsSection", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Arbitrer le staffing avant les rushs service par service",
+        name: "Prévoir où la demande va déborder avant le rush",
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "Choisir quand ralentir un canal plutôt que brûler la marge",
+        name: "Repérer les tensions stock avant qu\u2019elles ne cassent le service",
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "Réallouer intelligemment entre restaurants proches",
+        name: "Calibrer les effectifs sans surcouvrir le réseau",
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "Relire les temps forts avant qu\u2019ils n\u2019abîment vos équipes",
+        name: "Relire les temps forts sur demande, stock et équipes",
       }),
     ).toBeInTheDocument();
   });
@@ -76,7 +76,7 @@ describe("SectorCardsSection", () => {
     render(<SectorCardsSection locale="fr" />);
 
     expect(screen.getByText("Midi / soir")).toBeInTheDocument();
-    expect(screen.getByText("Drive + delivery")).toBeInTheDocument();
+    expect(screen.getByText("Stock critique")).toBeInTheDocument();
     expect(screen.getByText("Multi-sites")).toBeInTheDocument();
     expect(screen.getByText("Promo + météo")).toBeInTheDocument();
   });

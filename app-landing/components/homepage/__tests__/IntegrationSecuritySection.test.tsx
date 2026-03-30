@@ -52,6 +52,7 @@ describe("IntegrationSecuritySection", () => {
     const stackItems = [
       "POS",
       "Planning",
+      "Stock",
       "Delivery",
       "Promos",
       "BI",
