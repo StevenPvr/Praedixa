@@ -114,6 +114,7 @@ Before writing a new admin audit action from Node/TS services, match the exact p
 Because the repo is not in production yet, do not preserve legacy aliases, compatibility shims, or transitional fallbacks; remove or replace them with the target contract as soon as they are discovered.
 When a review, audit, or implementation pass uncovers a real defect or structural risk, treat it in the same change unless the user explicitly chooses to defer it; do not leave known problems behind as "out of scope".
 Before calling a connector sync path operational, verify a worker can actually claim and close `sync_runs`; a queued run alone is not proof that runtime execution exists.
+Before an admin backoffice read bootstraps invitation delivery proof, verify the service-local pool exists first; a stray shell `DATABASE_URL` must not bypass the intended `PERSISTENCE_UNAVAILABLE` fail-close.
 
 ### Next.js, React, and Frontend Runtime
 
@@ -133,6 +134,8 @@ When mocking `next/image` in tests, strip Next-only props like `fill` and `prior
 For third-party wordmark logos, use a visually verified official asset at the actual display size instead of assuming the SVG variant will stay legible in the UI.
 If a brand asset has already been visually approved, do not swap it for a recolored or reconstructed variant without rechecking the exact rendered wordmark.
 Before updating a static Praedixa business asset, reuse the current shared logo mark from `@praedixa/ui` instead of keeping a copied legacy inline SVG.
+Before finalizing a Praedixa marketing banner, verify the top-left branding is a full lockup (official mark plus `Praedixa` wordmark) and that the headline sits inside a frame with explicit internal padding, not visual guesswork.
+Before calling a marketing banner centered, place the main text panel from the canvas geometry first and align the Praedixa lockup with explicit vertical centering; SVG text baselines alone are not a reliable centering method.
 Do not remove or rewrite user-approved brand or mission copy unless the user explicitly asks for that exact change.
 After changing hero claim layouts, verify the real desktop browser rendering before considering the task done.
 When updating landing hero positioning copy, verify the combined headline length (`headline` + `headlineHighlight`) stays short enough before trying to solve the issue with layout tweaks.
@@ -255,6 +258,10 @@ Before starting a local dynamic API audit or smoke server, bind it to a freshly 
 
 ### Landing UX, Brand, Copy, and Public SEO
 
+Before defending an abstract marketing banner concept, verify whether the user explicitly wants a real-world scene; if they ask for a restaurant background, switch to a true restaurant image before refining overlays or iconography.
+Before finalizing a static marketing banner, verify the target segment and geographic positioning are legible through the primary visual signals themselves, not only through the supporting copy.
+Before finalizing a static marketing banner with sector photography, prefer vetted open-license images that unmistakably signal the sector and crop them per export ratio instead of stretching or reusing one ambiguous source across every format.
+Before changing copy inside a static marketing banner badge or capsule, measure the rendered SVG text width and resize/reposition the frame before export; never assume the previous pill still fits the new wording.
 Before adding a global skip-link in a Next.js app shell, verify that every route branch, including auth pages outside the main shell, exposes the target anchor.
 Before shipping a decorative hero video on the landing page, let a static poster carry the initial paint and defer video loading so Lighthouse LCP stays tied to the real content, not the media upgrade.
 Before calling a decorative hero video "progressive", verify it can still mount automatically without a user gesture, or the homepage can look broken on first visit.

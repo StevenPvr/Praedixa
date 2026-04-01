@@ -2452,8 +2452,9 @@ export class AdminBackofficeService {
     organizationId: string,
   ): Promise<AdminUserRecord[]> {
     ensureUuid(organizationId, "organizationId");
+    const pool = this.getPool();
     await this.deliveryProofService.ensureReady();
-    const rows = await this.getPool().query<DbUserRow>(
+    const rows = await pool.query<DbUserRow>(
       `
       SELECT
         u.id::text,
@@ -2485,8 +2486,9 @@ ${USER_DELIVERY_PROOF_JOIN_SQL}
   ): Promise<AdminUserRecord | null> {
     ensureUuid(organizationId, "organizationId");
     ensureUuid(userId, "userId");
+    const pool = this.getPool();
     await this.deliveryProofService.ensureReady();
-    const row = await this.getPool().query<DbUserRow>(
+    const row = await pool.query<DbUserRow>(
       `
       SELECT
         u.id::text,

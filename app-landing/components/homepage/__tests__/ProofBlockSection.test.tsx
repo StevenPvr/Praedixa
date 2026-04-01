@@ -76,7 +76,7 @@ describe("ProofBlockSection", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        /Chaque arbitrage est relié à son effet sur le service, la masse salariale et la marge/,
+        /Chaque arbitrage est relié à son effet sur le stock, la masse salariale, le service et la marge/,
       ),
     ).toBeInTheDocument();
   });
@@ -111,7 +111,9 @@ describe("ProofBlockSection", () => {
     await user.click(screen.getByRole("tab", { name: "Options comparées" }));
 
     expect(
-      screen.getByText(/Chaque option est évaluée sur coût, temps de service et marge protégée/),
+      screen.getByText(
+        /Chaque option est évaluée sur coût, disponibilité stock, temps de service et marge protégée/,
+      ),
     ).toBeInTheDocument();
 
     await user.click(screen.getByRole("tab", { name: "Impact mesuré" }));

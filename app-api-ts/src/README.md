@@ -107,6 +107,7 @@ Routes admin:
 - Le runtime `DecisionContract` est maintenant persistant et distinct du simple `decision-config`: le Contract Studio org-scoped permet creation de draft depuis template, lecture liste/detail, transitions de lifecycle, fork, rollback candidates et rollback en nouveau draft versionne, avec audit dedie.
 - Les slices de routes admin DecisionOps et DecisionContract propagent aussi maintenant les vraies `PersistenceError` (`PERSISTENCE_UNAVAILABLE`, `statusCode`, `details`) au lieu de les ecraser en `400`, afin que les surfaces admin restent strictement fail-close quand la persistance manque.
 - Le `Contract Studio` ne doit plus accepter un body `{}` deguisant une mutation de save/create: les unions de schema route exigent des objets reels sur la branche `contract`, pour eviter qu'un `z.custom()` trop permissif avale la mauvaise forme de payload.
+- Les lectures admin `organization users` doivent verifier le pool local du service avant de bootstrapper `InvitationDeliveryProofService`; un `DATABASE_URL` present seulement dans le shell ne doit jamais transformer un fail-close `PERSISTENCE_UNAVAILABLE` en erreur reseau brute.
 
 ## Lecture conseillee pour un nouvel arrivant
 
