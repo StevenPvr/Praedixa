@@ -3,10 +3,12 @@
 import { useState } from "react";
 import type { Locale } from "../../lib/i18n/config";
 import type { FinalCtaContent } from "../../lib/content/value-prop/shared";
+import { CalendlyExpertLink } from "../shared/CalendlyExpertLink";
 
 interface FinalCtaClientProps {
   locale: Locale;
   cta: FinalCtaContent;
+  calendlyExpertLabel: string;
 }
 
 type FormStep = 1 | 2 | "success";
@@ -218,7 +220,11 @@ function FinalCtaStepTwo({
   );
 }
 
-export function FinalCtaClient({ locale, cta }: FinalCtaClientProps) {
+export function FinalCtaClient({
+  locale,
+  cta,
+  calendlyExpertLabel,
+}: FinalCtaClientProps) {
   const [step, setStep] = useState<FormStep>(1);
   const [formData, setFormData] = useState<Record<string, string>>({});
 
@@ -232,6 +238,14 @@ export function FinalCtaClient({ locale, cta }: FinalCtaClientProps) {
 
   return (
     <div>
+      <p className="mb-6 text-sm leading-relaxed text-ink-700">
+        {cta.calendlyMicrocopy}{" "}
+        <CalendlyExpertLink
+          locale={locale}
+          label={calendlyExpertLabel}
+          className="font-semibold text-proof-600 underline decoration-proof-600/30 underline-offset-2 transition-colors hover:text-proof-700 hover:decoration-proof-700/50 focus-visible:rounded focus-visible:ring-2 focus-visible:ring-proof-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+        />
+      </p>
       <StepIndicators step={step} />
       {step === 1 ? (
         <FinalCtaStepOne

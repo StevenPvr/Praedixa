@@ -75,6 +75,21 @@ describe("FinalCtaSection", () => {
     expect(screen.getByText("2")).toBeInTheDocument();
   });
 
+  it("renders Calendly microcopy and expert booking link", () => {
+    render(<FinalCtaSection locale="fr" />);
+
+    expect(
+      screen.getByText(/Vous préférez réserver un créneau de 30/i),
+    ).toBeInTheDocument();
+    const calendly = screen.getByRole("link", {
+      name: /Parler avec le CEO/i,
+    });
+    expect(calendly).toHaveAttribute(
+      "href",
+      "https://calendly.com/steven-poivre-praedixa/30min",
+    );
+  });
+
   it("renders the 'Continuer' button for step 1", () => {
     render(<FinalCtaSection locale="fr" />);
 

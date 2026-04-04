@@ -460,6 +460,7 @@ export const valuePropEnSections: ValuePropEnSections = {
     label: "Quick-service restaurant network",
     heading: "Let\u2019s frame your first network forecast.",
     body: "Describe your restaurants, your demand, inventory, or staffing pressure, and the next peak period. We come back with a concrete scope in 48 hours.",
+    calendlyMicrocopy: "Prefer to book a 30-minute slot right away?",
     promiseItems: [
       "Reply in 48h",
       "First signal to objectify",

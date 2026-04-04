@@ -68,6 +68,7 @@ export interface FinalCtaContent {
   label: string;
   heading: string;
   body: string;
+  calendlyMicrocopy: string;
   promiseItems: string[];
   step1Fields: { name: string; type: "select" | "text"; options?: string[] }[];
   step2Fields: { name: string; type: "text" | "email" | "textarea" }[];
@@ -112,6 +113,7 @@ export interface ValuePropContent {
   reassurance: string[];
   ctaPrimary: string;
   ctaSecondary: string;
+  ctaCalendlyExpert: string;
   heroKicker: string;
   heroHeading: string;
   heroHeadingHighlight: string;

@@ -15,6 +15,7 @@ export const coreValuePropFr: ValuePropContent = {
   ],
   ctaPrimary: "Voir la preuve de ROI",
   ctaSecondary: "Cadrer mon réseau",
+  ctaCalendlyExpert: "Parler avec le CEO — produit & data",
   heroKicker: "Pour les franchisés de restauration rapide multi-sites",
   heroHeading: "Prévoyez la demande,",
   heroHeadingHighlight: "anticipez stock et effectifs.",

@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CaretDown, List, X } from "@phosphor-icons/react";
 import type { Locale } from "../../lib/i18n/config";
 import { getNavGroups } from "../../lib/nav-config";
+import { CalendlyExpertLink } from "./CalendlyExpertLink";
 
 interface MobileNavProps {
   locale: Locale;
@@ -14,6 +15,7 @@ interface MobileNavProps {
   primaryCtaLabel: string;
   secondaryCtaHref: string;
   secondaryCtaLabel: string;
+  calendlyExpertLabel: string;
 }
 
 export function MobileNav({
@@ -22,6 +24,7 @@ export function MobileNav({
   primaryCtaLabel,
   secondaryCtaHref,
   secondaryCtaLabel,
+  calendlyExpertLabel,
 }: MobileNavProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -239,6 +242,11 @@ export function MobileNav({
                 >
                   {secondaryCtaLabel}
                 </Link>
+                <CalendlyExpertLink
+                  locale={locale}
+                  label={calendlyExpertLabel}
+                  className="flex w-full items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-5 py-3 text-sm font-semibold text-ink no-underline transition-colors duration-200 hover:border-neutral-300 hover:bg-neutral-100"
+                />
               </div>
             </motion.nav>
           </motion.div>

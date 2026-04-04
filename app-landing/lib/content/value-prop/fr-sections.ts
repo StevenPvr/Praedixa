@@ -462,6 +462,7 @@ export const valuePropFrSections: ValuePropFrSections = {
     label: "Réseau restauration rapide",
     heading: "Cadrons votre première prévision réseau.",
     body: "Décrivez vos restaurants, vos tensions de demande, de stock ou d\u2019effectifs et le prochain temps fort. On revient avec un cadrage concret sous 48h.",
+    calendlyMicrocopy: "Vous préférez réserver un créneau de 30\u00a0min tout de suite\u00a0?",
     promiseItems: [
       "Retour en 48h",
       "Premier signal à objectiver",

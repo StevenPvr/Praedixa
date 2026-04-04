@@ -96,6 +96,7 @@ describe("navigation menus", () => {
         primaryCtaLabel="Voir un exemple concret"
         secondaryCtaHref="/fr/deploiement"
         secondaryCtaLabel="Parler du déploiement"
+        calendlyExpertLabel="Parler avec le CEO — produit & data"
       />,
     );
 
@@ -129,6 +130,7 @@ describe("navigation menus", () => {
         primaryCtaLabel="Voir un exemple concret"
         secondaryCtaHref="/fr/deploiement"
         secondaryCtaLabel="Parler du déploiement"
+        calendlyExpertLabel="Parler avec le CEO — produit & data"
       />,
     );
 

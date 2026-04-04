@@ -71,7 +71,7 @@ describe("HeroV2Section", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders two CTA links with correct hrefs", () => {
+  it("renders primary and secondary CTAs plus Calendly expert link", () => {
     render(<HeroV2Section locale="fr" />);
 
     const primaryCta = screen.getByRole("link", {
@@ -86,6 +86,16 @@ describe("HeroV2Section", () => {
       "href",
       "/fr/contact?intent=deploiement",
     );
+
+    const calendly = screen.getByRole("link", {
+      name: /Parler avec le CEO/i,
+    });
+    expect(calendly).toHaveAttribute(
+      "href",
+      "https://calendly.com/steven-poivre-praedixa/30min",
+    );
+    expect(calendly).toHaveAttribute("target", "_blank");
+    expect(calendly).toHaveAttribute("rel", "noopener noreferrer");
   });
 
   it("renders reassurance proof chips", () => {

@@ -44,7 +44,11 @@ export function FinalCtaSection({ locale }: FinalCtaSectionProps) {
 
           {/* Right panel — form */}
           <div className="p-8 md:p-10">
-            <FinalCtaClient locale={locale} cta={cta} />
+            <FinalCtaClient
+              locale={locale}
+              cta={cta}
+              calendlyExpertLabel={vp.ctaCalendlyExpert}
+            />
           </div>
         </div>
       </div>

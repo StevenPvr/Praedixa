@@ -15,6 +15,7 @@ export const coreValuePropEn: ValuePropContent = {
   ],
   ctaPrimary: "See the historical proof",
   ctaSecondary: "Scope my network",
+  ctaCalendlyExpert: "Talk with the CEO — product & data",
   heroKicker: "For multi-site quick-service restaurant franchise networks",
   heroHeading: "Forecast demand,",
   heroHeadingHighlight: "inventory and staffing.",

@@ -9,6 +9,7 @@ import { heroIndustryMontageMedia } from "../../lib/media/hero-industries";
 import { ButtonPrimary } from "../shared/v2/ButtonPrimary";
 import { ButtonSecondary } from "../shared/v2/ButtonSecondary";
 import { ChipV2 } from "../shared/v2/ChipV2";
+import { CalendlyExpertLink } from "../shared/CalendlyExpertLink";
 import { HeroV2Client } from "./HeroV2Client";
 
 interface HeroV2SectionProps {
@@ -26,6 +27,7 @@ export function HeroV2Section({ locale }: HeroV2SectionProps) {
       <div className="relative mx-auto flex min-h-[100dvh] max-w-content items-center px-4 pb-8 pt-[calc(var(--header-h)+3.5rem)] sm:px-6 lg:px-8 lg:pb-14">
         <div className="grid w-full grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <HeroV2CopyColumn
+            locale={locale}
             kicker={vp.heroKicker}
             heading={vp.heroHeading}
             headingHighlight={vp.heroHeadingHighlight}
@@ -34,6 +36,7 @@ export function HeroV2Section({ locale }: HeroV2SectionProps) {
             primaryLabel={vp.ctaPrimary}
             secondaryHref={scopingHref}
             secondaryLabel={vp.ctaSecondary}
+            calendlyExpertLabel={vp.ctaCalendlyExpert}
             reassurance={vp.reassurance}
           />
           <HeroV2DesktopMedia />
@@ -45,6 +48,7 @@ export function HeroV2Section({ locale }: HeroV2SectionProps) {
 }
 
 function HeroV2CopyColumn({
+  locale,
   kicker,
   heading,
   headingHighlight,
@@ -53,8 +57,10 @@ function HeroV2CopyColumn({
   primaryLabel,
   secondaryHref,
   secondaryLabel,
+  calendlyExpertLabel,
   reassurance,
 }: {
+  locale: Locale;
   kicker: string;
   heading: string;
   headingHighlight: string;
@@ -63,6 +69,7 @@ function HeroV2CopyColumn({
   primaryLabel: string;
   secondaryHref: string;
   secondaryLabel: string;
+  calendlyExpertLabel: string;
   reassurance: string[];
 }) {
   return (
@@ -77,10 +84,12 @@ function HeroV2CopyColumn({
         {subheading}
       </p>
       <HeroV2Actions
+        locale={locale}
         primaryHref={primaryHref}
         primaryLabel={primaryLabel}
         secondaryHref={secondaryHref}
         secondaryLabel={secondaryLabel}
+        calendlyExpertLabel={calendlyExpertLabel}
       />
       <HeroV2ProofChips items={reassurance} />
     </div>
@@ -100,23 +109,34 @@ function HeroV2Eyebrow({ kicker }: { kicker: string }) {
 }
 
 function HeroV2Actions({
+  locale,
   primaryHref,
   primaryLabel,
   secondaryHref,
   secondaryLabel,
+  calendlyExpertLabel,
 }: {
+  locale: Locale;
   primaryHref: string;
   primaryLabel: string;
   secondaryHref: string;
   secondaryLabel: string;
+  calendlyExpertLabel: string;
 }) {
   return (
-    <div className="mt-10 flex flex-col gap-3.5 sm:flex-row sm:items-center">
-      <ButtonPrimary href={primaryHref} label={primaryLabel} />
-      <ButtonSecondary
-        href={secondaryHref}
-        label={secondaryLabel}
-        className="border-white/20 bg-white/[0.06] text-white hover:border-white/30 hover:bg-white/[0.1]"
+    <div className="mt-10 flex flex-col gap-3.5">
+      <div className="flex flex-col gap-3.5 sm:flex-row sm:items-center">
+        <ButtonPrimary href={primaryHref} label={primaryLabel} />
+        <ButtonSecondary
+          href={secondaryHref}
+          label={secondaryLabel}
+          className="border-white/20 bg-white/[0.06] text-white hover:border-white/30 hover:bg-white/[0.1]"
+        />
+      </div>
+      <CalendlyExpertLink
+        locale={locale}
+        label={calendlyExpertLabel}
+        className="inline-flex w-fit items-center gap-1 text-sm font-semibold text-[rgba(255,255,255,0.78)] underline decoration-white/25 underline-offset-4 transition-colors hover:text-white hover:decoration-white/50 focus-visible:rounded focus-visible:ring-2 focus-visible:ring-signal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950 focus-visible:outline-none"
       />
     </div>
   );

@@ -11,6 +11,7 @@ import { LocaleSwitcher } from "./LocaleSwitcher";
 import { MobileNav } from "./MobileNav";
 import { DesktopNav } from "./DesktopNav";
 import { ScrollReactiveHeader } from "./ScrollReactiveHeader";
+import { CalendlyExpertLink } from "./CalendlyExpertLink";
 
 interface HeaderProps {
   locale: Locale;
@@ -53,6 +54,11 @@ export function Header({ locale }: HeaderProps) {
             locale={locale}
             className="hidden sm:flex lg:inline-flex"
           />
+          <CalendlyExpertLink
+            locale={locale}
+            label={valueProp.ctaCalendlyExpert}
+            className="hidden whitespace-nowrap rounded-full border border-neutral-300 bg-white px-3.5 py-2 text-sm font-semibold text-ink no-underline transition-all duration-300 hover:border-neutral-400 hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-proof-500 focus-visible:ring-offset-2 focus-visible:outline-none active:translate-y-[1px] active:scale-[0.98] lg:inline-flex"
+          />
           <Link
             href={primaryCtaHref}
             aria-label={primaryCtaLabel}
@@ -71,6 +77,7 @@ export function Header({ locale }: HeaderProps) {
             primaryCtaLabel={primaryCtaLabel}
             secondaryCtaHref={secondaryCtaHref}
             secondaryCtaLabel={secondaryCtaLabel}
+            calendlyExpertLabel={valueProp.ctaCalendlyExpert}
           />
         </div>
       </div>
